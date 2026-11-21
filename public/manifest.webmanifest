@@ -1,0 +1,32 @@
+{
+  "name": "Lands of Jail Assistant",
+  "short_name": "LoJ Assistant",
+  "description": "Assistant tactique Lands of Jail par captures d'écran partagées.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0f17",
+  "theme_color": "#0b0f17",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "/src/assets/images/app_crest_1795282256452.jpg",
+      "sizes": "1024x1024",
+      "type": "image/jpeg"
+    }
+  ],
+  "share_target": {
+    "action": "/api/share-target",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "files": [
+        {
+          "name": "screenshot",
+          "accept": ["image/*"]
+        }
+      ]
+    }
+  }
+}

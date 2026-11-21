@@ -1,0 +1,8 @@
+{
+  "name": "Lands of Jail Assistant",
+  "description": "Assistant de suivi de compte Lands of Jail par captures d'écran partagées : tableau de bord, héros, compétences, ressources, puissance et conseils Trial Cage & Crystal Clash.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
