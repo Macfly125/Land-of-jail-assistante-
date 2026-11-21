@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - 'android/**'
+      - '.github/workflows/android-apk.yml'
 
 jobs:
   build-apk:
@@ -19,17 +20,25 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Configurer Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Configurer Android SDK et licences
+        run: |
+          SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
+          SDKMANAGER=$(find "$SDK_ROOT" -name "sdkmanager" -type f 2>/dev/null | head -n 1)
+          if [ -n "$SDKMANAGER" ]; then
+            yes | "$SDKMANAGER" --licenses >/dev/null 2>&1 || true
+            "$SDKMANAGER" "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          fi
 
-      - name: Configurer Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.11.1'
+      - name: Installer Gradle 8.11.1
+        run: |
+          curl -fsSL https://services.gradle.org/distributions/gradle-8.11.1-bin.zip -o /tmp/gradle.zip
+          unzip -q /tmp/gradle.zip -d /tmp
+          echo "/tmp/gradle-8.11.1/bin" >> "$GITHUB_PATH"
 
       - name: Compiler app-debug.apk
         working-directory: android
-        run: gradle assembleDebug --no-daemon
+        run: gradle assembleDebug --no-daemon --stacktrace
 
       - name: Publier l'APK téléchargeable
         uses: actions/upload-artifact@v4

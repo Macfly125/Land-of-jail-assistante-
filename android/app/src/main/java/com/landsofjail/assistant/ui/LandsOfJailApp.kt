@@ -518,10 +518,11 @@ private fun AdviceScreen(
             }
         }
         advice?.let { res ->
+            val adviceDate = res.generatedAt.ifBlank { res.generatedAtIso }
             item {
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("Synthèse (${res.generatedAtIso})", fontWeight = FontWeight.SemiBold)
+                        Text("Synthèse ($adviceDate)", fontWeight = FontWeight.SemiBold)
                         Text(res.synthese)
                         Text("Composition : ${res.compositionRecommandee}")
                     }
@@ -547,7 +548,7 @@ private fun AdviceScreen(
             }
             items(res.sources) { src ->
                 TextButton(onClick = { uriHandler.openUri(src.url) }) {
-                    Text("${src.title} · Date : ${src.detectedDate ?: "Consulté le ${res.generatedAtIso.take(10)}"}")
+                    Text("${src.title} · Date : ${src.detectedDate ?: "Consulté le ${adviceDate.take(10)}"}")
                 }
             }
         }

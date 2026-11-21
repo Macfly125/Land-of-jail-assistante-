@@ -63,11 +63,11 @@ data class UncertainItem(
 
 @Serializable
 data class ScreenshotAnalysis(
-    val id: String,
-    val analyzedAtIso: String,
-    val imageUriString: String,
-    val typeCapture: String,
-    val resumeCapture: String,
+    val id: String = "",
+    val analyzedAtIso: String = "",
+    val imageUriString: String = "",
+    val typeCapture: String = "autre",
+    val resumeCapture: String = "",
     val puissance: PowerMetric? = null,
     val ressources: List<ResourceRecord> = emptyList(),
     val heros: List<HeroRecord> = emptyList(),
@@ -92,10 +92,11 @@ data class AdviceRecommendation(
 
 @Serializable
 data class TacticalAdviceResult(
-    val mode: String,
-    val generatedAtIso: String,
-    val synthese: String,
-    val compositionRecommandee: String,
+    val mode: String = "",
+    val generatedAt: String = "",
+    val generatedAtIso: String = "",
+    val synthese: String = "",
+    val compositionRecommandee: String = "",
     val recommandations: List<AdviceRecommendation> = emptyList(),
     val informationsIncertaines: List<String> = emptyList(),
     val sources: List<GroundedWebSource> = emptyList()
