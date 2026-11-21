@@ -276,6 +276,81 @@ Règles strictes :
     }
   });
 
+  async function fetchLiveLojGuides(
+    mode: 'trial_cage' | 'crystal_clash',
+    heroNames: string[]
+  ): Promise<Array<{ title: string; url: string; date: string; excerpt: string }>> {
+    const queryTerm = mode === 'trial_cage' ? 'cage' : 'crystal clash';
+    const urls = [
+      `https://lojxlab.com/wp-json/wp/v2/posts?per_page=8&search=${encodeURIComponent(queryTerm)}&_fields=date,modified,link,title,excerpt`,
+      ...(heroNames.length > 0
+        ? [
+            `https://lojxlab.com/wp-json/wp/v2/posts?per_page=4&search=${encodeURIComponent(
+              heroNames[0]
+            )}&_fields=date,modified,link,title,excerpt`,
+          ]
+        : []),
+    ];
+
+    const stripHtml = (html: string) =>
+      html
+        .replace(/<[^>]*>/g, ' ')
+        .replace(/&#8217;/g, "'")
+        .replace(/&#8211;/g, '–')
+        .replace(/&amp;/g, '&')
+        .replace(/&quot;/g, '"')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    const collected: Array<{ title: string; url: string; date: string; excerpt: string }> = [];
+    const seen = new Set<string>();
+
+    await Promise.all(
+      urls.map(async (u) => {
+        try {
+          const controller = new AbortController();
+          const timer = setTimeout(() => controller.abort(), 7000);
+          const resp = await fetch(u, {
+            signal: controller.signal,
+            headers: { Accept: 'application/json', 'User-Agent': 'LandsOfJailAssistant/1.2' },
+          });
+          clearTimeout(timer);
+          if (!resp.ok) return;
+          const posts = (await resp.json()) as Array<{
+            date?: string;
+            modified?: string;
+            link?: string;
+            title?: { rendered?: string };
+            excerpt?: { rendered?: string };
+          }>;
+          if (!Array.isArray(posts)) return;
+          // Privilégier les articles en anglais (/blog/) ou français (/fr/) pour la lisibilité
+          const sorted = [...posts].sort((a, b) => {
+            const score = (link = '') =>
+              link.includes('/fr/') ? 2 : link.includes('/blog/') ? 1 : 0;
+            return score(b.link) - score(a.link);
+          });
+          for (const p of sorted) {
+            const url = p.link || '';
+            if (!url || seen.has(url)) continue;
+            seen.add(url);
+            const rawDate = (p.modified || p.date || '').slice(0, 10);
+            collected.push({
+              title: stripHtml(p.title?.rendered || 'Guide lojxlab.com'),
+              url,
+              date: rawDate || new Date().toISOString().slice(0, 10),
+              excerpt: stripHtml(p.excerpt?.rendered || ''),
+            });
+          }
+        } catch {
+          // Ignore single feed failure
+        }
+      })
+    );
+
+    return collected.slice(0, 6);
+  }
+
   app.post('/api/advice', async (req, res) => {
     try {
       const { mode, playerRole, playerRoleLabel, heroes, powerText, extraQuestion } = req.body as {
@@ -299,8 +374,10 @@ Règles strictes :
         return;
       }
 
-      const ai = getAiClient();
       const modeName = mode === 'trial_cage' ? 'Trial Cage' : 'Crystal Clash';
+      const heroNames = (heroes ?? []).map((h) => h.nom).filter(Boolean);
+      const liveGuidesPromise = fetchLiveLojGuides(mode, heroNames);
+
       const heroesSummary =
         heroes && heroes.length > 0
           ? heroes
@@ -322,9 +399,27 @@ Règles strictes :
         day: 'numeric',
       });
 
-      const prompt = `Tu es un stratège expert du jeu mobile "Lands of Jail".
+      const liveGuides = await liveGuidesPromise;
+      const liveGuidesContext =
+        liveGuides.length > 0
+          ? liveGuides
+              .map((g) => `- [${g.date}] ${g.title} (${g.url}) : ${g.excerpt}`)
+              .join('\n')
+          : 'Aucun article lojxlab récupéré directement.';
+
+      let geminiWarning: string | undefined;
+      let rawText = '';
+      let webSources: Array<{ title: string; url: string }> = [];
+      let searchQueries: string[] = [];
+
+      try {
+        const ai = getAiClient();
+        const prompt = `Tu es un stratège expert du jeu mobile "Lands of Jail".
 Nous sommes le ${todayFr}.
-Utilise la recherche Google pour trouver les guides, conseils méta et stratégies récentes sur Internet pour le mode "${modeName}" dans "Lands of Jail" (aussi cherché parfois en anglais : "Lands of Jail ${modeName} guide tips heroes").
+Utilise la recherche Google ET les extraits en direct ci-dessous pour donner des conseils récents sur Internet pour le mode "${modeName}" dans "Lands of Jail".
+
+Extraits Internet récupérés en direct :
+${liveGuidesContext}
 
 Contexte actuel du joueur :
 - Rôle choisi : ${playerRoleLabel || playerRole || 'Non précisé'}
@@ -336,12 +431,12 @@ ${extraQuestion ? `- Question spécifique du joueur : ${extraQuestion}` : ''}
 Consignes STRICTES :
 1. Réponds en français, de manière concrète et adaptée aux héros visibles ci-dessus et au rôle du joueur.
 2. Si la liste des héros est vide ou contient des données marquées [DONNÉE INCERTAINE], signale-le explicitement dans "informationsIncertaines" sans inventer les stats manquantes.
-3. Pour les informations trouvées sur Internet, indique honnêtement dans "informationsIncertaines" toute règle ou synergie dont la source est ancienne, contradictoire, non officielle ou incertaine (par exemple si "Lands of Jail" a peu de documentation fiable sur un héros précis).
-4. Pour chaque source trouvée dans la recherche, essaie de relever la date de publication ou de mise à jour si elle apparaît sur la page, sinon indique null pour detectedDate.
+3. Indique honnêtement dans "informationsIncertaines" toute règle dont la source est ancienne, contradictoire ou incertaine.
+4. Pour chaque source trouvée dans la recherche, relève la date de publication ou de mise à jour si elle apparaît, sinon indique null pour detectedDate.
 5. Formate ta réponse UNIQUEMENT sous forme d'un objet JSON valide (sans texte hors du JSON) avec la structure exacte suivante :
 {
   "synthese": "Analyse globale adaptée au mode et au rôle (2-4 phrases).",
-  "compositionRecommandee": "Composition ou rotation conseillée avec les héros visibles (ou ce qu'il faut prioriser si certains héros manquent).",
+  "compositionRecommandee": "Composition ou rotation conseillée avec les héros visibles.",
   "recommandations": [
     {
       "titre": "Titre actionnable",
@@ -357,31 +452,55 @@ Consignes STRICTES :
   "datesSourcesDetectees": [
     {
       "titreOuDomaine": "Nom ou domaine du guide",
-      "datePublication": "ex: Mars 2025 ou Non précisée sur la page"
+      "datePublication": "ex: 2026-11-19 ou Non précisée sur la page"
     }
   ]
 }`;
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-4-hydrogen',
-        contents: prompt,
-        config: {
-          tools: [{ googleSearch: {} }],
-        },
-      });
+        const response = await ai.models.generateContent({
+          model: 'gemini-4-hydrogen',
+          contents: prompt,
+          config: {
+            tools: [{ googleSearch: {} }],
+          },
+        });
 
-      const rawText = (response.text ?? '').trim();
-      const groundingMetadata = response.candidates?.[0]?.groundingMetadata;
-      const chunks = groundingMetadata?.groundingChunks ?? [];
-      const searchQueries = groundingMetadata?.webSearchQueries ?? [];
+        rawText = (response.text ?? '').trim();
+        const groundingMetadata = response.candidates?.[0]?.groundingMetadata;
+        const chunks = groundingMetadata?.groundingChunks ?? [];
+        searchQueries = groundingMetadata?.webSearchQueries ?? [];
+        webSources = chunks
+          .map((c) => c.web)
+          .filter((w): w is { uri?: string; title?: string } => Boolean(w && w.uri))
+          .map((w) => ({
+            title: w.title || w.uri || 'Source Web',
+            url: w.uri as string,
+          }));
+      } catch (aiErr: unknown) {
+        const msg = aiErr instanceof Error ? aiErr.message : String(aiErr);
+        const isQuota = msg.includes('429') || msg.includes('RESOURCE_EXHAUSTED');
+        geminiWarning = isQuota
+          ? 'Quota API Gemini dépassé (erreur 429 RESOURCE_EXHAUSTED). Vérifiez votre forfait ou clé API dans Settings > Secrets. Les guides Internet en direct récupérés depuis lojxlab.com sont affichés ci-dessous.'
+          : `Synthèse Gemini indisponible (${msg}). Affichage des guides Internet en direct récupérés depuis lojxlab.com.`;
 
-      const webSources = chunks
-        .map((c) => c.web)
-        .filter((w): w is { uri?: string; title?: string } => Boolean(w && w.uri))
-        .map((w) => ({
-          title: w.title || w.uri || 'Source Web',
-          url: w.uri as string,
-        }));
+        if (liveGuides.length === 0) {
+          res.status(isQuota ? 429 : 502).json({ error: geminiWarning });
+          return;
+        }
+      }
+
+      const mergedSourcesMap = new Map<
+        string,
+        { title: string; url: string; detectedDate: string | null }
+      >();
+
+      for (const g of liveGuides) {
+        mergedSourcesMap.set(g.url, {
+          title: g.title,
+          url: g.url,
+          detectedDate: g.date,
+        });
+      }
 
       let parsedAdvice: {
         synthese: string;
@@ -407,39 +526,68 @@ Consignes STRICTES :
             compositionRecommandee: 'Voir le détail ci-dessous.',
             recommandations: [],
             informationsIncertaines: [
-              'Le format structuré de la réponse n’a pas pu être découpé automatiquement ; vérifiez les points clés dans la synthèse.',
+              'Le format structuré de la réponse n’a pas pu être découpé automatiquement.',
             ],
           };
         }
-      } else {
+      } else if (rawText) {
         parsedAdvice = {
-          synthese: rawText || 'Aucune réponse générée.',
+          synthese: rawText,
           compositionRecommandee: 'Voir la synthèse.',
           recommandations: [],
+          informationsIncertaines: ['Réponse reçue en texte libre sans structure JSON.'],
+        };
+      } else {
+        // Mode sources Internet en direct (sans synthèse Gemini disponible)
+        const roleLabel = playerRoleLabel || playerRole || 'Polyvalent / F2P';
+        parsedAdvice = {
+          synthese: `Résultats Internet en direct récupérés pour ${modeName} (rôle : ${roleLabel}). ${
+            liveGuides[0] ? `Dernier guide pertinent : « ${liveGuides[0].title} » (${liveGuides[0].date}).` : ''
+          }`,
+          compositionRecommandee:
+            heroNames.length > 0
+              ? `Héros détectés sur votre compte : ${heroNames.join(', ')}. Consultez les extraits datés ci-dessous pour vérifier l'ordre exact selon votre rôle (${roleLabel}).`
+              : `Aucun héros scanné pour l'instant : partagez ou capturez votre page Héros pour croiser vos personnages avec les guides ci-dessous.`,
+          recommandations: liveGuides.slice(0, 4).map((g) => ({
+            titre: g.title,
+            detail: g.excerpt || 'Consultez la source complète via le lien ci-dessous.',
+            herosCibles: heroNames.slice(0, 3),
+            incertain: heroNames.length === 0,
+            raisonIncertitude:
+              heroNames.length === 0
+                ? 'Héros du compte non encore scannés ; adaptation exacte au compte à vérifier.'
+                : undefined,
+          })),
           informationsIncertaines: [
-            'Réponse reçue en texte libre sans structure JSON ; certaines dates ou correspondances peuvent être imprécises.',
+            'La synthèse IA personnalisée n’a pas pu s’exécuter (voir Alerte API Gemini ci-dessus) : seuls les extraits et sources Internet en direct sont affichés.',
+            ...(heroNames.length === 0
+              ? ['Aucun héros scanné sur le compte : partagez une capture de vos héros.']
+              : []),
           ],
         };
       }
 
       const detectedDates = parsedAdvice.datesSourcesDetectees ?? [];
-      const enrichedSources = webSources.map((src) => {
-        const matchedDate = detectedDates.find(
-          (d) =>
-            src.title.toLowerCase().includes(d.titreOuDomaine.toLowerCase()) ||
-            src.url.toLowerCase().includes(d.titreOuDomaine.toLowerCase())
-        );
-        return {
-          title: src.title,
-          url: src.url,
-          detectedDate: matchedDate?.datePublication || null,
-        };
-      });
+      for (const src of webSources) {
+        if (!mergedSourcesMap.has(src.url)) {
+          const matchedDate = detectedDates.find(
+            (d) =>
+              src.title.toLowerCase().includes(d.titreOuDomaine.toLowerCase()) ||
+              src.url.toLowerCase().includes(d.titreOuDomaine.toLowerCase())
+          );
+          mergedSourcesMap.set(src.url, {
+            title: src.title,
+            url: src.url,
+            detectedDate: matchedDate?.datePublication || null,
+          });
+        }
+      }
 
+      const enrichedSources = Array.from(mergedSourcesMap.values());
       const uncertainNotes = [...(parsedAdvice.informationsIncertaines ?? [])];
       if (enrichedSources.length === 0) {
         uncertainNotes.push(
-          'Aucune source Internet directe n’a été retournée par la recherche web pour cette requête ; ces conseils doivent être vérifiés en jeu.'
+          'Aucune source Internet directe n’a été retournée pour cette requête ; vérifiez ces éléments en jeu.'
         );
       }
 
@@ -460,6 +608,7 @@ Consignes STRICTES :
           informationsIncertaines: uncertainNotes,
           sources: enrichedSources,
           requetesRecherche: searchQueries,
+          geminiWarning,
         },
       });
     } catch (err: unknown) {

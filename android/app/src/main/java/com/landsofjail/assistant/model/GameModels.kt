@@ -99,5 +99,6 @@ data class TacticalAdviceResult(
     val compositionRecommandee: String = "",
     val recommandations: List<AdviceRecommendation> = emptyList(),
     val informationsIncertaines: List<String> = emptyList(),
-    val sources: List<GroundedWebSource> = emptyList()
+    val sources: List<GroundedWebSource> = emptyList(),
+    val geminiWarning: String? = null
 )

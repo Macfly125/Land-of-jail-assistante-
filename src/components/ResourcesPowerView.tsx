@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { AlertTriangle, Check, Edit3, Upload } from 'lucide-react';
+import { AlertTriangle, Calculator, Check, Edit3, Package, Upload } from 'lucide-react';
 import { AccountState, ResourceRecord } from '../types/game';
 import { formatCompactNumber, formatFrenchDateTime } from '../utils/storage';
+import { UpgradeCalculatorView } from './UpgradeCalculatorView';
 
 interface ResourcesPowerViewProps {
   state: AccountState;
@@ -14,6 +15,7 @@ export const ResourcesPowerView: React.FC<ResourcesPowerViewProps> = ({
   onVerifyResource,
   onOpenShareModal,
 }) => {
+  const [subTab, setSubTab] = useState<'inventory' | 'calculator'>('inventory');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftQty, setDraftQty] = useState('');
 
@@ -26,22 +28,56 @@ export const ResourcesPowerView: React.FC<ResourcesPowerViewProps> = ({
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-800/80 pb-5">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-50">Ressources et puissance</h1>
+          <h1 className="text-2xl font-semibold text-slate-50">
+            Ressources, puissance & calculateurs
+          </h1>
           <p className="text-sm text-slate-400 mt-1">
-            Suivi chronologique de votre puissance et état des ressources observées sur vos
-            captures.
+            Suivi de votre compte et calcul des objets requis pour passer vos bâtiments et héros au
+            niveau suivant.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={onOpenShareModal}
-          className="min-h-[44px] px-4 py-2 rounded-xl text-sm font-semibold bg-amber-500 text-slate-950 hover:bg-amber-400 transition-colors inline-flex items-center gap-2 whitespace-nowrap shrink-0 self-start"
-        >
-          <Upload className="w-4 h-4" />
-          <span>Mettre à jour par capture</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-3 self-start">
+          <div className="flex items-center gap-1 p-1 bg-[#121826] border border-slate-800 rounded-xl">
+            <button
+              type="button"
+              onClick={() => setSubTab('inventory')}
+              className={`min-h-[40px] px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors inline-flex items-center gap-1.5 whitespace-nowrap ${
+                subTab === 'inventory'
+                  ? 'bg-amber-500 text-slate-950'
+                  : 'text-slate-300 hover:text-slate-100'
+              }`}
+            >
+              <Package className="w-3.5 h-3.5" />
+              <span>Inventaire</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setSubTab('calculator')}
+              className={`min-h-[40px] px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors inline-flex items-center gap-1.5 whitespace-nowrap ${
+                subTab === 'calculator'
+                  ? 'bg-amber-500 text-slate-950'
+                  : 'text-slate-300 hover:text-slate-100'
+              }`}
+            >
+              <Calculator className="w-3.5 h-3.5" />
+              <span>Calculateur Bâtiments & Héros</span>
+            </button>
+          </div>
+          <button
+            type="button"
+            onClick={onOpenShareModal}
+            className="min-h-[44px] px-4 py-2 rounded-xl text-sm font-semibold bg-amber-500 text-slate-950 hover:bg-amber-400 transition-colors inline-flex items-center gap-2 whitespace-nowrap shrink-0"
+          >
+            <Upload className="w-4 h-4" />
+            <span>Mettre à jour par capture</span>
+          </button>
+        </div>
       </div>
 
+      {subTab === 'calculator' ? (
+        <UpgradeCalculatorView state={state} />
+      ) : (
+        <>
       {/* Bloc Puissance */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-5 p-6 rounded-2xl bg-[#121826] border border-slate-800/90 space-y-4">
@@ -201,6 +237,8 @@ export const ResourcesPowerView: React.FC<ResourcesPowerViewProps> = ({
           </div>
         )}
       </section>
+        </>
+      )}
     </div>
   );
 };

@@ -237,6 +237,16 @@ export const AdviceView: React.FC<AdviceViewProps> = ({
         </section>
       ) : (
         <div className="space-y-6">
+          {currentAdvice.geminiWarning && (
+            <section className="p-4 rounded-2xl bg-red-500/10 border border-red-500/35 text-xs text-red-200 flex items-start gap-2.5">
+              <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <div className="font-semibold text-red-100">Alerte API Gemini</div>
+                <p className="leading-relaxed">{currentAdvice.geminiWarning}</p>
+              </div>
+            </section>
+          )}
+
           {/* Synthèse & Composition */}
           <section className="p-6 rounded-2xl bg-[#121826] border border-slate-800/90 space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">

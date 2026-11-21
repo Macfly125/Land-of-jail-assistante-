@@ -141,6 +141,7 @@ export interface TacticalAdviceResult {
   sources: GroundedWebSource[];
   requetesRecherche: string[];
   heroesContextCount: number;
+  geminiWarning?: string;
 }
 
 export interface AccountState {

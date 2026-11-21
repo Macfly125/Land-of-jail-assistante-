@@ -12,8 +12,8 @@ import android.provider.Settings
 
 object UsageStatsDetector {
 
-    // Mot-clé / package cible pour Lands of Jail (personnalisable par le joueur)
-    const val DEFAULT_GAME_PACKAGE_KEYWORD = "landsofjail"
+    // Vrai identifiant Google Play de Lands of Jail (Just Game Technology)
+    const val DEFAULT_GAME_PACKAGE_KEYWORD = "com.justgame.jails"
 
     fun hasUsageStatsPermission(context: Context): Boolean {
         val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
@@ -52,14 +52,16 @@ object UsageStatsDetector {
     }
 
     /**
-     * Retourne le nom de package actuellement au premier plan sur la fenêtre récente,
-     * en utilisant UsageStatsManager.queryEvents.
+     * Retourne le package actuellement au premier plan via UsageStatsManager.
+     * Combine queryEvents (fenêtre large 2 min) et queryUsageStats (dernier usage actif)
+     * afin de ne pas perdre l'état quand le joueur reste longtemps dans le jeu sans changer d'écran.
      */
-    fun getRecentForegroundPackage(context: Context, windowMs: Long = 10_000L): String? {
+    fun getRecentForegroundPackage(context: Context, windowMs: Long = 120_000L): String? {
         if (!hasUsageStatsPermission(context)) return null
         val usm = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
         val endTime = System.currentTimeMillis()
         val startTime = endTime - windowMs
+
         val events = usm.queryEvents(startTime, endTime)
         val event = UsageEvents.Event()
         var latestPackage: String? = null
@@ -78,17 +80,37 @@ object UsageStatsDetector {
                 latestPackage = event.packageName
             }
         }
-        return latestPackage
+
+        if (!latestPackage.isNullOrBlank()) {
+            return latestPackage
+        }
+
+        // Repli sur queryUsageStats si aucun nouvel événement ACTIVITY_RESUMED n'a eu lieu récemment
+        val stats = usm.queryUsageStats(
+            UsageStatsManager.INTERVAL_DAILY,
+            endTime - 600_000L,
+            endTime
+        )
+        return stats
+            ?.filter { it.lastTimeUsed > 0L }
+            ?.maxByOrNull { it.lastTimeUsed }
+            ?.packageName
     }
 
     fun isLandsOfJailPackage(packageName: String?, targetFilter: String): Boolean {
         if (packageName.isNullOrBlank()) return false
         val normalizedPkg = packageName.lowercase()
         val normalizedFilter = targetFilter.trim().lowercase()
-        if (normalizedFilter.isEmpty()) return false
-        return normalizedPkg == normalizedFilter ||
-            normalizedPkg.contains(normalizedFilter) ||
-            normalizedPkg.contains("lands.of.jail") ||
-            normalizedPkg.contains("landsofjail")
+        val knownKeywords = listOf(
+            "com.justgame.jails",
+            "justgame.jails",
+            "landsofjail",
+            "lands.of.jail"
+        )
+        if (knownKeywords.any { normalizedPkg == it || normalizedPkg.contains(it) }) {
+            return true
+        }
+        return normalizedFilter.isNotEmpty() &&
+            (normalizedPkg == normalizedFilter || normalizedPkg.contains(normalizedFilter))
     }
 }

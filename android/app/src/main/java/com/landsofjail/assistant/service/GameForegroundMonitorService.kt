@@ -1,5 +1,7 @@
 package com.landsofjail.assistant.service
 
+import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -7,26 +9,48 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
+import android.graphics.Bitmap
 import android.graphics.PixelFormat
+import android.hardware.display.DisplayManager
+import android.hardware.display.VirtualDisplay
+import android.media.ImageReader
+import android.media.projection.MediaProjection
+import android.media.projection.MediaProjectionManager
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.provider.Settings
+import android.util.Base64
 import android.view.Gravity
+import android.view.MotionEvent
+import android.view.View
 import android.view.WindowManager
 import android.widget.Button
+import android.widget.LinearLayout
 import androidx.core.app.NotificationCompat
+import androidx.core.app.ServiceCompat
 import com.landsofjail.assistant.MainActivity
+import com.landsofjail.assistant.capture.CapturedScreenPayload
 import com.landsofjail.assistant.capture.ScreenCaptureConsentActivity
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.io.ByteArrayOutputStream
+import kotlin.math.abs
 
 class GameForegroundMonitorService : Service() {
 
     companion object {
         const val ACTION_START = "com.landsofjail.assistant.action.START_MONITORING"
         const val ACTION_STOP = "com.landsofjail.assistant.action.STOP_MONITORING"
+        const val ACTION_CAPTURE_WITH_PROJECTION = "com.landsofjail.assistant.action.CAPTURE_WITH_PROJECTION"
+
         const val EXTRA_PACKAGE_FILTER = "extra_package_filter"
+        const val EXTRA_ALWAYS_SHOW_FLOATING = "extra_always_show_floating"
+        const val EXTRA_RESULT_CODE = "extra_result_code"
+        const val EXTRA_RESULT_DATA = "extra_result_data"
 
         private const val CHANNEL_MONITOR_ID = "loj_monitor_channel"
         private const val CHANNEL_PROMPT_ID = "loj_prompt_channel"
@@ -39,10 +63,15 @@ class GameForegroundMonitorService : Service() {
         private val _detectedGameForeground = MutableStateFlow(false)
         val detectedGameForeground = _detectedGameForeground.asStateFlow()
 
-        fun start(context: Context, packageFilter: String) {
+        fun start(
+            context: Context,
+            packageFilter: String,
+            alwaysShowFloating: Boolean = true
+        ) {
             val intent = Intent(context, GameForegroundMonitorService::class.java).apply {
                 action = ACTION_START
                 putExtra(EXTRA_PACKAGE_FILTER, packageFilter)
+                putExtra(EXTRA_ALWAYS_SHOW_FLOATING, alwaysShowFloating)
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 context.startForegroundService(intent)
@@ -57,13 +86,33 @@ class GameForegroundMonitorService : Service() {
             }
             context.startService(intent)
         }
+
+        fun runSingleCapture(context: Context, resultCode: Int, resultData: Intent) {
+            val intent = Intent(context, GameForegroundMonitorService::class.java).apply {
+                action = ACTION_CAPTURE_WITH_PROJECTION
+                putExtra(EXTRA_RESULT_CODE, resultCode)
+                putExtra(EXTRA_RESULT_DATA, resultData)
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(intent)
+            } else {
+                context.startService(intent)
+            }
+        }
     }
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var monitorJob: Job? = null
     private var targetFilter: String = UsageStatsDetector.DEFAULT_GAME_PACKAGE_KEYWORD
-    private var floatingButton: Button? = null
+    private var alwaysShowFloating: Boolean = true
+    private var lastKnownForegroundPkg: String? = null
+
+    private var floatingContainer: LinearLayout? = null
     private var windowManager: WindowManager? = null
+
+    private var mediaProjection: MediaProjection? = null
+    private var virtualDisplay: VirtualDisplay? = null
+    private var imageReader: ImageReader? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -79,15 +128,174 @@ class GameForegroundMonitorService : Service() {
                 stopMonitoringAndSelf()
                 return START_NOT_STICKY
             }
+            ACTION_CAPTURE_WITH_PROJECTION -> {
+                val resultCode = intent.getIntExtra(EXTRA_RESULT_CODE, Activity.RESULT_CANCELED)
+                val resultData = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    intent.getParcelableExtra(EXTRA_RESULT_DATA, Intent::class.java)
+                } else {
+                    @Suppress("DEPRECATION")
+                    intent.getParcelableExtra(EXTRA_RESULT_DATA)
+                }
+                if (resultCode == Activity.RESULT_OK && resultData != null) {
+                    promoteAndCaptureSingleFrame(resultCode, resultData)
+                }
+                return if (_isRunning.value) START_STICKY else START_NOT_STICKY
+            }
             ACTION_START, null -> {
                 targetFilter = intent?.getStringExtra(EXTRA_PACKAGE_FILTER)
                     ?: UsageStatsDetector.DEFAULT_GAME_PACKAGE_KEYWORD
-                startForeground(NOTIF_MONITOR_ID, buildPersistentMonitoringNotification())
+                alwaysShowFloating = intent?.getBooleanExtra(EXTRA_ALWAYS_SHOW_FLOATING, true) ?: true
+
+                startAsMonitoringForeground()
+                if (alwaysShowFloating) {
+                    showFloatingAnalyzeBarIfAllowed()
+                }
                 startPollingUsageStats()
                 return START_STICKY
             }
         }
         return START_NOT_STICKY
+    }
+
+    private fun startAsMonitoringForeground() {
+        val fgType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+        } else {
+            0
+        }
+        ServiceCompat.startForeground(
+            this,
+            NOTIF_MONITOR_ID,
+            buildPersistentMonitoringNotification(),
+            fgType
+        )
+    }
+
+    private fun promoteAndCaptureSingleFrame(resultCode: Int, resultData: Intent) {
+        val wasMonitoring = _isRunning.value
+        // Obligatoire sur Android 14+ (API 34+) avant getMediaProjection()
+        val projectionFgType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION
+        } else {
+            0
+        }
+        ServiceCompat.startForeground(
+            this,
+            NOTIF_MONITOR_ID,
+            buildPersistentMonitoringNotification(),
+            projectionFgType
+        )
+
+        val projectionManager =
+            getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+        val projection = try {
+            projectionManager.getMediaProjection(resultCode, resultData)
+        } catch (_: Throwable) {
+            null
+        }
+
+        if (projection == null) {
+            if (!wasMonitoring) stopSelf() else startAsMonitoringForeground()
+            return
+        }
+
+        mediaProjection = projection
+        val mainHandler = Handler(Looper.getMainLooper())
+        projection.registerCallback(object : MediaProjection.Callback() {
+            override fun onStop() {
+                releaseProjection()
+            }
+        }, mainHandler)
+
+        val metrics = resources.displayMetrics
+        val width = metrics.widthPixels.coerceAtLeast(1)
+        val height = metrics.heightPixels.coerceAtLeast(1)
+        val density = metrics.densityDpi
+
+        val reader = ImageReader.newInstance(width, height, PixelFormat.RGBA_8888, 2)
+        imageReader = reader
+
+        virtualDisplay = projection.createVirtualDisplay(
+            "LandsOfJailSingleCapture",
+            width,
+            height,
+            density,
+            DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
+            reader.surface,
+            null,
+            mainHandler
+        )
+
+        var handled = false
+        reader.setOnImageAvailableListener({ r ->
+            if (handled) return@setOnImageAvailableListener
+            val image = r.acquireLatestImage() ?: return@setOnImageAvailableListener
+            handled = true
+            try {
+                val plane = image.planes[0]
+                val buffer = plane.buffer
+                val pixelStride = plane.pixelStride
+                val rowStride = plane.rowStride
+                val rowPadding = rowStride - pixelStride * width
+
+                val fullBitmap = Bitmap.createBitmap(
+                    width + rowPadding / pixelStride,
+                    height,
+                    Bitmap.Config.ARGB_8888
+                )
+                fullBitmap.copyPixelsFromBuffer(buffer)
+                val cropped = Bitmap.createBitmap(fullBitmap, 0, 0, width, height)
+                fullBitmap.recycle()
+
+                val stream = ByteArrayOutputStream()
+                cropped.compress(Bitmap.CompressFormat.JPEG, 88, stream)
+                val base64 = Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP)
+
+                ScreenCaptureConsentActivity.publishCapture(
+                    CapturedScreenPayload(
+                        bitmap = cropped,
+                        base64Jpeg = base64,
+                        capturedAtMillis = System.currentTimeMillis()
+                    )
+                )
+            } finally {
+                image.close()
+                releaseProjection()
+                if (wasMonitoring) {
+                    startAsMonitoringForeground()
+                    if (alwaysShowFloating) showFloatingAnalyzeBarIfAllowed()
+                } else {
+                    stopForeground(STOP_FOREGROUND_REMOVE)
+                    stopSelf()
+                }
+                openAssistantDashboard()
+            }
+        }, mainHandler)
+    }
+
+    private fun openAssistantDashboard() {
+        val intent = Intent(this, MainActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        }
+        startActivity(intent)
+    }
+
+    private fun releaseProjection() {
+        try {
+            virtualDisplay?.release()
+        } catch (_: Throwable) {
+        }
+        try {
+            imageReader?.close()
+        } catch (_: Throwable) {
+        }
+        try {
+            mediaProjection?.stop()
+        } catch (_: Throwable) {
+        }
+        virtualDisplay = null
+        imageReader = null
+        mediaProjection = null
     }
 
     private fun startPollingUsageStats() {
@@ -99,17 +307,23 @@ class GameForegroundMonitorService : Service() {
                 val fgPkg = withContext(Dispatchers.IO) {
                     UsageStatsDetector.getRecentForegroundPackage(applicationContext)
                 }
-                val isGameNow = UsageStatsDetector.isLandsOfJailPackage(fgPkg, targetFilter)
+                if (!fgPkg.isNullOrBlank()) {
+                    lastKnownForegroundPkg = fgPkg
+                }
+                val effectivePkg = fgPkg ?: lastKnownForegroundPkg
+                val isGameNow = UsageStatsDetector.isLandsOfJailPackage(effectivePkg, targetFilter)
                 _detectedGameForeground.value = isGameNow
 
                 if (isGameNow && !wasGameInForeground) {
-                    // Le jeu vient de passer au premier plan : on propose le bouton/notification « Analyser l’écran »
-                    // Sans jamais capturer l'écran automatiquement !
                     showAnalyzePromptNotification()
-                    showFloatingAnalyzeButtonIfAllowed()
-                } else if (!isGameNow && wasGameInForeground) {
-                    removeFloatingAnalyzeButton()
+                    showFloatingAnalyzeBarIfAllowed()
+                } else if (isGameNow || alwaysShowFloating) {
+                    // Garantit que le bouton flottant reste bien au-dessus du jeu
+                    showFloatingAnalyzeBarIfAllowed()
+                } else if (!isGameNow && wasGameInForeground && !alwaysShowFloating) {
+                    removeFloatingAnalyzeBar()
                 }
+
                 wasGameInForeground = isGameNow
                 delay(2500L)
             }
@@ -127,8 +341,6 @@ class GameForegroundMonitorService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val stopPendingIntent = buildStopPendingIntent()
-
         val notification = NotificationCompat.Builder(this, CHANNEL_PROMPT_ID)
             .setSmallIcon(android.R.drawable.ic_menu_camera)
             .setContentTitle("Lands of Jail détecté au premier plan")
@@ -136,15 +348,16 @@ class GameForegroundMonitorService : Service() {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .addAction(0, "Analyser l’écran", analyzePendingIntent)
-            .addAction(0, "Arrêter la détection", stopPendingIntent)
+            .addAction(0, "Arrêter la détection", buildStopPendingIntent())
             .build()
 
         val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         nm.notify(NOTIF_ANALYZE_PROMPT_ID, notification)
     }
 
-    private fun showFloatingAnalyzeButtonIfAllowed() {
-        if (!Settings.canDrawOverlays(this) || floatingButton != null) return
+    @SuppressLint("ClickableViewAccessibility")
+    private fun showFloatingAnalyzeBarIfAllowed() {
+        if (!Settings.canDrawOverlays(this) || floatingContainer != null) return
         val params = WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
@@ -153,41 +366,110 @@ class GameForegroundMonitorService : Service() {
             else
                 @Suppress("DEPRECATION")
                 WindowManager.LayoutParams.TYPE_PHONE,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
             PixelFormat.TRANSLUCENT
         ).apply {
-            gravity = Gravity.TOP or Gravity.END
+            gravity = Gravity.TOP or Gravity.START
             x = 24
             y = 180
         }
 
-        val btn = Button(this).apply {
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setBackgroundColor(0xEE121826.toInt())
+            setPadding(12, 10, 12, 10)
+        }
+
+        val analyzeBtn = Button(this).apply {
             text = "Analyser l’écran"
+            textSize = 12f
+            isAllCaps = false
             setBackgroundColor(0xFFF59E0B.toInt())
             setTextColor(0xFF0B0F17.toInt())
-            setPadding(32, 16, 32, 16)
+            setPadding(24, 10, 24, 10)
+        }
+
+        val stopBtn = Button(this).apply {
+            text = "✕"
+            textSize = 12f
+            setBackgroundColor(0xFF1E293B.toInt())
+            setTextColor(0xFFF8FAFC.toInt())
+            setPadding(18, 10, 18, 10)
             setOnClickListener {
-                val intent = Intent(this@GameForegroundMonitorService, ScreenCaptureConsentActivity::class.java).apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-                startActivity(intent)
+                stopMonitoringAndSelf()
             }
         }
+
+        val dragListener = object : View.OnTouchListener {
+            private var startX = 0
+            private var startY = 0
+            private var touchStartX = 0f
+            private var touchStartY = 0f
+            private var moved = false
+
+            override fun onTouch(v: View, event: MotionEvent): Boolean {
+                when (event.actionMasked) {
+                    MotionEvent.ACTION_DOWN -> {
+                        startX = params.x
+                        startY = params.y
+                        touchStartX = event.rawX
+                        touchStartY = event.rawY
+                        moved = false
+                        return true
+                    }
+                    MotionEvent.ACTION_MOVE -> {
+                        val dx = (event.rawX - touchStartX).toInt()
+                        val dy = (event.rawY - touchStartY).toInt()
+                        if (abs(dx) > 10 || abs(dy) > 10) {
+                            moved = true
+                            params.x = startX + dx
+                            params.y = startY + dy
+                            try {
+                                windowManager?.updateViewLayout(container, params)
+                            } catch (_: Throwable) {
+                            }
+                        }
+                        return true
+                    }
+                    MotionEvent.ACTION_UP -> {
+                        if (!moved && v === analyzeBtn) {
+                            val captureIntent = Intent(
+                                this@GameForegroundMonitorService,
+                                ScreenCaptureConsentActivity::class.java
+                            ).apply {
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            }
+                            startActivity(captureIntent)
+                        }
+                        return true
+                    }
+                }
+                return false
+            }
+        }
+
+        analyzeBtn.setOnTouchListener(dragListener)
+        container.setOnTouchListener(dragListener)
+
+        container.addView(analyzeBtn)
+        container.addView(stopBtn)
+
         try {
-            windowManager?.addView(btn, params)
-            floatingButton = btn
+            windowManager?.addView(container, params)
+            floatingContainer = container
         } catch (_: Throwable) {
-            floatingButton = null
+            floatingContainer = null
         }
     }
 
-    private fun removeFloatingAnalyzeButton() {
-        floatingButton?.let { btn ->
+    private fun removeFloatingAnalyzeBar() {
+        floatingContainer?.let { view ->
             try {
-                windowManager?.removeView(btn)
+                windowManager?.removeView(view)
             } catch (_: Throwable) {
             }
-            floatingButton = null
+            floatingContainer = null
         }
     }
 
@@ -198,12 +480,21 @@ class GameForegroundMonitorService : Service() {
             Intent(this, MainActivity::class.java),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
+        val analyzeIntent = PendingIntent.getActivity(
+            this,
+            103,
+            Intent(this, ScreenCaptureConsentActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            },
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
         return NotificationCompat.Builder(this, CHANNEL_MONITOR_ID)
             .setSmallIcon(android.R.drawable.ic_menu_view)
-            .setContentTitle("Détection Lands of Jail active")
-            .setContentText("En attente du lancement du jeu. Aucune capture sans votre accord.")
+            .setContentTitle("Lands of Jail Assistant actif")
+            .setContentText("Bouton prêt. Aucune capture sans votre accord.")
             .setOngoing(true)
             .setContentIntent(openAppIntent)
+            .addAction(0, "Analyser l’écran", analyzeIntent)
             .addAction(0, "Arrêter la détection", buildStopPendingIntent())
             .build()
     }
@@ -222,7 +513,8 @@ class GameForegroundMonitorService : Service() {
 
     private fun stopMonitoringAndSelf() {
         monitorJob?.cancel()
-        removeFloatingAnalyzeButton()
+        releaseProjection()
+        removeFloatingAnalyzeBar()
         _isRunning.value = false
         _detectedGameForeground.value = false
         val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -233,7 +525,8 @@ class GameForegroundMonitorService : Service() {
 
     override fun onDestroy() {
         monitorJob?.cancel()
-        removeFloatingAnalyzeButton()
+        releaseProjection()
+        removeFloatingAnalyzeBar()
         _isRunning.value = false
         serviceScope.cancel()
         super.onDestroy()

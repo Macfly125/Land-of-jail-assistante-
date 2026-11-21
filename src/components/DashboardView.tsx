@@ -238,7 +238,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 type="text"
                 value={packageFilter}
                 onChange={(e) => onChangePackageFilter(e.target.value)}
-                placeholder="landsofjail"
+                placeholder="com.justgame.jails"
                 className="w-full rounded-xl bg-slate-900 border border-slate-800 px-3.5 py-2.5 text-sm font-mono text-slate-100 focus:outline-none focus:border-amber-500"
               />
             </div>

@@ -66,7 +66,7 @@ export default function App() {
   const [hasUsagePermission, setHasUsagePermission] = useState(false);
   const [isDetectionActive, setIsDetectionActive] = useState(false);
   const [isGameDetectedForeground, setIsGameDetectedForeground] = useState(false);
-  const [packageFilter, setPackageFilter] = useState('landsofjail');
+  const [packageFilter, setPackageFilter] = useState('com.justgame.jails');
 
   // État d'analyse OCR / Vision
   const [isAnalyzing, setIsAnalyzing] = useState(false);

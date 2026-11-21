@@ -29,7 +29,7 @@ export const ANDROID_KOTLIN_FILES: AndroidSourceFile[] = [
         android:allowBackup="true"
         android:label="Lands of Jail Assistant"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Material3.Dark.NoActionBar">
+        android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
 
         <activity
             android:name=".MainActivity"
@@ -63,7 +63,7 @@ export const ANDROID_KOTLIN_FILES: AndroidSourceFile[] = [
     path: 'app/src/main/java/com/landsofjail/assistant/service/UsageStatsDetector.kt',
     language: 'kotlin',
     description:
-      'Vérifie AppOpsManager.OPSTR_GET_USAGE_STATS, ouvre Settings.ACTION_USAGE_ACCESS_SETTINGS et interroge UsageStatsManager.queryEvents pour détecter Lands of Jail au premier plan.',
+      'Vérifie AppOpsManager.OPSTR_GET_USAGE_STATS, ouvre Settings.ACTION_USAGE_ACCESS_SETTINGS et interroge UsageStatsManager.queryEvents + queryUsageStats pour détecter com.justgame.jails au premier plan.',
     content: `package com.landsofjail.assistant.service
 
 import android.app.AppOpsManager
@@ -76,7 +76,7 @@ import android.os.Process
 import android.provider.Settings
 
 object UsageStatsDetector {
-    const val DEFAULT_GAME_PACKAGE_KEYWORD = "landsofjail"
+    const val DEFAULT_GAME_PACKAGE_KEYWORD = "com.justgame.jails"
 
     fun hasUsageStatsPermission(context: Context): Boolean {
         val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
@@ -93,7 +93,7 @@ object UsageStatsDetector {
         context.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
     }
 
-    fun getRecentForegroundPackage(context: Context, windowMs: Long = 10_000L): String? {
+    fun getRecentForegroundPackage(context: Context, windowMs: Long = 120_000L): String? {
         if (!hasUsageStatsPermission(context)) return null
         val usm = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
         val endTime = System.currentTimeMillis()
@@ -114,7 +114,8 @@ object UsageStatsDetector {
                 latestPkg = event.packageName
             }
         }
-        return latestPkg
+        return latestPkg ?: usm.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, endTime - 600_000L, endTime)
+            ?.maxByOrNull { it.lastTimeUsed }?.packageName
     }
 }`,
   },
