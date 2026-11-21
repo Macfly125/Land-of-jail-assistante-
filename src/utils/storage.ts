@@ -1,5 +1,6 @@
 import {
   AccountState,
+  AppLanguage,
   HeroRecord,
   PlayerRole,
   ResourceRecord,
@@ -11,6 +12,7 @@ import {
 const STORAGE_KEY = 'lands_of_jail_assistant_state_v1';
 
 export const DEFAULT_ACCOUNT_STATE: AccountState = {
+  language: 'fr',
   playerRole: 'polyvalent_f2p',
   currentPower: null,
   powerHistory: [],
@@ -28,6 +30,7 @@ export function loadAccountState(): AccountState {
     return {
       ...DEFAULT_ACCOUNT_STATE,
       ...parsed,
+      language: parsed.language ?? 'fr',
       powerHistory: Array.isArray(parsed.powerHistory) ? parsed.powerHistory : [],
       heroes: Array.isArray(parsed.heroes) ? parsed.heroes : [],
       resources: Array.isArray(parsed.resources) ? parsed.resources : [],
@@ -122,7 +125,14 @@ export function mergeAnalysisIntoState(
       for (const s of incoming.competences) {
         const sKey = normalizeKey(s.nom);
         if (!sKey) continue;
-        skillMap.set(sKey, s);
+        const prevSkill = skillMap.get(sKey);
+        skillMap.set(sKey, {
+          ...prevSkill,
+          ...s,
+          niveau: s.niveau && s.niveau !== 'Inconnu' ? s.niveau : (prevSkill?.niveau || s.niveau),
+          description: s.description || prevSkill?.description,
+          iconUrl: s.iconUrl || prevSkill?.iconUrl,
+        });
       }
 
       heroMap.set(key, {
@@ -136,6 +146,16 @@ export function mergeAnalysisIntoState(
         etoiles: incoming.etoiles || existing.etoiles,
         roleHero: incoming.roleHero || existing.roleHero,
         puissanceHero: incoming.puissanceHero || existing.puissanceHero,
+        imageUrl: incoming.imageUrl || existing.imageUrl,
+        avatarUrl: incoming.avatarUrl || existing.avatarUrl,
+        titre: incoming.titre || existing.titre,
+        typeTroupe: incoming.typeTroupe || existing.typeTroupe,
+        categorie: incoming.categorie || existing.categorie,
+        saison: incoming.saison || existing.saison,
+        puissanceMax5Etoiles: incoming.puissanceMax5Etoiles || existing.puissanceMax5Etoiles,
+        resumeBio: incoming.resumeBio || existing.resumeBio,
+        idealPour: incoming.idealPour || existing.idealPour,
+        wikiUrl: incoming.wikiUrl || existing.wikiUrl,
         competences: Array.from(skillMap.values()),
         incertain: incoming.incertain,
         raisonIncertitude: incoming.raisonIncertitude,
@@ -191,6 +211,13 @@ export function updatePlayerRoleInState(
   playerRole: PlayerRole
 ): AccountState {
   return { ...state, playerRole };
+}
+
+export function updateLanguageInState(
+  state: AccountState,
+  language: AppLanguage
+): AccountState {
+  return { ...state, language };
 }
 
 export function saveAdviceInState(

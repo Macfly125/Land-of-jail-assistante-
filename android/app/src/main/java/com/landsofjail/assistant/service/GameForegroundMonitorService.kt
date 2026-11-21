@@ -17,6 +17,7 @@ import android.hardware.display.VirtualDisplay
 import android.media.ImageReader
 import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
+import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.IBinder
@@ -38,6 +39,8 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
 import kotlin.math.abs
 
 class GameForegroundMonitorService : Service() {
@@ -106,6 +109,7 @@ class GameForegroundMonitorService : Service() {
     private var targetFilter: String = UsageStatsDetector.DEFAULT_GAME_PACKAGE_KEYWORD
     private var alwaysShowFloating: Boolean = true
     private var lastKnownForegroundPkg: String? = null
+    private var isCapturingNow: Boolean = false
 
     private var floatingContainer: LinearLayout? = null
     private var windowManager: WindowManager? = null
@@ -147,9 +151,6 @@ class GameForegroundMonitorService : Service() {
                 alwaysShowFloating = intent?.getBooleanExtra(EXTRA_ALWAYS_SHOW_FLOATING, true) ?: true
 
                 startAsMonitoringForeground()
-                if (alwaysShowFloating) {
-                    showFloatingAnalyzeBarIfAllowed()
-                }
                 startPollingUsageStats()
                 return START_STICKY
             }
@@ -173,6 +174,10 @@ class GameForegroundMonitorService : Service() {
 
     private fun promoteAndCaptureSingleFrame(resultCode: Int, resultData: Intent) {
         val wasMonitoring = _isRunning.value
+        isCapturingNow = true
+        // Masquer la barre flottante pendant la capture pour obtenir un écran propre
+        removeFloatingAnalyzeBar()
+
         // Obligatoire sur Android 14+ (API 34+) avant getMediaProjection()
         val projectionFgType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION
@@ -195,6 +200,7 @@ class GameForegroundMonitorService : Service() {
         }
 
         if (projection == null) {
+            isCapturingNow = false
             if (!wasMonitoring) stopSelf() else startAsMonitoringForeground()
             return
         }
@@ -212,70 +218,145 @@ class GameForegroundMonitorService : Service() {
         val height = metrics.heightPixels.coerceAtLeast(1)
         val density = metrics.densityDpi
 
-        val reader = ImageReader.newInstance(width, height, PixelFormat.RGBA_8888, 2)
-        imageReader = reader
-
-        virtualDisplay = projection.createVirtualDisplay(
-            "LandsOfJailSingleCapture",
-            width,
-            height,
-            density,
-            DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
-            reader.surface,
-            null,
-            mainHandler
-        )
-
         var handled = false
-        reader.setOnImageAvailableListener({ r ->
-            if (handled) return@setOnImageAvailableListener
-            val image = r.acquireLatestImage() ?: return@setOnImageAvailableListener
-            handled = true
-            try {
-                val plane = image.planes[0]
-                val buffer = plane.buffer
-                val pixelStride = plane.pixelStride
-                val rowStride = plane.rowStride
-                val rowPadding = rowStride - pixelStride * width
-
-                val fullBitmap = Bitmap.createBitmap(
-                    width + rowPadding / pixelStride,
-                    height,
-                    Bitmap.Config.ARGB_8888
-                )
-                fullBitmap.copyPixelsFromBuffer(buffer)
-                val cropped = Bitmap.createBitmap(fullBitmap, 0, 0, width, height)
-                fullBitmap.recycle()
-
-                val stream = ByteArrayOutputStream()
-                cropped.compress(Bitmap.CompressFormat.JPEG, 88, stream)
-                val base64 = Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP)
-
-                ScreenCaptureConsentActivity.publishCapture(
-                    CapturedScreenPayload(
-                        bitmap = cropped,
-                        base64Jpeg = base64,
-                        capturedAtMillis = System.currentTimeMillis()
-                    )
-                )
-            } finally {
-                image.close()
+        val timeoutRunnable = Runnable {
+            if (!handled) {
+                handled = true
+                isCapturingNow = false
                 releaseProjection()
-                if (wasMonitoring) {
-                    startAsMonitoringForeground()
-                    if (alwaysShowFloating) showFloatingAnalyzeBarIfAllowed()
-                } else {
-                    stopForeground(STOP_FOREGROUND_REMOVE)
-                    stopSelf()
-                }
-                openAssistantDashboard()
+                finishCaptureFlow(wasMonitoring)
             }
-        }, mainHandler)
+        }
+        mainHandler.postDelayed(timeoutRunnable, 3500L)
+
+        // Attendre ~380ms que la fenêtre système d'autorisation se ferme complètement avant de capturer
+        mainHandler.postDelayed({
+            if (handled) return@postDelayed
+            val activeProjection = mediaProjection ?: return@postDelayed
+
+            val reader = ImageReader.newInstance(width, height, PixelFormat.RGBA_8888, 3)
+            imageReader = reader
+
+            virtualDisplay = activeProjection.createVirtualDisplay(
+                "LandsOfJailSingleCapture",
+                width,
+                height,
+                density,
+                DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
+                reader.surface,
+                null,
+                mainHandler
+            )
+
+            var attempts = 0
+            reader.setOnImageAvailableListener({ r ->
+                if (handled) return@setOnImageAvailableListener
+                val image = r.acquireLatestImage() ?: return@setOnImageAvailableListener
+                attempts++
+                try {
+                    val plane = image.planes[0]
+                    val buffer = plane.buffer
+                    val pixelStride = plane.pixelStride
+                    val rowStride = plane.rowStride
+                    val rowPadding = rowStride - pixelStride * width
+
+                    val fullBitmap = Bitmap.createBitmap(
+                        width + rowPadding / pixelStride,
+                        height,
+                        Bitmap.Config.ARGB_8888
+                    )
+                    fullBitmap.copyPixelsFromBuffer(buffer)
+                    val cropped = Bitmap.createBitmap(fullBitmap, 0, 0, width, height)
+                    fullBitmap.recycle()
+
+                    // Si le tout premier frame est entièrement noir et qu'on a encore le temps, attendre le suivant
+                    if (attempts == 1 && isBitmapMostlyBlank(cropped)) {
+                        cropped.recycle()
+                        return@setOnImageAvailableListener
+                    }
+
+                    handled = true
+                    mainHandler.removeCallbacks(timeoutRunnable)
+
+                    val stream = ByteArrayOutputStream()
+                    cropped.compress(Bitmap.CompressFormat.JPEG, 88, stream)
+                    val jpegBytes = stream.toByteArray()
+                    val base64 = Base64.encodeToString(jpegBytes, Base64.NO_WRAP)
+
+                    val savedUri = saveCaptureToInternalFile(jpegBytes)
+
+                    ScreenCaptureConsentActivity.publishCapture(
+                        CapturedScreenPayload(
+                            bitmap = cropped,
+                            base64Jpeg = base64,
+                            capturedAtMillis = System.currentTimeMillis(),
+                            imageFileUri = savedUri
+                        )
+                    )
+                } finally {
+                    image.close()
+                    if (handled) {
+                        isCapturingNow = false
+                        releaseProjection()
+                        finishCaptureFlow(wasMonitoring)
+                    }
+                }
+            }, mainHandler)
+        }, 380L)
+    }
+
+    private fun finishCaptureFlow(wasMonitoring: Boolean) {
+        if (wasMonitoring) {
+            startAsMonitoringForeground()
+        } else {
+            stopForeground(STOP_FOREGROUND_REMOVE)
+            stopSelf()
+        }
+        openAssistantDashboard()
+    }
+
+    private fun isBitmapMostlyBlank(bitmap: Bitmap): Boolean {
+        val samplePts = listOf(
+            bitmap.width / 4 to bitmap.height / 4,
+            bitmap.width / 2 to bitmap.height / 2,
+            (bitmap.width * 3) / 4 to (bitmap.height * 3) / 4
+        )
+        var nonBlack = 0
+        for ((px, py) in samplePts) {
+            val c = bitmap.getPixel(px.coerceIn(0, bitmap.width - 1), py.coerceIn(0, bitmap.height - 1))
+            val r = (c shr 16) and 0xFF
+            val g = (c shr 8) and 0xFF
+            val b = c and 0xFF
+            if (r + g + b > 24) nonBlack++
+        }
+        return nonBlack == 0
+    }
+
+    private fun saveCaptureToInternalFile(jpegBytes: ByteArray): String {
+        return try {
+            val dir = File(filesDir, "captures").apply { mkdirs() }
+            val outFile = File(dir, "capture_${System.currentTimeMillis()}.jpg")
+            FileOutputStream(outFile).use { fos ->
+                fos.write(jpegBytes)
+                fos.flush()
+            }
+            // Nettoyer les captures très anciennes (garder les 30 plus récentes)
+            dir.listFiles()?.sortedByDescending { it.lastModified() }?.drop(30)?.forEach {
+                it.delete()
+            }
+            Uri.fromFile(outFile).toString()
+        } catch (_: Throwable) {
+            ""
+        }
     }
 
     private fun openAssistantDashboard() {
         val intent = Intent(this, MainActivity::class.java).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            addFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK or
+                    Intent.FLAG_ACTIVITY_SINGLE_TOP or
+                    Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+            )
         }
         startActivity(intent)
     }
@@ -311,21 +392,26 @@ class GameForegroundMonitorService : Service() {
                     lastKnownForegroundPkg = fgPkg
                 }
                 val effectivePkg = fgPkg ?: lastKnownForegroundPkg
+                val isSelfForeground = effectivePkg == applicationContext.packageName
                 val isGameNow = UsageStatsDetector.isLandsOfJailPackage(effectivePkg, targetFilter)
                 _detectedGameForeground.value = isGameNow
 
                 if (isGameNow && !wasGameInForeground) {
                     showAnalyzePromptNotification()
-                    showFloatingAnalyzeBarIfAllowed()
+                }
+
+                // Ne jamais masquer le TopAppBar de notre propre appli avec la barre flottante,
+                // mais toujours la garder visible au-dessus du jeu / des autres apps.
+                if (isCapturingNow || isSelfForeground) {
+                    removeFloatingAnalyzeBar()
                 } else if (isGameNow || alwaysShowFloating) {
-                    // Garantit que le bouton flottant reste bien au-dessus du jeu
                     showFloatingAnalyzeBarIfAllowed()
-                } else if (!isGameNow && wasGameInForeground && !alwaysShowFloating) {
+                } else {
                     removeFloatingAnalyzeBar()
                 }
 
                 wasGameInForeground = isGameNow
-                delay(2500L)
+                delay(1800L)
             }
         }
     }

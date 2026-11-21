@@ -1,3 +1,14 @@
+export type AppLanguage = 'fr' | 'tr' | 'ru' | 'zh' | 'de' | 'en';
+
+export const APP_LANGUAGE_LABELS: Record<AppLanguage, string> = {
+  fr: 'Français',
+  tr: 'Türkçe',
+  ru: 'Русский',
+  zh: '中文',
+  de: 'Deutsch',
+  en: 'English',
+};
+
 export type PlayerRole =
   | 'leader_ralliement'
   | 'assaut_dps'
@@ -36,6 +47,10 @@ export type ScreenCategory =
   | 'ressources'
   | 'trial_cage'
   | 'crystal_clash'
+  | 'sandsea_conquest'
+  | 'svs'
+  | 'turmoil_surge'
+  | 'gold_hunter'
   | 'autre';
 
 export const SCREEN_CATEGORY_LABELS: Record<ScreenCategory, string> = {
@@ -44,14 +59,106 @@ export const SCREEN_CATEGORY_LABELS: Record<ScreenCategory, string> = {
   ressources: 'Ressources & Entrepôt',
   trial_cage: 'Trial Cage',
   crystal_clash: 'Crystal Clash',
+  sandsea_conquest: 'Conquête de sable',
+  svs: 'SvS / Supreme Honor',
+  turmoil_surge: 'Turmoil Surge',
+  gold_hunter: 'Gold Hunter / Power Sprint',
   autre: 'Autre écran',
 };
+
+export type AdviceMode =
+  | 'trial_cage'
+  | 'crystal_clash'
+  | 'sandsea_conquest'
+  | 'svs'
+  | 'turmoil_surge'
+  | 'gold_hunter';
+
+export const ADVICE_EVENT_LIST: Array<{
+  id: AdviceMode;
+  label: Record<AppLanguage, string>;
+  searchKeyword: string;
+}> = [
+  {
+    id: 'trial_cage',
+    label: {
+      fr: 'Trial Cage',
+      tr: 'Deneme Kafesi',
+      ru: 'Испытание клетки',
+      zh: '终极试炼 (Trial Cage)',
+      de: 'Trial Cage',
+      en: 'Trial Cage',
+    },
+    searchKeyword: 'cage',
+  },
+  {
+    id: 'crystal_clash',
+    label: {
+      fr: 'Crystal Clash',
+      tr: 'Kristal Çatışması',
+      ru: 'Кристальная схватка',
+      zh: '水晶争夺战',
+      de: 'Kristallkampf',
+      en: 'Crystal Clash',
+    },
+    searchKeyword: 'crystal clash',
+  },
+  {
+    id: 'sandsea_conquest',
+    label: {
+      fr: 'Conquête de sable',
+      tr: 'Kum Denizi Fethi',
+      ru: 'Завоевание Песчаного моря',
+      zh: '沙海征服',
+      de: 'Sandmeer-Eroberung',
+      en: 'Sandsea Conquest',
+    },
+    searchKeyword: 'sandsea',
+  },
+  {
+    id: 'svs',
+    label: {
+      fr: 'SvS / Supreme Honor',
+      tr: 'SvS / Yüce Onur',
+      ru: 'SvS / Высшее отличие',
+      zh: '跨服战 / 至高荣耀',
+      de: 'SvS / Höchste Ehre',
+      en: 'SvS / Supreme Honor',
+    },
+    searchKeyword: 'svs',
+  },
+  {
+    id: 'turmoil_surge',
+    label: {
+      fr: 'Turmoil Surge',
+      tr: 'Kargaşa Dalgası',
+      ru: 'Волна смуты',
+      zh: '动乱危机',
+      de: 'Turmoil Surge',
+      en: 'Turmoil Surge',
+    },
+    searchKeyword: 'turmoil',
+  },
+  {
+    id: 'gold_hunter',
+    label: {
+      fr: 'Gold Hunter & Sprint',
+      tr: 'Altın Avcısı',
+      ru: 'Охотник за золотом',
+      zh: '黄金猎人',
+      de: 'Goldjäger',
+      en: 'Gold Hunter & Sprint',
+    },
+    searchKeyword: 'gold hunter',
+  },
+];
 
 export interface HeroSkill {
   id: string;
   nom: string;
   niveau: string;
   description?: string;
+  iconUrl?: string;
   incertain: boolean;
   raisonIncertitude?: string;
 }
@@ -65,6 +172,16 @@ export interface HeroRecord {
   etoiles?: string;
   roleHero?: string;
   puissanceHero?: string;
+  imageUrl?: string;
+  avatarUrl?: string;
+  titre?: string;
+  typeTroupe?: string;
+  categorie?: string;
+  saison?: string;
+  puissanceMax5Etoiles?: string;
+  resumeBio?: string;
+  idealPour?: string;
+  wikiUrl?: string;
   competences: HeroSkill[];
   incertain: boolean;
   raisonIncertitude?: string;
@@ -113,12 +230,11 @@ export interface ScreenshotAnalysis {
   noteUtilisateur?: string;
 }
 
-export type AdviceMode = 'trial_cage' | 'crystal_clash';
-
 export interface GroundedWebSource {
   title: string;
   url: string;
   detectedDate?: string | null;
+  imageUrl?: string | null;
 }
 
 export interface AdviceRecommendation {
@@ -127,12 +243,14 @@ export interface AdviceRecommendation {
   herosCibles: string[];
   incertain: boolean;
   raisonIncertitude?: string;
+  imageUrl?: string | null;
 }
 
 export interface TacticalAdviceResult {
   id: string;
   mode: AdviceMode;
   playerRole: PlayerRole;
+  language?: AppLanguage;
   generatedAt: string;
   synthese: string;
   compositionRecommandee: string;
@@ -145,6 +263,7 @@ export interface TacticalAdviceResult {
 }
 
 export interface AccountState {
+  language?: AppLanguage;
   playerRole: PlayerRole;
   currentPower: PowerMetric | null;
   powerHistory: Array<{

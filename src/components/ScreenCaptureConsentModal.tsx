@@ -183,7 +183,7 @@ export const ScreenCaptureConsentModal: React.FC<ScreenCaptureConsentModalProps>
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/75 backdrop-blur-sm p-0 md:p-6"
+      className="fixed inset-0 z-[60] flex items-end md:items-center justify-center bg-black/75 backdrop-blur-sm p-2 sm:p-4 md:p-6 overflow-hidden"
       role="dialog"
       aria-modal="true"
       aria-labelledby="capture-consent-title"
@@ -200,13 +200,13 @@ export const ScreenCaptureConsentModal: React.FC<ScreenCaptureConsentModalProps>
         }}
       />
 
-      <div className="w-full md:max-w-lg bg-[#121826] border border-slate-800 rounded-t-3xl md:rounded-2xl shadow-2xl overflow-hidden">
-        <div className="md:hidden w-10 h-1.5 bg-slate-700 rounded-full mx-auto mt-3" />
+      <div className="w-full max-w-full md:max-w-lg bg-[#121826] border border-slate-800 rounded-2xl shadow-2xl max-h-[86dvh] flex flex-col overflow-hidden">
+        <div className="md:hidden w-10 h-1 bg-slate-700 rounded-full mx-auto mt-2.5 shrink-0" />
 
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800">
-          <div className="flex items-center gap-2.5">
-            <Camera className="w-5 h-5 text-amber-400" />
-            <h2 id="capture-consent-title" className="text-base font-semibold text-slate-100">
+        <div className="flex items-center justify-between px-4 sm:px-5 py-3.5 border-b border-slate-800 shrink-0">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <Camera className="w-5 h-5 text-amber-400 shrink-0" />
+            <h2 id="capture-consent-title" className="text-base font-semibold text-slate-100 truncate">
               Capture & Analyse de l’écran
             </h2>
           </div>
@@ -215,13 +215,13 @@ export const ScreenCaptureConsentModal: React.FC<ScreenCaptureConsentModalProps>
             onClick={onClose}
             disabled={isAnalyzing || isCapturingFrame}
             aria-label="Fermer"
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-100 hover:bg-slate-800"
+            className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-100 hover:bg-slate-800 shrink-0"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="p-5 space-y-4">
+        <div className="flex-1 min-h-0 p-4 sm:p-5 space-y-4 overflow-y-auto">
           {!canAttemptBrowserCapture ? (
             <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 space-y-2 text-xs text-amber-100 leading-relaxed">
               <div className="font-semibold text-amber-300 flex items-center gap-2">

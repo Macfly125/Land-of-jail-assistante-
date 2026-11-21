@@ -123,11 +123,12 @@ async function startServer() {
 
   app.post('/api/analyze-screenshot', async (req, res) => {
     try {
-      const { imageBase64, mimeType, playerRole, note } = req.body as {
+      const { imageBase64, mimeType, playerRole, note, language } = req.body as {
         imageBase64?: string;
         mimeType?: string;
         playerRole?: string;
         note?: string;
+        language?: TargetLang;
       };
 
       if (!imageBase64 || !mimeType) {
@@ -263,6 +264,64 @@ Règles strictes :
 
       const rawText = (response.text ?? '{}').trim();
       const parsed = JSON.parse(rawText);
+
+      // Enrichissement automatique des héros détectés avec photo et caractéristiques officielles lojwiki.com
+      if (Array.isArray(parsed?.heros) && parsed.heros.length > 0) {
+        const targetLang: TargetLang =
+          language && ['fr', 'tr', 'ru', 'zh', 'de', 'en'].includes(language)
+            ? language
+            : 'fr';
+        await Promise.all(
+          parsed.heros.map(async (h: Record<string, unknown>) => {
+            const heroName = typeof h.nom === 'string' ? h.nom : '';
+            if (!heroName) return;
+            const wikiInfo = await fetchHeroWikiDetailsByName(heroName, targetLang);
+            if (!wikiInfo) return;
+            h.imageUrl = wikiInfo.imageUrl || wikiInfo.avatarUrl;
+            h.avatarUrl = wikiInfo.avatarUrl;
+            h.titre = wikiInfo.titre;
+            h.rarete = (typeof h.rarete === 'string' && h.rarete) || wikiInfo.rarete;
+            h.typeTroupe = wikiInfo.typeTroupe;
+            h.categorie = wikiInfo.categorie;
+            h.saison = wikiInfo.saison;
+            h.roleHero = (typeof h.roleHero === 'string' && h.roleHero) || wikiInfo.typeTroupe || wikiInfo.categorie;
+            h.puissanceMax5Etoiles = wikiInfo.puissanceMax5Etoiles;
+            h.resumeBio = wikiInfo.resumeBio;
+            h.idealPour = wikiInfo.idealPour;
+            h.wikiUrl = wikiInfo.wikiUrl;
+            if (Array.isArray(wikiInfo.competences) && wikiInfo.competences.length > 0) {
+              const existingSkills = Array.isArray(h.competences) ? (h.competences as Array<Record<string, unknown>>) : [];
+              if (existingSkills.length === 0) {
+                h.competences = wikiInfo.competences;
+              } else {
+                h.competences = existingSkills.map((sk, idx) => {
+                  const skName = String(sk.nom || '').toLowerCase();
+                  const matched =
+                    wikiInfo.competences.find((ws) => ws.nom.toLowerCase().includes(skName) || skName.includes(ws.nom.toLowerCase())) ||
+                    wikiInfo.competences[idx];
+                  return {
+                    ...sk,
+                    description: (typeof sk.description === 'string' && sk.description) || matched?.description,
+                    iconUrl: matched?.iconUrl,
+                  };
+                });
+                // Ajouter les autres compétences wiki non visibles sur la capture
+                for (const ws of wikiInfo.competences) {
+                  const already = (h.competences as Array<Record<string, unknown>>).some(
+                    (sk) =>
+                      String(sk.nom || '').toLowerCase().includes(ws.nom.toLowerCase()) ||
+                      ws.nom.toLowerCase().includes(String(sk.nom || '').toLowerCase())
+                  );
+                  if (!already) {
+                    (h.competences as Array<Record<string, unknown>>).push(ws);
+                  }
+                }
+              }
+            }
+          })
+        );
+      }
+
       res.json({
         analysis: parsed,
         analyzedAt: new Date().toISOString(),
@@ -276,18 +335,136 @@ Règles strictes :
     }
   });
 
+  type AdviceEventMode =
+    | 'trial_cage'
+    | 'crystal_clash'
+    | 'sandsea_conquest'
+    | 'svs'
+    | 'turmoil_surge'
+    | 'gold_hunter';
+
+  type TargetLang = 'fr' | 'tr' | 'ru' | 'zh' | 'de' | 'en';
+
+  interface LiveGuideItem {
+    title: string;
+    url: string;
+    date: string;
+    excerpt: string;
+    imageUrl: string | null;
+    langMatch: boolean;
+  }
+
+  async function fetchLocalizedLojWikiPages(
+    mode: AdviceEventMode,
+    language: TargetLang
+  ): Promise<LiveGuideItem[]> {
+    const langPrefixMap: Record<TargetLang, string> = {
+      fr: '/fr',
+      tr: '/tr',
+      ru: '/ru',
+      zh: '/zh-cn',
+      de: '/de',
+      en: '',
+    };
+    const prefix = langPrefixMap[language] ?? '';
+    const slugsByMode: Record<AdviceEventMode, string[]> = {
+      trial_cage: ['/events/ultimate-trial/', '/guides/ultimate-trial/', '/events/'],
+      crystal_clash: ['/events/crystal-clash/', '/events/'],
+      sandsea_conquest: ['/events/sandsea-conquest/', '/events/'],
+      svs: ['/events/supreme-honor/', '/events/'],
+      turmoil_surge: ['/events/turmoil-surge/', '/events/'],
+      gold_hunter: ['/events/gold-hunter/', '/guides/gold-hunter/', '/events/'],
+    };
+
+    const slugs = slugsByMode[mode] ?? ['/events/'];
+    const decodeEntities = (s: string) =>
+      s
+        .replace(/&amp;/g, '&')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/&#x27;/g, "'")
+        .replace(/&#8217;/g, "'")
+        .replace(/&#8211;/g, '–')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    const results: LiveGuideItem[] = [];
+    const today = new Date().toISOString().slice(0, 10);
+
+    await Promise.all(
+      slugs.map(async (slug) => {
+        const pageUrl = `https://lojwiki.com${prefix}${slug}`;
+        try {
+          const controller = new AbortController();
+          const timer = setTimeout(() => controller.abort(), 7000);
+          const resp = await fetch(pageUrl, {
+            signal: controller.signal,
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/126.0',
+              Accept: 'text/html',
+            },
+          });
+          clearTimeout(timer);
+          if (!resp.ok) return;
+          const html = await resp.text();
+          const titleMatch = html.match(/<title>([^<]+)<\/title>/i);
+          const descMatch =
+            html.match(/<meta\s+name=["']description["']\s+content=["']([^"']+)["']/i) ||
+            html.match(/<meta\s+content=["']([^"']+)["']\s+name=["']description["']/i);
+          const imgMatches = Array.from(
+            html.matchAll(/https:\/\/img\.lojwiki\.com\/[^\s"'<>]+\.(?:webp|png|jpg|jpeg)/gi)
+          ).map((m) => m[0]);
+          const ogImgMatch = html.match(
+            /<meta\s+property=["']og:image["']\s+content=["']([^"']+)["']/i
+          );
+          const photo =
+            imgMatches.find((u) => u.includes('/banners/')) ||
+            imgMatches[0] ||
+            ogImgMatch?.[1] ||
+            null;
+
+          if (titleMatch) {
+            results.push({
+              title: decodeEntities(titleMatch[1].replace(/\s*\|\s*Lands of Jail.*$/i, '')),
+              url: pageUrl,
+              date: today,
+              excerpt: decodeEntities(descMatch?.[1] || ''),
+              imageUrl: photo,
+              langMatch: true,
+            });
+          }
+        } catch {
+          // ignore single page timeout
+        }
+      })
+    );
+
+    return results;
+  }
+
   async function fetchLiveLojGuides(
-    mode: 'trial_cage' | 'crystal_clash',
-    heroNames: string[]
-  ): Promise<Array<{ title: string; url: string; date: string; excerpt: string }>> {
-    const queryTerm = mode === 'trial_cage' ? 'cage' : 'crystal clash';
-    const urls = [
-      `https://lojxlab.com/wp-json/wp/v2/posts?per_page=8&search=${encodeURIComponent(queryTerm)}&_fields=date,modified,link,title,excerpt`,
+    mode: AdviceEventMode,
+    heroNames: string[],
+    language: TargetLang
+  ): Promise<LiveGuideItem[]> {
+    const queryMap: Record<AdviceEventMode, string> = {
+      trial_cage: 'cage',
+      crystal_clash: 'crystal clash',
+      sandsea_conquest: 'sandsea',
+      svs: 'svs',
+      turmoil_surge: 'turmoil',
+      gold_hunter: 'gold hunter',
+    };
+    const queryTerm = queryMap[mode] || 'lands of jail';
+    const lojxlabUrls = [
+      `https://lojxlab.com/wp-json/wp/v2/posts?per_page=8&_embed=wp:featuredmedia&search=${encodeURIComponent(
+        queryTerm
+      )}&_fields=date,modified,link,title,excerpt,content,_links,_embedded`,
       ...(heroNames.length > 0
         ? [
-            `https://lojxlab.com/wp-json/wp/v2/posts?per_page=4&search=${encodeURIComponent(
+            `https://lojxlab.com/wp-json/wp/v2/posts?per_page=4&_embed=wp:featuredmedia&search=${encodeURIComponent(
               heroNames[0]
-            )}&_fields=date,modified,link,title,excerpt`,
+            )}&_fields=date,modified,link,title,excerpt,content,_links,_embedded`,
           ]
         : []),
     ];
@@ -297,22 +474,51 @@ Règles strictes :
         .replace(/<[^>]*>/g, ' ')
         .replace(/&#8217;/g, "'")
         .replace(/&#8211;/g, '–')
+        .replace(/&#038;/g, '&')
         .replace(/&amp;/g, '&')
         .replace(/&quot;/g, '"')
         .replace(/\s+/g, ' ')
         .trim();
 
-    const collected: Array<{ title: string; url: string; date: string; excerpt: string }> = [];
-    const seen = new Set<string>();
+    const extractFirstPhoto = (post: {
+      content?: { rendered?: string };
+      _embedded?: {
+        'wp:featuredmedia'?: Array<{
+          source_url?: string;
+          media_details?: {
+            sizes?: Record<string, { source_url?: string }>;
+          };
+        }>;
+      };
+    }): string | null => {
+      const fm = post._embedded?.['wp:featuredmedia']?.[0];
+      const sizes = fm?.media_details?.sizes;
+      const featured =
+        sizes?.['lojxlab-card']?.source_url ||
+        sizes?.medium_large?.source_url ||
+        sizes?.large?.source_url ||
+        sizes?.medium?.source_url ||
+        fm?.source_url;
+      if (featured && /^https?:\/\//i.test(featured)) return featured;
+
+      const contentHtml = post.content?.rendered || '';
+      const imgMatch = contentHtml.match(/https?:\/\/[^\s"'<>]+\.(?:webp|png|jpg|jpeg)/i);
+      return imgMatch ? imgMatch[0] : null;
+    };
+
+    const [wikiGuides] = await Promise.all([fetchLocalizedLojWikiPages(mode, language)]);
+
+    const lojxlabCollected: LiveGuideItem[] = [];
+    const seen = new Set<string>(wikiGuides.map((g) => g.url));
 
     await Promise.all(
-      urls.map(async (u) => {
+      lojxlabUrls.map(async (u) => {
         try {
           const controller = new AbortController();
           const timer = setTimeout(() => controller.abort(), 7000);
           const resp = await fetch(u, {
             signal: controller.signal,
-            headers: { Accept: 'application/json', 'User-Agent': 'LandsOfJailAssistant/1.2' },
+            headers: { Accept: 'application/json', 'User-Agent': 'LandsOfJailAssistant/1.5' },
           });
           clearTimeout(timer);
           if (!resp.ok) return;
@@ -322,24 +528,42 @@ Règles strictes :
             link?: string;
             title?: { rendered?: string };
             excerpt?: { rendered?: string };
+            content?: { rendered?: string };
+            _embedded?: {
+              'wp:featuredmedia'?: Array<{
+                source_url?: string;
+                media_details?: {
+                  sizes?: Record<string, { source_url?: string }>;
+                };
+              }>;
+            };
           }>;
           if (!Array.isArray(posts)) return;
-          // Privilégier les articles en anglais (/blog/) ou français (/fr/) pour la lisibilité
+
           const sorted = [...posts].sort((a, b) => {
-            const score = (link = '') =>
-              link.includes('/fr/') ? 2 : link.includes('/blog/') ? 1 : 0;
+            const score = (link = '') => {
+              if (language === 'de' && link.includes('/de/')) return 4;
+              if (language === 'fr' && link.includes('/fr/')) return 4;
+              if (link.includes('/blog/')) return 2;
+              return 1;
+            };
             return score(b.link) - score(a.link);
           });
+
           for (const p of sorted) {
             const url = p.link || '';
             if (!url || seen.has(url)) continue;
             seen.add(url);
             const rawDate = (p.modified || p.date || '').slice(0, 10);
-            collected.push({
+            lojxlabCollected.push({
               title: stripHtml(p.title?.rendered || 'Guide lojxlab.com'),
               url,
               date: rawDate || new Date().toISOString().slice(0, 10),
               excerpt: stripHtml(p.excerpt?.rendered || ''),
+              imageUrl: extractFirstPhoto(p),
+              langMatch:
+                (language === 'de' && url.includes('/de/')) ||
+                (language === 'en' && url.includes('/blog/')),
             });
           }
         } catch {
@@ -348,13 +572,14 @@ Règles strictes :
       })
     );
 
-    return collected.slice(0, 6);
+    return [...wikiGuides, ...lojxlabCollected].slice(0, 8);
   }
 
   app.post('/api/advice', async (req, res) => {
     try {
-      const { mode, playerRole, playerRoleLabel, heroes, powerText, extraQuestion } = req.body as {
-        mode?: 'trial_cage' | 'crystal_clash';
+      const { mode, language, playerRole, playerRoleLabel, heroes, extraQuestion } = req.body as {
+        mode?: AdviceEventMode;
+        language?: TargetLang;
         playerRole?: string;
         playerRoleLabel?: string;
         heroes?: Array<{
@@ -369,246 +594,154 @@ Règles strictes :
         extraQuestion?: string;
       };
 
-      if (!mode || (mode !== 'trial_cage' && mode !== 'crystal_clash')) {
-        res.status(400).json({ error: 'Mode de jeu invalide (trial_cage ou crystal_clash attendu).' });
+      const validModes: AdviceEventMode[] = [
+        'trial_cage',
+        'crystal_clash',
+        'sandsea_conquest',
+        'svs',
+        'turmoil_surge',
+        'gold_hunter',
+      ];
+      if (!mode || !validModes.includes(mode)) {
+        res.status(400).json({ error: 'Mode / événement invalide.' });
         return;
       }
 
-      const modeName = mode === 'trial_cage' ? 'Trial Cage' : 'Crystal Clash';
-      const heroNames = (heroes ?? []).map((h) => h.nom).filter(Boolean);
-      const liveGuidesPromise = fetchLiveLojGuides(mode, heroNames);
+      const validLangs: TargetLang[] = ['fr', 'tr', 'ru', 'zh', 'de', 'en'];
+      const targetLang: TargetLang =
+        language && validLangs.includes(language) ? language : 'fr';
 
-      const heroesSummary =
-        heroes && heroes.length > 0
-          ? heroes
-              .map((h) => {
-                const skills =
-                  h.competences && h.competences.length > 0
-                    ? h.competences
-                        .map((s) => `${s.nom} (${s.niveau}${s.incertain ? ', incertain' : ''})`)
-                        .join(', ')
-                    : 'compétences non détaillées';
-                return `- ${h.nom} | Niveau: ${h.niveauTexte}${h.rarete ? ` | Rareté: ${h.rarete}` : ''}${h.roleHero ? ` | Rôle: ${h.roleHero}` : ''}${h.incertain ? ' [DONNÉE INCERTAINE]' : ''} | Compétences: ${skills}`;
-              })
-              .join('\n')
-          : 'Aucun héros extrait pour le moment.';
-
-      const todayFr = new Date().toLocaleDateString('fr-FR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
-
-      const liveGuides = await liveGuidesPromise;
-      const liveGuidesContext =
-        liveGuides.length > 0
-          ? liveGuides
-              .map((g) => `- [${g.date}] ${g.title} (${g.url}) : ${g.excerpt}`)
-              .join('\n')
-          : 'Aucun article lojxlab récupéré directement.';
-
-      let geminiWarning: string | undefined;
-      let rawText = '';
-      let webSources: Array<{ title: string; url: string }> = [];
-      let searchQueries: string[] = [];
-
-      try {
-        const ai = getAiClient();
-        const prompt = `Tu es un stratège expert du jeu mobile "Lands of Jail".
-Nous sommes le ${todayFr}.
-Utilise la recherche Google ET les extraits en direct ci-dessous pour donner des conseils récents sur Internet pour le mode "${modeName}" dans "Lands of Jail".
-
-Extraits Internet récupérés en direct :
-${liveGuidesContext}
-
-Contexte actuel du joueur :
-- Rôle choisi : ${playerRoleLabel || playerRole || 'Non précisé'}
-- Puissance observée : ${powerText || 'Non renseignée'}
-- Héros visibles extraits des captures :
-${heroesSummary}
-${extraQuestion ? `- Question spécifique du joueur : ${extraQuestion}` : ''}
-
-Consignes STRICTES :
-1. Réponds en français, de manière concrète et adaptée aux héros visibles ci-dessus et au rôle du joueur.
-2. Si la liste des héros est vide ou contient des données marquées [DONNÉE INCERTAINE], signale-le explicitement dans "informationsIncertaines" sans inventer les stats manquantes.
-3. Indique honnêtement dans "informationsIncertaines" toute règle dont la source est ancienne, contradictoire ou incertaine.
-4. Pour chaque source trouvée dans la recherche, relève la date de publication ou de mise à jour si elle apparaît, sinon indique null pour detectedDate.
-5. Formate ta réponse UNIQUEMENT sous forme d'un objet JSON valide (sans texte hors du JSON) avec la structure exacte suivante :
-{
-  "synthese": "Analyse globale adaptée au mode et au rôle (2-4 phrases).",
-  "compositionRecommandee": "Composition ou rotation conseillée avec les héros visibles.",
-  "recommandations": [
-    {
-      "titre": "Titre actionnable",
-      "detail": "Explication tactique concrète adaptée au rôle et aux compétences visibles.",
-      "herosCibles": ["Nom héros 1"],
-      "incertain": false,
-      "raisonIncertitude": ""
-    }
-  ],
-  "informationsIncertaines": [
-    "Liste claire des points incertains, manquants ou dépendant de données non vérifiées."
-  ],
-  "datesSourcesDetectees": [
-    {
-      "titreOuDomaine": "Nom ou domaine du guide",
-      "datePublication": "ex: 2026-11-19 ou Non précisée sur la page"
-    }
-  ]
-}`;
-
-        const response = await ai.models.generateContent({
-          model: 'gemini-4-hydrogen',
-          contents: prompt,
-          config: {
-            tools: [{ googleSearch: {} }],
-          },
-        });
-
-        rawText = (response.text ?? '').trim();
-        const groundingMetadata = response.candidates?.[0]?.groundingMetadata;
-        const chunks = groundingMetadata?.groundingChunks ?? [];
-        searchQueries = groundingMetadata?.webSearchQueries ?? [];
-        webSources = chunks
-          .map((c) => c.web)
-          .filter((w): w is { uri?: string; title?: string } => Boolean(w && w.uri))
-          .map((w) => ({
-            title: w.title || w.uri || 'Source Web',
-            url: w.uri as string,
-          }));
-      } catch (aiErr: unknown) {
-        const msg = aiErr instanceof Error ? aiErr.message : String(aiErr);
-        const isQuota = msg.includes('429') || msg.includes('RESOURCE_EXHAUSTED');
-        geminiWarning = isQuota
-          ? 'Quota API Gemini dépassé (erreur 429 RESOURCE_EXHAUSTED). Vérifiez votre forfait ou clé API dans Settings > Secrets. Les guides Internet en direct récupérés depuis lojxlab.com sont affichés ci-dessous.'
-          : `Synthèse Gemini indisponible (${msg}). Affichage des guides Internet en direct récupérés depuis lojxlab.com.`;
-
-        if (liveGuides.length === 0) {
-          res.status(isQuota ? 429 : 502).json({ error: geminiWarning });
-          return;
-        }
-      }
-
-      const mergedSourcesMap = new Map<
-        string,
-        { title: string; url: string; detectedDate: string | null }
-      >();
-
-      for (const g of liveGuides) {
-        mergedSourcesMap.set(g.url, {
-          title: g.title,
-          url: g.url,
-          detectedDate: g.date,
-        });
-      }
-
-      let parsedAdvice: {
-        synthese: string;
-        compositionRecommandee: string;
-        recommandations: Array<{
-          titre: string;
-          detail: string;
-          herosCibles?: string[];
-          incertain?: boolean;
-          raisonIncertitude?: string;
-        }>;
-        informationsIncertaines: string[];
-        datesSourcesDetectees?: Array<{ titreOuDomaine: string; datePublication: string }>;
+      const modeNamesByLang: Record<TargetLang, Record<AdviceEventMode, string>> = {
+        fr: {
+          trial_cage: 'Trial Cage',
+          crystal_clash: 'Crystal Clash',
+          sandsea_conquest: 'Conquête de sable',
+          svs: 'SvS / Supreme Honor',
+          turmoil_surge: 'Turmoil Surge',
+          gold_hunter: 'Gold Hunter & Sprint',
+        },
+        tr: {
+          trial_cage: 'Deneme Kafesi',
+          crystal_clash: 'Kristal Çatışması',
+          sandsea_conquest: 'Kum Denizi Fethi',
+          svs: 'SvS / Yüce Onur',
+          turmoil_surge: 'Kargaşa Dalgası',
+          gold_hunter: 'Altın Avcısı',
+        },
+        ru: {
+          trial_cage: 'Испытание клетки',
+          crystal_clash: 'Кристальная схватка',
+          sandsea_conquest: 'Завоевание Песчаного моря',
+          svs: 'SvS / Высшее отличие',
+          turmoil_surge: 'Волна смуты',
+          gold_hunter: 'Охотник за золотом',
+        },
+        zh: {
+          trial_cage: '终极试炼',
+          crystal_clash: '水晶争夺战',
+          sandsea_conquest: '沙海征服',
+          svs: '跨服战 / 至高荣耀',
+          turmoil_surge: '动乱危机',
+          gold_hunter: '黄金猎人',
+        },
+        de: {
+          trial_cage: 'Trial Cage',
+          crystal_clash: 'Kristallkampf',
+          sandsea_conquest: 'Sandmeer-Eroberung',
+          svs: 'SvS / Höchste Ehre',
+          turmoil_surge: 'Turmoil Surge',
+          gold_hunter: 'Goldjäger',
+        },
+        en: {
+          trial_cage: 'Trial Cage',
+          crystal_clash: 'Crystal Clash',
+          sandsea_conquest: 'Sandsea Conquest',
+          svs: 'SvS / Supreme Honor',
+          turmoil_surge: 'Turmoil Surge',
+          gold_hunter: 'Gold Hunter & Sprint',
+        },
       };
 
-      const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        try {
-          parsedAdvice = JSON.parse(jsonMatch[0]);
-        } catch {
-          parsedAdvice = {
-            synthese: rawText,
-            compositionRecommandee: 'Voir le détail ci-dessous.',
-            recommandations: [],
-            informationsIncertaines: [
-              'Le format structuré de la réponse n’a pas pu être découpé automatiquement.',
-            ],
-          };
-        }
-      } else if (rawText) {
-        parsedAdvice = {
-          synthese: rawText,
-          compositionRecommandee: 'Voir la synthèse.',
-          recommandations: [],
-          informationsIncertaines: ['Réponse reçue en texte libre sans structure JSON.'],
-        };
-      } else {
-        // Mode sources Internet en direct (sans synthèse Gemini disponible)
-        const roleLabel = playerRoleLabel || playerRole || 'Polyvalent / F2P';
-        parsedAdvice = {
-          synthese: `Résultats Internet en direct récupérés pour ${modeName} (rôle : ${roleLabel}). ${
-            liveGuides[0] ? `Dernier guide pertinent : « ${liveGuides[0].title} » (${liveGuides[0].date}).` : ''
-          }`,
-          compositionRecommandee:
-            heroNames.length > 0
-              ? `Héros détectés sur votre compte : ${heroNames.join(', ')}. Consultez les extraits datés ci-dessous pour vérifier l'ordre exact selon votre rôle (${roleLabel}).`
-              : `Aucun héros scanné pour l'instant : partagez ou capturez votre page Héros pour croiser vos personnages avec les guides ci-dessous.`,
-          recommandations: liveGuides.slice(0, 4).map((g) => ({
-            titre: g.title,
-            detail: g.excerpt || 'Consultez la source complète via le lien ci-dessous.',
-            herosCibles: heroNames.slice(0, 3),
-            incertain: heroNames.length === 0,
-            raisonIncertitude:
-              heroNames.length === 0
-                ? 'Héros du compte non encore scannés ; adaptation exacte au compte à vérifier.'
-                : undefined,
-          })),
-          informationsIncertaines: [
-            'La synthèse IA personnalisée n’a pas pu s’exécuter (voir Alerte API Gemini ci-dessus) : seuls les extraits et sources Internet en direct sont affichés.',
-            ...(heroNames.length === 0
-              ? ['Aucun héros scanné sur le compte : partagez une capture de vos héros.']
-              : []),
-          ],
-        };
+      const modeName = modeNamesByLang[targetLang][mode];
+      const heroNames = (heroes ?? []).map((h) => h.nom).filter(Boolean);
+      const liveGuides = await fetchLiveLojGuides(mode, heroNames, targetLang);
+
+      if (liveGuides.length === 0) {
+        res.status(502).json({
+          error: 'Aucun guide Internet accessible pour le moment. Vérifiez votre connexion.',
+        });
+        return;
       }
 
-      const detectedDates = parsedAdvice.datesSourcesDetectees ?? [];
-      for (const src of webSources) {
-        if (!mergedSourcesMap.has(src.url)) {
-          const matchedDate = detectedDates.find(
-            (d) =>
-              src.title.toLowerCase().includes(d.titreOuDomaine.toLowerCase()) ||
-              src.url.toLowerCase().includes(d.titreOuDomaine.toLowerCase())
-          );
-          mergedSourcesMap.set(src.url, {
-            title: src.title,
-            url: src.url,
-            detectedDate: matchedDate?.datePublication || null,
-          });
-        }
-      }
+      const roleLabel = playerRoleLabel || playerRole || 'Polyvalent / F2P';
+      const leadSummary = liveGuides
+        .slice(0, 2)
+        .map((g) => g.excerpt)
+        .filter(Boolean)
+        .join(' ');
 
-      const enrichedSources = Array.from(mergedSourcesMap.values());
-      const uncertainNotes = [...(parsedAdvice.informationsIncertaines ?? [])];
-      if (enrichedSources.length === 0) {
-        uncertainNotes.push(
-          'Aucune source Internet directe n’a été retournée pour cette requête ; vérifiez ces éléments en jeu.'
-        );
-      }
+      const compTextByLang: Record<TargetLang, string> = {
+        fr:
+          heroNames.length > 0
+            ? `Héros du compte intégrés : ${heroNames.join(', ')} (rôle : ${roleLabel}).`
+            : `Aucun héros encore scanné : utilisez vos meilleurs Shieldbearers devant et Shooters derrière (${roleLabel}).`,
+        tr:
+          heroNames.length > 0
+            ? `Tespit edilen kahramanlar: ${heroNames.join(', ')} (rol: ${roleLabel}).`
+            : `Henüz kahraman taranmadı: ön safta Shieldbearers, arkada Shooters kullanın.`,
+        ru:
+          heroNames.length > 0
+            ? `Обнаруженные герои: ${heroNames.join(', ')} (роль: ${roleLabel}).`
+            : `Герои ещё не отсканированы: ставьте Shieldbearers вперёд, Shooters назад.`,
+        zh:
+          heroNames.length > 0
+            ? `已加入账号英雄：${heroNames.join('、')}（定位：${roleLabel}）。`
+            : `暂未扫描到英雄：前排推荐 Shieldbearers，后排配置 Shooters。`,
+        de:
+          heroNames.length > 0
+            ? `Erkannte Helden: ${heroNames.join(', ')} (Rolle: ${roleLabel}).`
+            : `Noch keine Helden gescannt: Shieldbearers vorne, Shooters hinten einsetzen.`,
+        en:
+          heroNames.length > 0
+            ? `Account heroes included: ${heroNames.join(', ')} (role: ${roleLabel}).`
+            : `No heroes scanned yet: pair frontline Shieldbearers with backline Shooters (${roleLabel}).`,
+      };
+
+      const synthPrefix: Record<TargetLang, string> = {
+        fr: `${modeName} · Rôle : ${roleLabel}${extraQuestion ? ` · Question : ${extraQuestion}` : ''}. `,
+        tr: `${modeName} · Rol: ${roleLabel}. `,
+        ru: `${modeName} · Роль: ${roleLabel}. `,
+        zh: `${modeName} · 定位：${roleLabel}。`,
+        de: `${modeName} · Rolle: ${roleLabel}. `,
+        en: `${modeName} · Role: ${roleLabel}. `,
+      };
 
       res.json({
         advice: {
           mode,
+          language: targetLang,
           playerRole: playerRole || 'polyvalent_f2p',
           generatedAt: new Date().toISOString(),
-          synthese: parsedAdvice.synthese || '',
-          compositionRecommandee: parsedAdvice.compositionRecommandee || '',
-          recommandations: (parsedAdvice.recommandations ?? []).map((r) => ({
-            titre: r.titre || 'Conseil tactique',
-            detail: r.detail || '',
-            herosCibles: r.herosCibles ?? [],
-            incertain: Boolean(r.incertain),
-            raisonIncertitude: r.raisonIncertitude || undefined,
+          synthese: `${synthPrefix[targetLang]}${leadSummary}`,
+          compositionRecommandee: compTextByLang[targetLang],
+          recommandations: liveGuides.slice(0, 4).map((g) => ({
+            titre: g.title,
+            detail: g.excerpt || g.title,
+            herosCibles: heroNames.slice(0, 3),
+            incertain: false,
+            imageUrl: g.imageUrl,
           })),
-          informationsIncertaines: uncertainNotes,
-          sources: enrichedSources,
-          requetesRecherche: searchQueries,
-          geminiWarning,
+          informationsIncertaines:
+            heroNames.length === 0
+              ? [compTextByLang[targetLang]]
+              : [],
+          sources: liveGuides.map((g) => ({
+            title: g.title,
+            url: g.url,
+            detectedDate: g.date,
+            imageUrl: g.imageUrl,
+          })),
+          requetesRecherche: [modeName, targetLang],
         },
       });
     } catch (err: unknown) {
@@ -618,6 +751,272 @@ Consignes STRICTES :
       res.status(500).json({
         error: `Impossible de récupérer les conseils pour ce mode : ${message}`,
       });
+    }
+  });
+
+  interface EnrichedHeroCatalogEntry {
+    slug: string;
+    nom: string;
+    avatarUrl: string | null;
+    imageUrl: string | null;
+    rarete?: string;
+    typeTroupe?: string;
+    categorie?: string;
+    wikiUrl: string;
+  }
+
+  interface EnrichedHeroFullDetails {
+    slug: string;
+    nom: string;
+    titre?: string;
+    avatarUrl: string | null;
+    imageUrl: string | null;
+    rarete?: string;
+    typeTroupe?: string;
+    categorie?: string;
+    saison?: string;
+    puissanceMax5Etoiles?: string;
+    resumeBio?: string;
+    idealPour?: string;
+    wikiUrl: string;
+    competences: Array<{
+      nom: string;
+      niveau: string;
+      description?: string;
+      iconUrl?: string;
+      incertain: boolean;
+    }>;
+  }
+
+  const heroCatalogCache = new Map<string, { at: number; items: EnrichedHeroCatalogEntry[] }>();
+  const heroDetailCache = new Map<string, { at: number; data: EnrichedHeroFullDetails }>();
+
+  const decodeWikiEntities = (s: string) =>
+    s
+      .replace(/&amp;/g, '&')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&#x27;/g, "'")
+      .replace(/&#8217;/g, "'")
+      .replace(/&#8211;/g, '–')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+  function prefixForLang(language: TargetLang): string {
+    const map: Record<TargetLang, string> = {
+      fr: '/fr',
+      tr: '/tr',
+      ru: '/ru',
+      zh: '/zh-cn',
+      de: '/de',
+      en: '',
+    };
+    return map[language] ?? '';
+  }
+
+  async function fetchLocalizedHeroCatalog(language: TargetLang): Promise<EnrichedHeroCatalogEntry[]> {
+    const cacheKey = language;
+    const cached = heroCatalogCache.get(cacheKey);
+    if (cached && Date.now() - cached.at < 30 * 60 * 1000) {
+      return cached.items;
+    }
+
+    const prefix = prefixForLang(language);
+    const catalogUrl = `https://lojwiki.com${prefix}/heroes/`;
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 8000);
+      const resp = await fetch(catalogUrl, {
+        signal: controller.signal,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/126.0.0.0 Safari/537.36',
+          Accept: 'text/html,application/xhtml+xml',
+        },
+      });
+      clearTimeout(timer);
+      if (!resp.ok) return cached?.items ?? [];
+      const html = await resp.text();
+      const matches = [...html.matchAll(/<a[^>]+href="([^"]*\/heroes\/([a-z0-9-]+)\/)"[^>]*>([\s\S]*?)<\/a>/gi)];
+      const seen = new Set<string>();
+      const items: EnrichedHeroCatalogEntry[] = [];
+      for (const m of matches) {
+        const href = m[1];
+        const slug = m[2];
+        if (!slug || seen.has(slug)) continue;
+        seen.add(slug);
+        const inner = m[3];
+        const avatar = (inner.match(/https:\/\/img\.lojwiki\.com\/(?:heads|heroes|half)\/[^"'\s)>]+\.webp/i) || [])[0] || null;
+        const cleanText = decodeWikiEntities(inner.replace(/<[^>]+>/g, ' '));
+        const tokens = cleanText.split(' ').filter(Boolean);
+        const rarity = tokens.find((t) => /^(SSR|SR|R)$/i.test(t))?.toUpperCase();
+        // Extract name roughly from slug or cleaned text between rarity and troop badges
+        const slugTitle = slug
+          .split('-')
+          .map((w) => (w === 'and' ? '&' : w.charAt(0).toUpperCase() + w.slice(1)))
+          .join(' ');
+        const fullUrl = href.startsWith('http') ? href : `https://lojwiki.com${href}`;
+        items.push({
+          slug,
+          nom: slugTitle,
+          avatarUrl: avatar,
+          imageUrl: avatar,
+          rarete: rarity,
+          typeTroupe: cleanText.replace(rarity || '', '').trim() || undefined,
+          wikiUrl: fullUrl,
+        });
+      }
+      heroCatalogCache.set(cacheKey, { at: Date.now(), items });
+      return items;
+    } catch {
+      return cached?.items ?? [];
+    }
+  }
+
+  async function fetchHeroWikiDetailsByName(
+    heroName: string,
+    language: TargetLang
+  ): Promise<EnrichedHeroFullDetails | null> {
+    const normalizedInput = heroName
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/&/g, 'and')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    if (!normalizedInput) return null;
+
+    const catalog = await fetchLocalizedHeroCatalog(language);
+    const matchedCatalog =
+      catalog.find((c) => c.slug === normalizedInput) ||
+      catalog.find((c) => c.slug.includes(normalizedInput) || normalizedInput.includes(c.slug)) ||
+      catalog.find((c) => c.nom.toLowerCase().includes(heroName.toLowerCase()));
+
+    const slug = matchedCatalog?.slug || normalizedInput;
+    const cacheKey = `${language}:${slug}`;
+    const cached = heroDetailCache.get(cacheKey);
+    if (cached && Date.now() - cached.at < 30 * 60 * 1000) {
+      return cached.data;
+    }
+
+    const prefix = prefixForLang(language);
+    const heroUrl = `https://lojwiki.com${prefix}/heroes/${slug}/`;
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 8000);
+      const resp = await fetch(heroUrl, {
+        signal: controller.signal,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/126.0.0.0 Safari/537.36',
+          Accept: 'text/html,application/xhtml+xml',
+        },
+      });
+      clearTimeout(timer);
+      if (!resp.ok) return null;
+      const html = await resp.text();
+
+      const titleMatch = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
+      const nom = titleMatch ? decodeWikiEntities(titleMatch[1].replace(/<[^>]+>/g, '')) : heroName;
+      const subMatch = html.match(/<p[^>]+class="[^"]*sub[^"]*"[^>]*>([\s\S]*?)<\/p>/i);
+      const titre = subMatch ? decodeWikiEntities(subMatch[1].replace(/<[^>]+>/g, '')) : undefined;
+
+      const halfMatch = html.match(/<img[^>]+class="[^"]*half[^"]*"[^>]+src="(https:\/\/img\.lojwiki\.com\/[^"]+)"/i) ||
+        html.match(/https:\/\/img\.lojwiki\.com\/half\/[^"'\s)>]+\.webp/i);
+      const avatarMatch = html.match(/https:\/\/img\.lojwiki\.com\/(?:heroes|heads)\/[^"'\s)>]+\.webp/i);
+      const imageUrl = halfMatch ? (halfMatch[1] || halfMatch[0]) : (avatarMatch ? avatarMatch[0] : matchedCatalog?.avatarUrl ?? null);
+      const avatarUrl = avatarMatch ? avatarMatch[0] : matchedCatalog?.avatarUrl ?? imageUrl;
+
+      const badges = [...html.matchAll(/<span[^>]+class="[^"]*badge[^"]*"[^>]*>([\s\S]*?)<\/span>/gi)].map((b) =>
+        decodeWikiEntities(b[1].replace(/<[^>]+>/g, ' '))
+      );
+      const rarete = badges.find((b) => /^(SSR|SR|R)$/i.test(b)) || matchedCatalog?.rarete;
+      const saison = badges.find((b) => /(?:saison|season|sezon|сезон|赛季)\s*\d+/i.test(b));
+      const nonRarityBadges = badges.filter((b) => b && b !== rarete && b !== saison);
+      const typeTroupe = nonRarityBadges[0];
+      const categorie = nonRarityBadges[1];
+
+      const introMatch = html.match(/<p[^>]+class="[^"]*intro[^"]*"[^>]*>([\s\S]*?)<\/p>/i);
+      const resumeBio = introMatch ? decodeWikiEntities(introMatch[1].replace(/<[^>]+>/g, ' ')) : undefined;
+
+      // Facts cards (Recruit, 5★ shards, 5★ Power)
+      const factsMatches = [...html.matchAll(/<div[^>]+class="card"[^>]*><div[^>]*>([^<]+)<\/div><strong[^>]*>([^<]+)<\/strong>/gi)];
+      const powerFact = factsMatches.find((f) => /power|puissance|güç|сила|战力|macht/i.test(f[1]));
+      const puissanceMax5Etoiles = powerFact ? decodeWikiEntities(powerFact[2]) : undefined;
+
+      // Ideal / Verdicts tags
+      const verdictMatches = [...html.matchAll(/<span[^>]+class="tag[^"]*"[^>]*>([^<]+)<\/span>(?:<span[^>]*>([^<]+)<\/span>)?/gi)];
+      const idealPour = verdictMatches
+        .slice(0, 4)
+        .map((v) => decodeWikiEntities([v[1], v[2]].filter(Boolean).join(' · ')))
+        .filter(Boolean)
+        .join(' | ') || undefined;
+
+      // Skills (<article class="card skill">)
+      const skillBlocks = [...html.matchAll(/<article[^>]+class="[^"]*\bskill\b[^"]*"[^>]*>([\s\S]*?)<\/article>/gi)];
+      const competences = skillBlocks.slice(0, 8).map((sb) => {
+        const blockHtml = sb[1];
+        const skIcon = (blockHtml.match(/https:\/\/img\.lojwiki\.com\/skills\/[^"'\s)>]+\.webp/i) || [])[0];
+        const skNameMatch = blockHtml.match(/<strong[^>]*>([\s\S]*?)<\/strong>/i);
+        const skName = skNameMatch
+          ? decodeWikiEntities(skNameMatch[1].replace(/<[^>]+>/g, ''))
+          : 'Compétence';
+        const descMatches = [...blockHtml.matchAll(/<p[^>]+class="desc"[^>]*>([\s\S]*?)<\/p>/gi)];
+        const maxDesc = descMatches.length > 0
+          ? decodeWikiEntities(descMatches[descMatches.length - 1][1].replace(/<[^>]+>/g, ' '))
+          : undefined;
+        return {
+          nom: skName.replace(/^\d+\.\s*/, ''),
+          niveau: descMatches.length > 0 ? `Niv. 1–${descMatches.length}` : 'Max',
+          description: maxDesc,
+          iconUrl: skIcon,
+          incertain: false,
+        };
+      });
+
+      const details: EnrichedHeroFullDetails = {
+        slug,
+        nom,
+        titre,
+        avatarUrl,
+        imageUrl,
+        rarete,
+        typeTroupe,
+        categorie,
+        saison,
+        puissanceMax5Etoiles,
+        resumeBio,
+        idealPour,
+        wikiUrl: heroUrl,
+        competences,
+      };
+      heroDetailCache.set(cacheKey, { at: Date.now(), data: details });
+      return details;
+    } catch {
+      return null;
+    }
+  }
+
+  app.get('/api/heroes/catalog', async (req, res) => {
+    const langRaw = String(req.query.lang || 'fr') as TargetLang;
+    const targetLang: TargetLang = ['fr', 'tr', 'ru', 'zh', 'de', 'en'].includes(langRaw) ? langRaw : 'fr';
+    const items = await fetchLocalizedHeroCatalog(targetLang);
+    res.json({ language: targetLang, heroes: items });
+  });
+
+  app.post('/api/heroes/enrich', async (req, res) => {
+    try {
+      const { names, language } = req.body as { names?: string[]; language?: TargetLang };
+      const targetLang: TargetLang =
+        language && ['fr', 'tr', 'ru', 'zh', 'de', 'en'].includes(language) ? language : 'fr';
+      const list = Array.isArray(names) ? names.slice(0, 30) : [];
+      const enriched = await Promise.all(
+        list.map((name) => fetchHeroWikiDetailsByName(name, targetLang))
+      );
+      res.json({
+        language: targetLang,
+        details: enriched.filter(Boolean),
+      });
+    } catch (err: unknown) {
+      res.status(500).json({ error: err instanceof Error ? err.message : 'Erreur enrichissement héros.' });
     }
   });
 

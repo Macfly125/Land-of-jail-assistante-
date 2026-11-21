@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { AlertTriangle, Calculator, Check, Edit3, Package, Upload } from 'lucide-react';
+import { AlertTriangle, Calculator, Check, Clock, Edit3, Package, Upload } from 'lucide-react';
 import { AccountState, ResourceRecord } from '../types/game';
 import { formatCompactNumber, formatFrenchDateTime } from '../utils/storage';
 import { UpgradeCalculatorView } from './UpgradeCalculatorView';
+import { OfflineRoutineView } from './OfflineRoutineView';
 
 interface ResourcesPowerViewProps {
   state: AccountState;
@@ -15,7 +16,7 @@ export const ResourcesPowerView: React.FC<ResourcesPowerViewProps> = ({
   onVerifyResource,
   onOpenShareModal,
 }) => {
-  const [subTab, setSubTab] = useState<'inventory' | 'calculator'>('inventory');
+  const [subTab, setSubTab] = useState<'inventory' | 'calculator' | 'routine'>('inventory');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftQty, setDraftQty] = useState('');
 
@@ -62,6 +63,18 @@ export const ResourcesPowerView: React.FC<ResourcesPowerViewProps> = ({
               <Calculator className="w-3.5 h-3.5" />
               <span>Calculateur Bâtiments & Héros</span>
             </button>
+            <button
+              type="button"
+              onClick={() => setSubTab('routine')}
+              className={`min-h-[40px] px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors inline-flex items-center gap-1.5 whitespace-nowrap ${
+                subTab === 'routine'
+                  ? 'bg-amber-500 text-slate-950'
+                  : 'text-slate-300 hover:text-slate-100'
+              }`}
+            >
+              <Clock className="w-3.5 h-3.5" />
+              <span>Routine Hors-Jeu</span>
+            </button>
           </div>
           <button
             type="button"
@@ -76,6 +89,8 @@ export const ResourcesPowerView: React.FC<ResourcesPowerViewProps> = ({
 
       {subTab === 'calculator' ? (
         <UpgradeCalculatorView state={state} />
+      ) : subTab === 'routine' ? (
+        <OfflineRoutineView language={state.language} />
       ) : (
         <>
       {/* Bloc Puissance */}

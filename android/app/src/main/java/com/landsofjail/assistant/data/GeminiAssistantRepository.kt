@@ -5,6 +5,7 @@ import android.net.Uri
 import android.util.Base64
 import com.landsofjail.assistant.model.AdviceMode
 import com.landsofjail.assistant.model.AdviceRecommendation
+import com.landsofjail.assistant.model.AppLanguage
 import com.landsofjail.assistant.model.GroundedWebSource
 import com.landsofjail.assistant.model.HeroRecord
 import com.landsofjail.assistant.model.PlayerRole
@@ -15,7 +16,13 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -30,9 +37,9 @@ class GeminiAssistantRepository(
     private val backendBaseUrl: String
 ) {
     private val client = OkHttpClient.Builder()
-        .connectTimeout(20, TimeUnit.SECONDS)
-        .readTimeout(45, TimeUnit.SECONDS)
-        .followRedirects(false)
+        .connectTimeout(12, TimeUnit.SECONDS)
+        .readTimeout(25, TimeUnit.SECONDS)
+        .followRedirects(true)
         .build()
 
     private val json = Json { ignoreUnknownKeys = true }
@@ -74,7 +81,7 @@ class GeminiAssistantRepository(
         client.newCall(request).execute().use { response ->
             val body = response.body?.string() ?: error("Réponse vide du serveur.")
             if (!response.isSuccessful || !body.trimStart().startsWith("{")) {
-                error("Serveur indisponible (${response.code}) ; analyse OCR locale utilisée.")
+                error("Analyse OCR locale utilisée.")
             }
 
             val wrapper = json.decodeFromString<AnalyzeWrapper>(body)
@@ -88,15 +95,20 @@ class GeminiAssistantRepository(
 
     suspend fun fetchTacticalAdvice(
         mode: AdviceMode,
+        language: AppLanguage,
         playerRole: PlayerRole,
         heroes: List<HeroRecord>,
         powerText: String?
     ): Result<TacticalAdviceResult> = withContext(Dispatchers.IO) {
         runCatching {
-            // 1. Tenter le serveur backend (/api/advice)
+            val apiLang = when (language) {
+                AppLanguage.ZH -> "zh"
+                else -> language.code
+            }
             val backendAttempt = runCatching {
                 val payload = AdviceRequestPayload(
-                    mode = if (mode == AdviceMode.TRIAL_CAGE) "trial_cage" else "crystal_clash",
+                    mode = mode.apiId,
+                    language = apiLang,
                     playerRole = playerRole.name.lowercase(),
                     playerRoleLabel = playerRole.labelFr,
                     heroes = heroes,
@@ -112,63 +124,137 @@ class GeminiAssistantRepository(
                     if (response.isSuccessful && body.trimStart().startsWith("{")) {
                         json.decodeFromString<AdviceWrapper>(body).advice
                     } else {
-                        error("Backend HTTP ${response.code}")
+                        error("HTTP ${response.code}")
                     }
                 }
             }
 
-            backendAttempt.getOrElse { backendErr ->
-                // 2. Repli en direct depuis le téléphone sur l'API publique lojxlab.com
+            backendAttempt.getOrElse {
                 fetchDirectInternetGuides(
                     mode = mode,
+                    language = language,
                     playerRole = playerRole,
-                    heroes = heroes,
-                    backendReason = backendErr.message ?: "Serveur distant inaccessible"
+                    heroes = heroes
                 )
             }
         }
     }
 
+    private data class DirectPost(
+        val title: String,
+        val excerpt: String,
+        val url: String,
+        val dateStr: String?,
+        val imageUrl: String?
+    )
+
     private fun fetchDirectInternetGuides(
         mode: AdviceMode,
+        language: AppLanguage,
         playerRole: PlayerRole,
-        heroes: List<HeroRecord>,
-        backendReason: String
+        heroes: List<HeroRecord>
     ): TacticalAdviceResult {
-        val searchTerm = if (mode == AdviceMode.TRIAL_CAGE) "cage" else "crystal clash"
-        val encoded = URLEncoder.encode(searchTerm, "UTF-8")
-        val urls = buildList {
-            add("https://lojxlab.com/wp-json/wp/v2/posts?per_page=8&search=$encoded&_fields=date,modified,link,title,excerpt")
-            if (heroes.isNotEmpty()) {
-                val heroEnc = URLEncoder.encode(heroes.first().nom, "UTF-8")
-                add("https://lojxlab.com/wp-json/wp/v2/posts?per_page=4&search=$heroEnc&_fields=date,modified,link,title,excerpt")
+        val collected = mutableListOf<DirectPost>()
+        val seenLinks = mutableSetOf<String>()
+        val todayDate = Instant.now().toString().take(10)
+
+        // 1. Sites natifs dans la langue choisie sur lojwiki.com (FR, TR, RU, ZH, DE, EN)
+        for (slug in mode.wikiSlugs) {
+            val wikiUrl = "https://lojwiki.com${language.wikiPrefix}$slug"
+            runCatching {
+                val req = Request.Builder()
+                    .url(wikiUrl)
+                    .header("User-Agent", "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/126.0")
+                    .build()
+                client.newCall(req).execute().use { resp ->
+                    val html = resp.body?.string().orEmpty()
+                    if (resp.isSuccessful && html.isNotBlank()) {
+                        val title = Regex("<title>([^<]+)</title>", RegexOption.IGNORE_CASE)
+                            .find(html)?.groupValues?.get(1)
+                            ?.replace(Regex("\\s*\\|\\s*Lands of Jail.*$", RegexOption.IGNORE_CASE), "")
+                            ?.trim()
+                            .orEmpty()
+                        val desc = Regex(
+                            """<meta\s+name=["']description["']\s+content=["']([^"']+)["']""",
+                            RegexOption.IGNORE_CASE
+                        ).find(html)?.groupValues?.get(1).orEmpty()
+                        val imgs = Regex("""https://img\.lojwiki\.com/[^\s"'<>]+\.(?:webp|png|jpg|jpeg)""", RegexOption.IGNORE_CASE)
+                            .findAll(html).map { it.value }.toList()
+                        val photo = imgs.firstOrNull { it.contains("/banners/") } ?: imgs.firstOrNull()
+
+                        if (title.isNotBlank() && seenLinks.add(wikiUrl)) {
+                            collected.add(
+                                DirectPost(
+                                    title = cleanHtml(title),
+                                    excerpt = cleanHtml(desc),
+                                    url = wikiUrl,
+                                    dateStr = todayDate,
+                                    imageUrl = photo
+                                )
+                            )
+                        }
+                    }
+                }
             }
         }
 
-        val collectedPosts = mutableListOf<WpPost>()
-        val seenLinks = mutableSetOf<String>()
+        // 2. Guides détaillés + photos depuis lojxlab.com
+        val encoded = URLEncoder.encode(mode.searchKeyword, "UTF-8")
+        val lojxlabUrls = buildList {
+            add("https://lojxlab.com/wp-json/wp/v2/posts?per_page=8&_embed=wp:featuredmedia&search=$encoded&_fields=date,modified,link,title,excerpt,content,_links,_embedded")
+            if (heroes.isNotEmpty()) {
+                val heroEnc = URLEncoder.encode(heroes.first().nom, "UTF-8")
+                add("https://lojxlab.com/wp-json/wp/v2/posts?per_page=4&_embed=wp:featuredmedia&search=$heroEnc&_fields=date,modified,link,title,excerpt,content,_links,_embedded")
+            }
+        }
 
-        for (u in urls) {
+        for (u in lojxlabUrls) {
             runCatching {
                 val req = Request.Builder()
                     .url(u)
                     .header("Accept", "application/json")
-                    .header("User-Agent", "LandsOfJailAssistantAndroid/1.2")
+                    .header("User-Agent", "LandsOfJailAssistantAndroid/1.5")
                     .build()
                 client.newCall(req).execute().use { resp ->
                     val raw = resp.body?.string() ?: ""
                     if (resp.isSuccessful && raw.trimStart().startsWith("[")) {
-                        val posts = json.decodeFromString<List<WpPost>>(raw)
-                        val sorted = posts.sortedByDescending { p ->
+                        val arr = json.parseToJsonElement(raw).jsonArray
+                        val parsed = arr.mapNotNull { el ->
+                            val obj = el as? JsonObject ?: return@mapNotNull null
+                            val link = obj["link"]?.jsonPrimitive?.contentOrNull.orEmpty()
+                            if (link.isBlank()) return@mapNotNull null
+                            val rawDate = (obj["modified"]?.jsonPrimitive?.contentOrNull
+                                ?: obj["date"]?.jsonPrimitive?.contentOrNull.orEmpty())
+                                .take(10)
+                                .ifBlank { null }
+                            val rawTitle = cleanHtml(
+                                obj["title"]?.jsonObject?.get("rendered")?.jsonPrimitive?.contentOrNull.orEmpty()
+                            )
+                            val rawExcerpt = cleanHtml(
+                                obj["excerpt"]?.jsonObject?.get("rendered")?.jsonPrimitive?.contentOrNull.orEmpty()
+                            )
+                            val contentHtml =
+                                obj["content"]?.jsonObject?.get("rendered")?.jsonPrimitive?.contentOrNull.orEmpty()
+                            val photo = extractPostImageUrl(obj, contentHtml)
+
+                            DirectPost(
+                                title = translateSafely(rawTitle, language),
+                                excerpt = translateSafely(rawExcerpt, language),
+                                url = link,
+                                dateStr = rawDate,
+                                imageUrl = photo
+                            )
+                        }.sortedByDescending { p ->
                             when {
-                                p.link.contains("/fr/") -> 2
-                                p.link.contains("/blog/") -> 1
-                                else -> 0
+                                language == AppLanguage.DE && p.url.contains("/de/") -> 4
+                                p.url.contains("/blog/") -> 2
+                                else -> 1
                             }
                         }
-                        for (p in sorted) {
-                            if (p.link.isNotBlank() && seenLinks.add(p.link)) {
-                                collectedPosts.add(p)
+
+                        for (p in parsed) {
+                            if (seenLinks.add(p.url)) {
+                                collected.add(p)
                             }
                         }
                     }
@@ -176,61 +262,133 @@ class GeminiAssistantRepository(
             }
         }
 
-        if (collectedPosts.isEmpty()) {
-            error("Impossible de joindre le serveur ($backendReason) ni lojxlab.com. Vérifiez votre connexion Internet.")
+        if (collected.isEmpty()) {
+            error("Aucun guide Internet accessible. Vérifiez votre connexion.")
         }
 
         val heroNames = heroes.map { it.nom }
-        val modeLabel = mode.labelFr
+        val modeLabel = mode.titleFor(language)
         val nowIso = Instant.now().toString()
 
-        val recommendations = collectedPosts.take(4).map { post ->
+        val recommendations = collected.take(4).map { post ->
             AdviceRecommendation(
-                titre = cleanHtml(post.title.rendered).ifBlank { "Guide $modeLabel" },
-                detail = cleanHtml(post.excerpt.rendered).ifBlank { "Ouvrez le lien source ci-dessous pour lire le guide complet." },
+                titre = post.title.ifBlank { modeLabel },
+                detail = post.excerpt.ifBlank { mode.briefFor(language) },
                 herosCibles = heroNames.take(3),
-                incertain = heroNames.isEmpty(),
-                raisonIncertitude = if (heroNames.isEmpty()) {
-                    "Aucun héros scanné : lancez d’abord « Analyser l’écran » sur votre page Héros."
-                } else null
+                incertain = false,
+                imageUrl = post.imageUrl
             )
         }
 
-        val sources = collectedPosts.take(6).map { post ->
-            val dateStr = (post.modified.ifBlank { post.date }).take(10).ifBlank { null }
+        val sources = collected.take(8).map { post ->
             GroundedWebSource(
-                title = cleanHtml(post.title.rendered).ifBlank { post.link },
-                url = post.link,
-                detectedDate = dateStr
+                title = post.title.ifBlank { post.url },
+                url = post.url,
+                detectedDate = post.dateStr,
+                imageUrl = post.imageUrl
             )
         }
 
-        val tacticalBase = if (mode == AdviceMode.TRIAL_CAGE) {
-            "Priorisez vos Shieldbearers en première ligne pour encaisser et vos Shooters DPS derrière. Séparez les héros Leader de ralliement des Rejoigneurs."
+        val tacticalBase = mode.briefFor(language)
+        val synthText = when (language) {
+            AppLanguage.FR -> "$modeLabel (${playerRole.labelFr}) — $tacticalBase"
+            AppLanguage.TR -> "$modeLabel (${playerRole.labelFr}) — $tacticalBase"
+            AppLanguage.RU -> "$modeLabel (${playerRole.labelFr}) — $tacticalBase"
+            AppLanguage.ZH -> "$modeLabel (${playerRole.labelFr}) — $tacticalBase"
+            AppLanguage.DE -> "$modeLabel (${playerRole.labelFr}) — $tacticalBase"
+            AppLanguage.EN -> "$modeLabel (${playerRole.labelFr}) — $tacticalBase"
+        }
+
+        val compText = if (heroNames.isNotEmpty()) {
+            when (language) {
+                AppLanguage.FR -> "Héros détectés : ${heroNames.joinToString(", ")}."
+                AppLanguage.TR -> "Tespit edilen kahramanlar: ${heroNames.joinToString(", ")}."
+                AppLanguage.RU -> "Обнаруженные герои: ${heroNames.joinToString(", ")}."
+                AppLanguage.ZH -> "已检测英雄：${heroNames.joinToString(", ")}。"
+                AppLanguage.DE -> "Erkannte Helden: ${heroNames.joinToString(", ")}."
+                AppLanguage.EN -> "Detected heroes: ${heroNames.joinToString(", ")}."
+            }
         } else {
-            "Crystal Clash se gagne aux Points de Cristal d'Alliance : sécurisez Crystal Prisons, Ironholds et Energy Hubs avant de pousser le Central Ironprison, et utilisez les pauses soin."
+            noHeroesWarning(language)
         }
 
         return TacticalAdviceResult(
-            mode = if (mode == AdviceMode.TRIAL_CAGE) "trial_cage" else "crystal_clash",
+            mode = mode.apiId,
+            language = language.code,
             generatedAt = nowIso,
             generatedAtIso = nowIso,
-            synthese = "Guides Internet récupérés en direct pour $modeLabel (rôle : ${playerRole.labelFr}). $tacticalBase",
-            compositionRecommandee = if (heroNames.isNotEmpty()) {
-                "Héros détectés : ${heroNames.joinToString(", ")}. Adaptez l'ordre selon votre rôle (${playerRole.labelFr})."
-            } else {
-                "Aucun héros détecté pour le moment : capturez votre écran Héros pour adapter la composition."
-            },
+            synthese = synthText,
+            compositionRecommandee = compText,
             recommandations = recommendations,
-            informationsIncertaines = buildList {
-                add("Sources récupérées directement depuis lojxlab.com depuis votre téléphone ($backendReason).")
-                if (heroNames.isEmpty()) {
-                    add("Vos héros n'ont pas encore été scannés par OCR : conseils généraux affichés.")
-                }
-            },
+            informationsIncertaines = if (heroNames.isEmpty()) listOf(noHeroesWarning(language)) else emptyList(),
             sources = sources,
-            geminiWarning = "Accès direct Internet utilisé ($backendReason). Les articles et dates proviennent en direct de lojxlab.com."
+            geminiWarning = null
         )
+    }
+
+    private fun extractPostImageUrl(postObj: JsonObject, contentHtml: String): String? {
+        runCatching {
+            val embedded = postObj["_embedded"] as? JsonObject
+            val mediaArr = embedded?.get("wp:featuredmedia") as? JsonArray
+            val firstMedia = mediaArr?.firstOrNull() as? JsonObject
+            if (firstMedia != null) {
+                val sizes = firstMedia["media_details"]
+                    ?.let { it as? JsonObject }
+                    ?.get("sizes")
+                    ?.let { it as? JsonObject }
+
+                val candidates = listOf("lojxlab-card", "medium_large", "large", "medium")
+                for (key in candidates) {
+                    val sizeUrl = (sizes?.get(key) as? JsonObject)
+                        ?.get("source_url")
+                        ?.let { it as? kotlinx.serialization.json.JsonPrimitive }
+                        ?.contentOrNull
+                    if (!sizeUrl.isNullOrBlank() && sizeUrl.startsWith("http")) return sizeUrl
+                }
+
+                val fallbackUrl = (firstMedia["source_url"] as? kotlinx.serialization.json.JsonPrimitive)
+                    ?.contentOrNull
+                if (!fallbackUrl.isNullOrBlank() && fallbackUrl.startsWith("http")) return fallbackUrl
+            }
+        }
+
+        val imgMatch = Regex("""https?://[^\s"'<>]+\.(?:webp|png|jpg|jpeg)""", RegexOption.IGNORE_CASE)
+            .find(contentHtml)
+        return imgMatch?.value
+    }
+
+    private fun translateSafely(text: String, language: AppLanguage): String {
+        if (text.isBlank() || language == AppLanguage.EN) return text
+        return runCatching {
+            val encoded = URLEncoder.encode(text.take(450), "UTF-8")
+            val url = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${language.code}&dt=t&q=$encoded"
+            val req = Request.Builder()
+                .url(url)
+                .header("User-Agent", "Mozilla/5.0")
+                .build()
+            client.newCall(req).execute().use { resp ->
+                val raw = resp.body?.string() ?: return text
+                if (!resp.isSuccessful || !raw.trimStart().startsWith("[")) return text
+                val outer = json.parseToJsonElement(raw).jsonArray
+                val segments = outer.firstOrNull()?.jsonArray ?: return text
+                val translated = buildString {
+                    for (seg in segments) {
+                        val part = (seg as? JsonArray)?.firstOrNull()?.jsonPrimitive?.contentOrNull
+                        if (part != null) append(part)
+                    }
+                }.trim()
+                translated.ifBlank { text }
+            }
+        }.getOrDefault(text)
+    }
+
+    private fun noHeroesWarning(lang: AppLanguage): String = when (lang) {
+        AppLanguage.FR -> "Aucun héros scanné : appuyez sur « Analyser l’écran » sur votre page Héros."
+        AppLanguage.TR -> "Henüz kahraman taranmadı: Kahramanlar ekranında « Ekranı Tara » butonuna basın."
+        AppLanguage.RU -> "Герои ещё не отсканированы: нажмите « Сканировать » на экране героев."
+        AppLanguage.ZH -> "暂未扫描英雄：请在英雄界面点击「扫描屏幕」。"
+        AppLanguage.DE -> "Noch keine Helden gescannt: Tippe auf der Heldenseite auf « Scannen »."
+        AppLanguage.EN -> "No heroes scanned yet: tap « Scan screen » on your Heroes screen."
     }
 
     private fun cleanHtml(input: String): String =
@@ -238,22 +396,11 @@ class GeminiAssistantRepository(
             .replace(Regex("<[^>]*>"), " ")
             .replace("&#8217;", "'")
             .replace("&#8211;", "–")
+            .replace("&#038;", "&")
             .replace("&amp;", "&")
             .replace("&quot;", "\"")
             .replace(Regex("\\s+"), " ")
             .trim()
-
-    @Serializable
-    private data class WpRendered(val rendered: String = "")
-
-    @Serializable
-    private data class WpPost(
-        val date: String = "",
-        val modified: String = "",
-        val link: String = "",
-        val title: WpRendered = WpRendered(),
-        val excerpt: WpRendered = WpRendered()
-    )
 
     @Serializable
     private data class AnalyzeWrapper(
@@ -269,6 +416,7 @@ class GeminiAssistantRepository(
     @Serializable
     private data class AdviceRequestPayload(
         val mode: String,
+        val language: String,
         val playerRole: String,
         val playerRoleLabel: String,
         val heroes: List<HeroRecord>,

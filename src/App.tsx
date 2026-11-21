@@ -18,6 +18,7 @@ import {
 import {
   AccountState,
   AdviceMode,
+  AppLanguage,
   HeroRecord,
   PlayerRole,
   SCREEN_CATEGORY_LABELS,
@@ -25,11 +26,13 @@ import {
   ScreenshotAnalysis,
   TacticalAdviceResult,
 } from './types/game';
+import { UI_COPY } from './i18n/translations';
 import {
   loadAccountState,
   mergeAnalysisIntoState,
   saveAccountState,
   saveAdviceInState,
+  updateLanguageInState,
   updatePlayerRoleInState,
 } from './utils/storage';
 import { DashboardView } from './components/DashboardView';
@@ -44,12 +47,12 @@ import { MobileInstallGuideModal } from './components/MobileInstallGuideModal';
 
 type NavTab = 'tableau' | 'heros' | 'ressources' | 'conseils' | 'historique';
 
-const NAV_ITEMS: Array<{ id: NavTab; label: string; icon: React.ComponentType<{ className?: string }> }> = [
-  { id: 'tableau', label: 'Tableau', icon: LayoutDashboard },
-  { id: 'heros', label: 'Héros', icon: Users },
-  { id: 'ressources', label: 'Ressources', icon: Package },
-  { id: 'conseils', label: 'Conseils', icon: Swords },
-  { id: 'historique', label: 'Historique', icon: History },
+const NAV_ICONS: Array<{ id: NavTab; icon: React.ComponentType<{ className?: string }> }> = [
+  { id: 'tableau', icon: LayoutDashboard },
+  { id: 'heros', icon: Users },
+  { id: 'ressources', icon: Package },
+  { id: 'conseils', icon: Swords },
+  { id: 'historique', icon: History },
 ];
 
 export default function App() {
@@ -122,8 +125,9 @@ export default function App() {
       thumbnailDataUrl: string;
       note?: string;
     },
-    source: 'share' | 'ocr_screen'
-  ) => {
+    source: 'share' | 'ocr_screen',
+    options?: { keepModalOpen?: boolean }
+  ): Promise<{ summary: string }> => {
     setIsAnalyzing(true);
     setAnalyzeError(null);
 
@@ -200,6 +204,10 @@ export default function App() {
         'ressources',
         'trial_cage',
         'crystal_clash',
+        'sandsea_conquest',
+        'svs',
+        'turmoil_surge',
+        'gold_hunter',
         'autre',
       ];
       const typeCapture: ScreenCategory = validCategories.includes(raw.typeCapture as ScreenCategory)
@@ -264,19 +272,22 @@ export default function App() {
       };
 
       setState((prev) => mergeAnalysisIntoState(prev, newAnalysis));
-      setIsShareModalOpen(false);
-      setIsConsentModalOpen(false);
       setSharedPayload(null);
 
-      if (source === 'ocr_screen' && (typeCapture === 'trial_cage' || typeCapture === 'crystal_clash')) {
-        setActiveTab('conseils');
-      } else {
-        setActiveTab('tableau');
+      const summary = `${SCREEN_CATEGORY_LABELS[typeCapture]} · ${newAnalysis.heros.length} héros, ${newAnalysis.ressources.length} ressource(s)`;
+
+      if (!options?.keepModalOpen) {
+        setIsShareModalOpen(false);
+        setIsConsentModalOpen(false);
+        if (source === 'ocr_screen' && (typeCapture === 'trial_cage' || typeCapture === 'crystal_clash')) {
+          setActiveTab('conseils');
+        } else {
+          setActiveTab('tableau');
+        }
       }
 
-      showToast(
-        `Analyse terminée (${SCREEN_CATEGORY_LABELS[typeCapture]}) · ${newAnalysis.heros.length} héros, ${newAnalysis.ressources.length} ressource(s)`
-      );
+      showToast(`Analyse terminée (${summary})`);
+      return { summary };
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Erreur lors de l’analyse.';
       setAnalyzeError(msg);
@@ -346,6 +357,22 @@ export default function App() {
     }));
   };
 
+  const language: AppLanguage = state.language ?? 'fr';
+  const copy = UI_COPY[language];
+  const navItems = NAV_ICONS.map((item) => ({
+    ...item,
+    label:
+      item.id === 'tableau'
+        ? copy.navDashboard
+        : item.id === 'heros'
+          ? copy.navHeroes
+          : item.id === 'ressources'
+            ? copy.navResources
+            : item.id === 'conseils'
+              ? copy.navAdvice
+              : copy.navHistory,
+  }));
+
   return (
     <div className="min-h-screen bg-[#0B0F17] text-slate-100 flex flex-col">
       {/* Barre supérieure (Top Bar Contract : 3 zones) */}
@@ -377,7 +404,7 @@ export default function App() {
 
           {/* Zone 2 : 5 liens texte simples sur bureau */}
           <nav className="hidden md:flex items-center gap-6" aria-label="Navigation principale">
-            {NAV_ITEMS.map((item) => {
+            {navItems.map((item) => {
               const active = activeTab === item.id;
               return (
                 <button
@@ -407,8 +434,8 @@ export default function App() {
               className="min-h-[40px] px-3.5 md:px-4 py-2 rounded-xl text-xs md:text-sm font-semibold bg-amber-500 text-slate-950 hover:bg-amber-400 transition-colors flex items-center gap-2 whitespace-nowrap shrink-0"
             >
               <Upload className="w-4 h-4" />
-              <span className="hidden sm:inline">Partager une capture</span>
-              <span className="sm:hidden">Capturer</span>
+              <span className="hidden sm:inline">{copy.shareCapture}</span>
+              <span className="sm:hidden">{copy.captureShort}</span>
             </button>
           </div>
         </div>
@@ -468,6 +495,8 @@ export default function App() {
         {activeTab === 'tableau' && (
           <DashboardView
             state={state}
+            language={language}
+            onChangeLanguage={(lang) => setState((prev) => updateLanguageInState(prev, lang))}
             hasUsagePermission={hasUsagePermission}
             isDetectionActive={isDetectionActive}
             isGameDetectedForeground={isGameDetectedForeground}
@@ -515,6 +544,8 @@ export default function App() {
 
         {activeTab === 'conseils' && (
           <AdviceView
+            language={language}
+            onChangeLanguage={(lang) => setState((prev) => updateLanguageInState(prev, lang))}
             playerRole={state.playerRole}
             onChangePlayerRole={(role: PlayerRole) =>
               setState((prev) => updatePlayerRoleInState(prev, role))
@@ -546,7 +577,7 @@ export default function App() {
         aria-label="Navigation mobile"
       >
         <div className="grid grid-cols-5 h-16 items-center">
-          {NAV_ITEMS.map((item) => {
+          {navItems.map((item) => {
             const Icon = item.icon;
             const active = activeTab === item.id;
             return (
@@ -581,7 +612,7 @@ export default function App() {
         initialBase64={sharedPayload}
         isAnalyzing={isAnalyzing}
         error={analyzeError}
-        onAnalyze={(payload) => runAnalysis(payload, 'share')}
+        onAnalyze={(payload) => runAnalysis(payload, 'share', { keepModalOpen: true })}
       />
 
       {/* Modale d'autorisation système de capture d'écran (MediaProjection / DisplayMedia) */}
@@ -591,7 +622,9 @@ export default function App() {
           if (!isAnalyzing) setIsConsentModalOpen(false);
         }}
         isAnalyzing={isAnalyzing}
-        onCapturedImage={(payload) => runAnalysis(payload, 'ocr_screen')}
+        onCapturedImage={async (payload) => {
+          await runAnalysis(payload, 'ocr_screen');
+        }}
         onFallbackToFileUpload={() => {
           setAnalyzeError(null);
           setIsShareModalOpen(true);

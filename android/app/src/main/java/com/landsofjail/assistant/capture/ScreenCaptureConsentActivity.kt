@@ -14,7 +14,8 @@ import kotlinx.coroutines.flow.asStateFlow
 data class CapturedScreenPayload(
     val bitmap: Bitmap,
     val base64Jpeg: String,
-    val capturedAtMillis: Long
+    val capturedAtMillis: Long,
+    val imageFileUri: String = ""
 )
 
 /**

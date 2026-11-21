@@ -1,24 +1,32 @@
 package com.landsofjail.assistant.ui
 
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -34,19 +42,110 @@ import kotlinx.coroutines.launch
 import java.time.Instant
 import java.util.UUID
 
-private enum class AssistantTab(val titleFr: String) {
-    TABLEAU("Tableau"),
-    HEROS("Héros"),
-    RESSOURCES("Ressources"),
-    CONSEILS("Conseils"),
-    HISTORIQUE("Historique")
+private enum class AssistantTab {
+    TABLEAU, HEROS, RESSOURCES, CONSEILS, HISTORIQUE;
+
+    fun titleFor(lang: AppLanguage): String = when (this) {
+        TABLEAU -> when (lang) {
+            AppLanguage.FR -> "Tableau"
+            AppLanguage.TR -> "Ana Sayfa"
+            AppLanguage.RU -> "Главная"
+            AppLanguage.ZH -> "主页"
+            AppLanguage.DE -> "Start"
+            AppLanguage.EN -> "Home"
+        }
+        HEROS -> when (lang) {
+            AppLanguage.FR -> "Héros"
+            AppLanguage.TR -> "Kahraman"
+            AppLanguage.RU -> "Герои"
+            AppLanguage.ZH -> "英雄"
+            AppLanguage.DE -> "Helden"
+            AppLanguage.EN -> "Heroes"
+        }
+        RESSOURCES -> when (lang) {
+            AppLanguage.FR -> "Ressources"
+            AppLanguage.TR -> "Kaynaklar"
+            AppLanguage.RU -> "Ресурсы"
+            AppLanguage.ZH -> "资源"
+            AppLanguage.DE -> "Ressourc."
+            AppLanguage.EN -> "Resources"
+        }
+        CONSEILS -> when (lang) {
+            AppLanguage.FR -> "Événements"
+            AppLanguage.TR -> "Etkinlik"
+            AppLanguage.RU -> "События"
+            AppLanguage.ZH -> "活动"
+            AppLanguage.DE -> "Events"
+            AppLanguage.EN -> "Events"
+        }
+        HISTORIQUE -> when (lang) {
+            AppLanguage.FR -> "Historique"
+            AppLanguage.TR -> "Geçmiş"
+            AppLanguage.RU -> "История"
+            AppLanguage.ZH -> "记录"
+            AppLanguage.DE -> "Verlauf"
+            AppLanguage.EN -> "History"
+        }
+    }
 }
 
-private enum class ResourceSubTab(val titleFr: String) {
-    INVENTAIRE("Inventaire"),
-    BATIMENTS("Calcul Bâtiments"),
-    HEROS_OBJETS("Calcul Héros")
+private enum class ResourceSubTab {
+    INVENTAIRE, BATIMENTS, HEROS_OBJETS, ROUTINE;
+
+    fun labelFor(lang: AppLanguage): String = when (this) {
+        INVENTAIRE -> when (lang) {
+            AppLanguage.FR -> "Inventaire"
+            AppLanguage.TR -> "Envanter"
+            AppLanguage.RU -> "Инвентарь"
+            AppLanguage.ZH -> "库存"
+            AppLanguage.DE -> "Inventar"
+            AppLanguage.EN -> "Inventory"
+        }
+        BATIMENTS -> when (lang) {
+            AppLanguage.FR -> "Calcul Bâtiments"
+            AppLanguage.TR -> "Bina Hesabı"
+            AppLanguage.RU -> "Кальк. зданий"
+            AppLanguage.ZH -> "建筑计算"
+            AppLanguage.DE -> "Gebäude"
+            AppLanguage.EN -> "Buildings Calc"
+        }
+        HEROS_OBJETS -> when (lang) {
+            AppLanguage.FR -> "Calcul Héros"
+            AppLanguage.TR -> "Kahraman Hesabı"
+            AppLanguage.RU -> "Кальк. героев"
+            AppLanguage.ZH -> "英雄计算"
+            AppLanguage.DE -> "Helden-Rechner"
+            AppLanguage.EN -> "Hero Calc"
+        }
+        ROUTINE -> when (lang) {
+            AppLanguage.FR -> "Routine Hors-Jeu"
+            AppLanguage.TR -> "Çevrimdışı Rutin"
+            AppLanguage.RU -> "Авто-таймеры"
+            AppLanguage.ZH -> "离线循环"
+            AppLanguage.DE -> "Offline-Routine"
+            AppLanguage.EN -> "Offline Routine"
+        }
+    }
 }
+
+private data class AndroidRoutineItem(
+    val id: String,
+    val title: String,
+    val subtitle: String,
+    val minutes: Int,
+    val enabled: Boolean,
+    val endsAtMs: Long?,
+    val pausedRemainingMs: Long? = null
+)
+
+private data class AndroidQueuedUri(
+    val id: String,
+    val uri: Uri,
+    val label: String,
+    val progress: Int = 0,
+    val status: String = "waiting",
+    val summary: String? = null
+)
 
 private data class WardenLevelReq(
     val level: Int,
@@ -102,7 +201,9 @@ fun LandsOfJailAssistantApp(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
+    var currentLang by remember { mutableStateOf(AppLanguage.FR) }
     var currentTab by remember { mutableStateOf(AssistantTab.TABLEAU) }
     var playerRole by remember { mutableStateOf(PlayerRole.POLYVALENT_F2P) }
     var packageFilter by remember { mutableStateOf(UsageStatsDetector.DEFAULT_GAME_PACKAGE_KEYWORD) }
@@ -119,6 +220,9 @@ fun LandsOfJailAssistantApp(
     var currentPower by remember { mutableStateOf<PowerMetric?>(null) }
 
     var isAnalyzing by remember { mutableStateOf(false) }
+    var singleAnalysisPercent by remember { mutableIntStateOf(0) }
+    var analysisQueue by remember { mutableStateOf<List<AndroidQueuedUri>>(emptyList()) }
+    var isQueueRunning by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var selectedAdviceMode by remember { mutableStateOf(AdviceMode.TRIAL_CAGE) }
     var adviceResult by remember { mutableStateOf<TacticalAdviceResult?>(null) }
@@ -148,40 +252,167 @@ fun LandsOfJailAssistantApp(
         }
     }
 
-    fun launchSharedUriAnalysis(uri: Uri) {
+    suspend fun analyzeSingleUriInternal(uri: Uri, onProgress: (Int) -> Unit): ScreenshotAnalysis {
+        onProgress(15)
+        val remote = repository.analyzeSharedScreenshot(context, uri, playerRole, null)
+        onProgress(55)
+        return remote.getOrElse {
+            val bitmap = runCatching {
+                context.contentResolver.openInputStream(uri)?.use { stream ->
+                    BitmapFactory.decodeStream(stream)
+                }
+            }.getOrNull()
+            onProgress(65)
+            val ocrRaw = if (bitmap != null) {
+                runCatching { LandsOfJailOcrParser.recognizeBitmap(bitmap) }.getOrDefault("")
+            } else {
+                ""
+            }
+            onProgress(85)
+            val localExtraction = LandsOfJailOcrParser.parseLocalOcrText(ocrRaw)
+            val foundParts = buildList {
+                localExtraction.power?.let { add("Puissance : ${it.puissanceTotaleTexte}") }
+                if (localExtraction.heroes.isNotEmpty()) {
+                    add("${localExtraction.heroes.size} héros")
+                }
+                if (localExtraction.resources.isNotEmpty()) {
+                    add("${localExtraction.resources.size} ressource(s)")
+                }
+            }
+            val summaryLine = if (foundParts.isNotEmpty()) {
+                "${foundParts.joinToString(" · ")} — ${localExtraction.ocrSnippet}"
+            } else if (ocrRaw.isNotBlank()) {
+                "OCR local : ${localExtraction.ocrSnippet}"
+            } else {
+                "Image importée (aucun texte OCR lisible)"
+            }
+            ScreenshotAnalysis(
+                id = UUID.randomUUID().toString(),
+                analyzedAtIso = Instant.now().toString(),
+                imageUriString = uri.toString(),
+                typeCapture = localExtraction.detectedCategory,
+                resumeCapture = summaryLine,
+                puissance = localExtraction.power,
+                ressources = localExtraction.resources,
+                heros = localExtraction.heroes,
+                champsIncertains = localExtraction.uncertainItems
+            )
+        }
+    }
+
+    fun enqueueUrisSequentially(uris: List<Uri>) {
+        if (uris.isEmpty()) return
+        val baseIndex = analysisQueue.size
+        val added = uris.mapIndexed { idx, uri ->
+            AndroidQueuedUri(
+                id = "${System.currentTimeMillis()}-${baseIndex + idx}",
+                uri = uri,
+                label = uri.lastPathSegment ?: "Capture #${baseIndex + idx + 1}",
+                progress = 0,
+                status = "waiting"
+            )
+        }
+        analysisQueue = analysisQueue + added
+        if (isQueueRunning) return
+
         scope.launch {
+            isQueueRunning = true
             isAnalyzing = true
             errorMessage = null
-            repository.analyzeSharedScreenshot(context, uri, playerRole, null)
-                .onSuccess { mergeNewAnalysis(it) }
-                .onFailure { errorMessage = it.message ?: "Échec de l’analyse." }
-            isAnalyzing = false
+            try {
+                while (true) {
+                    val nextItem = analysisQueue.firstOrNull { it.status == "waiting" } ?: break
+                    analysisQueue = analysisQueue.map {
+                        if (it.id == nextItem.id) it.copy(status = "analyzing", progress = 15) else it
+                    }
+                    val result = runCatching {
+                        analyzeSingleUriInternal(nextItem.uri) { pct ->
+                            analysisQueue = analysisQueue.map {
+                                if (it.id == nextItem.id) it.copy(progress = pct) else it
+                            }
+                        }
+                    }
+                    result.onSuccess { analysis ->
+                        mergeNewAnalysis(analysis)
+                        analysisQueue = analysisQueue.map {
+                            if (it.id == nextItem.id) {
+                                it.copy(
+                                    status = "done",
+                                    progress = 100,
+                                    summary = analysis.resumeCapture
+                                )
+                            } else {
+                                it
+                            }
+                        }
+                    }.onFailure { err ->
+                        analysisQueue = analysisQueue.map {
+                            if (it.id == nextItem.id) {
+                                it.copy(
+                                    status = "error",
+                                    progress = 0,
+                                    summary = err.message ?: "Erreur"
+                                )
+                            } else {
+                                it
+                            }
+                        }
+                    }
+                }
+                val doneCount = analysisQueue.count { it.status == "done" }
+                if (doneCount > 0) {
+                    currentTab = AssistantTab.TABLEAU
+                    snackbarHostState.showSnackbar("File terminée (100 %) : $doneCount capture(s) analysée(s)")
+                }
+            } finally {
+                isQueueRunning = false
+                isAnalyzing = false
+            }
         }
     }
 
     LaunchedEffect(capturedScreenPayload) {
         if (capturedScreenPayload != null) {
             isAnalyzing = true
+            singleAnalysisPercent = 20
             errorMessage = null
             try {
-                val ocrRaw = LandsOfJailOcrParser.recognizeBitmap(capturedScreenPayload.bitmap)
+                val ocrRaw = runCatching {
+                    LandsOfJailOcrParser.recognizeBitmap(capturedScreenPayload.bitmap)
+                }.getOrDefault("")
+                singleAnalysisPercent = 50
                 val localExtraction = LandsOfJailOcrParser.parseLocalOcrText(ocrRaw)
+                val localImageUri = capturedScreenPayload.imageFileUri
 
                 val result = runCatching {
                     repository.analyzeBase64Screenshot(
                         imageBase64 = capturedScreenPayload.base64Jpeg,
                         mimeType = "image/jpeg",
-                        imageLabel = "capture-ecran-autorisee.jpg",
+                        imageLabel = localImageUri.ifBlank { "capture-ecran-autorisee.jpg" },
                         playerRole = playerRole,
                         note = "OCR local : ${ocrRaw.take(400)}"
                     )
                 }.getOrElse {
+                    val foundParts = buildList {
+                        localExtraction.power?.let { add("Puissance : ${it.puissanceTotaleTexte}") }
+                        if (localExtraction.heroes.isNotEmpty()) {
+                            add("${localExtraction.heroes.size} héros (${localExtraction.heroes.take(3).joinToString { it.nom }})")
+                        }
+                        if (localExtraction.resources.isNotEmpty()) {
+                            add("${localExtraction.resources.size} ressource(s)")
+                        }
+                    }
+                    val summaryLine = if (foundParts.isNotEmpty()) {
+                        "${foundParts.joinToString(" · ")} — ${localExtraction.ocrSnippet}"
+                    } else {
+                        "Capture enregistrée · OCR : ${localExtraction.ocrSnippet}"
+                    }
                     ScreenshotAnalysis(
                         id = UUID.randomUUID().toString(),
                         analyzedAtIso = Instant.now().toString(),
-                        imageUriString = "",
-                        typeCapture = "ocr_local",
-                        resumeCapture = "Extraction OCR locale effectuée (vérification recommandée).",
+                        imageUriString = localImageUri,
+                        typeCapture = localExtraction.detectedCategory,
+                        resumeCapture = summaryLine,
                         puissance = localExtraction.power,
                         ressources = localExtraction.resources,
                         heros = localExtraction.heroes,
@@ -189,17 +420,21 @@ fun LandsOfJailAssistantApp(
                     )
                 }
 
+                singleAnalysisPercent = 100
                 mergeNewAnalysis(result)
-                if (result.typeCapture == "crystal_clash") {
-                    selectedAdviceMode = AdviceMode.CRYSTAL_CLASH
-                } else if (result.typeCapture == "trial_cage") {
-                    selectedAdviceMode = AdviceMode.TRIAL_CAGE
+                AdviceMode.entries.firstOrNull { it.apiId == result.typeCapture }?.let {
+                    selectedAdviceMode = it
                 }
 
                 currentTab = AssistantTab.TABLEAU
+                snackbarHostState.showSnackbar(
+                    "Capture analysée 100 % (${result.heros.size} héros, ${result.ressources.size} ressource(s))"
+                )
+
                 isFetchingAdvice = true
                 repository.fetchTacticalAdvice(
                     mode = selectedAdviceMode,
+                    language = currentLang,
                     playerRole = playerRole,
                     heroes = heroes,
                     powerText = currentPower?.puissanceTotaleTexte
@@ -210,21 +445,22 @@ fun LandsOfJailAssistantApp(
             } finally {
                 onConsumeCapturedScreen()
                 isAnalyzing = false
+                singleAnalysisPercent = 0
             }
         }
     }
 
     LaunchedEffect(sharedScreenshotUri) {
         if (sharedScreenshotUri != null) {
-            launchSharedUriAnalysis(sharedScreenshotUri)
+            enqueueUrisSequentially(listOf(sharedScreenshotUri))
             onConsumeSharedUri()
         }
     }
 
     val imagePicker = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri ->
-        if (uri != null) launchSharedUriAnalysis(uri)
+        contract = ActivityResultContracts.GetMultipleContents()
+    ) { uris ->
+        if (uris.isNotEmpty()) enqueueUrisSequentially(uris)
     }
 
     MaterialTheme(
@@ -237,9 +473,17 @@ fun LandsOfJailAssistantApp(
         )
     ) {
         Scaffold(
+            snackbarHost = { SnackbarHost(snackbarHostState) },
             topBar = {
                 TopAppBar(
-                    title = { Text("Lands of Jail Assistant", fontWeight = FontWeight.SemiBold) },
+                    title = {
+                        Text(
+                            "Lands of Jail",
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    },
                     actions = {
                         TextButton(onClick = {
                             context.startActivity(
@@ -248,7 +492,17 @@ fun LandsOfJailAssistantApp(
                                 }
                             )
                         }) {
-                            Text("Analyser l’écran")
+                            Text(
+                                when (currentLang) {
+                                    AppLanguage.FR -> "Analyser l’écran"
+                                    AppLanguage.TR -> "Ekranı Tara"
+                                    AppLanguage.RU -> "Сканировать"
+                                    AppLanguage.ZH -> "扫描屏幕"
+                                    AppLanguage.DE -> "Scannen"
+                                    AppLanguage.EN -> "Scan screen"
+                                },
+                                maxLines = 1
+                            )
                         }
                     }
                 )
@@ -266,8 +520,16 @@ fun LandsOfJailAssistantApp(
                         NavigationBarItem(
                             selected = currentTab == tab,
                             onClick = { currentTab = tab },
-                            icon = { Icon(icon, contentDescription = tab.titleFr) },
-                            label = { Text(tab.titleFr) }
+                            icon = { Icon(icon, contentDescription = tab.titleFor(currentLang)) },
+                            label = {
+                                Text(
+                                    text = tab.titleFor(currentLang),
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    overflow = TextOverflow.Ellipsis,
+                                    fontSize = 10.sp
+                                )
+                            }
                         )
                     }
                 }
@@ -279,10 +541,62 @@ fun LandsOfJailAssistantApp(
                     .fillMaxSize()
                     .padding(horizontal = 16.dp)
             ) {
-                if (isAnalyzing) {
-                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                    Spacer(Modifier.height(8.dp))
-                    Text("Analyse OCR de l’écran autorisé en cours…")
+                if (analysisQueue.isNotEmpty()) {
+                    val total = analysisQueue.size
+                    val done = analysisQueue.count { it.status == "done" }
+                    val waiting = analysisQueue.count { it.status == "waiting" }
+                    val pct = (analysisQueue.sumOf { if (it.status == "done") 100 else it.progress } / total).coerceIn(0, 100)
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF161E2E)),
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)
+                    ) {
+                        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    if (isQueueRunning) "File : $done/$total ($waiting en attente)"
+                                    else "File terminée : $done/$total",
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = if (pct == 100) Color(0xFF34D399) else Color(0xFFF59E0B)
+                                )
+                                Text(
+                                    "$pct %",
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (pct == 100) Color(0xFF34D399) else Color(0xFFF59E0B)
+                                )
+                            }
+                            LinearProgressIndicator(
+                                progress = { pct / 100f },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            if (!isQueueRunning) {
+                                TextButton(onClick = { analysisQueue = emptyList() }) {
+                                    Text("Fermer la file (100 %)")
+                                }
+                            }
+                        }
+                    }
+                } else if (isAnalyzing) {
+                    val pct = singleAnalysisPercent.coerceIn(0, 100)
+                    LinearProgressIndicator(
+                        progress = { pct / 100f },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        when (currentLang) {
+                            AppLanguage.FR -> "Analyse OCR en cours : $pct %"
+                            AppLanguage.TR -> "OCR ekran analizi: %$pct"
+                            AppLanguage.RU -> "OCR-анализ: $pct %"
+                            AppLanguage.ZH -> "OCR 截图分析进度：$pct%"
+                            AppLanguage.DE -> "OCR-Analyse läuft: $pct %"
+                            AppLanguage.EN -> "OCR screen analysis: $pct%"
+                        },
+                        style = MaterialTheme.typography.bodySmall
+                    )
                 }
                 errorMessage?.let { msg ->
                     Card(
@@ -295,6 +609,8 @@ fun LandsOfJailAssistantApp(
 
                 when (currentTab) {
                     AssistantTab.TABLEAU -> DashboardScreen(
+                        currentLang = currentLang,
+                        onChangeLang = { currentLang = it },
                         hasUsagePermission = hasUsagePermission,
                         hasOverlayPermission = hasOverlayPermission,
                         alwaysKeepOverlay = alwaysKeepOverlay,
@@ -328,13 +644,20 @@ fun LandsOfJailAssistantApp(
                         heroesCount = heroes.size,
                         resourcesCount = resources.size,
                         analysesCount = analyses.size,
+                        latestAnalysis = analyses.firstOrNull(),
+                        onOpenHistory = { currentTab = AssistantTab.HISTORIQUE },
                         onPickImage = { imagePicker.launch("image/*") }
                     )
                     AssistantTab.HEROS -> HeroesScreen(heroes)
-                    AssistantTab.RESSOURCES -> ResourcesScreen(currentPower, resources)
+                    AssistantTab.RESSOURCES -> ResourcesScreen(currentLang, currentPower, resources)
                     AssistantTab.CONSEILS -> AdviceScreen(
+                        currentLang = currentLang,
+                        onChangeLang = { currentLang = it },
                         selectedMode = selectedAdviceMode,
-                        onSelectMode = { selectedAdviceMode = it },
+                        onSelectMode = {
+                            selectedAdviceMode = it
+                            adviceResult = null
+                        },
                         playerRole = playerRole,
                         advice = adviceResult,
                         isLoading = isFetchingAdvice,
@@ -344,6 +667,7 @@ fun LandsOfJailAssistantApp(
                                 errorMessage = null
                                 repository.fetchTacticalAdvice(
                                     mode = selectedAdviceMode,
+                                    language = currentLang,
                                     playerRole = playerRole,
                                     heroes = heroes,
                                     powerText = currentPower?.puissanceTotaleTexte
@@ -361,7 +685,25 @@ fun LandsOfJailAssistantApp(
 }
 
 @Composable
+private fun LanguageSelectorRow(
+    currentLang: AppLanguage,
+    onChangeLang: (AppLanguage) -> Unit
+) {
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        items(AppLanguage.entries) { lang ->
+            FilterChip(
+                selected = currentLang == lang,
+                onClick = { onChangeLang(lang) },
+                label = { Text(lang.label, fontSize = 11.sp, maxLines = 1) }
+            )
+        }
+    }
+}
+
+@Composable
 private fun DashboardScreen(
+    currentLang: AppLanguage,
+    onChangeLang: (AppLanguage) -> Unit,
     hasUsagePermission: Boolean,
     hasOverlayPermission: Boolean,
     alwaysKeepOverlay: Boolean,
@@ -381,87 +723,160 @@ private fun DashboardScreen(
     heroesCount: Int,
     resourcesCount: Int,
     analysesCount: Int,
+    latestAnalysis: ScreenshotAnalysis?,
+    onOpenHistory: () -> Unit,
     onPickImage: () -> Unit
 ) {
+    var showCaptureSettings by remember { mutableStateOf(false) }
+    val allPermissionsGranted = hasUsagePermission && hasOverlayPermission
+
     LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item {
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(6.dp))
+            LanguageSelectorRow(currentLang = currentLang, onChangeLang = onChangeLang)
+        }
+
+        // Carte capture & autorisations (les autorisations disparaissent dès qu'elles sont accordées)
+        item {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(
-                        "Bouton flottant au-dessus du jeu & Détection",
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Text(
-                        "1) Autorisez les statistiques d’utilisation. 2) Autorisez l’affichage par-dessus les autres applis pour que le bouton déplaçable « Analyser l’écran » reste visible dans Lands of Jail.",
-                        style = MaterialTheme.typography.bodySmall
-                    )
-
-                    Text(
-                        if (hasUsagePermission) "1. Statistiques d'utilisation : Autorisées"
-                        else "1. Statistiques d'utilisation : À autoriser",
-                        color = if (hasUsagePermission) Color(0xFF34D399) else Color(0xFFFBBF24),
-                        fontWeight = FontWeight.Medium
-                    )
-                    if (!hasUsagePermission) {
-                        Button(onClick = onOpenUsageSettings) {
-                            Text("Autoriser Statistiques d'utilisation")
-                        }
-                    }
-
-                    Text(
-                        if (hasOverlayPermission) "2. Superposition au-dessus du jeu : Autorisée"
-                        else "2. Superposition au-dessus du jeu : À autoriser (obligatoire pour le bouton permanent)",
-                        color = if (hasOverlayPermission) Color(0xFF34D399) else Color(0xFFFBBF24),
-                        fontWeight = FontWeight.Medium
-                    )
-                    if (!hasOverlayPermission) {
-                        Button(onClick = onOpenOverlaySettings) {
-                            Text("Autoriser affichage par-dessus les applis")
-                        }
-                    }
-
                     Row(
-                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier.fillMaxWidth()
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            "Garder le bouton flottant toujours visible",
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.weight(1f)
+                            if (allPermissionsGranted) {
+                                when (currentLang) {
+                                    AppLanguage.FR -> "Capture & Détection prêtes"
+                                    AppLanguage.TR -> "Yakalama ve Algılama Hazır"
+                                    AppLanguage.RU -> "Захват и поиск готовы"
+                                    AppLanguage.ZH -> "截图与检测已就绪"
+                                    AppLanguage.DE -> "Erfassung & Erkennung bereit"
+                                    AppLanguage.EN -> "Capture & Detection Ready"
+                                }
+                            } else {
+                                when (currentLang) {
+                                    AppLanguage.FR -> "Configuration requise (1 fois)"
+                                    AppLanguage.TR -> "İlk Kurulum Gerekli"
+                                    AppLanguage.RU -> "Требуется настройка"
+                                    AppLanguage.ZH -> "需要初始授权"
+                                    AppLanguage.DE -> "Einmalige Einrichtung"
+                                    AppLanguage.EN -> "Required Setup (once)"
+                                }
+                            },
+                            fontWeight = FontWeight.SemiBold
                         )
-                        Switch(
-                            checked = alwaysKeepOverlay,
-                            onCheckedChange = onToggleAlwaysKeepOverlay
+                        if (allPermissionsGranted) {
+                            IconButton(
+                                onClick = { showCaptureSettings = !showCaptureSettings },
+                                modifier = Modifier.size(32.dp)
+                            ) {
+                                Icon(
+                                    Icons.Outlined.Settings,
+                                    contentDescription = "Réglages capture"
+                                )
+                            }
+                        }
+                    }
+
+                    // Afficher les boutons d'autorisation UNIQUEMENT s'il manque une permission ou si Settings est ouvert
+                    if (!allPermissionsGranted || showCaptureSettings) {
+                        if (!hasUsagePermission) {
+                            Text(
+                                "1. Statistiques d'utilisation : À autoriser",
+                                color = Color(0xFFFBBF24),
+                                fontWeight = FontWeight.Medium
+                            )
+                            Button(onClick = onOpenUsageSettings) {
+                                Text("Autoriser Statistiques d'utilisation")
+                            }
+                        } else {
+                            Text(
+                                "1. Statistiques d'utilisation : Autorisées",
+                                color = Color(0xFF34D399),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+
+                        if (!hasOverlayPermission) {
+                            Text(
+                                "2. Superposition au-dessus du jeu : À autoriser",
+                                color = Color(0xFFFBBF24),
+                                fontWeight = FontWeight.Medium
+                            )
+                            Button(onClick = onOpenOverlaySettings) {
+                                Text("Autoriser affichage par-dessus les applis")
+                            }
+                        } else {
+                            Text(
+                                "2. Superposition au-dessus du jeu : Autorisée",
+                                color = Color(0xFF34D399),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                "Garder le bouton flottant au-dessus du jeu",
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Switch(
+                                checked = alwaysKeepOverlay,
+                                onCheckedChange = onToggleAlwaysKeepOverlay
+                            )
+                        }
+
+                        OutlinedTextField(
+                            value = packageFilter,
+                            onValueChange = onPackageFilterChange,
+                            label = { Text("Package (com.justgame.jails)") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
 
-                    OutlinedTextField(
-                        value = packageFilter,
-                        onValueChange = onPackageFilterChange,
-                        label = { Text("Package du jeu (défaut : com.justgame.jails)") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(
-                            onClick = onStartMonitoring,
-                            enabled = (hasUsagePermission || hasOverlayPermission) && !isMonitoringRunning
-                        ) {
-                            Text(if (isMonitoringRunning) "Détection active" else "Démarrer & afficher le bouton")
-                        }
-                        if (isMonitoringRunning) {
+                        if (!isMonitoringRunning) {
+                            Button(
+                                onClick = onStartMonitoring,
+                                enabled = hasUsagePermission || hasOverlayPermission
+                            ) {
+                                Text(
+                                    when (currentLang) {
+                                        AppLanguage.FR -> "Démarrer sur le jeu"
+                                        AppLanguage.TR -> "Oyunda Başlat"
+                                        AppLanguage.RU -> "Запуск в игре"
+                                        AppLanguage.ZH -> "游戏内启动"
+                                        AppLanguage.DE -> "Im Spiel starten"
+                                        AppLanguage.EN -> "Start on Game"
+                                    }
+                                )
+                            }
+                        } else {
                             OutlinedButton(onClick = onStopMonitoring) {
-                                Text("Arrêter la détection")
+                                Text(
+                                    when (currentLang) {
+                                        AppLanguage.FR -> "Arrêter la détection"
+                                        AppLanguage.TR -> "Algılamayı Durdur"
+                                        AppLanguage.RU -> "Остановить"
+                                        AppLanguage.ZH -> "停止检测"
+                                        AppLanguage.DE -> "Stoppen"
+                                        AppLanguage.EN -> "Stop detection"
+                                    }
+                                )
                             }
                         }
                     }
 
                     if (isGameForeground) {
                         Text(
-                            "Lands of Jail détecté au premier plan · Appuyez sur le bouton flottant pour capturer.",
+                            "Lands of Jail détecté au premier plan.",
                             color = Color(0xFF34D399),
                             style = MaterialTheme.typography.bodySmall
                         )
@@ -469,34 +884,110 @@ private fun DashboardScreen(
 
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         FilledTonalButton(onClick = onAnalyzeScreenNow) {
-                            Text("Analyser l’écran")
+                            Text(
+                                when (currentLang) {
+                                    AppLanguage.FR -> "Analyser l’écran"
+                                    AppLanguage.TR -> "Ekranı Tara"
+                                    AppLanguage.RU -> "Сканировать"
+                                    AppLanguage.ZH -> "扫描屏幕"
+                                    AppLanguage.DE -> "Bildschirm scannen"
+                                    AppLanguage.EN -> "Scan screen"
+                                }
+                            )
                         }
                         TextButton(onClick = onPickImage) {
-                            Text("Importer image")
+                            Text(
+                                when (currentLang) {
+                                    AppLanguage.FR -> "Importer image"
+                                    AppLanguage.TR -> "Resim Seç"
+                                    AppLanguage.RU -> "Загрузить фото"
+                                    AppLanguage.ZH -> "导入图片"
+                                    AppLanguage.DE -> "Bild wählen"
+                                    AppLanguage.EN -> "Import image"
+                                }
+                            )
                         }
                     }
                 }
             }
         }
+
+        // Dernière capture analysée (aperçu visuel immédiat + OCR)
+        if (latestAnalysis != null) {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF161E2E))
+                ) {
+                    Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                "Dernière capture (${latestAnalysis.typeCapture})",
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color(0xFFF59E0B)
+                            )
+                            TextButton(onClick = onOpenHistory) {
+                                Text("Historique")
+                            }
+                        }
+                        if (latestAnalysis.imageUriString.isNotBlank()) {
+                            AsyncImage(
+                                model = latestAnalysis.imageUriString,
+                                contentDescription = latestAnalysis.resumeCapture,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(160.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                            )
+                        }
+                        Text(
+                            latestAnalysis.resumeCapture,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+            }
+        }
+
+        // Résumé du compte
         item {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text("Puissance : ${currentPower?.puissanceTotaleTexte ?: "Non mesurée"}")
+                    Text(
+                        "Puissance : ${currentPower?.puissanceTotaleTexte ?: "Non mesurée"}",
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    if (!currentPower?.niveauPrisonOuQG.isNullOrBlank()) {
+                        Text(
+                            "Prison / QG : ${currentPower?.niveauPrisonOuQG}",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
                     if (currentPower?.incertain == true) {
                         Text(
                             "Incertain : ${currentPower.raisonIncertitude ?: "lecture partielle"}",
-                            color = Color(0xFFFBBF24)
+                            color = Color(0xFFFBBF24),
+                            style = MaterialTheme.typography.bodySmall
                         )
                     }
-                    Text("Héros suivis : $heroesCount · Ressources : $resourcesCount · Analyses : $analysesCount")
+                    Text("Héros suivis : $heroesCount · Ressources : $resourcesCount · Captures : $analysesCount")
                 }
             }
         }
+
         item {
             Text("Rôle du joueur", fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(4.dp))
             PlayerRole.entries.forEach { role ->
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth().clickable { onSelectRole(role) }
+                ) {
                     RadioButton(selected = role == playerRole, onClick = { onSelectRole(role) })
                     Column {
                         Text(role.labelFr, fontWeight = FontWeight.Medium)
@@ -538,7 +1029,11 @@ private fun HeroesScreen(heroes: List<HeroRecord>) {
 }
 
 @Composable
-private fun ResourcesScreen(power: PowerMetric?, resources: List<ResourceRecord>) {
+private fun ResourcesScreen(
+    currentLang: AppLanguage,
+    power: PowerMetric?,
+    resources: List<ResourceRecord>
+) {
     var subTab by remember { mutableStateOf(ResourceSubTab.INVENTAIRE) }
     var targetBuildingLvl by remember { mutableIntStateOf(16) }
     var starFrom by remember { mutableIntStateOf(0) }
@@ -547,15 +1042,35 @@ private fun ResourcesScreen(power: PowerMetric?, resources: List<ResourceRecord>
     var tomeFrom by remember { mutableIntStateOf(0) }
     var tomeTo by remember { mutableIntStateOf(5) }
 
+    var routineItems by remember {
+        mutableStateOf(
+            listOf(
+                AndroidRoutineItem("g1", "Marche Récolte #1 (Vivres/Bois/Acier/Essence)", "Lancer avant de quitter le jeu", 120, true, null),
+                AndroidRoutineItem("g2", "Marche Récolte #2 / Mine d'Alliance", "Garder les 2 slots occupés", 240, true, null),
+                AndroidRoutineItem("tr", "Entraînement Casernes", "Collecter et relancer selon le stock", 180, true, null),
+                AndroidRoutineItem("aj", "Aide Alliance, Dons & Auto-Join Ralliement", "Renouveler avant expiration", 480, true, null),
+                AndroidRoutineItem("vip", "VIP, Courrier, Arrestation & Distributrice", "Collecte quotidienne", 1440, true, null),
+                AndroidRoutineItem("sh", "Alerte Bouclier (8h)", "Rappel avant fin de protection", 480, true, null)
+            )
+        )
+    }
+    var nowMs by remember { mutableLongStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(subTab) {
+        while (true) {
+            nowMs = System.currentTimeMillis()
+            kotlinx.coroutines.delay(1000L)
+        }
+    }
+
     LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item {
             Spacer(Modifier.height(8.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                ResourceSubTab.entries.forEach { t ->
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                items(ResourceSubTab.entries) { t ->
                     FilterChip(
                         selected = subTab == t,
                         onClick = { subTab = t },
-                        label = { Text(t.titleFr) }
+                        label = { Text(t.labelFor(currentLang), maxLines = 1) }
                     )
                 }
             }
@@ -695,6 +1210,127 @@ private fun ResourcesScreen(power: PowerMetric?, resources: List<ResourceRecord>
                     }
                 }
             }
+
+            ResourceSubTab.ROUTINE -> {
+                item {
+                    Button(
+                        onClick = {
+                            val base = System.currentTimeMillis()
+                            routineItems = routineItems.map {
+                                if (it.enabled) {
+                                    it.copy(
+                                        endsAtMs = base + it.minutes * 60_000L,
+                                        pausedRemainingMs = null
+                                    )
+                                } else {
+                                    it
+                                }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            when (currentLang) {
+                                AppLanguage.FR -> "Démarrer tous les cycles actifs"
+                                AppLanguage.TR -> "Aktif Tüm Döngüleri Başlat"
+                                AppLanguage.RU -> "Запустить все активные циклы"
+                                AppLanguage.ZH -> "启动所有已启用计时器"
+                                AppLanguage.DE -> "Alle aktiven Zyklen starten"
+                                AppLanguage.EN -> "Start All Active Cycles"
+                            }
+                        )
+                    }
+                }
+                items(routineItems) { task ->
+                    val isPaused = !task.enabled
+                    val rem = if (task.enabled) {
+                        task.endsAtMs?.minus(nowMs)
+                    } else {
+                        task.pausedRemainingMs
+                    }
+                    val isDue = task.enabled && rem != null && rem <= 0L
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(task.title, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                                Switch(
+                                    checked = task.enabled,
+                                    onCheckedChange = { checked ->
+                                        val now = System.currentTimeMillis()
+                                        routineItems = routineItems.map { item ->
+                                            if (item.id != task.id) return@map item
+                                            if (!checked) {
+                                                val frozen = item.endsAtMs?.minus(now)?.coerceAtLeast(0L)
+                                                    ?: item.pausedRemainingMs
+                                                item.copy(
+                                                    enabled = false,
+                                                    endsAtMs = null,
+                                                    pausedRemainingMs = frozen
+                                                )
+                                            } else {
+                                                val resumedEndsAt = item.pausedRemainingMs?.let { now + it }
+                                                item.copy(
+                                                    enabled = true,
+                                                    endsAtMs = resumedEndsAt,
+                                                    pausedRemainingMs = null
+                                                )
+                                            }
+                                        }
+                                    }
+                                )
+                            }
+                            Text(task.subtitle, style = MaterialTheme.typography.bodySmall)
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                val labelTime = when {
+                                    isDue -> "PRÊT / À COLLECTER"
+                                    isPaused && rem != null -> {
+                                        val sec = (rem / 1000L).coerceAtLeast(0L)
+                                        String.format("%02d:%02d:%02d · PAUSE", sec / 3600, (sec % 3600) / 60, sec % 60)
+                                    }
+                                    rem != null -> {
+                                        val sec = (rem / 1000L).coerceAtLeast(0L)
+                                        String.format("%02d:%02d:%02d", sec / 3600, (sec % 3600) / 60, sec % 60)
+                                    }
+                                    else -> "${task.minutes / 60}h (${task.minutes} min)"
+                                }
+                                Text(
+                                    labelTime,
+                                    fontWeight = FontWeight.Bold,
+                                    color = when {
+                                        isDue -> Color(0xFF34D399)
+                                        isPaused -> Color(0xFF94A3B8)
+                                        else -> Color(0xFFF59E0B)
+                                    }
+                                )
+                                Button(onClick = {
+                                    val base = System.currentTimeMillis()
+                                    routineItems = routineItems.map {
+                                        if (it.id == task.id) {
+                                            it.copy(
+                                                enabled = true,
+                                                endsAtMs = base + it.minutes * 60_000L,
+                                                pausedRemainingMs = null
+                                            )
+                                        } else {
+                                            it
+                                        }
+                                    }
+                                }) {
+                                    Text("Lancer ${task.minutes / 60}h")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -708,6 +1344,8 @@ private fun formatCompactFr(value: Long): String = when {
 
 @Composable
 private fun AdviceScreen(
+    currentLang: AppLanguage,
+    onChangeLang: (AppLanguage) -> Unit,
     selectedMode: AdviceMode,
     onSelectMode: (AdviceMode) -> Unit,
     playerRole: PlayerRole,
@@ -718,57 +1356,159 @@ private fun AdviceScreen(
     val uriHandler = LocalUriHandler.current
     LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
-                AdviceMode.entries.forEach { mode ->
+            Spacer(Modifier.height(6.dp))
+            LanguageSelectorRow(currentLang = currentLang, onChangeLang = onChangeLang)
+            Spacer(Modifier.height(6.dp))
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                items(AdviceMode.entries) { mode ->
                     FilterChip(
                         selected = selectedMode == mode,
                         onClick = { onSelectMode(mode) },
-                        label = { Text(mode.labelFr) }
+                        label = { Text(mode.titleFor(currentLang), maxLines = 1) }
                     )
                 }
             }
-            Text("Rôle actif : ${playerRole.labelFr}", style = MaterialTheme.typography.bodySmall)
+            Spacer(Modifier.height(6.dp))
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF161E2E))
+            ) {
+                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        selectedMode.titleFor(currentLang),
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFFF59E0B)
+                    )
+                    Text(
+                        selectedMode.briefFor(currentLang),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+            Spacer(Modifier.height(6.dp))
+            Text("Rôle : ${playerRole.labelFr}", style = MaterialTheme.typography.bodySmall)
             Spacer(Modifier.height(6.dp))
             Button(onClick = onGenerateAdvice, enabled = !isLoading) {
-                Text(if (isLoading) "Recherche en cours…" else "Obtenir les conseils Internet")
+                Text(
+                    if (isLoading) {
+                        when (currentLang) {
+                            AppLanguage.FR -> "Recherche Internet & photos…"
+                            AppLanguage.TR -> "İnternet rehberleri aranıyor…"
+                            AppLanguage.RU -> "Поиск гайдов и фото…"
+                            AppLanguage.ZH -> "正在搜索攻略与图片…"
+                            AppLanguage.DE -> "Suche Guides & Fotos…"
+                            AppLanguage.EN -> "Searching Internet & photos…"
+                        }
+                    } else {
+                        when (currentLang) {
+                            AppLanguage.FR -> "Obtenir les conseils & photos Internet"
+                            AppLanguage.TR -> "İnternet Rehberi ve Fotoğrafları Al"
+                            AppLanguage.RU -> "Получить гайды и фото"
+                            AppLanguage.ZH -> "获取网络攻略与图片"
+                            AppLanguage.DE -> "Internet-Guides & Fotos abrufen"
+                            AppLanguage.EN -> "Get Internet Guides & Photos"
+                        }
+                    }
+                )
             }
         }
+
         advice?.let { res ->
             val adviceDate = res.generatedAt.ifBlank { res.generatedAtIso }
-            res.geminiWarning?.let { warn ->
+            val photoSources = res.sources.filter { !it.imageUrl.isNullOrBlank() }
+
+            // Galerie horizontale de photos des guides trouvés sur Internet
+            if (photoSources.isNotEmpty()) {
                 item {
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF451A1A)),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(warn, modifier = Modifier.padding(12.dp), color = Color(0xFFFCA5A5))
+                    Text(
+                        when (currentLang) {
+                            AppLanguage.FR -> "Photos des guides Internet"
+                            AppLanguage.TR -> "İnternet Rehber Fotoğrafları"
+                            AppLanguage.RU -> "Фотографии из гайдов"
+                            AppLanguage.ZH -> "攻略图片"
+                            AppLanguage.DE -> "Fotos aus Guides"
+                            AppLanguage.EN -> "Photos from Internet Guides"
+                        },
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        items(photoSources) { src ->
+                            Card(
+                                modifier = Modifier
+                                    .width(230.dp)
+                                    .clickable { uriHandler.openUri(src.url) }
+                            ) {
+                                Column {
+                                    AsyncImage(
+                                        model = src.imageUrl,
+                                        contentDescription = src.title,
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(124.dp)
+                                    )
+                                    Column(Modifier.padding(10.dp)) {
+                                        Text(
+                                            src.title,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            fontWeight = FontWeight.Medium,
+                                            maxLines = 2,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                        src.detectedDate?.let { dt ->
+                                            Text(
+                                                dt,
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = Color(0xFF94A3B8)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
+
             item {
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("Synthèse ($adviceDate)", fontWeight = FontWeight.SemiBold)
+                        Text("Synthèse (${adviceDate.take(10)})", fontWeight = FontWeight.SemiBold)
                         Text(res.synthese)
                         Text("Composition : ${res.compositionRecommandee}")
                     }
                 }
             }
+
             items(res.recommandations) { rec ->
                 Card(modifier = Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(rec.titre, fontWeight = FontWeight.SemiBold)
-                        Text(rec.detail, style = MaterialTheme.typography.bodySmall)
-                        if (rec.incertain && !rec.raisonIncertitude.isNullOrBlank()) {
-                            Text(
-                                "Incertain : ${rec.raisonIncertitude}",
-                                color = Color(0xFFFBBF24),
-                                style = MaterialTheme.typography.bodySmall
+                    Column {
+                        if (!rec.imageUrl.isNullOrBlank()) {
+                            AsyncImage(
+                                model = rec.imageUrl,
+                                contentDescription = rec.titre,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(145.dp)
                             )
+                        }
+                        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text(rec.titre, fontWeight = FontWeight.SemiBold)
+                            Text(rec.detail, style = MaterialTheme.typography.bodySmall)
+                            if (rec.incertain && !rec.raisonIncertitude.isNullOrBlank()) {
+                                Text(
+                                    "Incertain : ${rec.raisonIncertitude}",
+                                    color = Color(0xFFFBBF24),
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
                         }
                     }
                 }
             }
+
             if (res.informationsIncertaines.isNotEmpty()) {
                 item {
                     Card(
@@ -784,12 +1524,45 @@ private fun AdviceScreen(
                     }
                 }
             }
+
             item {
-                Text("Sources Internet & Dates", fontWeight = FontWeight.SemiBold)
+                Text("Sources Internet, Photos & Dates", fontWeight = FontWeight.SemiBold)
             }
             items(res.sources) { src ->
-                TextButton(onClick = { uriHandler.openUri(src.url) }) {
-                    Text("${src.title} · Date : ${src.detectedDate ?: "Consulté le ${adviceDate.take(10)}"}")
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { uriHandler.openUri(src.url) }
+                ) {
+                    Row(
+                        Modifier.padding(10.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (!src.imageUrl.isNullOrBlank()) {
+                            AsyncImage(
+                                model = src.imageUrl,
+                                contentDescription = src.title,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .size(56.dp)
+                                    .clip(RoundedCornerShape(8.dp))
+                            )
+                        }
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                src.title,
+                                fontWeight = FontWeight.Medium,
+                                color = Color(0xFFFBBF24),
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Text(
+                                "Date : ${src.detectedDate ?: adviceDate.take(10)}",
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -800,22 +1573,41 @@ private fun AdviceScreen(
 private fun HistoryScreen(analyses: List<ScreenshotAnalysis>) {
     if (analyses.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Historique vide.")
+            Text("Historique vide. Appuyez sur « Analyser l’écran » pour enregistrer votre première capture.")
         }
         return
     }
     LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         items(analyses) { item ->
             Card(modifier = Modifier.fillMaxWidth()) {
-                Row(Modifier.padding(12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    AsyncImage(
-                        model = item.imageUriString,
-                        contentDescription = item.resumeCapture,
-                        modifier = Modifier.size(64.dp)
-                    )
-                    Column {
+                Row(
+                    Modifier.padding(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (item.imageUriString.isNotBlank()) {
+                        AsyncImage(
+                            model = item.imageUriString,
+                            contentDescription = item.resumeCapture,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(72.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                        )
+                    } else {
+                        Icon(
+                            Icons.Outlined.PhotoCamera,
+                            contentDescription = null,
+                            modifier = Modifier.size(48.dp)
+                        )
+                    }
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(item.typeCapture, fontWeight = FontWeight.SemiBold)
-                        Text(item.analyzedAtIso, style = MaterialTheme.typography.bodySmall)
+                        Text(
+                            item.analyzedAtIso.take(19).replace('T', ' '),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color(0xFF94A3B8)
+                        )
                         Text(item.resumeCapture, style = MaterialTheme.typography.bodySmall)
                         if (item.champsIncertains.isNotEmpty()) {
                             Text(
