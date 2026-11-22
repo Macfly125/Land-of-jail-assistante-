@@ -18,6 +18,7 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import java.time.Instant
 import com.landsofjail.assistant.model.AlliancePlayerProfile
+import com.landsofjail.assistant.model.AllianceRank
 import com.landsofjail.assistant.model.HeroRecord
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
