@@ -149,7 +149,11 @@ Règles strictes :
    - La puissance du compte (texte exact affiché et estimation numérique entière si non ambiguë, sinon null) + niveau QG/Prison et VIP si visibles.
    - Les ressources visibles (Cash/Or, Vivres, Bois, Acier, Pétrole, Gemmes/Diamants, Points d'arène, etc.) avec leur quantité exacte.
    - Les héros visibles : nom, niveau (entier ou null si illisible), rareté/étoiles si visibles, rôle estimé ou affiché, et toutes les compétences visibles avec leur niveau (ex: "Niv. 3", "Max", "Inconnu") et description courte si visible.
-6. Contexte joueur optionnel : rôle="${playerRole || 'non précisé'}", note="${note || 'aucune'}".`;
+6. Contexte joueur optionnel : rôle="${playerRole || 'non précisé'}", note="${note || 'aucune'}".
+7. Pour chaque héros, lis les informations dans sa propre carte/zone visuelle. N'attribue jamais un niveau, une étoile ou une compétence à partir d'une autre carte ou d'une ligne voisine.
+8. Si le nom n'est pas lisible avec certitude, conserve le texte observé et marque le héros incertain ; ne le remplace pas par le nom d'un héros supposé.
+9. Ne complète pas les niveaux de compétences avec des niveaux maximum provenant d'un wiki. Les compétences visibles sur la capture et les informations générales du catalogue sont deux sources distinctes.
+10. Ne fusionne jamais deux héros et ne déduplique pas des cartes distinctes simplement parce que leurs noms se ressemblent.`;
 
       const response = await ai.models.generateContent({
         model: 'gemini-4-hydrogen',
@@ -291,32 +295,19 @@ Règles strictes :
             h.wikiUrl = wikiInfo.wikiUrl;
             if (Array.isArray(wikiInfo.competences) && wikiInfo.competences.length > 0) {
               const existingSkills = Array.isArray(h.competences) ? (h.competences as Array<Record<string, unknown>>) : [];
-              if (existingSkills.length === 0) {
-                h.competences = wikiInfo.competences;
-              } else {
-                h.competences = existingSkills.map((sk, idx) => {
-                  const skName = String(sk.nom || '').toLowerCase();
-                  const matched =
-                    wikiInfo.competences.find((ws) => ws.nom.toLowerCase().includes(skName) || skName.includes(ws.nom.toLowerCase())) ||
-                    wikiInfo.competences[idx];
-                  return {
-                    ...sk,
-                    description: (typeof sk.description === 'string' && sk.description) || matched?.description,
-                    iconUrl: matched?.iconUrl,
-                  };
-                });
-                // Ajouter les autres compétences wiki non visibles sur la capture
-                for (const ws of wikiInfo.competences) {
-                  const already = (h.competences as Array<Record<string, unknown>>).some(
-                    (sk) =>
-                      String(sk.nom || '').toLowerCase().includes(ws.nom.toLowerCase()) ||
-                      ws.nom.toLowerCase().includes(String(sk.nom || '').toLowerCase())
-                  );
-                  if (!already) {
-                    (h.competences as Array<Record<string, unknown>>).push(ws);
-                  }
-                }
-              }
+              // Le wiki enrichit uniquement les compétences effectivement lues.
+              // Ne jamais injecter toute la liste théorique dans les compétences du joueur.
+              h.competences = existingSkills.map((sk) => {
+                const skName = String(sk.nom || '').trim().toLowerCase();
+                const matched = wikiInfo.competences.find(
+                  (ws) => ws.nom.trim().toLowerCase() === skName
+                );
+                return {
+                  ...sk,
+                  description: (typeof sk.description === 'string' && sk.description) || matched?.description,
+                  iconUrl: matched?.iconUrl,
+                };
+              });
             }
           })
         );
@@ -956,12 +947,21 @@ Consignes :
     if (!normalizedInput) return null;
 
     const catalog = await fetchLocalizedHeroCatalog(language);
-    const matchedCatalog =
-      catalog.find((c) => c.slug === normalizedInput) ||
-      catalog.find((c) => c.slug.includes(normalizedInput) || normalizedInput.includes(c.slug)) ||
-      catalog.find((c) => c.nom.toLowerCase().includes(heroName.toLowerCase()));
+    // Correspondance stricte uniquement : une ressemblance partielle peut associer
+    // la capture au mauvais héros et contaminer toute sa fiche.
+    const matchedCatalog = catalog.find((c) => {
+      const normalizedName = c.nom
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/&/g, 'and')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+      return c.slug === normalizedInput || normalizedName === normalizedInput;
+    });
+    if (!matchedCatalog) return null;
 
-    const slug = matchedCatalog?.slug || normalizedInput;
+    const slug = matchedCatalog.slug;
     const cacheKey = `${language}:${slug}`;
     const cached = heroDetailCache.get(cacheKey);
     if (cached && Date.now() - cached.at < 30 * 60 * 1000) {
