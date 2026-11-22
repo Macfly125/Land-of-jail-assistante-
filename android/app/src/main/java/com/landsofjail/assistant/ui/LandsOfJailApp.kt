@@ -349,6 +349,7 @@ fun LandsOfJailAssistantApp(
                         pendingReviewCompletion = reviewCompletion
                         pendingReview = analysis
                         reviewHeroes = analysis.heros
+                        reviewRobots = analysis.robots
                         currentTab = AssistantTab.TABLEAU
                         val approved = reviewCompletion.await()
                         pendingReviewCompletion = null
@@ -441,6 +442,7 @@ fun LandsOfJailAssistantApp(
                 singleAnalysisPercent = 100
                 pendingReview = result
                 reviewHeroes = result.heros
+                reviewRobots = result.robots
                 AdviceMode.entries.firstOrNull { it.apiId == result.typeCapture }?.let {
                     selectedAdviceMode = it
                 }
@@ -693,6 +695,7 @@ fun LandsOfJailAssistantApp(
                         onDismissRequest = {
                             pendingReview = null
                             reviewHeroes = emptyList()
+                            reviewRobots = emptyList()
                             pendingReviewCompletion?.complete(false)
                         },
                         title = { Text("Vérifier les héros détectés") },
@@ -709,6 +712,26 @@ fun LandsOfJailAssistantApp(
                                 if (reviewHeroes.isEmpty()) {
                                     Text("Aucun héros détecté. Tu peux confirmer pour enregistrer les autres données.")
                                 }
+                                Text("Robots / compagnons", fontWeight = FontWeight.SemiBold)
+                                if (reviewRobots.isEmpty()) {
+                                    Text("Aucun robot détecté automatiquement. Tu peux l'ajouter et compléter ses informations depuis ta capture.", style = MaterialTheme.typography.bodySmall)
+                                }
+                                reviewRobots.forEachIndexed { index, robot ->
+                                    Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF172033)), modifier = Modifier.fillMaxWidth()) {
+                                        Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                                            Text("Robot ${index + 1}", fontWeight = FontWeight.SemiBold)
+                                            OutlinedTextField(value = robot.nom, onValueChange = { value -> reviewRobots = reviewRobots.toMutableList().also { it[index] = robot.copy(nom = value) } }, label = { Text("Nom du robot") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                                            OutlinedTextField(value = robot.niveau.orEmpty(), onValueChange = { value -> reviewRobots = reviewRobots.toMutableList().also { it[index] = robot.copy(niveau = value) } }, label = { Text("Niveau") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                                            OutlinedTextField(value = robot.puissance.orEmpty(), onValueChange = { value -> reviewRobots = reviewRobots.toMutableList().also { it[index] = robot.copy(puissance = value) } }, label = { Text("Puissance") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                                            OutlinedTextField(value = robot.rarete.orEmpty(), onValueChange = { value -> reviewRobots = reviewRobots.toMutableList().also { it[index] = robot.copy(rarete = value) } }, label = { Text("Rareté") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                                            robot.competences.forEachIndexed { skillIndex, skill ->
+                                                OutlinedTextField(value = skill.niveau, onValueChange = { value -> reviewRobots = reviewRobots.toMutableList().also { list -> val current = list[index]; list[index] = current.copy(competences = current.competences.toMutableList().also { skills -> skills[skillIndex] = skill.copy(niveau = value) }) } }, label = { Text(skill.nom) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                                            }
+                                            if (robot.incertain) Text(robot.raisonIncertitude ?: "Informations à vérifier", color = Color(0xFFFBBF24), style = MaterialTheme.typography.labelSmall)
+                                        }
+                                    }
+                                }
+                                TextButton(onClick = { reviewRobots = reviewRobots + RobotRecord(nom = "") }) { Text("＋ Ajouter un robot") }
                                 reviewHeroes.forEachIndexed { index, hero ->
                                     Card(
                                         colors = CardDefaults.cardColors(containerColor = Color(0xFF172033)),
@@ -779,9 +802,9 @@ fun LandsOfJailAssistantApp(
                         },
                         confirmButton = {
                             TextButton(
-                                enabled = reviewHeroes.all { it.nom.isNotBlank() && (it.niveau == null || it.niveau in 1..999) },
+                                enabled = reviewHeroes.all { it.nom.isNotBlank() && (it.niveau == null || it.niveau in 1..999) } && reviewRobots.all { it.nom.isNotBlank() },
                                 onClick = {
-                                    val confirmed = review.copy(heros = reviewHeroes.map { hero ->
+                                    val confirmed = review.copy(robots = reviewRobots.map { robot -> robot.copy(nom = robot.nom.trim(), incertain = robot.niveau.isNullOrBlank() || robot.competences.any { it.niveau.isBlank() || it.niveau.equals("Inconnu", true) }) }, heros = reviewHeroes.map { hero ->
                                         hero.copy(
                                             nom = hero.nom.trim(),
                                             incertain = false,
@@ -794,6 +817,7 @@ fun LandsOfJailAssistantApp(
                                     mergeNewAnalysis(confirmed)
                                     pendingReview = null
                                     reviewHeroes = emptyList()
+                                    reviewRobots = emptyList()
                                     pendingReviewCompletion?.complete(true)
                                     scope.launch {
                                         isFetchingAdvice = true
@@ -802,6 +826,7 @@ fun LandsOfJailAssistantApp(
                                             language = currentLang,
                                             playerRole = playerRole,
                                             heroes = (heroes + confirmed.heros).associateBy { it.nom.lowercase() }.values.toList(),
+                                            robots = (robots + confirmed.robots).associateBy { it.nom.lowercase() }.values.toList(),
                                             powerText = confirmed.puissance?.puissanceTotaleTexte ?: currentPower?.puissanceTotaleTexte
                                         ).onSuccess { adviceResult = it }
                                             .onFailure { errorMessage = it.message }
