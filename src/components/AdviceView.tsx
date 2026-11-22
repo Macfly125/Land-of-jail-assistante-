@@ -352,6 +352,43 @@ export const AdviceView: React.FC<AdviceViewProps> = ({
                 {currentAdvice.compositionRecommandee}
               </p>
             </div>
+            {currentAdvice.troopRatioProfiles && currentAdvice.troopRatioProfiles.length > 0 && (
+              <div className="pt-4 border-t border-slate-800/80 space-y-3">
+                <h3 className="text-sm font-semibold text-amber-300">
+                  {currentAdvice.troopRatioTitle || 'Troop ratios'}
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {currentAdvice.troopRatioProfiles.map((profile) => (
+                    <div
+                      key={profile.id}
+                      className="rounded-xl border border-slate-700/80 bg-slate-950/60 p-4 space-y-3"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="text-sm font-semibold text-slate-100">{profile.label}</span>
+                        <span className="text-[10px] uppercase tracking-wide text-slate-400">
+                          {profile.roleLabel}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-center">
+                        <div className="rounded-lg bg-slate-800/70 p-2">
+                          <div className="text-[10px] text-slate-400">Shieldbearer</div>
+                          <div className="text-lg font-bold text-slate-100 tabular-nums">{profile.shieldbearer}%</div>
+                        </div>
+                        <div className="rounded-lg bg-slate-800/70 p-2">
+                          <div className="text-[10px] text-slate-400">Bomber</div>
+                          <div className="text-lg font-bold text-slate-100 tabular-nums">{profile.bomber}%</div>
+                        </div>
+                        <div className="rounded-lg bg-slate-800/70 p-2">
+                          <div className="text-[10px] text-slate-400">Shooter</div>
+                          <div className="text-lg font-bold text-slate-100 tabular-nums">{profile.shooter}%</div>
+                        </div>
+                      </div>
+                      <p className="text-xs text-slate-400 leading-relaxed">{profile.note}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </section>
 
           {/* Informations incertaines */}
