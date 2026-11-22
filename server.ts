@@ -966,19 +966,20 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
 
       const liveGuides = await fetchLiveLojGuides(mode, heroNames, targetLang);
 
-      if (liveGuides.length === 0) {
-        res.status(502).json({
-          error: 'Aucun guide Internet accessible pour le moment. Vérifiez votre connexion.',
-        });
-        return;
-      }
-
       const roleLabel = playerRoleLabel || playerRole || 'Polyvalent / F2P';
+      const liveGuideUnavailableByLang: Record<TargetLang, string> = {
+        fr: 'Aucun guide dynamique n’a pu être récupéré. Les repères enregistrés et les liens de référence restent disponibles; vérifiez les règles affichées dans le jeu.',
+        tr: 'Canlı rehber alınamadı. Kayıtlı referanslar ve bağlantılar kullanılabilir; oyun içindeki kuralları kontrol edin.',
+        ru: 'Не удалось получить актуальные руководства. Сохраненные ориентиры и ссылки доступны; проверьте правила в игре.',
+        zh: '暂时无法获取动态攻略。仍可查看已保存的参考信息和链接；请以游戏内规则为准。',
+        de: 'Aktuelle Guides konnten nicht geladen werden. Gespeicherte Hinweise und Links bleiben verfügbar; prüfen Sie die Spielregeln.',
+        en: 'Live guides could not be retrieved. Saved references and links remain available; verify the rules shown in-game.',
+      };
       const leadSummary = liveGuides
         .slice(0, 2)
         .map((g) => g.excerpt)
         .filter(Boolean)
-        .join(' ');
+        .join(' ') || liveGuideUnavailableByLang[targetLang];
 
       const cageDamagePriorityByLang: Record<TargetLang, string> = {
         fr: 'Règle Cage : privilégier les compétences et bonus qui augmentent directement les dégâts infligés ou réduisent les défenses de la cible. Les bonus uniquement défensifs/soins ne sont pas prioritaires pour le score de dégâts.',
@@ -1190,10 +1191,10 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
             incertain: false,
             imageUrl: g.imageUrl,
           })),
-          informationsIncertaines:
-            heroNames.length === 0
-              ? [compTextByLang[targetLang]]
-              : [],
+          informationsIncertaines: [
+            ...(heroNames.length === 0 ? [compTextByLang[targetLang]] : []),
+            ...(liveGuides.length === 0 ? [liveGuideUnavailableByLang[targetLang]] : []),
+          ],
           sources: [
             ...liveGuides.map((g) => ({
               title: g.title,
