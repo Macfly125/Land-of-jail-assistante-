@@ -57,13 +57,13 @@ function parseStars(etoiles?: string): number | null {
   const value = etoiles.trim();
 
   // Formes explicites : 3★, 3/5, 3 étoiles, ou une rangée de 3 étoiles.
-  const compact = value.match(/^([1-5])\\s*★$/i);
+  const compact = value.match(/^([1-5])\s*★$/i);
   if (compact) return Number(compact[1]);
 
-  const fraction = value.match(/^([1-5])\\s*\\/\\s*5$/);
+  const fraction = value.match(/^([1-5])\s*\/\s*5$/);
   if (fraction) return Number(fraction[1]);
 
-  const labeled = value.match(/^([1-5])\\s*(?:étoile|étoiles|star|stars)$/i);
+  const labeled = value.match(/^([1-5])\s*(?:étoile|étoiles|star|stars)$/i);
   if (labeled) return Number(labeled[1]);
 
   const symbols = value.match(/^[★⭐]{1,5}$/u);
@@ -72,8 +72,7 @@ function parseStars(etoiles?: string): number | null {
   // Ne pas extraire des chiffres d'un texte composite : "3/5 + 20 fragments"
   // ou une progression d'éclats ne représente pas un nombre d'étoiles certain.
   return null;
-}
-export const HeroesView: React.FC<HeroesViewProps> = ({
+}export const HeroesView: React.FC<HeroesViewProps> = ({
   heroes,
   onVerifyHero,
   onOpenShareModal,
