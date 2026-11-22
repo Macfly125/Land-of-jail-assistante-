@@ -1607,6 +1607,7 @@ private fun AdviceScreen(
     var gorillaHeroesInput by remember { mutableStateOf("") }
     var gorillaRobotInput by remember { mutableStateOf("") }
     var gorillaNotesInput by remember { mutableStateOf("") }
+    var gorillaBonusInput by remember { mutableStateOf("") }
     val gorillaRatioTotal = (gorillaShieldInput.toIntOrNull() ?: 0) +
         (gorillaBomberInput.toIntOrNull() ?: 0) + (gorillaShooterInput.toIntOrNull() ?: 0)
     val numberFormat = remember { java.text.NumberFormat.getIntegerInstance(java.util.Locale.FRANCE) }
@@ -1680,7 +1681,8 @@ private fun AdviceScreen(
                         Text("Total : $gorillaRatioTotal %", color = if (gorillaRatioTotal == 100) Color(0xFF34D399) else Color(0xFFFBBF24), style = MaterialTheme.typography.labelSmall)
                         OutlinedTextField(value = gorillaHeroesInput, onValueChange = { gorillaHeroesInput = it }, label = { Text("Héros utilisés") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
                         OutlinedTextField(value = gorillaRobotInput, onValueChange = { gorillaRobotInput = it }, label = { Text("Robot utilisé") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-                        OutlinedTextField(value = gorillaNotesInput, onValueChange = { gorillaNotesInput = it }, label = { Text("Bonus / remarques") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+                        OutlinedTextField(value = gorillaBonusInput, onValueChange = { gorillaBonusInput = it }, label = { Text("Bonus actif (identique pour comparer)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                        OutlinedTextField(value = gorillaNotesInput, onValueChange = { gorillaNotesInput = it }, label = { Text("Équipement / remarques") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
                         Button(
                             onClick = {
                                 val parsedDamage = gorillaDamageInput.toLongOrNull()
@@ -1701,7 +1703,8 @@ private fun AdviceScreen(
                                         shooter = shooter,
                                         heroes = gorillaHeroesInput.trim(),
                                         robot = gorillaRobotInput.trim(),
-                                        notes = gorillaNotesInput.trim()
+                                        notes = gorillaNotesInput.trim(),
+                                        bonus = gorillaBonusInput.trim()
                                     ))
                                     gorillaDamageInput = ""
                                     gorillaNotesInput = ""
@@ -1715,6 +1718,22 @@ private fun AdviceScreen(
                             Text("Aucun essai enregistré pour ce gorille.", style = MaterialTheme.typography.bodySmall, color = Color(0xFF94A3B8))
                         } else {
                             Text("${numberFormat.format(bestRun.damage)} dégâts · ${bestRun.shield}/${bestRun.bomber}/${bestRun.shooter} · ${bestRun.date}", color = Color(0xFFFBBF24), style = MaterialTheme.typography.bodySmall)
+                        }
+                        val comparableRuns = gorillaRuns
+                            .filter { it.bonus.isNotBlank() }
+                            .groupBy { Triple(it.gorilla, it.bonus.trim().lowercase(), "${it.shield}/${it.bomber}/${it.shooter}") }
+                            .filterValues { it.size >= 2 }
+                        Text("Comparaison des ratios (même gorille et même bonus)", fontWeight = FontWeight.Medium)
+                        Text("Moyenne affichée après au moins deux essais avec le même bonus déclaré et le même ratio.", style = MaterialTheme.typography.bodySmall, color = Color(0xFF94A3B8))
+                        if (comparableRuns.isEmpty()) {
+                            Text("Ajoute deux essais comparables en renseignant le même bonus pour voir les moyennes.", style = MaterialTheme.typography.bodySmall, color = Color(0xFF94A3B8))
+                        } else {
+                            comparableRuns.forEach { (key, group) ->
+                                val average = group.sumOf { it.damage } / group.size
+                                val best = group.maxOf { it.damage }
+                                Text("${key.first} · ${group.first().bonus} · Ratio ${key.third}", style = MaterialTheme.typography.bodySmall)
+                                Text("Moyenne : ${numberFormat.format(average)} · Meilleur : ${numberFormat.format(best)} · ${group.size} essais", color = Color(0xFFFBBF24), style = MaterialTheme.typography.bodySmall)
+                            }
                         }
                         Text("Historique : ${gorillaRuns.size} essai(s)", fontWeight = FontWeight.Medium)
                         gorillaRuns.take(5).forEach { run ->
