@@ -2253,8 +2253,8 @@ private fun AllianceScreen(
                                 val used = mutableSetOf<String>()
                                 joiners.forEach { member ->
                                     val text = lower(member)
-                                    val tag = tags.firstOrNull { (_, words) ->
-                                        words.any(text::contains) && itTagNotUsed(used, it.first)
+                                    val tag = tags.firstOrNull { (tagName, words) ->
+                                        words.any(text::contains) && itTagNotUsed(used, tagName)
                                     }?.first
                                     if (tag != null && used.add(tag)) {
                                         output += "Soutien ${used.size} — ${member.playerName} : rôle ${tag}; ${member.heroSkillSummary.take(220)}"
