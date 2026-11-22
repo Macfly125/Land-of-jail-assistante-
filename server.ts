@@ -411,7 +411,8 @@ Règles strictes :
     | 'sandsea_conquest'
     | 'svs'
     | 'turmoil_surge'
-    | 'gold_hunter';
+    | 'gold_hunter'
+    | 'gorilla_legion';
 
   type TargetLang = 'fr' | 'tr' | 'ru' | 'zh' | 'de' | 'en';
 
@@ -444,6 +445,7 @@ Règles strictes :
       svs: ['/events/supreme-honor/', '/events/'],
       turmoil_surge: ['/events/turmoil-surge/', '/events/'],
       gold_hunter: ['/events/gold-hunter/', '/guides/gold-hunter/', '/events/'],
+      gorilla_legion: ['/events/gorilla-legion/', '/events/'],
     };
 
     const slugs = slugsByMode[mode] ?? ['/events/'];
@@ -524,6 +526,7 @@ Règles strictes :
       svs: 'svs',
       turmoil_surge: 'turmoil',
       gold_hunter: 'gold hunter',
+      gorilla_legion: 'gorilla legion',
     };
     const queryTerm = queryMap[mode] || 'lands of jail';
     const lojxlabUrls = [
@@ -720,6 +723,7 @@ Règles strictes :
         'svs',
         'turmoil_surge',
         'gold_hunter',
+        'gorilla_legion',
       ];
       if (!mode || !validModes.includes(mode)) {
         res.status(400).json({ error: 'Mode / événement invalide.' });
@@ -738,6 +742,8 @@ Règles strictes :
           svs: 'SvS / Supreme Honor',
           turmoil_surge: 'Turmoil Surge',
           gold_hunter: 'Gold Hunter & Sprint',
+          gorilla_legion: 'Gorilla Legion',
+          gorilla_legion: 'Gorilla Legion',
         },
         tr: {
           trial_cage: 'Deneme Kafesi',
@@ -746,6 +752,7 @@ Règles strictes :
           svs: 'SvS / Yüce Onur',
           turmoil_surge: 'Kargaşa Dalgası',
           gold_hunter: 'Altın Avcısı',
+          gorilla_legion: 'Goril Lejyonu',
         },
         ru: {
           trial_cage: 'Испытание клетки',
@@ -754,6 +761,7 @@ Règles strictes :
           svs: 'SvS / Высшее отличие',
           turmoil_surge: 'Волна смуты',
           gold_hunter: 'Охотник за золотом',
+          gorilla_legion: 'Легион горилл',
         },
         zh: {
           trial_cage: '终极试炼',
@@ -762,6 +770,7 @@ Règles strictes :
           svs: '跨服战 / 至高荣耀',
           turmoil_surge: '动乱危机',
           gold_hunter: '黄金猎人',
+          gorilla_legion: '大猩猩军团',
         },
         de: {
           trial_cage: 'Trial Cage',
@@ -770,6 +779,7 @@ Règles strictes :
           svs: 'SvS / Höchste Ehre',
           turmoil_surge: 'Turmoil Surge',
           gold_hunter: 'Goldjäger',
+          gorilla_legion: 'Gorilla-Legion',
         },
         en: {
           trial_cage: 'Trial Cage',
@@ -795,8 +805,21 @@ Ces descriptions ne concordent pas parfaitement sur le fonctionnement des partic
         svs: `Pour SvS / Supreme Honor, distingue préparation, jours de score, combat et récupération. Vérifie les calendriers et règles actuels dans les sources récupérées ; ne conseille pas de dépenser des ressources sans relier cela au jour et à l'objectif.`,
         turmoil_surge: `Pour Turmoil Surge, utilise les guides et règles spécifiques récupérés en direct. Distingue les objectifs et récompenses réels ; ne transpose pas les formations d'un autre événement.`,
         gold_hunter: `Pour Gold Hunter & Sprint, utilise les guides spécifiques récupérés en direct. Prends en compte les marches, les déplacements, les coffres et le timing uniquement si la source les confirme ; ne transpose pas les ratios de combat d'un autre événement.`,
+        gorilla_legion: `GORILLA LEGION — boss individuel, classement basé sur le meilleur coup et non un ralliement (confirmer les règles sur l'écran du joueur).
+Le calendrier publié par LOJ Strats associe lundi Space/Satellite, mardi Wise/Technology, mercredi Cyber/Power Armor, jeudi Primal/Tome, vendredi Armed/Hero Equipment, samedi Treasure/Trove Collection, dimanche Gorilla Warlord/High Chieftain avec les six bonus. Attention : LOJ XLab affiche un ordre différent pour mercredi/jeudi (Primal et Cyber). Ne déduis donc jamais le gorille du seul jour de la semaine : demande ou utilise le nom et le bonus visibles dans la capture du jeu.
+Ratios de départ : GuideLOJ propose 0/15/85 (Shield/Bomber/Shooter) comme base gorille ; LOJ Strats donne des ratios par jour (Space 0/20/80, Wise 0/10/90, Cyber 0/10/90, Primal 0/20/80, Armed 0/15/85, Treasure 0/10/90, Warlord 0/10/90). LOJ XLab publie d'autres ratios et reconnaît que les sources communautaires divergent. Présente-les comme essais, jamais comme optimum garanti. Teste aussi 0/0/100 lorsque le joueur peut remplir sa marche.
+Priorité : bonus du jour réellement actifs, compétences de héros, équipement exclusif et modules/armures pertinents. Pour Cyber, la source XLab rapporte un bonus Power Armor +1000% conditionné à l'activation des nœuds Shooter/Bomber ; présente-le comme observation à vérifier en jeu, pas comme règle certaine.
+Protocole de test : garder héros, niveaux de compétences, équipement et nombre total de troupes identiques ; ne changer que le ratio, enregistrer les dégâts par escouade et répéter plusieurs attaques. Le classement retient le meilleur coup selon les guides consultés. Ne pas mélanger les consignes de Trial Cage ni de ralliement.`,
+
       };
-      const communityResearchSources = mode === 'trial_cage'
+      const communityResearchSources = mode === 'gorilla_legion'
+        ? [
+            { title: 'LOJ Strats — Gorilla Legion : calendrier et ratios quotidiens', url: 'https://lojstrats.com/gorilla', date: '2026-11-22' },
+            { title: 'LOJ XLab — Gorilla Legion : tests et divergences de ratios', url: 'https://lojxlab.com/gorilla-legion/', date: '2026-11-22' },
+            { title: 'GuideLOJ — ratios de troupes pour boss', url: 'https://www.guideloj.com/fr/tips/fight/troop-guide-shieldbearer-bombardiers-shooters', date: '2026-11-04' },
+            { title: 'LOJ Wiki — guides et événements', url: 'https://lojwiki.com/guides/', date: '2026-11-22' },
+          ]
+        : mode === 'trial_cage'
         ? [
             { title: 'GuideLOJ — Trial Cage : chefs, troupes et participants', url: 'https://www.guideloj.com/fr/events/alliance/trial-cage-rally', date: '2026-11-04' },
             { title: 'GuideLOJ — ratios de troupes', url: 'https://www.guideloj.com/fr/tips/fight/troop-guide-shieldbearer-bombardiers-shooters', date: '2026-11-04' },
@@ -810,7 +833,7 @@ Ces descriptions ne concordent pas parfaitement sur le fonctionnement des partic
           ];
       const roleLabel = playerRoleLabel || playerRole || 'Polyvalent / F2P';
       const validEventPositions = ['leader', 'joiner', 'solo'] as const;
-      const selectedEventPosition = eventPosition && validEventPositions.includes(eventPosition) ? eventPosition : 'joiner';
+      const selectedEventPosition = mode === 'gorilla_legion' ? 'solo' : (eventPosition && validEventPositions.includes(eventPosition) ? eventPosition : 'joiner');
       const eventPositionLabels: Record<typeof selectedEventPosition, string> = {
         leader: 'Leader / lanceur de ralliement',
         joiner: 'Participant / renfort',
@@ -858,7 +881,9 @@ Ces descriptions ne concordent pas parfaitement sur le fonctionnement des partic
 
       const cageRules = mode === 'trial_cage'
         ? `RÈGLES SPÉCIFIQUES TRIAL CAGE : le critère déterminant est le total de dégâts infligés à l'adversaire. Priorise les héros, compétences, bonus et synergies qui augmentent directement les dégâts (attaque, létalité, dégâts de compétence, réduction de défense ennemie, amplification des dégâts, attaques de zone). Ne valorise pas les bonus de PV, défense, soins ou réduction des dégâts subis s'ils n'augmentent pas les dégâts infligés dans ce mode. Ne recommande pas un héros uniquement parce qu'il est tank ou support défensif. Explique les synergies et l'ordre de priorité.`
-        : `Pour cet événement, distingue les objectifs réels (dégâts, contrôle, défense, occupation, collecte ou points) et sélectionne les héros/compétences en conséquence. Ne transpose pas automatiquement les critères de Trial Cage aux autres modes.`;
+        : mode === 'gorilla_legion'
+          ? `RÈGLES GORILLA LEGION : événement individuel de dégâts, pas un ralliement. Utilise le gorille et le bonus quotidien confirmés par l'utilisateur/capture. Si absents, demande de les vérifier et ne suppose pas le calendrier. Analyse les compétences de héros et l'équipement exclusif ainsi que les modules/armures liés au bonus du jour. Les ratios communautaires sont contradictoires : donne un point de départ et un test comparatif, pas un optimum garanti.`
+          : `Pour cet événement, distingue les objectifs réels (dégâts, contrôle, défense, occupation, collecte ou points) et sélectionne les héros/compétences en conséquence. Ne transpose pas automatiquement les critères de Trial Cage aux autres modes.`;
 
       const ai = getAiClient();
       const tacticalResponse = await ai.models.generateContent({
