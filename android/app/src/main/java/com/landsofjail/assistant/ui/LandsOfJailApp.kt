@@ -896,6 +896,7 @@ fun LandsOfJailAssistantApp(
                     AssistantTab.ALLIANCE -> AllianceScreen(
                         workspace = allianceWorkspace,
                         heroes = heroes,
+                        currentPowerText = currentPower?.puissanceTotaleTexte.orEmpty(),
                         onSaveWorkspace = { allianceWorkspace = it }
                     )
                     AssistantTab.HISTORIQUE -> HistoryScreen(analyses, onClearHistory = { analyses = emptyList() })
@@ -2009,6 +2010,7 @@ private fun HistoryScreen(
 private fun AllianceScreen(
     workspace: AllianceWorkspace,
     heroes: List<HeroRecord>,
+    currentPowerText: String,
     onSaveWorkspace: (AllianceWorkspace) -> Unit
 ) {
     var playerName by remember(workspace.ownProfile.playerName) { mutableStateOf(workspace.ownProfile.playerName) }
@@ -2091,7 +2093,7 @@ private fun AllianceScreen(
                                 server = server.trim(),
                                 allianceName = allianceName.trim(),
                                 rank = rank,
-                                powerText = workspace.ownProfile.powerText,
+                                powerText = currentPowerText.ifBlank { workspace.ownProfile.powerText },
                                 heroSkillSummary = ownHeroSummary,
                                 robotSummary = workspace.ownProfile.robotSummary,
                                 updatedAtIso = Instant.now().toString()
@@ -2198,6 +2200,7 @@ private fun AllianceScreen(
                                     add(workspace.ownProfile.copy(
                                         server = workspace.server,
                                         allianceName = workspace.allianceName,
+                                        powerText = currentPowerText.ifBlank { workspace.ownProfile.powerText },
                                         heroSkillSummary = ownHeroSummary
                                     ))
                                 }
@@ -2240,7 +2243,7 @@ private fun AllianceScreen(
                                 val joiners = roster.filter { it.id != leader?.id }
                                     .sortedByDescending { member ->
                                         val text = lower(member)
-                                        tags.sumOf { (_, words) -> if (words.any(text::contains)) 10 else 0 } + power(member).coerceAtMost(9_999_999_999L) / 1_000_000_000L
+                                        tags.sumOf { (_, words) -> if (words.any(text::contains)) 10 else 0 } + (power(member).coerceAtMost(9_999_999_999L) / 1_000_000_000L).toInt()
                                     }
                                 val output = mutableListOf<String>()
                                 output += "Événement : ${selectedEvent.titleFor(AppLanguage.FR)}"
