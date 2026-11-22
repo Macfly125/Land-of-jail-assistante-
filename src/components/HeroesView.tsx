@@ -478,9 +478,41 @@ export const HeroesView: React.FC<HeroesViewProps> = ({
                     </div>
                   )}
 
+                  {selectedDetected && (
+                    <div className="space-y-2 border-t border-slate-800/80 pt-3">
+                      <div className="text-xs font-semibold text-emerald-300">
+                        Compétences relevées sur votre compte
+                      </div>
+                      {selectedDetected.competences.length === 0 ? (
+                        <p className="text-xs text-slate-500">
+                          Aucune compétence personnelle confirmée par une capture pour le moment.
+                        </p>
+                      ) : (
+                        <div className="divide-y divide-slate-800/60">
+                          {selectedDetected.competences.map((skill) => (
+                            <div key={skill.id || skill.nom} className="py-2 first:pt-0">
+                              <div className="flex items-center justify-between gap-3">
+                                <span className="text-sm text-slate-200 font-medium">{skill.nom}</span>
+                                <span className="text-xs text-emerald-300 whitespace-nowrap">
+                                  {skill.niveau || 'Niveau non relevé'}
+                                  {skill.incertain && (
+                                    <span className="ml-1 text-amber-300">(à confirmer)</span>
+                                  )}
+                                </span>
+                              </div>
+                              {skill.raisonIncertitude && skill.incertain && (
+                                <p className="mt-1 text-xs text-amber-300/80">{skill.raisonIncertitude}</p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <div className="space-y-2 border-t border-slate-800/80 pt-3">
                     <div className="text-xs font-semibold text-slate-300">
-                      Compétences (niveaux maximum)
+                      Référence du catalogue (niveaux maximum)
                     </div>
                     {details.competences.length === 0 ? (
                       <p className="text-xs text-slate-500">
