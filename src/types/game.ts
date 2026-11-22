@@ -72,7 +72,8 @@ export type AdviceMode =
   | 'sandsea_conquest'
   | 'svs'
   | 'turmoil_surge'
-  | 'gold_hunter';
+  | 'gold_hunter'
+  | 'gorilla_legion';
 
 export const ADVICE_EVENT_LIST: Array<{
   id: AdviceMode;
@@ -138,6 +139,18 @@ export const ADVICE_EVENT_LIST: Array<{
       en: 'Turmoil Surge',
     },
     searchKeyword: 'turmoil',
+  },
+  {
+    id: 'gorilla_legion',
+    label: {
+      fr: 'Gorilla Legion',
+      tr: 'Goril Lejyonu',
+      ru: 'Легион горилл',
+      zh: '大猩猩军团',
+      de: 'Gorilla-Legion',
+      en: 'Gorilla Legion',
+    },
+    searchKeyword: 'gorilla legion',
   },
   {
     id: 'gold_hunter',
