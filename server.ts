@@ -647,11 +647,19 @@ Règles strictes :
 
   app.post('/api/advice', async (req, res) => {
     try {
-      const { mode, language, playerRole, playerRoleLabel, heroes, extraQuestion } = req.body as {
+      const { mode, language, playerRole, playerRoleLabel, heroes, robots, extraQuestion } = req.body as {
         mode?: AdviceEventMode;
         language?: TargetLang;
         playerRole?: string;
         playerRoleLabel?: string;
+        robots?: Array<{
+          nom: string;
+          niveau?: string;
+          puissance?: string;
+          rarete?: string;
+          incertain?: boolean;
+          competences?: Array<{ nom: string; niveau: string; description?: string; incertain?: boolean }>;
+        }>;
         heroes?: Array<{
           nom: string;
           niveau?: number | null;
