@@ -342,6 +342,13 @@ data class TacticalAdviceResult(
 
 
 @Serializable
+data class ForticladBuildingProgress(
+    val level: Int = 0,
+    val completedStages: Int = 0,
+    val targetLevel: Int = 1
+)
+
+@Serializable
 data class SavedPlayerProfile(
     val id: String,
     val name: String,
@@ -353,6 +360,7 @@ data class SavedPlayerProfile(
     val resources: List<ResourceRecord> = emptyList(),
     val currentPower: PowerMetric? = null,
     val forticladLevel: Int = 0,
+    val forticladBuildings: Map<String, ForticladBuildingProgress> = emptyMap(),
     val gorillaRuns: List<GorillaDamageRecord> = emptyList()
 )
 
