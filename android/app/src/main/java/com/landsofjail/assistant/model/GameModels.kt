@@ -303,3 +303,18 @@ data class TacticalAdviceResult(
     val sources: List<GroundedWebSource> = emptyList(),
     val geminiWarning: String? = null
 )
+
+
+@Serializable
+data class GorillaDamageRecord(
+    val id: String,
+    val date: String,
+    val gorilla: String,
+    val damage: Long,
+    val shield: Int,
+    val bomber: Int,
+    val shooter: Int,
+    val heroes: String = "",
+    val robot: String = "",
+    val notes: String = ""
+)
