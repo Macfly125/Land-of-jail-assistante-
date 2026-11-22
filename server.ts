@@ -1077,6 +1077,40 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
                 ? ' Aucune compétence ne peut être classée de façon fiable : descriptions absentes, incertaines ou sans effet offensif explicite. Classement indisponible.'
                 : ' No skill can be classified reliably: descriptions are missing, uncertain, or contain no explicit offensive effect. Ranking unavailable.'))
         : '';
+      // Curated role references for the two events with documented entries.
+      // Other events remain unranked until their mechanics are sourced and verified.
+      const knownEventRoles: Record<string, { trial_cage: string; crystal_clash: string }> = {
+        Tyronn: { trial_cage: 'Tank principal de première ligne', crystal_clash: 'Tenue de points stratégiques' },
+        Phoenix: { trial_cage: 'DPS polyvalent contre le boss', crystal_clash: 'Soutien offensif sur les prises de points' },
+        Rin: { trial_cage: 'DPS arrière élevé', crystal_clash: 'Nettoyage des défenseurs sur points de cristal' },
+        Edwin: { trial_cage: 'Dégâts soutenus en ralliement Shooter', crystal_clash: 'Leader de ralliement offensif' },
+        Otto: { trial_cage: 'Tank secondaire / bouclier', crystal_clash: 'Garnison et défense de Crystal Ironhold' },
+        Marcus: { trial_cage: 'Absorption des dégâts en première ligne', crystal_clash: 'Défenseur de garnison' },
+        Ada: { trial_cage: 'Dégâts à distance réguliers', crystal_clash: 'Escarmouches et dépôts de cristal' },
+        Lee: { trial_cage: 'Contrôle / dégâts de zone', crystal_clash: 'Perturbation des groupes ennemis' },
+        Patrick: { trial_cage: 'Tank F2P de transition', crystal_clash: 'Garnison temporaire / renfort' },
+        Mia: { trial_cage: 'Soin et maintien en début de jeu', crystal_clash: 'Soutien / renfort' },
+      };
+      const eventRoleContext = (heroes ?? []).flatMap((hero) => {
+        const entry = Object.entries(knownEventRoles).find(([name]) =>
+          name.toLocaleLowerCase() === hero.nom.trim().toLocaleLowerCase()
+        )?.[1];
+        const role = mode === 'trial_cage' ? entry?.trial_cage
+          : mode === 'crystal_clash' ? entry?.crystal_clash : undefined;
+        return role ? [`${hero.nom}: ${role}`] : [];
+      });
+      const eventRoleContextLabel: Record<TargetLang, string> = {
+        fr: 'Repères de rôle connus (pas un classement de puissance) :',
+        tr: 'Bilinen rol referansları (güç sıralaması değildir):',
+        ru: 'Известные ролевые ориентиры (не рейтинг силы):',
+        zh: '已知角色参考（并非战力排名）：',
+        de: 'Bekannte Rollenhinweise (keine Stärkerangliste):',
+        en: 'Known role references (not a power ranking):',
+      };
+      const eventRoleContextText = eventRoleContext.length
+        ? ` ${eventRoleContextLabel[targetLang]} ${eventRoleContext.join('; ')}.`
+        : '';
+
       res.json({
         advice: {
           mode,
