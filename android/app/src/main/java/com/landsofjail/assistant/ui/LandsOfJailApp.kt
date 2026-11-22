@@ -40,6 +40,9 @@ import com.landsofjail.assistant.ocr.LandsOfJailOcrParser
 import com.landsofjail.assistant.service.GameForegroundMonitorService
 import com.landsofjail.assistant.service.UsageStatsDetector
 import kotlinx.coroutines.launch
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import java.time.Instant
 import java.util.UUID
 
@@ -216,10 +219,48 @@ fun LandsOfJailAssistantApp(
     val isMonitoringRunning by GameForegroundMonitorService.isRunning.collectAsState()
     val isGameForeground by GameForegroundMonitorService.detectedGameForeground.collectAsState()
 
-    var analyses by remember { mutableStateOf<List<ScreenshotAnalysis>>(emptyList()) }
-    var heroes by remember { mutableStateOf<List<HeroRecord>>(emptyList()) }
-    var resources by remember { mutableStateOf<List<ResourceRecord>>(emptyList()) }
-    var currentPower by remember { mutableStateOf<PowerMetric?>(null) }
+    val accountPrefs = remember(context) {
+        context.getSharedPreferences("lands_of_jail_account_v1", Context.MODE_PRIVATE)
+    }
+    val accountJson = remember { Json { ignoreUnknownKeys = true } }
+    var accountDataLoaded by remember { mutableStateOf(false) }
+    var analyses by remember {
+        mutableStateOf(runCatching {
+            accountJson.decodeFromString<List<ScreenshotAnalysis>>(
+                accountPrefs.getString("analyses", "[]") ?: "[]"
+            )
+        }.getOrDefault(emptyList()))
+    }
+    var heroes by remember {
+        mutableStateOf(runCatching {
+            accountJson.decodeFromString<List<HeroRecord>>(
+                accountPrefs.getString("heroes", "[]") ?: "[]"
+            )
+        }.getOrDefault(emptyList()))
+    }
+    var resources by remember {
+        mutableStateOf(runCatching {
+            accountJson.decodeFromString<List<ResourceRecord>>(
+                accountPrefs.getString("resources", "[]") ?: "[]"
+            )
+        }.getOrDefault(emptyList()))
+    }
+    var currentPower by remember {
+        mutableStateOf(runCatching {
+            accountJson.decodeFromString<PowerMetric?>(
+                accountPrefs.getString("current_power", "null") ?: "null"
+            )
+        }.getOrNull())
+    }
+
+    LaunchedEffect(analyses, heroes, resources, currentPower) {
+        accountPrefs.edit()
+            .putString("analyses", accountJson.encodeToString(analyses.take(50)))
+            .putString("heroes", accountJson.encodeToString(heroes))
+            .putString("resources", accountJson.encodeToString(resources))
+            .putString("current_power", accountJson.encodeToString(currentPower))
+            .apply()
+    }
 
     var isAnalyzing by remember { mutableStateOf(false) }
     var singleAnalysisPercent by remember { mutableIntStateOf(0) }
@@ -241,17 +282,72 @@ fun LandsOfJailAssistantApp(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
+    fun normalizedKey(value: String): String =
+        value.lowercase().trim().replace(Regex("\\s+"), " ")
+
+    fun mergeHeroRecords(existing: List<HeroRecord>, incoming: List<HeroRecord>): List<HeroRecord> {
+        val merged = existing.associateBy { normalizedKey(it.nom) }.toMutableMap()
+        incoming.forEach { fresh ->
+            val key = normalizedKey(fresh.nom)
+            if (key.isBlank()) return@forEach
+            val previous = merged[key]
+            if (previous == null) {
+                merged[key] = fresh
+            } else {
+                val skills = (previous.competences + fresh.competences)
+                    .associateBy { normalizedKey(it.nom) }
+                    .values.toList()
+                merged[key] = previous.copy(
+                    niveau = fresh.niveau ?: previous.niveau,
+                    niveauTexte = fresh.niveauTexte.takeIf {
+                        it.isNotBlank() && !it.contains("non lu", true) && !it.contains("inconnu", true)
+                    } ?: previous.niveauTexte,
+                    rarete = fresh.rarete ?: previous.rarete,
+                    etoiles = fresh.etoiles ?: previous.etoiles,
+                    roleHero = fresh.roleHero ?: previous.roleHero,
+                    puissanceHero = fresh.puissanceHero ?: previous.puissanceHero,
+                    imageUrl = fresh.imageUrl ?: previous.imageUrl,
+                    avatarUrl = fresh.avatarUrl ?: previous.avatarUrl,
+                    titre = fresh.titre ?: previous.titre,
+                    typeTroupe = fresh.typeTroupe ?: previous.typeTroupe,
+                    categorie = fresh.categorie ?: previous.categorie,
+                    saison = fresh.saison ?: previous.saison,
+                    puissanceMax5Etoiles = fresh.puissanceMax5Etoiles ?: previous.puissanceMax5Etoiles,
+                    resumeBio = fresh.resumeBio ?: previous.resumeBio,
+                    idealPour = fresh.idealPour ?: previous.idealPour,
+                    wikiUrl = fresh.wikiUrl ?: previous.wikiUrl,
+                    competences = skills,
+                    incertain = fresh.incertain && previous.incertain,
+                    raisonIncertitude = fresh.raisonIncertitude ?: previous.raisonIncertitude
+                )
+            }
+        }
+        return merged.values.toList()
+    }
+
+    fun mergeResourceRecords(existing: List<ResourceRecord>, incoming: List<ResourceRecord>): List<ResourceRecord> {
+        val merged = existing.associateBy { normalizedKey(it.nom) }.toMutableMap()
+        incoming.forEach { fresh ->
+            val key = normalizedKey(fresh.nom)
+            if (key.isNotBlank()) {
+                val previous = merged[key]
+                merged[key] = if (previous == null) fresh else fresh.copy(
+                    quantiteNumerique = fresh.quantiteNumerique ?: previous.quantiteNumerique,
+                    quantiteTexte = fresh.quantiteTexte.ifBlank { previous.quantiteTexte },
+                    raisonIncertitude = fresh.raisonIncertitude ?: previous.raisonIncertitude
+                )
+            }
+        }
+        return merged.values.toList()
+    }
+
     fun mergeNewAnalysis(result: ScreenshotAnalysis) {
-        analyses = listOf(result) + analyses
-        result.puissance?.let { currentPower = it }
-        if (result.heros.isNotEmpty()) {
-            val merged = (heroes + result.heros).associateBy { it.nom.lowercase() }
-            heroes = merged.values.toList()
+        analyses = (listOf(result) + analyses).take(50)
+        result.puissance?.takeIf { it.puissanceTotaleTexte.isNotBlank() }?.let {
+            currentPower = it
         }
-        if (result.ressources.isNotEmpty()) {
-            val merged = (resources + result.ressources).associateBy { it.nom.lowercase() }
-            resources = merged.values.toList()
-        }
+        heroes = mergeHeroRecords(heroes, result.heros)
+        resources = mergeResourceRecords(resources, result.ressources)
     }
 
     suspend fun analyzeSingleUriInternal(uri: Uri, onProgress: (Int) -> Unit): ScreenshotAnalysis {
@@ -393,7 +489,16 @@ fun LandsOfJailAssistantApp(
                         imageLabel = localImageUri.ifBlank { "capture-ecran-autorisee.jpg" },
                         playerRole = playerRole,
                         note = "OCR local : ${ocrRaw.take(400)}"
-                    )
+                    ).let { remote ->
+                        remote.copy(
+                            puissance = remote.puissance?.takeIf { it.puissanceTotaleTexte.isNotBlank() }
+                                ?: localExtraction.power,
+                            ressources = mergeResourceRecords(remote.ressources, localExtraction.resources),
+                            heros = mergeHeroRecords(remote.heros, localExtraction.heroes),
+                            champsIncertains = (remote.champsIncertains + localExtraction.uncertainItems)
+                                .distinctBy { normalizedKey(it.champ) + normalizedKey(it.valeurObservee) }
+                        )
+                    }
                 }.getOrElse {
                     val foundParts = buildList {
                         localExtraction.power?.let { add("Puissance : ${it.puissanceTotaleTexte}") }
