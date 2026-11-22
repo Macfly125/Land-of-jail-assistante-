@@ -479,3 +479,16 @@ export function formatMinutesToDurationFr(totalMinutes: number): string {
   if (mins > 0 && days === 0) parts.push(`${mins}m`);
   return parts.join(' ') || '< 1m';
 }
+
+/** Forticlad Lab Hyperalloy costs by research level.
+ * Source: LOJ XLab, Forticlad Lab upgrade cost guide.
+ * Tier 2 has four independent researches; Tier 5 has two independent researches.
+ */
+export const FORTICLAD_LAB_COSTS = {
+  tier1: [30, 50, 80, 130, 220],
+  tier2: [80, 100, 140, 180, 240, 300, 380, 480, 600, 800],
+  tier3: [160, 200, 240, 290, 360, 430, 530, 650, 810, 1010, 1260, 1580],
+  tier4: 4500,
+  tier5: [200, 260, 340, 440, 590, 800, 1120, 1570, 2360, 3530],
+} as const;
+
