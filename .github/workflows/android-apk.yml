@@ -70,6 +70,8 @@ jobs:
               .filter(run => run.conclusion === 'success')
               .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
             const keepRunIds = new Set(successful.slice(0, 3).map(run => run.id));
+            // Le run courant n'a pas encore de conclusion success pendant cette étape : ne jamais supprimer son APK.
+            keepRunIds.add(context.runId);
             let deleted = 0;
             for (const run of data.workflow_runs) {
               if (keepRunIds.has(run.id)) continue;
