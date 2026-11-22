@@ -110,3 +110,26 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .app-brand img, .app-brand > div { width: 2.25rem; height: 2.25rem; }
   .app-primary-action { min-height: 40px; padding-inline: 0.7rem; }
 }
+
+
+/* Cohérence des panneaux, indicateurs et contrôles */
+.page-frame [class*="rounded-2xl"][class*="bg-[#121826]"] {
+  background: linear-gradient(145deg, rgba(20, 29, 45, 0.96), rgba(15, 22, 35, 0.96));
+  border-color: rgba(100, 116, 139, 0.24);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+.page-frame button[class*="rounded-2xl"][class*="bg-[#121826]"] {
+  transition: border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+}
+.page-frame button[class*="rounded-2xl"][class*="bg-[#121826]"]:hover {
+  border-color: rgba(245, 158, 11, 0.38);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.24);
+}
+.page-frame input, .page-frame select, .page-frame textarea {
+  background-color: rgba(8, 14, 24, 0.72);
+  border-color: rgba(100, 116, 139, 0.3);
+}
+.page-frame input:focus, .page-frame select:focus, .page-frame textarea:focus {
+  border-color: rgba(245, 158, 11, 0.72);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.09);
+}
