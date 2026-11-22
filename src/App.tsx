@@ -29,6 +29,11 @@ import {
 import { UI_COPY } from './i18n/translations';
 import {
   loadAccountState,
+  loadProfileCollection,
+  saveProfileCollection,
+  createEmptyAccountState,
+  PlayerProfile,
+  ProfileCollection,
   mergeAnalysisIntoState,
   saveAccountState,
   saveAdviceInState,
@@ -55,7 +60,11 @@ const NAV_ICONS: Array<{ id: NavTab; icon: React.ComponentType<{ className?: str
 ];
 
 export default function App() {
-  const [state, setState] = useState<AccountState>(() => loadAccountState());
+  const [profileData, setProfileData] = useState<ProfileCollection>(() => loadProfileCollection());
+  const [activeProfileId, setActiveProfileId] = useState(() => profileData.activeProfileId);
+  const [state, setState] = useState<AccountState>(() =>
+    profileData.profiles.find((profile) => profile.id === profileData.activeProfileId)?.state ?? loadAccountState()
+  );
   const [activeTab, setActiveTab] = useState<NavTab>('tableau');
 
   // Modales
@@ -83,7 +92,49 @@ export default function App() {
 
   useEffect(() => {
     saveAccountState(state);
-  }, [state]);
+    saveProfileCollection({
+      profiles: profileData.profiles.map((profile) =>
+        profile.id === activeProfileId ? { ...profile, state } : profile
+      ),
+      activeProfileId,
+    });
+  }, [state, profileData.profiles, activeProfileId]);
+
+  const handleSwitchProfile = (profileId: string) => {
+    const target = profileData.profiles.find((profile) => profile.id === profileId);
+    if (!target || target.id === activeProfileId) return;
+    setProfileData((current) => ({
+      ...current,
+      profiles: current.profiles.map((profile) =>
+        profile.id === activeProfileId ? { ...profile, state } : profile
+      ),
+    }));
+    setActiveProfileId(target.id);
+    setState(target.state);
+    setActiveTab('tableau');
+  };
+
+  const handleCreateProfile = (name: string) => {
+    const cleanName = name.trim().slice(0, 32);
+    if (!cleanName) return;
+    const newProfile: PlayerProfile = {
+      id: `profile-${Date.now()}`,
+      name: cleanName,
+      state: createEmptyAccountState(state.language ?? 'fr', state.playerRole),
+    };
+    setProfileData((current) => ({
+      ...current,
+      profiles: [
+        ...current.profiles.map((profile) =>
+          profile.id === activeProfileId ? { ...profile, state } : profile
+        ),
+        newProfile,
+      ],
+    }));
+    setActiveProfileId(newProfile.id);
+    setState(newProfile.state);
+    setActiveTab('tableau');
+  };
 
   // Récupération éventuelle d'une capture envoyée via PWA Web Share Target (/api/share-target)
   useEffect(() => {
@@ -545,6 +596,10 @@ export default function App() {
         {activeTab === 'tableau' && (
           <DashboardView
             state={state}
+            profiles={profileData.profiles.map(({ id, name }) => ({ id, name }))}
+            activeProfileId={activeProfileId}
+            onSwitchProfile={handleSwitchProfile}
+            onCreateProfile={handleCreateProfile}
             language={language}
             onChangeLanguage={(lang) => setState((prev) => updateLanguageInState(prev, lang))}
             hasUsagePermission={hasUsagePermission}
