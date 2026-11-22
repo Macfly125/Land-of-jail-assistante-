@@ -41,6 +41,9 @@ import com.landsofjail.assistant.ocr.LandsOfJailOcrParser
 import com.landsofjail.assistant.service.GameForegroundMonitorService
 import com.landsofjail.assistant.service.UsageStatsDetector
 import kotlinx.coroutines.launch
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.encodeToString
 import kotlinx.coroutines.CompletableDeferred
 import java.time.Instant
 import java.util.UUID
@@ -237,6 +240,24 @@ fun LandsOfJailAssistantApp(
     var selectedGorilla by remember { mutableStateOf("") }
     var adviceResult by remember { mutableStateOf<TacticalAdviceResult?>(null) }
     var isFetchingAdvice by remember { mutableStateOf(false) }
+    val gorillaJson = remember { Json { ignoreUnknownKeys = true } }
+    var gorillaRuns by remember {
+        mutableStateOf(
+            runCatching {
+                val saved = context.getSharedPreferences("loj_assistant", android.content.Context.MODE_PRIVATE)
+                    .getString("gorilla_damage_log_v1", "[]") ?: "[]"
+                gorillaJson.decodeFromString<List<GorillaDamageRecord>>(saved)
+            }.getOrDefault(emptyList())
+        )
+    }
+    LaunchedEffect(gorillaRuns) {
+        runCatching {
+            context.getSharedPreferences("loj_assistant", android.content.Context.MODE_PRIVATE)
+                .edit()
+                .putString("gorilla_damage_log_v1", gorillaJson.encodeToString(gorillaRuns))
+                .apply()
+        }
+    }
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -675,6 +696,9 @@ fun LandsOfJailAssistantApp(
                         onEventPositionChange = { selectedEventPosition = it; adviceResult = null },
                         selectedGorilla = selectedGorilla,
                         onGorillaChange = { selectedGorilla = it; adviceResult = null },
+                        gorillaRuns = gorillaRuns,
+                        onAddGorillaRun = { run -> gorillaRuns = (listOf(run) + gorillaRuns).take(100) },
+                        onClearGorillaRuns = { gorillaRuns = emptyList() },
                         advice = adviceResult,
                         isLoading = isFetchingAdvice,
                         onGenerateAdvice = {
@@ -1568,6 +1592,9 @@ private fun AdviceScreen(
     onEventPositionChange: (String) -> Unit,
     selectedGorilla: String,
     onGorillaChange: (String) -> Unit,
+    gorillaRuns: List<GorillaDamageRecord>,
+    onAddGorillaRun: (GorillaDamageRecord) -> Unit,
+    onClearGorillaRuns: () -> Unit,
     advice: TacticalAdviceResult?,
     isLoading: Boolean,
     onGenerateAdvice: () -> Unit
