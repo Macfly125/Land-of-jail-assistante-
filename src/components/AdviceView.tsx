@@ -22,6 +22,7 @@ import {
 import { EVENT_BRIEF_BY_LANG, UI_COPY } from '../i18n/translations';
 import { formatFrenchDate, formatFrenchDateTime } from '../utils/storage';
 import { GorillaDamageLog } from './GorillaDamageLog';
+import { readApiJson } from '../utils/api';
 
 interface AdviceViewProps {
   language: AppLanguage;
@@ -115,10 +116,10 @@ export const AdviceView: React.FC<AdviceViewProps> = ({
           extraQuestion: extraQuestion.trim() || undefined,
         }),
       });
-      const data = (await response.json()) as {
+      const data = await readApiJson<{
         advice?: TacticalAdviceResult;
         error?: string;
-      };
+      }>(response, '/api/advice');
       if (!response.ok || !data.advice) {
         throw new Error(data.error || 'Échec de la récupération des conseils Internet.');
       }
