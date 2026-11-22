@@ -100,7 +100,7 @@ private enum class AssistantTab {
 }
 
 private enum class ResourceSubTab {
-    INVENTAIRE, BATIMENTS, HEROS_OBJETS, ROUTINE;
+    INVENTAIRE, BATIMENTS, FORTICLAD, HEROS_OBJETS, ROUTINE;
 
     fun labelFor(lang: AppLanguage): String = when (this) {
         INVENTAIRE -> when (lang) {
@@ -118,6 +118,14 @@ private enum class ResourceSubTab {
             AppLanguage.ZH -> "建筑计算"
             AppLanguage.DE -> "Gebäude"
             AppLanguage.EN -> "Buildings Calc"
+        }
+        FORTICLAD -> when (lang) {
+            AppLanguage.FR -> "Forticlad FC1–8"
+            AppLanguage.TR -> "Forticlad FC1–8"
+            AppLanguage.RU -> "Forticlad FC1–8"
+            AppLanguage.ZH -> "Forticlad FC1–8"
+            AppLanguage.DE -> "Forticlad FC1–8"
+            AppLanguage.EN -> "Forticlad FC1–8"
         }
         HEROS_OBJETS -> when (lang) {
             AppLanguage.FR -> "Calcul Héros"
@@ -1629,6 +1637,9 @@ private fun ResourcesScreen(
     var ownedShardsText by remember { mutableStateOf("0") }
     var tomeFrom by remember { mutableIntStateOf(0) }
     var tomeTo by remember { mutableIntStateOf(5) }
+    var fcStart by remember { mutableIntStateOf(0) }
+    var fcTarget by remember { mutableIntStateOf(1) }
+    var fcBuildingCountText by remember { mutableStateOf("1") }
 
     var routineItems by remember {
         mutableStateOf(
@@ -1734,6 +1745,76 @@ private fun ResourcesScreen(
                                 color = if (req.verified) Color(0xFF34D399) else Color(0xFFFBBF24),
                                 style = MaterialTheme.typography.bodySmall
                             )
+                        }
+                    }
+                }
+            }
+
+            ResourceSubTab.FORTICLAD -> {
+                val stageCosts = mapOf(
+                    1 to (600L to 0L),
+                    2 to (900L to 40L),
+                    3 to (1_350L to 90L),
+                    4 to (1_900L to 160L),
+                    5 to (2_600L to 250L),
+                    6 to (764L to 49L),
+                    7 to (857L to 75L),
+                    8 to (985L to 107L)
+                )
+                val buildingCount = (fcBuildingCountText.toIntOrNull() ?: 1).coerceIn(1, 8)
+                val selectedStages = ((fcStart + 1)..fcTarget).mapNotNull { stageCosts[it] }
+                val requiredFc = selectedStages.sumOf { it.first } * buildingCount
+                val requiredAfc = selectedStages.sumOf { it.second } * buildingCount
+                val ownedFc = resources.firstOrNull {
+                    val n = it.nom.lowercase()
+                    n.contains("forticlad") && n.contains("core") && !n.contains("advanced")
+                }?.quantiteNumerique?.toLong()
+                val ownedAfc = resources.firstOrNull {
+                    val n = it.nom.lowercase()
+                    n.contains("advanced") && n.contains("forticlad")
+                }?.quantiteNumerique?.toLong()
+                item {
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Text("Calculateur Forticlad · jusqu’au FC 8", fontWeight = FontWeight.SemiBold)
+                            Text(
+                                "Chaque niveau comporte 5 paliers. Les coûts FC6–8 sont une moyenne indicative calculée depuis les totaux GuideLOJ pour 7 bâtiments ; ils varient selon le bâtiment et le laboratoire n’est pas inclus.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFFFBBF24)
+                            )
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                OutlinedButton(onClick = { fcStart = (fcStart - 1).coerceAtLeast(0); if (fcTarget <= fcStart) fcTarget = fcStart + 1 }) {
+                                    Text("Départ : ${if (fcStart == 0) "Niv.30" else "FC$fcStart"}")
+                                }
+                                OutlinedButton(onClick = { fcStart = (fcStart + 1).coerceAtMost(7); if (fcTarget <= fcStart) fcTarget = fcStart + 1 }) {
+                                    Text("+")
+                                }
+                            }
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                OutlinedButton(onClick = { fcTarget = (fcTarget - 1).coerceAtLeast(fcStart + 1) }) { Text("Cible −") }
+                                Button(onClick = { fcTarget = (fcTarget + 1).coerceAtMost(8) }, enabled = fcTarget < 8) { Text("Cible : FC$fcTarget  +") }
+                            }
+                            OutlinedTextField(
+                                value = fcBuildingCountText,
+                                onValueChange = { fcBuildingCountText = it.filter(Char::isDigit).take(1) },
+                                label = { Text("Nombre de bâtiments (1 à 8)") },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Text("Forticlad Cores requis : ${formatCompactFr(requiredFc)}", fontWeight = FontWeight.SemiBold)
+                            Text("Advanced Forticlad Cores requis : ${formatCompactFr(requiredAfc)}", fontWeight = FontWeight.SemiBold)
+                            Text(
+                                "Stock détecté : FC ${ownedFc?.let(::formatCompactFr) ?: "non détecté"} · AFC ${ownedAfc?.let(::formatCompactFr) ?: "non détecté"}",
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                            if (ownedFc != null || ownedAfc != null) {
+                                Text(
+                                    "Manquant estimé : FC ${(requiredFc - (ownedFc ?: 0L)).coerceAtLeast(0L).let(::formatCompactFr)} · AFC ${(requiredAfc - (ownedAfc ?: 0L)).coerceAtLeast(0L).let(::formatCompactFr)}",
+                                    color = Color(0xFFFBBF24),
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                            Text("Source : GuideLOJ · valeurs FC6–8 à confirmer dans le jeu.", style = MaterialTheme.typography.bodySmall)
                         }
                     }
                 }
