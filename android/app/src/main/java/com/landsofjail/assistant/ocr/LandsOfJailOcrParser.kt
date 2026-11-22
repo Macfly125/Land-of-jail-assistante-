@@ -121,14 +121,14 @@ object LandsOfJailOcrParser {
                     val nextLineLvl = lines.getOrNull(index + 1)?.let { levelRegex.find(it)?.groupValues?.get(1)?.toIntOrNull() }
                     val lvl = sameLineLvl ?: nextLineLvl
                     // Ne renseigner les étoiles et la rareté que si un libellé/visuel explicite est lu.
-                    val starMatch = Regex("""(?:([1-5])\\s*(?:étoiles?|stars?)|([1-5])\\s*[★☆]|([★☆]{1,5}))""", RegexOption.IGNORE_CASE)
+                    val starMatch = Regex("""(?:([1-5])\s*(?:étoiles?|stars?)|([1-5])\s*[★☆]|([★☆]{1,5}))""", RegexOption.IGNORE_CASE)
                         .find(contextText)
                     val stars = when {
                         starMatch == null -> null
                         starMatch.groupValues[3].isNotBlank() -> starMatch.groupValues[3].count { it == '★' }.takeIf { it > 0 }?.toString()
                         else -> (starMatch.groupValues[1].ifBlank { starMatch.groupValues[2].ifBlank { starMatch.groupValues[0].filter { it.isDigit() } } })
                     }?.let { "$it/5" }
-                    val rarity = Regex("""\\b(legendary|mythic|epic|rare|common|légendaire|épique|rare)\\b""", RegexOption.IGNORE_CASE)
+                    val rarity = Regex("""\b(legendary|mythic|epic|rare|common|légendaire|épique)\b""", RegexOption.IGNORE_CASE)
                         .find(contextText)?.value
                     seenHeroKeys.add(heroName.lowercase())
                     heroes.add(
