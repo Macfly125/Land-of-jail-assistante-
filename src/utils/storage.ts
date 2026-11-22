@@ -18,6 +18,7 @@ export const DEFAULT_ACCOUNT_STATE: AccountState = {
   currentPower: null,
   forticladLevel: 0,
   forticladBuildings: {},
+  forticladLabProgress: {},
   powerHistory: [],
   heroes: [],
   robots: [],
