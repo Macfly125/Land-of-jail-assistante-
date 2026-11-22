@@ -63,6 +63,31 @@ class SupabaseAuthRepository(context: Context) {
     suspend fun signIn(email: String, password: String): Result<AuthOutcome> =
         authenticate("/auth/v1/token?grant_type=password", email, password, "Connexion réussie.")
 
+    suspend fun resendSignupConfirmation(email: String): Result<String> = withContext(Dispatchers.IO) {
+        runCatching {
+            require(email.contains("@") && email.length <= 254) { "Adresse e-mail invalide." }
+            val payload = """{"type":"signup","email":${Json.encodeToString(email.trim())}}"""
+            val request = Request.Builder()
+                .url("$BASE_URL/auth/v1/resend")
+                .header("apikey", PUBLISHABLE_KEY)
+                .header("Content-Type", "application/json")
+                .post(payload.toRequestBody("application/json".toMediaType()))
+                .build()
+            client.newCall(request).execute().use { response ->
+                val body = response.body?.string().orEmpty()
+                if (!response.isSuccessful) {
+                    val obj = runCatching { json.parseToJsonElement(body).jsonObject }.getOrNull()
+                    error(
+                        obj?.get("msg")?.jsonPrimitive?.contentOrNull
+                            ?: obj?.get("message")?.jsonPrimitive?.contentOrNull
+                            ?: "Impossible de renvoyer le mail (HTTP ${response.code})."
+                    )
+                }
+                "Demande envoyée. Vérifie aussi les courriers indésirables et attends quelques minutes."
+            }
+        }
+    }
+
     private suspend fun authenticate(
         path: String,
         email: String,
