@@ -113,7 +113,7 @@ object LandsOfJailOcrParser {
 
             // Héros connus du jeu détectés dans la ligne
             for (heroName in KNOWN_HEROES) {
-                val heroToken = Regex("(?<![\\\\p{L}])${Regex.escape(heroName)}(?![\\\\p{L}])", RegexOption.IGNORE_CASE)
+                val heroToken = Regex("(?<![\\p{L}])${Regex.escape(heroName)}(?![\\p{L}])", RegexOption.IGNORE_CASE)
                 if (heroToken.containsMatchIn(line) && !seenHeroKeys.contains(heroName.lowercase())) {
                     val sameLineLvl = levelRegex.find(line)?.groupValues?.get(1)?.toIntOrNull()
                     val nextLineLvl = lines.getOrNull(index + 1)?.let { levelRegex.find(it)?.groupValues?.get(1)?.toIntOrNull() }
@@ -251,7 +251,7 @@ object LandsOfJailOcrParser {
     }
 
     private fun parseCompactNumeric(text: String): Double? {
-        val cleaned = text.trim().lowercase().replace(Regex("\\\\s+"), "")
+        val cleaned = text.trim().lowercase().replace(Regex("\\s+"), "")
         val suffix = cleaned.lastOrNull()?.takeIf { it in listOf('k', 'm', 'b') }
         val multiplier = when (suffix) {
             'b' -> 1_000_000_000.0
@@ -263,7 +263,7 @@ object LandsOfJailOcrParser {
         // Sans suffixe, les groupes de trois chiffres séparés par . ou , sont des milliers
         // (ex. 8,450,120 ou 8.450.120), pas des décimales.
         val isGroupedInteger = suffix == null &&
-            Regex("\\\\d{1,3}(?:[.,]\\\\d{3})+").matches(rawNumber)
+            Regex("\\d{1,3}(?:[.,]\\d{3})+").matches(rawNumber)
         val normalized = if (isGroupedInteger) {
             rawNumber.replace(Regex("[.,]"), "")
         } else {
