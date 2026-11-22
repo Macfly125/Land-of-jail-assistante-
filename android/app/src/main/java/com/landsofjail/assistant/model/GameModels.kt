@@ -85,6 +85,17 @@ enum class AdviceMode(
         labelDe = "Turmoil Surge",
         labelEn = "Turmoil Surge"
     ),
+    GORILLA_LEGION(
+        apiId = "gorilla_legion",
+        searchKeyword = "gorilla legion",
+        wikiSlugs = listOf("/events/gorilla-legion/", "/events/"),
+        labelFr = "Gorilla Legion",
+        labelTr = "Goril Lejyonu",
+        labelRu = "Легион горилл",
+        labelZh = "大猩猩军团",
+        labelDe = "Gorilla-Legion",
+        labelEn = "Gorilla Legion"
+    ),
     GOLD_HUNTER(
         apiId = "gold_hunter",
         searchKeyword = "gold hunter",
@@ -146,6 +157,14 @@ enum class AdviceMode(
             AppLanguage.ZH -> "20波进攻：第10、20波攻击炮塔，第7、14、17波攻击在线玩家，与盟友互换驻防。"
             AppLanguage.DE -> "20 Wellen: 10 & 20 treffen Sentry Turrets; 7, 14 & 17 aktive Spieler. Garnisonen mit Verbündeten tauschen."
             AppLanguage.EN -> "20 waves (~40 min): waves 10 & 20 hit Sentry Turrets; Frenzy waves 7, 14 & 17 hit online players. Swap ally garrisons."
+        }
+        GORILLA_LEGION -> when (lang) {
+            AppLanguage.FR -> "Boss individuel à dégâts : vérifiez le gorille et son bonus actif. Commencez par 0/15/85 (Shield/Bomber/Shooter), puis comparez 0/0/100 ou le ratio du guide du jour. Les sources divergent : testez à héros, équipement et effectif constants."
+            AppLanguage.TR -> "Bireysel hasar bossu: goril türünü ve aktif bonusu doğrulayın. 0/15/85 ile başlayıp 0/0/100 veya günlük oranla karşılaştırın."
+            AppLanguage.RU -> "Индивидуальный босс на урон: проверьте гориллу и бонус. Начните с 0/15/85, сравните с 0/0/100 или дневным вариантом."
+            AppLanguage.ZH -> "个人伤害首领：确认大猩猩类型和当天加成。先测0/15/85，再与0/0/100或当日比例比较。"
+            AppLanguage.DE -> "Einzelboss: Gorilla und Tagesbonus prüfen. Mit 0/15/85 starten und 0/0/100 oder Tagesverhältnis vergleichen."
+            AppLanguage.EN -> "Individual damage boss: verify gorilla and daily bonus. Start at 0/15/85, then compare 0/0/100 or the day-specific ratio."
         }
         GOLD_HUNTER -> when (lang) {
             AppLanguage.FR -> "Réservez éclats, livres de compétences, matériaux d'Arsenal et gros bâtiments exclusivement pour les paliers d'événement."
