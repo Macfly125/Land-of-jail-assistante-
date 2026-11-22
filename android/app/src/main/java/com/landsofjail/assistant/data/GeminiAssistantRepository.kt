@@ -9,6 +9,7 @@ import com.landsofjail.assistant.model.AppLanguage
 import com.landsofjail.assistant.model.GroundedWebSource
 import com.landsofjail.assistant.model.HeroRecord
 import com.landsofjail.assistant.model.PlayerRole
+import com.landsofjail.assistant.model.RobotRecord
 import com.landsofjail.assistant.model.ScreenshotAnalysis
 import com.landsofjail.assistant.model.TacticalAdviceResult
 import kotlinx.coroutines.Dispatchers
@@ -98,6 +99,7 @@ class GeminiAssistantRepository(
         language: AppLanguage,
         playerRole: PlayerRole,
         heroes: List<HeroRecord>,
+        robots: List<RobotRecord>,
         powerText: String?
     ): Result<TacticalAdviceResult> = withContext(Dispatchers.IO) {
         runCatching {
@@ -112,6 +114,7 @@ class GeminiAssistantRepository(
                     playerRole = playerRole.name.lowercase(),
                     playerRoleLabel = playerRole.labelFr,
                     heroes = heroes,
+                    robots = robots,
                     powerText = powerText
                 )
                 val request = Request.Builder()
@@ -420,6 +423,7 @@ class GeminiAssistantRepository(
         val playerRole: String,
         val playerRoleLabel: String,
         val heroes: List<HeroRecord>,
+        val robots: List<RobotRecord> = emptyList(),
         val powerText: String? = null
     )
 }
