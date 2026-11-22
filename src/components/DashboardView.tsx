@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import {
   AlertTriangle,
   Camera,
-  Code2,
   Eye,
   EyeOff,
   Globe,
