@@ -56,16 +56,14 @@ jobs:
         run: |
           if [ -n "$KEYSTORE_BASE64" ] && [ -n "$KEYSTORE_PASSWORD" ] && [ -n "$KEY_ALIAS" ] && [ -n "$KEY_PASSWORD" ]; then
             # Remove spaces/newlines introduced when copying the one-line Base64 secret.
-            if ! printf '%s' "$KEYSTORE_BASE64" | tr -d '[:space:]' | base64 --decode > "$RUNNER_TEMP/loj-upload-key.jks"; then
-              echo "::error::ANDROID_KEYSTORE_BASE64 invalide. Recopie uniquement le contenu complet du fichier ANDROID_KEYSTORE_BASE64.txt, sans nom de fichier ni guillemets."
-              exit 1
+            if printf '%s' "$KEYSTORE_BASE64" | tr -d '[:space:]' | base64 --decode > "$RUNNER_TEMP/loj-upload-key.jks" && \
+              keytool -list -keystore "$RUNNER_TEMP/loj-upload-key.jks" -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" >/dev/null 2>&1; then
+              echo "available=true" >> "$GITHUB_OUTPUT"
+              echo "ANDROID_KEYSTORE_FILE=$RUNNER_TEMP/loj-upload-key.jks" >> "$GITHUB_ENV"
+            else
+              echo "available=false" >> "$GITHUB_OUTPUT"
+              echo "::warning::Keystore stable invalide ou illisible. Compilation debug de contrôle uniquement ; corrige les secrets pour produire un APK de mise à jour."
             fi
-            if ! keytool -list -keystore "$RUNNER_TEMP/loj-upload-key.jks" -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" >/dev/null 2>&1; then
-              echo "::error::Keystore illisible : vérifie ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS et le contenu de ANDROID_KEYSTORE_BASE64."
-              exit 1
-            fi
-            echo "available=true" >> "$GITHUB_OUTPUT"
-            echo "ANDROID_KEYSTORE_FILE=$RUNNER_TEMP/loj-upload-key.jks" >> "$GITHUB_ENV"
           else
             echo "available=false" >> "$GITHUB_OUTPUT"
             echo "::warning::Secrets de signature stables incomplets ou absents. L'APK debug sera généré uniquement pour test et ne doit pas être considéré comme une mise à jour installable par-dessus la version précédente."
