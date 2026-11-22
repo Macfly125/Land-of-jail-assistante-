@@ -1326,6 +1326,7 @@ private fun ResourcesScreen(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
+                                val configuredMinutes = task.durationInput.toIntOrNull()?.coerceIn(1, 10080) ?: task.minutes
                                 val labelTime = when {
                                     isDue -> "PRÊT / À COLLECTER"
                                     isPaused && rem != null -> {
@@ -1336,7 +1337,7 @@ private fun ResourcesScreen(
                                         val sec = (rem / 1000L).coerceAtLeast(0L)
                                         String.format("%02d:%02d:%02d", sec / 3600, (sec % 3600) / 60, sec % 60)
                                     }
-                                    else -> "${task.minutes / 60}h (${task.minutes} min)"
+                                    else -> "${configuredMinutes / 60}h ($configuredMinutes min)"
                                 }
                                 Text(
                                     labelTime,
