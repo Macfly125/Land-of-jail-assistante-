@@ -24,6 +24,74 @@ export const DEFAULT_ACCOUNT_STATE: AccountState = {
   adviceByMode: {},
 };
 
+
+export interface PlayerProfile {
+  id: string;
+  name: string;
+  state: AccountState;
+}
+
+export interface ProfileCollection {
+  profiles: PlayerProfile[];
+  activeProfileId: string;
+}
+
+const PROFILE_STORAGE_KEY = 'lands_of_jail_assistant_profiles_v1';
+
+export function createEmptyAccountState(
+  language: AppLanguage = 'fr',
+  playerRole: PlayerRole = 'polyvalent_f2p'
+): AccountState {
+  return {
+    ...DEFAULT_ACCOUNT_STATE,
+    language,
+    playerRole,
+    powerHistory: [],
+    heroes: [],
+    robots: [],
+    resources: [],
+    analyses: [],
+    adviceByMode: {},
+  };
+}
+
+export function loadProfileCollection(): ProfileCollection {
+  try {
+    const raw = localStorage.getItem(PROFILE_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as Partial<ProfileCollection>;
+      const profiles = Array.isArray(parsed.profiles)
+        ? parsed.profiles.filter((p): p is PlayerProfile =>
+            Boolean(p && typeof p.id === 'string' && typeof p.name === 'string' && p.state)
+          )
+        : [];
+      if (profiles.length > 0) {
+        const activeProfileId = profiles.some((p) => p.id === parsed.activeProfileId)
+          ? parsed.activeProfileId as string
+          : profiles[0].id;
+        return { profiles, activeProfileId };
+      }
+    }
+  } catch {
+    // Migrate the previous single-account storage below.
+  }
+
+  const migrated: PlayerProfile = {
+    id: 'profile-main',
+    name: 'Compte principal',
+    state: loadAccountState(),
+  };
+  return { profiles: [migrated], activeProfileId: migrated.id };
+}
+
+export function saveProfileCollection(collection: ProfileCollection): void {
+  try {
+    localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(collection));
+  } catch (err) {
+    console.warn('Impossible de sauvegarder les profils :', err);
+  }
+}
+
 export function loadAccountState(): AccountState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
