@@ -1322,7 +1322,9 @@ private fun ResourcesScreen(
                                         else -> Color(0xFFF59E0B)
                                     }
                                 )
-                                Button(onClick = {
+                                Button(
+                                    enabled = task.durationInput.toIntOrNull() in 1..10080,
+                                    onClick = {
                                     val base = System.currentTimeMillis()
                                     routineItems = routineItems.map {
                                         if (it.id == task.id) {
