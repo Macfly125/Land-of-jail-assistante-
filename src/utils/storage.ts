@@ -110,8 +110,24 @@ export function mergeAnalysisIntoState(
   for (const incoming of analysis.ressources) {
     const key = normalizeKey(incoming.nom);
     if (!key) continue;
+
+    const existing = resourceMap.get(key);
+    const hasReliableQuantity =
+      incoming.incertain !== true &&
+      Boolean(incoming.quantiteTexte?.trim()) &&
+      normalizeKey(incoming.quantiteTexte) !== 'inconnu';
+
+    // Keep manually verified quantities authoritative. An uncertain OCR read
+    // must not replace a previously known quantity.
+    if (existing?.verifieManuellement) continue;
+    if (existing && !hasReliableQuantity) continue;
+
     resourceMap.set(key, {
+      ...existing,
       ...incoming,
+      verifieManuellement: existing?.verifieManuellement,
+      incertain: hasReliableQuantity ? false : incoming.incertain,
+      raisonIncertitude: hasReliableQuantity ? undefined : incoming.raisonIncertitude,
       derniereMaj: analysis.analyzedAt,
     });
   }
