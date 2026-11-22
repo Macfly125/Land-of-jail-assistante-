@@ -100,7 +100,7 @@ private enum class AssistantTab {
 }
 
 private enum class ResourceSubTab {
-    INVENTAIRE, BATIMENTS, FORTICLAD, HEROS_OBJETS, ROUTINE;
+    INVENTAIRE, BATIMENTS, FORTICLAD, FORTICLAD_LAB, HEROS_OBJETS, ROUTINE;
 
     fun labelFor(lang: AppLanguage): String = when (this) {
         INVENTAIRE -> when (lang) {
@@ -126,6 +126,14 @@ private enum class ResourceSubTab {
             AppLanguage.ZH -> "Forticlad FC1–8"
             AppLanguage.DE -> "Forticlad FC1–8"
             AppLanguage.EN -> "Forticlad FC1–8"
+        }
+        FORTICLAD_LAB -> when (lang) {
+            AppLanguage.FR -> "Laboratoire"
+            AppLanguage.TR -> "Laboratuvar"
+            AppLanguage.RU -> "Лаборатория"
+            AppLanguage.ZH -> "实验室"
+            AppLanguage.DE -> "Labor"
+            AppLanguage.EN -> "Lab"
         }
         HEROS_OBJETS -> when (lang) {
             AppLanguage.FR -> "Calcul Héros"
@@ -266,6 +274,7 @@ fun LandsOfJailAssistantApp(
     var currentPower by remember { mutableStateOf(initialProfile?.currentPower) }
     var forticladLevel by remember { mutableIntStateOf(initialProfile?.forticladLevel ?: 0) }
     var forticladBuildings by remember { mutableStateOf(initialProfile?.forticladBuildings ?: emptyMap()) }
+    var forticladLabProgress by remember { mutableStateOf(initialProfile?.forticladLabProgress ?: emptyMap()) }
 
     var isAnalyzing by remember { mutableStateOf(false) }
     var singleAnalysisPercent by remember { mutableIntStateOf(0) }
@@ -298,6 +307,7 @@ fun LandsOfJailAssistantApp(
         currentPower = currentPower,
         forticladLevel = forticladLevel,
         forticladBuildings = forticladBuildings,
+        forticladLabProgress = forticladLabProgress,
         gorillaRuns = gorillaRuns
     )
 
@@ -315,12 +325,13 @@ fun LandsOfJailAssistantApp(
         currentPower = target.currentPower
         forticladLevel = target.forticladLevel.coerceIn(0, 8)
         forticladBuildings = target.forticladBuildings
+        forticladLabProgress = target.forticladLabProgress
         gorillaRuns = target.gorillaRuns
         adviceResult = null
         currentTab = AssistantTab.TABLEAU
     }
 
-    LaunchedEffect(currentLang, playerRole, analyses, heroes, robots, resources, currentPower, forticladLevel, forticladBuildings, gorillaRuns, savedProfiles, activeProfileId) {
+    LaunchedEffect(currentLang, playerRole, analyses, heroes, robots, resources, currentPower, forticladLevel, forticladBuildings, forticladLabProgress, gorillaRuns, savedProfiles, activeProfileId) {
         runCatching {
             val currentName = savedProfiles.firstOrNull { it.id == activeProfileId }?.name ?: "Compte principal"
             val snapshot = snapshotProfile(activeProfileId, currentName)
@@ -709,6 +720,7 @@ fun LandsOfJailAssistantApp(
                                     currentPower = null
                                     forticladLevel = 0
                                     forticladBuildings = emptyMap()
+                                    forticladLabProgress = emptyMap()
                                     gorillaRuns = emptyList()
                                     adviceResult = null
                                     currentTab = AssistantTab.TABLEAU
@@ -829,7 +841,7 @@ fun LandsOfJailAssistantApp(
                         onPickImage = { imagePicker.launch("image/*") }
                     )
                     AssistantTab.HEROS -> HeroesScreen(heroes, repository, currentLang)
-                    AssistantTab.RESSOURCES -> ResourcesScreen(currentLang, currentPower, resources, forticladLevel, forticladBuildings, { forticladLevel = it }, { forticladBuildings = it })
+                    AssistantTab.RESSOURCES -> ResourcesScreen(currentLang, currentPower, resources, forticladLevel, forticladBuildings, forticladLabProgress, { forticladLevel = it }, { forticladBuildings = it }, { forticladLabProgress = it })
                     AssistantTab.CONSEILS -> AdviceScreen(
                         currentLang = currentLang,
                         onChangeLang = { currentLang = it },
@@ -1639,8 +1651,10 @@ private fun ResourcesScreen(
     resources: List<ResourceRecord>,
     forticladLevel: Int,
     forticladBuildings: Map<String, ForticladBuildingProgress>,
+    forticladLabProgress: Map<String, ForticladLabProgress>,
     onForticladLevelChange: (Int) -> Unit,
-    onForticladBuildingsChange: (Map<String, ForticladBuildingProgress>) -> Unit
+    onForticladBuildingsChange: (Map<String, ForticladBuildingProgress>) -> Unit,
+    onForticladLabProgressChange: (Map<String, ForticladLabProgress>) -> Unit
 ) {
     var subTab by remember { mutableStateOf(ResourceSubTab.INVENTAIRE) }
     var targetBuildingLvl by remember { mutableIntStateOf(16) }
