@@ -147,11 +147,18 @@ export function mergeAnalysisIntoState(
         derniereMaj: analysis.analyzedAt,
       });
     } else {
-      // Merge skills by normalized skill name
+      // A manually verified hero, or a wholly uncertain OCR result, must not
+      // change any part of the saved hero record (including its skills).
+      if (existing.verifieManuellement || incoming.incertain) {
+        heroMap.set(key, existing);
+        continue;
+      }
+
+      // Merge skills by normalized skill name only after the hero-level OCR
+      // result has passed the reliability guard.
       const skillMap = new Map(
         existing.competences.map((s) => [normalizeKey(s.nom), s])
       );
-      // Never let uncertain OCR overwrite known skill data.
       for (const s of incoming.competences) {
         const sKey = normalizeKey(s.nom);
         if (!sKey) continue;
@@ -164,16 +171,6 @@ export function mergeAnalysisIntoState(
           description: s.description || prevSkill?.description,
           iconUrl: s.iconUrl || prevSkill?.iconUrl,
         });
-      }
-
-      // A manually verified hero is authoritative. For other existing heroes,
-      // ignore a wholly uncertain OCR result rather than replacing trusted fields.
-      if (existing.verifieManuellement || incoming.incertain) {
-        heroMap.set(key, {
-          ...existing,
-          competences: Array.from(skillMap.values()),
-        });
-        continue;
       }
 
       heroMap.set(key, {
