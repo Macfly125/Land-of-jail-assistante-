@@ -753,7 +753,9 @@ Consignes :
 - Évalue niveau, rareté, étoiles, puissance individuelle, type de troupe et niveaux/descriptions de compétences. Une donnée inconnue ou incertaine ne doit pas être inventée.
 - Donne la meilleure composition possible avec les informations disponibles, puis une alternative si pertinente.
 - Explique pourquoi chaque héros est retenu et quels héros du compte sont moins prioritaires.
-- Propose un ratio de troupes uniquement si les données fournies permettent de le justifier. Sinon indique clairement quelles captures/données manquent et donne au plus une base provisoire clairement marquée comme telle.
+- Robot : aucune donnée de robot n'est actuellement transmise par le profil. Ne choisis donc jamais un robot précis au hasard ; indique que sa capture (nom, niveau, compétences/bonus) est nécessaire, sauf si une source fiable consultée confirme explicitement un choix valable pour cet événement.
+- Ratio de troupes : propose des pourcentages uniquement si les règles de l'événement et les données disponibles les justifient. Sinon indique explicitement « ratio non déterminable avec les captures actuelles » et précise la capture requise. Ne donne pas de ratio générique présenté comme optimal.
+- Pour chaque événement, fournis un champ robotRecommande et un champ ratioTroupes, avec une explication exploitable ou la mention claire des données manquantes.
 - Ne fabrique jamais de pourcentages, statistiques, compétences ou effets non confirmés. Signale les incertitudes.
 - Réponds dans la langue demandée (${targetLang}).
 - Le résumé doit être directement exploitable en jeu.`,
@@ -764,6 +766,8 @@ Consignes :
             properties: {
               synthese: { type: Type.STRING },
               compositionRecommandee: { type: Type.STRING },
+              robotRecommande: { type: Type.STRING },
+              ratioTroupes: { type: Type.STRING },
               recommandations: {
                 type: Type.ARRAY,
                 items: {
@@ -780,7 +784,7 @@ Consignes :
               },
               informationsIncertaines: { type: Type.ARRAY, items: { type: Type.STRING } },
             },
-            required: ['synthese', 'compositionRecommandee', 'recommandations', 'informationsIncertaines'],
+            required: ['synthese', 'compositionRecommandee', 'robotRecommande', 'ratioTroupes', 'recommandations', 'informationsIncertaines'],
           },
         },
       });
@@ -789,6 +793,8 @@ Consignes :
       const personalized = JSON.parse(tacticalText) as {
         synthese: string;
         compositionRecommandee: string;
+        robotRecommande: string;
+        ratioTroupes: string;
         recommandations: Array<{ titre: string; detail: string; herosCibles: string[]; incertain: boolean; raisonIncertitude?: string }>;
         informationsIncertaines: string[];
       };
@@ -837,6 +843,8 @@ Consignes :
           generatedAt: new Date().toISOString(),
           synthese: personalized.synthese || `${synthPrefix[targetLang]}${leadSummary}`,
           compositionRecommandee: personalized.compositionRecommandee || compTextByLang[targetLang],
+          robotRecommande: personalized.robotRecommande || 'Données du robot non disponibles : capture du robot nécessaire.',
+          ratioTroupes: personalized.ratioTroupes || 'Ratio non déterminable avec les captures actuelles.',
           recommandations: (personalized.recommandations ?? []).map((item, index) => ({
             ...item,
             imageUrl: liveGuides[index]?.imageUrl ?? null,
