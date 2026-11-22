@@ -58,7 +58,7 @@ class SupabaseAuthRepository(context: Context) {
     )
 
     suspend fun signUp(email: String, password: String): Result<AuthOutcome> =
-        authenticate("/auth/v1/signup", email, password, "Inscription envoyée. Vérifie ta boîte mail si la confirmation est activée.")
+        authenticate("/auth/v1/signup", email, password, "Inscription envoyée. Vérifie ta boîte mail si la confirmation est activée.", EMAIL_REDIRECT_URL)
 
     suspend fun signIn(email: String, password: String): Result<AuthOutcome> =
         authenticate("/auth/v1/token?grant_type=password", email, password, "Connexion réussie.")
@@ -66,7 +66,11 @@ class SupabaseAuthRepository(context: Context) {
     suspend fun resendSignupConfirmation(email: String): Result<String> = withContext(Dispatchers.IO) {
         runCatching {
             require(email.contains("@") && email.length <= 254) { "Adresse e-mail invalide." }
-            val payload = """{"type":"signup","email":${Json.encodeToString(email.trim())}}"""
+            val payload = buildJsonObject {
+                put("type", "signup")
+                put("email", email.trim())
+                put("options", buildJsonObject { put("emailRedirectTo", EMAIL_REDIRECT_URL) })
+            }.toString()
             val request = Request.Builder()
                 .url("$BASE_URL/auth/v1/resend")
                 .header("apikey", PUBLISHABLE_KEY)
@@ -92,12 +96,19 @@ class SupabaseAuthRepository(context: Context) {
         path: String,
         email: String,
         password: String,
-        successMessage: String
+        successMessage: String,
+        emailRedirectTo: String? = null
     ): Result<AuthOutcome> = withContext(Dispatchers.IO) {
         runCatching {
             require(email.contains("@") && email.length <= 254) { "Adresse e-mail invalide." }
             require(password.length >= 8) { "Le mot de passe doit contenir au moins 8 caractères." }
-            val payload = """{"email":${Json.encodeToString(email)},"password":${Json.encodeToString(password)}}"""
+            val payload = buildJsonObject {
+                put("email", email)
+                put("password", password)
+                emailRedirectTo?.let { redirect ->
+                    put("options", buildJsonObject { put("emailRedirectTo", redirect) })
+                }
+            }.toString()
             val request = Request.Builder()
                 .url("$BASE_URL$path")
                 .header("apikey", PUBLISHABLE_KEY)
@@ -291,5 +302,7 @@ class SupabaseAuthRepository(context: Context) {
         private const val BASE_URL = "https://cegtwxvidiiqgyfqzdix.supabase.co"
         private const val PUBLISHABLE_KEY = "sb_publishable_bf7lfL-PK1g5Ct9eWfwrxQ_av8OC4hH"
         private const val KEY_ALIAS = "loj_supabase_auth_aes_key_v1"
+        // Public website used as the post-confirmation destination for account emails.
+        private const val EMAIL_REDIRECT_URL = "https://warden-coach-mobile-bb51.bolt.host"
     }
 }
