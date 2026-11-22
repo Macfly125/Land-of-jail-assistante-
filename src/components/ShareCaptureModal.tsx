@@ -67,7 +67,7 @@ async function compressImageForUpload(
   });
 
   // Resize gently for fast analysis while preserving crisp UI text for OCR/Vision
-  const maxDim = 1600;
+  const maxDim = 1100;
   let targetW = img.width;
   let targetH = img.height;
   if (targetW > maxDim || targetH > maxDim) {
@@ -85,7 +85,7 @@ async function compressImageForUpload(
   }
   ctx.drawImage(img, 0, 0, targetW, targetH);
 
-  const highResUrl = canvas.toDataURL('image/jpeg', 0.9);
+  const highResUrl = canvas.toDataURL('image/jpeg', 0.72);
   const base64 = highResUrl.split(',')[1] || '';
 
   // Small thumbnail for localStorage history

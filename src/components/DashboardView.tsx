@@ -207,7 +207,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             {totalUncertainCount}
           </div>
           <div className="mt-2 text-xs text-slate-400">
-            {state.analyses.length} analyse(s) enregistrée(s)
+            {totalUncertainCount > 0
+              ? 'Héros et ressources à vérifier'
+              : 'Toutes les données vérifiées'}
           </div>
         </button>
       </section>

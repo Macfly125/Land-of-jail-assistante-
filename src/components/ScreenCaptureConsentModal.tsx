@@ -40,7 +40,7 @@ async function processImageBlobToPayload(
     el.src = dataUrl;
   });
 
-  const maxDim = 1600;
+  const maxDim = 1100;
   const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
   const canvas = document.createElement('canvas');
   canvas.width = Math.max(1, Math.round(img.width * scale));
@@ -49,7 +49,7 @@ async function processImageBlobToPayload(
   if (!ctx) throw new Error('Contexte graphique indisponible.');
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-  const jpegUrl = canvas.toDataURL('image/jpeg', 0.9);
+  const jpegUrl = canvas.toDataURL('image/jpeg', 0.72);
   const base64 = jpegUrl.split(',')[1] || '';
 
   const thumbCanvas = document.createElement('canvas');
@@ -138,7 +138,7 @@ export const ScreenCaptureConsentModal: React.FC<ScreenCaptureConsentModalProps>
 
       const width = video.videoWidth || 1280;
       const height = video.videoHeight || 720;
-      const maxDim = 1600;
+      const maxDim = 1100;
       const scale = Math.min(1, maxDim / Math.max(width, height));
 
       const canvas = document.createElement('canvas');
@@ -152,7 +152,7 @@ export const ScreenCaptureConsentModal: React.FC<ScreenCaptureConsentModalProps>
       stream.getTracks().forEach((t) => t.stop());
       stream = null;
 
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.72);
       const base64 = dataUrl.split(',')[1] || '';
 
       const thumbCanvas = document.createElement('canvas');

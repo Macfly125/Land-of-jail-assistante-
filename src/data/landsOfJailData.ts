@@ -345,6 +345,100 @@ export const KNOWN_HEROES_META: KnownHeroMeta[] = [
   },
 ];
 
+export type RallyRole = 'lanceur' | 'rejoigneur';
+
+export interface RallyHeroPick {
+  nom: string;
+  rallyRole: RallyRole;
+  heroClass: HeroClass;
+  note: string;
+}
+
+// Compositions de ralliement Trial Cage vérifiées sur guideloj.com, lojxlab.com,
+// allclash.com et guides YouTube spécialisés (méta saisons 1-2).
+export const RALLY_HERO_PICKS: RallyHeroPick[] = [
+  {
+    nom: 'Tyron',
+    rallyRole: 'lanceur',
+    heroClass: 'Shieldbearer',
+    note: 'Meilleur lanceur de ralliement : énorme bonus de dégâts de groupe dès 2★.',
+  },
+  {
+    nom: 'Phoenix',
+    rallyRole: 'lanceur',
+    heroClass: 'Shieldbearer',
+    note: 'Alternative solide si Tyron n’est pas débloqué.',
+  },
+  {
+    nom: 'Vivian',
+    rallyRole: 'lanceur',
+    heroClass: 'Bomber',
+    note: 'Meilleur Bombier de ralliement en saisons 1-2.',
+  },
+  {
+    nom: 'Devillian',
+    rallyRole: 'lanceur',
+    heroClass: 'Shooter',
+    note: 'Tireur d’ouverture de ralliement, dégâts concentrés sur le boss.',
+  },
+  {
+    nom: 'Whisper',
+    rallyRole: 'lanceur',
+    heroClass: 'Bomber',
+    note: 'Remplace Vivian à partir de la saison 3.',
+  },
+  {
+    nom: 'Rin',
+    rallyRole: 'rejoigneur',
+    heroClass: 'Shooter',
+    note: 'Bonus d’attaque globale : idéale en 1er slot de renfort.',
+  },
+  {
+    nom: 'Mireya',
+    rallyRole: 'rejoigneur',
+    heroClass: 'Shooter',
+    note: '+25% attaque des troupes et +20% dégâts : ne booster que depuis le 1er slot.',
+  },
+  {
+    nom: 'Edwin',
+    rallyRole: 'rejoigneur',
+    heroClass: 'Shooter',
+    note: 'Bon rejoigneur offensif si vos casernes Shooters sont avancées.',
+  },
+  {
+    nom: 'Ada',
+    rallyRole: 'rejoigneur',
+    heroClass: 'Shooter',
+    note: 'Dégâts à distance réguliers en renfort de ralliement.',
+  },
+];
+
+// Ratio de troupes recommandé pour un ralliement Trial Cage (55/5/40)
+export const RALLY_TROOP_RATIOS: Array<{ classe: HeroClass; pourcentage: number; note: string }> = [
+  {
+    classe: 'Shieldbearer',
+    pourcentage: 55,
+    note: 'Absorbe les ripostes du boss et protège les lignes arrière.',
+  },
+  {
+    classe: 'Bomber',
+    pourcentage: 5,
+    note: 'Quota minimal : sert de déclencheur de compétences.',
+  },
+  {
+    classe: 'Shooter',
+    pourcentage: 40,
+    note: 'Cœur des dégâts sur le boss de la Cage.',
+  },
+];
+
+export const RALLY_JOIN_TIPS: string[] = [
+  'Seul le 1er slot de héros compte pour booster un ralliement que vous rejoignez.',
+  'En rejoigneur, privilégiez les héros à bonus d’attaque et de dégâts (pas de létalité, réservée aux attaques de prison).',
+  'Si possible, rejoignez avec 100% de Shooters : ce sont eux qui infligent le plus de dégâts sur un ralliement par défaut.',
+  'Préparez des formations enregistrées dans le jeu pour rejoindre rapidement avec le bon héros et le bon ratio.',
+];
+
 export function formatMinutesToDurationFr(totalMinutes: number): string {
   if (totalMinutes <= 0) return 'Instantané';
   if (totalMinutes < 1) return `${Math.round(totalMinutes * 60)} s`;

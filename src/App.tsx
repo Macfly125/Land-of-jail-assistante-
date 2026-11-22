@@ -357,6 +357,14 @@ export default function App() {
     }));
   };
 
+  const handleClearAllAnalyses = () => {
+    setState((prev) => ({
+      ...prev,
+      analyses: [],
+    }));
+    showToast('Historique effacé.');
+  };
+
   const language: AppLanguage = state.language ?? 'fr';
   const copy = UI_COPY[language];
   const navItems = NAV_ICONS.map((item) => ({
@@ -563,6 +571,7 @@ export default function App() {
           <HistoryView
             analyses={state.analyses}
             onDeleteAnalysis={handleDeleteAnalysis}
+            onClearAllAnalyses={handleClearAllAnalyses}
             onOpenShareModal={() => {
               setAnalyzeError(null);
               setIsShareModalOpen(true);

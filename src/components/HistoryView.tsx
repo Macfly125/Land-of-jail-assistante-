@@ -6,15 +6,18 @@ import { formatFrenchDateTime } from '../utils/storage';
 interface HistoryViewProps {
   analyses: ScreenshotAnalysis[];
   onDeleteAnalysis: (id: string) => void;
+  onClearAllAnalyses: () => void;
   onOpenShareModal: () => void;
 }
 
 export const HistoryView: React.FC<HistoryViewProps> = ({
   analyses,
   onDeleteAnalysis,
+  onClearAllAnalyses,
   onOpenShareModal,
 }) => {
   const [expandedId, setExpandedId] = useState<string | null>(analyses[0]?.id ?? null);
+  const [confirmClear, setConfirmClear] = useState(false);
 
   return (
     <div className="space-y-6">
@@ -25,14 +28,48 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
             Journal complet des captures partagées ou analysées par OCR avec votre autorisation.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={onOpenShareModal}
+        <div className="flex items-center gap-2 shrink-0 self-start">
+          {analyses.length > 0 &&
+            (confirmClear ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClearAllAnalyses();
+                    setConfirmClear(false);
+                    setExpandedId(null);
+                  }}
+                  className="min-h-[44px] px-4 py-2 rounded-xl text-sm font-semibold bg-red-500/15 border border-red-500/40 text-red-200 hover:bg-red-500/25 transition-colors whitespace-nowrap"
+                >
+                  Confirmer la suppression
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmClear(false)}
+                  className="min-h-[44px] px-3 py-2 rounded-xl text-sm font-medium text-slate-300 hover:text-slate-100"
+                >
+                  Annuler
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setConfirmClear(true)}
+                className="min-h-[44px] px-4 py-2 rounded-xl text-sm font-medium bg-slate-900 border border-red-500/30 text-red-300 hover:bg-red-500/10 transition-colors flex items-center gap-2 whitespace-nowrap"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Tout effacer</span>
+              </button>
+            ))}
+          <button
+            type="button"
+            onClick={onOpenShareModal}
           className="min-h-[44px] px-4 py-2 rounded-xl text-sm font-semibold bg-amber-500 text-slate-950 hover:bg-amber-400 transition-colors inline-flex items-center gap-2 whitespace-nowrap shrink-0 self-start"
         >
           <Upload className="w-4 h-4" />
           <span>Nouvelle capture</span>
         </button>
+        </div>
       </div>
 
       {analyses.length === 0 ? (
