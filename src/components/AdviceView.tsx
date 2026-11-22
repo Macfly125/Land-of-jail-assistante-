@@ -77,7 +77,7 @@ export const AdviceView: React.FC<AdviceViewProps> = ({
           language,
           playerRole,
           playerRoleLabel: PLAYER_ROLE_LABELS[playerRole].label,
-          eventPosition,
+          eventPosition: selectedMode === 'gorilla_legion' ? 'solo' : eventPosition,
           robots: robots.map((robot) => ({
             nom: robot.nom,
             niveau: robot.niveau,
@@ -240,21 +240,23 @@ export const AdviceView: React.FC<AdviceViewProps> = ({
             </select>
           </div>
 
-          <div>
-            <label htmlFor="advice-event-position" className="block text-xs font-medium text-slate-400 mb-1.5">
-              Position dans l'événement
-            </label>
-            <select
-              id="advice-event-position"
-              value={eventPosition}
-              onChange={(e) => setEventPosition(e.target.value as 'leader' | 'joiner' | 'solo')}
-              className="w-full rounded-xl bg-slate-900 border border-slate-800 px-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-amber-500"
-            >
-              <option value="leader">Leader / lanceur de ralliement</option>
-              <option value="joiner">Participant / renfort</option>
-              <option value="solo">Attaque ou action solo</option>
-            </select>
-          </div>
+          {selectedMode !== 'gorilla_legion' && (
+                      <div>
+                        <label htmlFor="advice-event-position" className="block text-xs font-medium text-slate-400 mb-1.5">
+                          Position dans l'événement
+                        </label>
+                        <select
+                          id="advice-event-position"
+                          value={eventPosition}
+                          onChange={(e) => setEventPosition(e.target.value as 'leader' | 'joiner' | 'solo')}
+                          className="w-full rounded-xl bg-slate-900 border border-slate-800 px-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-amber-500"
+                        >
+                          <option value="leader">Leader / lanceur de ralliement</option>
+                          <option value="joiner">Participant / renfort</option>
+                          <option value="solo">Attaque ou action solo</option>
+                        </select>
+                      </div>
+          )}
           <div>
             <div className="text-xs font-medium text-slate-400 mb-1.5">
               {copy.heroesContextLabel}
