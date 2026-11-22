@@ -2267,6 +2267,12 @@ private fun AllianceScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val cloudAuth = remember(context) { SupabaseAuthRepository(context) }
+    val accountPrefs = remember(context) {
+        context.getSharedPreferences("lands_of_jail_account_v1", Context.MODE_PRIVATE)
+    }
+    var cloudRosterBusy by remember { mutableStateOf(false) }
+    var cloudRosterMessage by remember { mutableStateOf<String?>(null) }
+    var cloudRosterError by remember { mutableStateOf(false) }
     var cloudSyncBusy by remember { mutableStateOf(false) }
     var cloudSyncMessage by remember { mutableStateOf<String?>(null) }
     var cloudSyncError by remember { mutableStateOf(false) }
@@ -2470,6 +2476,64 @@ private fun AllianceScreen(
                     } else {
                         Text("Demande à un R4/R5 d'ajouter les profils des membres.", style = MaterialTheme.typography.bodySmall)
                     }
+                    OutlinedButton(
+                        onClick = {
+                            val linkedAllianceId = accountPrefs.getString("cloud_alliance_id", "").orEmpty()
+                            if (linkedAllianceId.isBlank()) {
+                                cloudRosterMessage = "Crée ou rejoins d'abord une alliance cloud avec le code d'invitation."
+                                cloudRosterError = true
+                            } else {
+                                scope.launch {
+                                    cloudRosterBusy = true
+                                    cloudRosterMessage = null
+                                    cloudAuth.fetchAllianceRoster(linkedAllianceId)
+                                        .onSuccess { cloudMembers ->
+                                            val cloudNames = cloudMembers.map { it.playerName.lowercase() }.toSet()
+                                            val mergedMembers = cloudMembers.map { cloudMember ->
+                                                val local = workspace.members.firstOrNull {
+                                                    it.playerName.equals(cloudMember.playerName, ignoreCase = true)
+                                                }
+                                                val resolved = if (cloudMember.playerName == "Profil non synchronisé" && local != null) {
+                                                    cloudMember.copy(
+                                                        playerName = local.playerName,
+                                                        powerText = local.powerText,
+                                                        heroSkillSummary = local.heroSkillSummary,
+                                                        robotSummary = local.robotSummary
+                                                    )
+                                                } else cloudMember
+                                                resolved.copy(server = workspace.server, allianceName = workspace.allianceName)
+                                            } + workspace.members.filterNot { local ->
+                                                cloudNames.contains(local.playerName.lowercase())
+                                            }
+                                            onSaveWorkspace(workspace.copy(members = mergedMembers))
+                                            cloudRosterMessage = "Roster cloud actualisé : ${cloudMembers.size} membre(s) récupéré(s). Les profils masqués par les droits de rang restent non détaillés."
+                                            cloudRosterError = false
+                                            simulation = emptyList()
+                                        }
+                                        .onFailure {
+                                            cloudRosterMessage = it.message ?: "Chargement du roster impossible."
+                                            cloudRosterError = true
+                                        }
+                                    cloudRosterBusy = false
+                                }
+                            }
+                        },
+                        enabled = !cloudRosterBusy && cloudAuth.currentSession() != null,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        if (cloudRosterBusy) {
+                            CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                            Spacer(Modifier.width(8.dp))
+                        }
+                        Text(if (cloudRosterBusy) "Chargement du roster…" else "Actualiser depuis le cloud")
+                    }
+                    cloudRosterMessage?.let {
+                        Text(
+                            it,
+                            color = if (cloudRosterError) Color(0xFFFCA5A5) else Color(0xFF86EFAC),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
                 }
             }
         }
@@ -2610,7 +2674,7 @@ private fun AllianceScreen(
         }
         item {
             Text(
-                "Important : cette version conserve le roster sur cet appareil. Pour que chaque membre s'inscrive depuis son téléphone et que les R4/R5 voient automatiquement les données partagées, il faut connecter la base cloud sécurisée de l'alliance.",
+                "Les profils synchronisés sont chargés depuis le cloud selon les droits de visibilité du rang dans l'alliance. Les ajouts manuels effectués ici restent enregistrés localement sur cet appareil.",
                 color = Color(0xFFFBBF24),
                 style = MaterialTheme.typography.bodySmall
             )
