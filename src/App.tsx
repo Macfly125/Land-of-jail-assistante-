@@ -129,7 +129,6 @@ export default function App() {
       note?: string;
     },
     source: 'share' | 'ocr_screen',
-    options?: { keepModalOpen?: boolean }
   ): Promise<{ summary: string }> => {
     setIsAnalyzing(true);
     setAnalyzeError(null);
@@ -644,7 +643,7 @@ export default function App() {
         initialBase64={sharedPayload}
         isAnalyzing={isAnalyzing}
         error={analyzeError}
-        onAnalyze={(payload) => runAnalysis(payload, 'share', { keepModalOpen: true })}
+        onAnalyze={(payload) => runAnalysis(payload, 'share')}
       />
 
       {/* Modale d'autorisation système de capture d'écran (MediaProjection / DisplayMedia) */}
