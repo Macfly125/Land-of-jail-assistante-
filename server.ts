@@ -1136,6 +1136,30 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
         en: 'Supreme Honor / SvS reference (2026 community guides; verify in the in-game rules): preparation has 5 distinct days — Day 1 Forticlad/building/research; Day 2 gathering; Day 3 fugitive hunting and rallies; Day 4 troop training/promotion; Day 5 mixed day. Save materials and speedups for the day when they score, and activate relevant bonuses before starting upgrades. LOJ XLab reports a 4-hour final war: Supreme Prison is the central objective; holding it continuously for 2 hours wins, otherwise the longest total hold wins. Queue reinforcements before capturing so the prison is not immediately lost. Warden Office level can affect war points; check the allowed level gap in the event rules before sending troops. No universal troop ratio is recommended without role, level and target context.',
       };
       const svsContext = mode === 'svs' ? svsContextByLang[targetLang] : '';
+      const curatedSourcesByMode: Record<AdviceEventMode, Array<{ title: string; url: string }>> = {
+        trial_cage: [
+          { title: 'GuideLOJ — Trial Cage : chefs, troupes et participants', url: 'https://www.guideloj.com/fr/events/alliance/trial-cage-rally' },
+          { title: 'LOJ XLab — Cage : leaders, joiners et compétences', url: 'https://lojxlab.com/blog/lands-of-jail-cage-advanced-guide/' },
+        ],
+        crystal_clash: [
+          { title: 'GuideLOJ — Crystal Clash : objectifs et rôles', url: 'https://www.guideloj.com/fr/events/alliance/crystal-clash' },
+          { title: 'LOJ XLab — Crystal Clash : points et classes', url: 'https://lojxlab.com/blog/crystal-clash-points-776k-to-64k/' },
+        ],
+        sandsea_conquest: [
+          { title: 'LOJ Wiki — Conquête des sables : règles et phases', url: 'https://lojwiki.com/fr/events/sandsea-conquest/' },
+        ],
+        svs: [
+          { title: 'LOJ Strats — SvS : préparation des cinq jours', url: 'https://lojstrats.com/svs-preparation' },
+          { title: 'LOJ XLab — État de SvS : règles et guerre finale', url: 'https://lojxlab.com/svs/state-of-svs/' },
+        ],
+        turmoil_surge: [
+          { title: 'GuideLOJ — Afflux de Tumulte : renforts et tourelles', url: 'https://www.guideloj.com/fr/events/alliance/turmoil-surge' },
+        ],
+        gold_hunter: [
+          { title: 'LOJ Wiki — Chasseur d’or : trésors et équipement', url: 'https://lojwiki.com/guides/gold-hunter/' },
+          { title: 'LOJ XLab — Gold Hunter : troves et règle des 20/10 minutes', url: 'https://lojxlab.com/blog/lands-of-jail-gold-hunter-guide/' },
+        ],
+      };
       const ratioLabels: Record<TargetLang, { title: string; leader: string; joiner: string; standard: string; ada: string; mixed: string; shooters: string; standardNote: string; adaNote: string; joinerNote: string; shootersNote: string }> = {
         fr: { title: 'Ratios de troupes — Cage', leader: 'Chef', joiner: 'Participant', standard: 'Chef sans Ada', ada: 'Chef avec Ada', mixed: 'Participant — troupes mixtes', shooters: 'Participant — Shooters uniquement', standardNote: 'Ratio de départ du guide communautaire actualisé le 4 novembre 2026.', adaNote: 'Vérifiez aussi le nombre réel de Shieldbearers : environ 1 000 selon le guide, pas 1% automatiquement.', joinerNote: 'Option publiée pour le participant ; suivez les consignes du chef de ralliement.', shootersNote: 'Option publiée si vous pouvez envoyer uniquement des Shooters.' },
         tr: { title: 'Birlik oranları — Cage', leader: 'Başlatan', joiner: 'Katılan', standard: 'Ada olmadan lider', ada: 'Ada ile lider', mixed: 'Katılan — karma birlikler', shooters: 'Katılan — yalnızca Shooter', standardNote: '4 Kasım 2026 tarihli topluluk rehberindeki başlangıç oranı.', adaNote: 'Gerçek Shieldbearer sayısını da kontrol edin: rehbere göre yaklaşık 1.000; her zaman otomatik olarak %1 değildir.', joinerNote: 'Katılan için yayımlanan seçenek; ralli liderinin talimatlarına uyun.', shootersNote: 'Yalnızca Shooter gönderebiliyorsanız yayımlanan seçenek.' },
@@ -1170,12 +1194,22 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
             heroNames.length === 0
               ? [compTextByLang[targetLang]]
               : [],
-          sources: liveGuides.map((g) => ({
-            title: g.title,
-            url: g.url,
-            detectedDate: g.date,
-            imageUrl: g.imageUrl,
-          })),
+          sources: [
+            ...liveGuides.map((g) => ({
+              title: g.title,
+              url: g.url,
+              detectedDate: g.date,
+              imageUrl: g.imageUrl,
+            })),
+            ...curatedSourcesByMode[mode]
+              .filter((source) => !liveGuides.some((guide) => guide.url === source.url))
+              .map((source) => ({
+                title: source.title,
+                url: source.url,
+                detectedDate: null,
+                imageUrl: null,
+              })),
+          ],
           requetesRecherche: [modeName, targetLang],
         },
       });
