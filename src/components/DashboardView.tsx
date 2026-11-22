@@ -43,8 +43,6 @@ interface DashboardViewProps {
   onOpenShareModal: () => void;
   onChangePlayerRole: (role: PlayerRole) => void;
   onNavigateTab: (tab: 'tableau' | 'heros' | 'ressources' | 'conseils' | 'historique') => void;
-  onOpenAndroidCode: () => void;
-  onOpenMobileGuide: () => void;
 }
 
 const LANGUAGES_ORDER: AppLanguage[] = ['fr', 'tr', 'ru', 'zh', 'de', 'en'];
@@ -66,8 +64,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onOpenShareModal,
   onChangePlayerRole,
   onNavigateTab,
-  onOpenAndroidCode,
-  onOpenMobileGuide,
 }) => {
   const [showCaptureSettings, setShowCaptureSettings] = useState(false);
   const copy = UI_COPY[language];
@@ -120,21 +116,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-3 shrink-0">
-          <button
-            type="button"
-            onClick={onOpenMobileGuide}
-            className="min-h-[44px] px-4 py-2 rounded-xl text-sm font-medium bg-slate-900 border border-slate-800 text-slate-200 hover:border-slate-700 hover:bg-slate-800/80 transition-colors whitespace-nowrap shrink-0"
-          >
-            Guide téléphone (sans PC)
-          </button>
-          <button
-            type="button"
-            onClick={onOpenAndroidCode}
-            className="min-h-[44px] px-4 py-2 rounded-xl text-sm font-medium bg-slate-900 border border-slate-800 text-slate-200 hover:border-slate-700 hover:bg-slate-800/80 transition-colors flex items-center gap-2 whitespace-nowrap shrink-0"
-          >
-            <Code2 className="w-4 h-4 text-amber-400" />
-            <span>Code Android Kotlin</span>
-          </button>
           <button
             type="button"
             onClick={onOpenShareModal}
