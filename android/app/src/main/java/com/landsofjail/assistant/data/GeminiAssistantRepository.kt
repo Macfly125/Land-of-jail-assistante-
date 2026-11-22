@@ -289,6 +289,7 @@ class GeminiAssistantRepository(
             )
         }
 
+        val heroNames = heroes.map { it.nom.trim() }.filter { it.isNotBlank() }.distinct()
         val tacticalBase = mode.briefFor(language)
         val synthText = when (language) {
             AppLanguage.FR -> "$modeLabel (${playerRole.labelFr}) — $tacticalBase"
