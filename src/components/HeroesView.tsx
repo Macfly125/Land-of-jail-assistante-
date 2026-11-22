@@ -54,12 +54,25 @@ interface HeroesViewProps {
 
 function parseStars(etoiles?: string): number | null {
   if (!etoiles) return null;
-  const count = (etoiles.match(/★/g) || []).length;
-  if (count > 0) return count;
-  const num = Number(etoiles.replace(/[^0-9]/g, ''));
-  return num >= 1 && num <= 5 ? num : null;
-}
+  const value = etoiles.trim();
 
+  // Formes explicites : 3★, 3/5, 3 étoiles, ou une rangée de 3 étoiles.
+  const compact = value.match(/^([1-5])\\s*★$/i);
+  if (compact) return Number(compact[1]);
+
+  const fraction = value.match(/^([1-5])\\s*\\/\\s*5$/);
+  if (fraction) return Number(fraction[1]);
+
+  const labeled = value.match(/^([1-5])\\s*(?:étoile|étoiles|star|stars)$/i);
+  if (labeled) return Number(labeled[1]);
+
+  const symbols = value.match(/^[★⭐]{1,5}$/u);
+  if (symbols) return Array.from(value).length;
+
+  // Ne pas extraire des chiffres d'un texte composite : "3/5 + 20 fragments"
+  // ou une progression d'éclats ne représente pas un nombre d'étoiles certain.
+  return null;
+}
 export const HeroesView: React.FC<HeroesViewProps> = ({
   heroes,
   onVerifyHero,
