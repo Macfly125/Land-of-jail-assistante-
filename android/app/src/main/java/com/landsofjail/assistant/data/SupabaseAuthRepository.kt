@@ -75,15 +75,17 @@ class SupabaseAuthRepository(context: Context) {
                 .build()
             client.newCall(request).execute().use { response ->
                 val body = response.body?.string().orEmpty()
-                val obj = runCatching { json.parseToJsonElement(body).jsonObject }.getOrNull()
+                val parsed = runCatching { json.parseToJsonElement(body).jsonObject }.getOrNull()
                 if (!response.isSuccessful) {
+                    val obj = parsed
                     val message = obj?.get("msg")?.jsonPrimitive?.contentOrNull
                         ?: obj?.get("message")?.jsonPrimitive?.contentOrNull
                         ?: obj?.get("error_description")?.jsonPrimitive?.contentOrNull
                         ?: "Erreur d'authentification (HTTP ${response.code})."
                     error(message)
                 }
-                val session = obj?.get("access_token")?.jsonPrimitive?.contentOrNull?.let { access ->
+                val obj = parsed ?: error("Réponse d'authentification illisible.")
+                val session = obj["access_token"]?.jsonPrimitive?.contentOrNull?.let { access ->
                     val refresh = obj["refresh_token"]?.jsonPrimitive?.contentOrNull.orEmpty()
                     if (refresh.isBlank()) null else Session(
                         access_token = access,
@@ -125,7 +127,8 @@ class SupabaseAuthRepository(context: Context) {
                             ?: "Impossible d'actualiser la session (HTTP ${response.code})."
                     )
                 }
-                val access = obj?.get("access_token")?.jsonPrimitive?.contentOrNull
+                val obj = parsed ?: error("Réponse de renouvellement illisible.")
+                val access = obj["access_token"]?.jsonPrimitive?.contentOrNull
                     ?: error("Jeton d'accès absent de la réponse.")
                 val refresh = obj["refresh_token"]?.jsonPrimitive?.contentOrNull
                     ?: error("Jeton de renouvellement absent de la réponse.")
