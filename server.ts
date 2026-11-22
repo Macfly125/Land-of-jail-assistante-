@@ -149,6 +149,8 @@ Règles strictes :
    - La puissance du compte (texte exact affiché et estimation numérique entière si non ambiguë, sinon null) + niveau QG/Prison et VIP si visibles.
    - Les ressources visibles (Cash/Or, Vivres, Bois, Acier, Pétrole, Gemmes/Diamants, Points d'arène, etc.) avec leur quantité exacte.
    - Les héros visibles : nom, niveau (entier ou null si illisible), rareté/étoiles si visibles, rôle estimé ou affiché, et toutes les compétences visibles avec leur niveau (ex: "Niv. 3", "Max", "Inconnu") et description courte si visible.
+   - Le robot / compagnon / unité de soutien visible sur l'écran : nom exact, niveau, puissance/rareté si affichés, compétences ou bonus visibles. Ne confonds jamais robot et héros.
+   - Si aucun robot n'est visible, retourne robots: []. Ne complète jamais avec un robot supposé ni avec des données provenant d'un autre écran.
 6. Contexte joueur optionnel : rôle="${playerRole || 'non précisé'}", note="${note || 'aucune'}".
 7. Pour chaque héros, lis les informations dans sa propre carte/zone visuelle. N'attribue jamais un niveau, une étoile ou une compétence à partir d'une autre carte ou d'une ligne voisine.
 8. Si le nom n'est pas lisible avec certitude, conserve le texte observé et marque le héros incertain ; ne le remplace pas par le nom d'un héros supposé.
@@ -215,6 +217,36 @@ Règles strictes :
                   required: ['nom', 'quantiteTexte', 'incertain'],
                 },
               },
+              robots: {
+                type: Type.ARRAY,
+                description: 'Robots ou compagnons visibles uniquement sur cette capture. Tableau vide si aucun robot visible.',
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    nom: { type: Type.STRING },
+                    niveau: { type: Type.STRING },
+                    puissance: { type: Type.STRING },
+                    rarete: { type: Type.STRING },
+                    competences: {
+                      type: Type.ARRAY,
+                      items: {
+                        type: Type.OBJECT,
+                        properties: {
+                          nom: { type: Type.STRING },
+                          niveau: { type: Type.STRING },
+                          description: { type: Type.STRING },
+                          incertain: { type: Type.BOOLEAN },
+                          raisonIncertitude: { type: Type.STRING },
+                        },
+                        required: ['nom', 'niveau', 'incertain'],
+                      },
+                    },
+                    incertain: { type: Type.BOOLEAN },
+                    raisonIncertitude: { type: Type.STRING },
+                  },
+                  required: ['nom', 'incertain', 'competences'],
+                },
+              },
               heros: {
                 type: Type.ARRAY,
                 items: {
@@ -265,6 +297,7 @@ Règles strictes :
               'resumeCapture',
               'ressources',
               'heros',
+              'robots',
               'champsIncertains',
             ],
           },
