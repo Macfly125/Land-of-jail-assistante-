@@ -154,6 +154,36 @@ object LandsOfJailOcrParser {
             }
         }
 
+        // Profil joueur : la puissance est affichée avec une icône de poing,
+        // juste avant la ligne « Eliminations », sans libellé « Puissance ».
+        if (power == null) {
+            val eliminationLineIndex = lines.indexOfFirst {
+                Regex("""[ée]liminations?""", RegexOption.IGNORE_CASE).containsMatchIn(it)
+            }
+            if (eliminationLineIndex >= 0) {
+                val compactValueRegex = Regex("""\\b\\d+(?:[.,]\\d+)?\\s*[MB]\\b""", RegexOption.IGNORE_CASE)
+                val candidate = (eliminationLineIndex downTo maxOf(0, eliminationLineIndex - 2))
+                    .firstNotNullOfOrNull { lineIndex ->
+                        val line = lines[lineIndex]
+                        val beforeEliminations = if (lineIndex == eliminationLineIndex) {
+                            line.substringBefore(Regex("""[ée]liminations?""", RegexOption.IGNORE_CASE))
+                        } else {
+                            line
+                        }
+                        compactValueRegex.findAll(beforeEliminations).lastOrNull()?.value?.trim()
+                    }
+                if (candidate != null) {
+                    power = PowerMetric(
+                        puissanceTotaleTexte = candidate,
+                        puissanceTotaleNumerique = parseCompactNumeric(candidate)?.toLong(),
+                        niveauPrisonOuQG = wardenLevel,
+                        incertain = false,
+                        raisonIncertitude = null
+                    )
+                }
+            }
+        }
+
         // Si aucune puissance explicite mais grand nombre de puissance top-bar (ex: "12.4M" ou "8,450,120")
         if (power == null) {
             val topPowerLine = lines.take(6).firstOrNull { l ->
