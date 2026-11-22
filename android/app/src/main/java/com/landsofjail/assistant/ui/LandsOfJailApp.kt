@@ -707,6 +707,8 @@ fun LandsOfJailAssistantApp(
                                     robots = emptyList()
                                     resources = emptyList()
                                     currentPower = null
+                                    forticladLevel = 0
+                                    forticladBuildings = emptyMap()
                                     gorillaRuns = emptyList()
                                     adviceResult = null
                                     currentTab = AssistantTab.TABLEAU
