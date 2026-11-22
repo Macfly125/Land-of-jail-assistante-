@@ -193,6 +193,26 @@ data class HeroRecord(
 )
 
 @Serializable
+data class RobotSkill(
+    val nom: String,
+    val niveau: String = "Inconnu",
+    val description: String? = null,
+    val incertain: Boolean = false,
+    val raisonIncertitude: String? = null
+)
+
+@Serializable
+data class RobotRecord(
+    val nom: String,
+    val niveau: String? = null,
+    val puissance: String? = null,
+    val rarete: String? = null,
+    val competences: List<RobotSkill> = emptyList(),
+    val incertain: Boolean = false,
+    val raisonIncertitude: String? = null
+)
+
+@Serializable
 data class ResourceRecord(
     val nom: String,
     val quantiteTexte: String,
@@ -227,6 +247,7 @@ data class ScreenshotAnalysis(
     val puissance: PowerMetric? = null,
     val ressources: List<ResourceRecord> = emptyList(),
     val heros: List<HeroRecord> = emptyList(),
+    val robots: List<RobotRecord> = emptyList(),
     val champsIncertains: List<UncertainItem> = emptyList()
 )
 
