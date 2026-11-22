@@ -231,6 +231,14 @@ export const EVENT_BRIEF_BY_LANG: Record<AdviceMode, Record<AppLanguage, string>
     de: 'Turmoil Surge: 20 Wellen (~40 Min). Welle 10 & 20 treffen Sentry Turrets; Frenzy-Wellen 7, 14 & 17 aktive Spieler. Garnisonen mit Verbündeten tauschen.',
     en: 'Turmoil Surge: 20 waves (~40 min). Waves 10 & 20 hit Sentry Turrets; Frenzy waves 7, 14 & 17 target online players. Swap defensive reinforcements with allies to maximize kill points.',
   },
+  gorilla_legion: {
+    fr: 'Boss individuel à dégâts : vérifiez le gorille et son bonus actif sur l’écran du jeu. Les ratios communautaires varient selon le jour et les sources ; commencez par 0/15/85 (Shield/Bomber/Shooter), puis comparez avec 0/0/100 ou le ratio du guide du jour. Gardez les héros, l’équipement et le nombre de troupes constants pendant le test.',
+    tr: 'Bireysel hasar boss etkinliği: oyunda gorilin türünü ve aktif bonusunu doğrulayın. Topluluk oranları güne ve kaynağa göre değişir; 0/15/85 ile başlayıp 0/0/100 veya günlük rehber oranıyla karşılaştırın.',
+    ru: 'Индивидуальный босс на урон: проверьте тип гориллы и активный бонус в игре. Сообщество расходится в пропорциях; начните с 0/15/85 и сравните с 0/0/100 или дневной рекомендацией.',
+    zh: '个人伤害首领活动：先在游戏内确认大猩猩类型和当天加成。社区比例存在分歧，可先测试0/15/85，再与0/0/100或当日攻略比例比较。',
+    de: 'Einzelboss mit Schadenswertung: Gorilla und aktiven Tagesbonus im Spiel prüfen. Community-Verhältnisse unterscheiden sich; mit 0/15/85 beginnen und 0/0/100 oder den Tageswert vergleichen.',
+    en: 'Individual damage-boss event: verify the gorilla and active bonus in-game. Community ratios conflict; start at 0/15/85, then compare 0/0/100 or the day-specific guide ratio.',
+  },
   gold_hunter: {
     fr: 'Gold Hunter & Power Sprint : ne dépensez vos éclats, livres de compétences, matériaux d’Arsenal et gros bâtiments que pendant les fenêtres de récompenses d’événement.',
     tr: 'Altın Avcısı ve Güç Yarışı: kahraman parçalarını, beceri kitaplarını, ekipman malzemelerini ve büyük inşaatları yalnızca etkinlik günlerinde harcayın.',
