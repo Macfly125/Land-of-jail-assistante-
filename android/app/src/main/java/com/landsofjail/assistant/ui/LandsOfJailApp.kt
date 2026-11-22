@@ -154,6 +154,22 @@ private enum class ResourceSubTab {
     }
 }
 
+private val LAB_TIER1_COSTS = listOf(30, 50, 80, 130, 220)
+private val LAB_TIER2_COSTS = listOf(80, 100, 140, 180, 240, 300, 380, 480, 600, 800)
+private val LAB_TIER3_COSTS = listOf(160, 200, 240, 290, 360, 430, 530, 650, 810, 1010, 1260, 1580)
+private val LAB_TIER5_COSTS = listOf(200, 260, 340, 440, 590, 800, 1120, 1570, 2360, 3530)
+private const val LAB_TIER4_COST = 4500
+
+private fun remainingLabCost(costs: List<Int>, completed: Int): Int =
+    costs.drop(completed.coerceIn(0, costs.size)).sum()
+
+private fun remainingLabCost(progress: ForticladLabProgress): Int =
+    remainingLabCost(LAB_TIER1_COSTS, progress.tier1) +
+        progress.tier2.sumOf { remainingLabCost(LAB_TIER2_COSTS, it) } +
+        remainingLabCost(LAB_TIER3_COSTS, progress.tier3) +
+        (if (progress.tier4) 0 else LAB_TIER4_COST) +
+        progress.tier5.sumOf { remainingLabCost(LAB_TIER5_COSTS, it) }
+
 private data class AndroidRoutineItem(
     val id: String,
     val title: String,
@@ -1657,6 +1673,7 @@ private fun ResourcesScreen(
     onForticladLabProgressChange: (Map<String, ForticladLabProgress>) -> Unit
 ) {
     var subTab by remember { mutableStateOf(ResourceSubTab.INVENTAIRE) }
+    var selectedLabTroop by remember { mutableStateOf("shieldbearer") }
     var targetBuildingLvl by remember { mutableIntStateOf(16) }
     var starFrom by remember { mutableIntStateOf(0) }
     var starTo by remember { mutableIntStateOf(4) }
@@ -1871,6 +1888,56 @@ private fun ResourcesScreen(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text("Sources communautaires : GuideLOJ et LOJ XLab · barèmes non officiels.", style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                }
+            }
+
+            ResourceSubTab.FORTICLAD_LAB -> {
+                val troopLabels = listOf("shieldbearer" to "Porte-boucliers", "bomber" to "Bombardiers", "shooter" to "Tireurs")
+                val labProgress = forticladLabProgress[selectedLabTroop] ?: ForticladLabProgress()
+                val remaining = remainingLabCost(labProgress)
+                val allRemaining = troopLabels.sumOf { (_, _) ->
+                    remainingLabCost(forticladLabProgress[selectedLabTroop] ?: ForticladLabProgress())
+                }
+                fun saveLabProgress(updated: ForticladLabProgress) {
+                    onForticladLabProgressChange(forticladLabProgress + (selectedLabTroop to updated))
+                }
+                item {
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Text("Laboratoire Forticlad · Hyperalliage", fontWeight = FontWeight.Bold)
+                            Text("Calcul séparé des noyaux Forticlad des sept bâtiments. Progression enregistrée dans le profil du compte sélectionné.", style = MaterialTheme.typography.bodySmall)
+                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                troopLabels.forEach { (id, label) ->
+                                    FilterChip(selected = selectedLabTroop == id, onClick = { selectedLabTroop = id }, label = { Text(label, maxLines = 1) })
+                                }
+                            }
+                            Text("Reste pour ${troopLabels.first { it.first == selectedLabTroop }.second} : ${"%,d".format(remaining)} Hyperalliage", color = Color(0xFFFBBF24), fontWeight = FontWeight.Bold)
+                            Text("Coût complet : 48 150 par type · 144 450 pour les trois types.", style = MaterialTheme.typography.bodySmall)
+                            Text("Palier 1 · Capacité d’expédition (5 niveaux)", fontWeight = FontWeight.SemiBold)
+                            OutlinedTextField(value = labProgress.tier1.toString(), onValueChange = { saveLabProgress(labProgress.copy(tier1 = (it.toIntOrNull() ?: 0).coerceIn(0, 5))) }, label = { Text("Niveaux terminés / 5") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                            Text("Palier 2 · Quatre recherches indépendantes (10 niveaux chacune)", fontWeight = FontWeight.SemiBold)
+                            labProgress.tier2.forEachIndexed { index, level ->
+                                OutlinedTextField(value = level.toString(), onValueChange = { value -> saveLabProgress(labProgress.copy(tier2 = labProgress.tier2.toMutableList().also { it[index] = (value.toIntOrNull() ?: 0).coerceIn(0, 10) })) }, label = { Text("Technologie ${index + 1} / 10") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                            }
+                            Text("Palier 3 · Capacité de ralliement (12 niveaux)", fontWeight = FontWeight.SemiBold)
+                            OutlinedTextField(value = labProgress.tier3.toString(), onValueChange = { saveLabProgress(labProgress.copy(tier3 = (it.toIntOrNull() ?: 0).coerceIn(0, 12))) }, label = { Text("Niveaux terminés / 12") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Checkbox(checked = labProgress.tier4, onCheckedChange = { saveLabProgress(labProgress.copy(tier4 = it)) })
+                                Column {
+                                    Text("Palier 4 · Déblocage Bastion")
+                                    Text("4 500 Hyperalliage · déblocage unique", style = MaterialTheme.typography.bodySmall)
+                                }
+                            }
+                            Text("Palier 5 · Soins et entraînement (2 recherches / 10 niveaux)", fontWeight = FontWeight.SemiBold)
+                            labProgress.tier5.forEachIndexed { index, level ->
+                                OutlinedTextField(value = level.toString(), onValueChange = { value -> saveLabProgress(labProgress.copy(tier5 = labProgress.tier5.toMutableList().also { it[index] = (value.toIntOrNull() ?: 0).coerceIn(0, 10) })) }, label = { Text("Recherche ${index + 1} / 10") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                            }
+                            HorizontalDivider()
+                            Text("Coût restant pour ce type : ${"%,d".format(remaining)} Hyperalliage", fontWeight = FontWeight.Bold)
+                            Text("Jusqu’au déblocage Bastion (paliers 1 à 4) : 25 730 Hyperalliage au total.", style = MaterialTheme.typography.bodySmall, color = Color(0xFFFBBF24))
+                            Text("Source communautaire : LOJ XLab · barème à confirmer dans le laboratoire en jeu.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }
