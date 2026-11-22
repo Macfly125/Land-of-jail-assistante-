@@ -21,6 +21,7 @@ import {
 } from '../types/game';
 import { EVENT_BRIEF_BY_LANG, UI_COPY } from '../i18n/translations';
 import { formatFrenchDate, formatFrenchDateTime } from '../utils/storage';
+import { GorillaDamageLog } from './GorillaDamageLog';
 
 interface AdviceViewProps {
   language: AppLanguage;
@@ -333,6 +334,8 @@ export const AdviceView: React.FC<AdviceViewProps> = ({
           </div>
         )}
       </section>
+
+      {selectedMode === 'gorilla_legion' && <GorillaDamageLog />}
 
       {/* Résultat des conseils */}
       {!currentAdvice ? (
