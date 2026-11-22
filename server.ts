@@ -683,11 +683,12 @@ Règles strictes :
 
   app.post('/api/advice', async (req, res) => {
     try {
-      const { mode, language, playerRole, playerRoleLabel, heroes, robots, extraQuestion } = req.body as {
+      const { mode, language, playerRole, playerRoleLabel, eventPosition, heroes, robots, extraQuestion } = req.body as {
         mode?: AdviceEventMode;
         language?: TargetLang;
         playerRole?: string;
         playerRoleLabel?: string;
+        eventPosition?: 'leader' | 'joiner' | 'solo';
         robots?: Array<{
           nom: string;
           niveau?: string;
@@ -797,7 +798,7 @@ Ces descriptions ne concordent pas parfaitement sur le fonctionnement des partic
       };
       const communityResearchSources = mode === 'trial_cage'
         ? [
-            { title: 'GuideLOJ — Trial Cage : chefs, troupes et participants', url: 'https://guideloj.com/en/events/alliance/trial-cage-rally-guide', date: '2026-10-20' },
+            { title: 'GuideLOJ — Trial Cage : chefs, troupes et participants', url: 'https://www.guideloj.com/fr/events/alliance/trial-cage-rally', date: '2026-11-04' },
             { title: 'GuideLOJ — ratios de troupes', url: 'https://www.guideloj.com/fr/tips/fight/troop-guide-shieldbearer-bombardiers-shooters', date: '2026-11-04' },
             { title: 'LOJ XLab — CAGE Advanced Guide', url: 'https://lojxlab.com/blog/lands-of-jail-cage-advanced-guide/', date: '2026-10-05' },
             { title: 'LOJ Wiki — guides et événements', url: 'https://lojwiki.com/fr/', date: '2026-11-22' },
@@ -808,6 +809,14 @@ Ces descriptions ne concordent pas parfaitement sur le fonctionnement des partic
             { title: 'GuideLOJ — centre de guides', url: 'https://guideloj.com/fr/tips', date: '2026-11-04' },
           ];
       const roleLabel = playerRoleLabel || playerRole || 'Polyvalent / F2P';
+      const validEventPositions = ['leader', 'joiner', 'solo'] as const;
+      const selectedEventPosition = eventPosition && validEventPositions.includes(eventPosition) ? eventPosition : 'joiner';
+      const eventPositionLabels: Record<typeof selectedEventPosition, string> = {
+        leader: 'Leader / lanceur de ralliement',
+        joiner: 'Participant / renfort',
+        solo: 'Action ou attaque solo',
+      };
+      const eventPositionLabel = eventPositionLabels[selectedEventPosition];
       const researchNotes = communityResearchByMode[mode];
       const leadSummary = liveGuides
         .slice(0, 4)
@@ -855,7 +864,8 @@ Ces descriptions ne concordent pas parfaitement sur le fonctionnement des partic
       const tacticalResponse = await ai.models.generateContent({
         model: 'gemini-4-hydrogen',
         contents: `Tu es un coach tactique expert de Lands of Jail. Construis une recommandation personnalisée pour l'événement ${modeName}.
-Rôle du joueur : ${roleLabel}.
+Rôle général du compte : ${roleLabel}.
+Position choisie pour cet événement : ${eventPositionLabel}. Adapte les héros, compétences, robots, ratio et conseils à cette position ; ne mélange pas les règles du leader, du participant et du solo.
 Données du compte — héros possédés :
 ${JSON.stringify(roster)}
 Robots/compagnons réellement possédés et détectés :
