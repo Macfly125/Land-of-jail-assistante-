@@ -178,6 +178,11 @@ export const FORTICLAD_STAGES: ForticladStageCost[] = [
   { fcLevel: 3, forticladCores: 1_350, advancedForticladCores: 90, prerequisites: 'Bâtiment FC2 complet + Comms/Caserne FC2', verifiedWiki: false },
   { fcLevel: 4, forticladCores: 1_900, advancedForticladCores: 160, prerequisites: 'Bâtiment FC3 complet', verifiedWiki: false },
   { fcLevel: 5, forticladCores: 2_600, advancedForticladCores: 250, prerequisites: 'Bâtiment FC4 complet', verifiedWiki: false },
+  // FC6–8 : GuideLOJ publie les totaux de 7 bâtiments (hors laboratoire).
+  // Moyenne indicative par bâtiment pour le calcul multi-bâtiments ; non vérifiée bâtiment par bâtiment.
+  { fcLevel: 6, forticladCores: 764, advancedForticladCores: 49, prerequisites: 'Bâtiment FC5 complet · moyenne indicative GuideLOJ (7 bâtiments)', verifiedWiki: false },
+  { fcLevel: 7, forticladCores: 857, advancedForticladCores: 75, prerequisites: 'Bâtiment FC6 complet · moyenne indicative GuideLOJ (7 bâtiments)', verifiedWiki: false },
+  { fcLevel: 8, forticladCores: 985, advancedForticladCores: 107, prerequisites: 'Bâtiment FC7 complet · moyenne indicative GuideLOJ (7 bâtiments)', verifiedWiki: false },
 ];
 
 // Éclats de héros exacts vérifiés sur lojxlab.com (Total = 1 075 éclats de 0★ à 5★, + 10 au déblocage)
