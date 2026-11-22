@@ -94,6 +94,37 @@ class GeminiAssistantRepository(
         }
     }
 
+    suspend fun fetchHeroCatalog(language: AppLanguage): Result<List<HeroCatalogEntry>> = withContext(Dispatchers.IO) {
+        runCatching {
+            val apiLang = if (language == AppLanguage.ZH) "zh" else language.code
+            val request = Request.Builder()
+                .url("$backendBaseUrl/api/heroes/catalog?lang=$apiLang")
+                .get()
+                .build()
+            client.newCall(request).execute().use { response ->
+                val body = response.body?.string() ?: error("Catalogue des héros vide.")
+                if (!response.isSuccessful) error("Catalogue héros indisponible (HTTP ${response.code}).")
+                json.decodeFromString<HeroCatalogResponse>(body).heroes
+            }
+        }
+    }
+
+    suspend fun fetchHeroDetails(name: String, language: AppLanguage): Result<HeroWikiDetails?> = withContext(Dispatchers.IO) {
+        runCatching {
+            val apiLang = if (language == AppLanguage.ZH) "zh" else language.code
+            val payload = HeroEnrichRequest(names = listOf(name), language = apiLang)
+            val request = Request.Builder()
+                .url("$backendBaseUrl/api/heroes/enrich")
+                .post(json.encodeToString(payload).toRequestBody("application/json".toMediaType()))
+                .build()
+            client.newCall(request).execute().use { response ->
+                val body = response.body?.string() ?: error("Fiche héros vide.")
+                if (!response.isSuccessful) error("Fiche héros indisponible (HTTP ${response.code}).")
+                json.decodeFromString<HeroDetailsResponse>(body).details.firstOrNull()
+            }
+        }
+    }
+
     suspend fun fetchTacticalAdvice(
         mode: AdviceMode,
         language: AppLanguage,
@@ -445,6 +476,12 @@ class GeminiAssistantRepository(
     @Serializable
     private data class AdviceWrapper(
         val advice: TacticalAdviceResult
+    )
+
+    @Serializable
+    private data class HeroEnrichRequest(
+        val names: List<String>,
+        val language: String
     )
 
     @Serializable
