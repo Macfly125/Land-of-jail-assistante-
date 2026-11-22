@@ -41,6 +41,7 @@ import com.landsofjail.assistant.ocr.LandsOfJailOcrParser
 import com.landsofjail.assistant.service.GameForegroundMonitorService
 import com.landsofjail.assistant.service.UsageStatsDetector
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.CompletableDeferred
 import java.time.Instant
 import java.util.UUID
 
@@ -220,6 +221,7 @@ fun LandsOfJailAssistantApp(
     var heroes by remember { mutableStateOf<List<HeroRecord>>(emptyList()) }
     var pendingReview by remember { mutableStateOf<ScreenshotAnalysis?>(null) }
     var reviewHeroes by remember { mutableStateOf<List<HeroRecord>>(emptyList()) }
+    var pendingReviewCompletion by remember { mutableStateOf<CompletableDeferred<Boolean>?>(null) }
     var resources by remember { mutableStateOf<List<ResourceRecord>>(emptyList()) }
     var currentPower by remember { mutableStateOf<PowerMetric?>(null) }
 
@@ -337,13 +339,20 @@ fun LandsOfJailAssistantApp(
                         }
                     }
                     result.onSuccess { analysis ->
-                        mergeNewAnalysis(analysis)
+                        // Chaque capture importée passe par la même vérification que l'analyse d'écran.
+                        val reviewCompletion = CompletableDeferred<Boolean>()
+                        pendingReviewCompletion = reviewCompletion
+                        pendingReview = analysis
+                        reviewHeroes = analysis.heros
+                        currentTab = AssistantTab.TABLEAU
+                        val approved = reviewCompletion.await()
+                        pendingReviewCompletion = null
                         analysisQueue = analysisQueue.map {
                             if (it.id == nextItem.id) {
                                 it.copy(
-                                    status = "done",
+                                    status = if (approved) "done" else "skipped",
                                     progress = 100,
-                                    summary = analysis.resumeCapture
+                                    summary = if (approved) analysis.resumeCapture else "Capture ignorée par l'utilisateur"
                                 )
                             } else {
                                 it
@@ -676,7 +685,11 @@ fun LandsOfJailAssistantApp(
 
                 pendingReview?.let { review ->
                     AlertDialog(
-                        onDismissRequest = { pendingReview = null; reviewHeroes = emptyList() },
+                        onDismissRequest = {
+                            pendingReview = null
+                            reviewHeroes = emptyList()
+                            pendingReviewCompletion?.complete(false)
+                        },
                         title = { Text("Vérifier les héros détectés") },
                         text = {
                             Column(
@@ -776,6 +789,7 @@ fun LandsOfJailAssistantApp(
                                     mergeNewAnalysis(confirmed)
                                     pendingReview = null
                                     reviewHeroes = emptyList()
+                                    pendingReviewCompletion?.complete(true)
                                     scope.launch {
                                         isFetchingAdvice = true
                                         repository.fetchTacticalAdvice(
@@ -793,7 +807,11 @@ fun LandsOfJailAssistantApp(
                             ) { Text("Confirmer et enregistrer") }
                         },
                         dismissButton = {
-                            TextButton(onClick = { pendingReview = null; reviewHeroes = emptyList() }) {
+                            TextButton(onClick = {
+                                    pendingReview = null
+                                    reviewHeroes = emptyList()
+                                    pendingReviewCompletion?.complete(false)
+                                }) {
                                 Text("Ignorer")
                             }
                         }
