@@ -75,10 +75,16 @@ export const AdviceView: React.FC<AdviceViewProps> = ({
           playerRoleLabel: PLAYER_ROLE_LABELS[playerRole].label,
           heroes: heroes.map((h) => ({
             nom: h.nom,
+            niveau: h.niveau,
             niveauTexte: h.niveauTexte,
             rarete: h.rarete,
+            etoiles: h.etoiles,
             roleHero: h.roleHero,
+            typeTroupe: h.typeTroupe,
+            puissanceHero: h.puissanceHero,
+            champsIncertains: h.champsIncertains || [],
             incertain: h.incertain,
+            verifieManuellement: h.verifieManuellement || false,
             competences: h.competences.map((s) => ({
               nom: s.nom,
               niveau: s.niveau,
