@@ -135,7 +135,8 @@ private data class AndroidRoutineItem(
     val minutes: Int,
     val enabled: Boolean,
     val endsAtMs: Long?,
-    val pausedRemainingMs: Long? = null
+    val pausedRemainingMs: Long? = null,
+    val durationInput: String = minutes.toString()
 )
 
 private data class AndroidQueuedUri(
@@ -1217,7 +1218,8 @@ private fun ResourcesScreen(
                             routineItems = routineItems.map {
                                 if (it.enabled) {
                                     it.copy(
-                                        endsAtMs = base + it.minutes * 60_000L,
+                                        minutes = (it.durationInput.toIntOrNull() ?: it.minutes).coerceIn(1, 10080),
+                                        endsAtMs = base + (it.durationInput.toIntOrNull() ?: it.minutes).coerceIn(1, 10080) * 60_000L,
                                         pausedRemainingMs = null
                                     )
                                 } else {
@@ -1282,6 +1284,18 @@ private fun ResourcesScreen(
                                 )
                             }
                             Text(task.subtitle, style = MaterialTheme.typography.bodySmall)
+                            OutlinedTextField(
+                                value = task.durationInput,
+                                onValueChange = { value ->
+                                    routineItems = routineItems.map { item ->
+                                        if (item.id == task.id) item.copy(durationInput = value.filter { ch -> ch.isDigit() }.take(5)) else item
+                                    }
+                                },
+                                label = { Text("Durée personnalisée (minutes)") },
+                                supportingText = { Text("De 1 à 10 080 minutes (7 jours)") },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth()
+                            )
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -1314,7 +1328,8 @@ private fun ResourcesScreen(
                                         if (it.id == task.id) {
                                             it.copy(
                                                 enabled = true,
-                                                endsAtMs = base + it.minutes * 60_000L,
+                                                minutes = (it.durationInput.toIntOrNull() ?: it.minutes).coerceIn(1, 10080),
+                                                endsAtMs = base + (it.durationInput.toIntOrNull() ?: it.minutes).coerceIn(1, 10080) * 60_000L,
                                                 pausedRemainingMs = null
                                             )
                                         } else {
@@ -1322,7 +1337,7 @@ private fun ResourcesScreen(
                                         }
                                     }
                                 }) {
-                                    Text("Lancer ${task.minutes / 60}h")
+                                    Text("Démarrer")
                                 }
                             }
                         }
