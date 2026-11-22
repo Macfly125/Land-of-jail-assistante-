@@ -3,6 +3,10 @@ package com.landsofjail.assistant.capture
 import android.app.Activity
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
+import android.util.Base64
+import java.io.File
 import android.media.projection.MediaProjectionManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -33,8 +37,36 @@ class ScreenCaptureConsentActivity : ComponentActivity() {
             _pendingCapture.value = payload
         }
 
-        fun consumeCapture() {
+        private const val PREFS_CAPTURE = "loj_capture_state"
+        private const val KEY_PENDING_URI = "pending_capture_uri"
+        private const val KEY_PENDING_AT = "pending_capture_at"
+
+        fun restorePendingCapture(context: Context) {
+            if (_pendingCapture.value != null) return
+            val prefs = context.getSharedPreferences(PREFS_CAPTURE, Context.MODE_PRIVATE)
+            val uriText = prefs.getString(KEY_PENDING_URI, null) ?: return
+            val uri = runCatching { Uri.parse(uriText) }.getOrNull() ?: return
+            val file = uri.path?.let(::File) ?: return
+            if (!file.exists()) return
+            runCatching {
+                val bytes = file.readBytes()
+                val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: return
+                _pendingCapture.value = CapturedScreenPayload(
+                    bitmap = bitmap,
+                    base64Jpeg = Base64.encodeToString(bytes, Base64.NO_WRAP),
+                    capturedAtMillis = prefs.getLong(KEY_PENDING_AT, file.lastModified()),
+                    imageFileUri = uriText
+                )
+            }
+        }
+
+        fun consumeCapture(context: Context) {
             _pendingCapture.value = null
+            context.getSharedPreferences(PREFS_CAPTURE, Context.MODE_PRIVATE)
+                .edit()
+                .remove(KEY_PENDING_URI)
+                .remove(KEY_PENDING_AT)
+                .apply()
         }
     }
 
