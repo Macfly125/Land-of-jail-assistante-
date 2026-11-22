@@ -30,12 +30,15 @@ object LandsOfJailOcrParser {
     suspend fun recognizeBitmap(bitmap: Bitmap): String = suspendCancellableCoroutine { cont ->
         val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
         val image = InputImage.fromBitmap(bitmap, 0)
+        cont.invokeOnCancellation { recognizer.close() }
         recognizer.process(image)
             .addOnSuccessListener { result ->
-                cont.resume(result.text)
+                recognizer.close()
+                if (cont.isActive) cont.resume(result.text)
             }
             .addOnFailureListener { err ->
-                cont.resumeWithException(err)
+                recognizer.close()
+                if (cont.isActive) cont.resumeWithException(err)
             }
     }
 
@@ -110,7 +113,8 @@ object LandsOfJailOcrParser {
 
             // Héros connus du jeu détectés dans la ligne
             for (heroName in KNOWN_HEROES) {
-                if (line.contains(heroName, ignoreCase = true) && !seenHeroKeys.contains(heroName.lowercase())) {
+                val heroToken = Regex("(?<![\\\\p{L}])${Regex.escape(heroName)}(?![\\\\p{L}])", RegexOption.IGNORE_CASE)
+                if (heroToken.containsMatchIn(line) && !seenHeroKeys.contains(heroName.lowercase())) {
                     val sameLineLvl = levelRegex.find(line)?.groupValues?.get(1)?.toIntOrNull()
                     val nextLineLvl = lines.getOrNull(index + 1)?.let { levelRegex.find(it)?.groupValues?.get(1)?.toIntOrNull() }
                     val lvl = sameLineLvl ?: nextLineLvl
@@ -247,14 +251,25 @@ object LandsOfJailOcrParser {
     }
 
     private fun parseCompactNumeric(text: String): Double? {
-        val cleaned = text.trim().lowercase().replace(" ", "").replace(",", ".")
-        val multiplier = when {
-            cleaned.endsWith("b") -> 1_000_000_000.0
-            cleaned.endsWith("m") -> 1_000_000.0
-            cleaned.endsWith("k") -> 1_000.0
+        val cleaned = text.trim().lowercase().replace(Regex("\\\\s+"), "")
+        val suffix = cleaned.lastOrNull()?.takeIf { it in listOf('k', 'm', 'b') }
+        val multiplier = when (suffix) {
+            'b' -> 1_000_000_000.0
+            'm' -> 1_000_000.0
+            'k' -> 1_000.0
             else -> 1.0
         }
-        val numPart = cleaned.replace(Regex("""[^0-9.]"""), "")
+        val rawNumber = if (suffix != null) cleaned.dropLast(1) else cleaned
+        // Sans suffixe, les groupes de trois chiffres séparés par . ou , sont des milliers
+        // (ex. 8,450,120 ou 8.450.120), pas des décimales.
+        val isGroupedInteger = suffix == null &&
+            Regex("\\\\d{1,3}(?:[.,]\\\\d{3})+").matches(rawNumber)
+        val normalized = if (isGroupedInteger) {
+            rawNumber.replace(Regex("[.,]"), "")
+        } else {
+            rawNumber.replace(",", ".")
+        }
+        val numPart = normalized.replace(Regex("[^0-9.]"), "")
         return numPart.toDoubleOrNull()?.times(multiplier)
     }
 }
