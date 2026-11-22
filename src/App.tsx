@@ -638,6 +638,7 @@ export default function App() {
           <ResourcesPowerView
             state={state}
             onVerifyResource={handleVerifyResource}
+            onUpdateForticladLevel={(level) => setState((prev) => ({ ...prev, forticladLevel: level }))}
             onOpenShareModal={() => {
               setAnalyzeError(null);
               setIsShareModalOpen(true);
