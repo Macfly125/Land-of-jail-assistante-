@@ -477,7 +477,7 @@ export const RALLY_JOIN_TIPS: string[] = [
   'Coordonnez les participants pour apporter des bonus différents (ATQ, dégâts infligés, dégâts subis par l’ennemi ou réduction de DEF) et éviter de dupliquer un bonus déjà présent.',
   'Le rôle du participant et celui du chef sont différents : ne copiez pas automatiquement le ratio du chef. Utilisez le profil de troupes demandé par le chef et les règles de votre alliance.',
   'Enregistrez des formations distinctes pour lancer et rejoindre, puis vérifiez le héros en premier slot, les troupes réellement disponibles et le nombre envoyé.',
-
+];
 
 export function formatMinutesToDurationFr(totalMinutes: number): string {
   if (totalMinutes <= 0) return 'Instantané';
