@@ -2299,6 +2299,7 @@ private fun AllianceScreen(
         contentPadding = PaddingValues(bottom = 20.dp)
     ) {
         item { SupabaseAccountCard() }
+        item { AllianceCloudControls(server = server, allianceName = allianceName) }
         item {
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
                 Text("Espace Alliance", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
@@ -2673,3 +2674,135 @@ private fun AllianceScreen(
 }
 
 private fun itTagNotUsed(used: Set<String>, tag: String): Boolean = tag !in used
+
+
+@Composable
+private fun AllianceCloudControls(server: String, allianceName: String) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val auth = remember(context) { SupabaseAuthRepository(context) }
+    val prefs = remember(context) {
+        context.getSharedPreferences("lands_of_jail_account_v1", Context.MODE_PRIVATE)
+    }
+    var allianceId by remember {
+        mutableStateOf(prefs.getString("cloud_alliance_id", "").orEmpty())
+    }
+    var inviteInput by remember { mutableStateOf("") }
+    var inviteCode by remember { mutableStateOf("") }
+    var busy by remember { mutableStateOf(false) }
+    var message by remember { mutableStateOf<String?>(null) }
+    var isError by remember { mutableStateOf(false) }
+    val signedIn = auth.currentSession() != null
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF172333))
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(9.dp)
+        ) {
+            Text("Alliance partagée en ligne", fontWeight = FontWeight.Bold)
+            Text(
+                "Crée l'espace cloud de ton alliance ou rejoins celui d'un autre joueur avec un code d'invitation. Le rang R5 du créateur est attribué côté serveur.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            if (!signedIn) {
+                Text("Connecte-toi d'abord dans « Compte & sauvegarde cloud » pour utiliser ces fonctions.",
+                    color = Color(0xFFFBBF24), style = MaterialTheme.typography.bodySmall)
+            } else {
+                if (allianceId.isBlank()) {
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                busy = true
+                                message = null
+                                auth.createAlliance(server, allianceName)
+                                    .onSuccess { id ->
+                                        allianceId = id
+                                        prefs.edit().putString("cloud_alliance_id", id).apply()
+                                        message = "Alliance créée en ligne. Tu es enregistré comme R5."
+                                        isError = false
+                                    }
+                                    .onFailure {
+                                        message = it.message ?: "Création impossible."
+                                        isError = true
+                                    }
+                                busy = false
+                            }
+                        },
+                        enabled = !busy && server.isNotBlank() && allianceName.isNotBlank(),
+                        modifier = Modifier.fillMaxWidth()
+                    ) { Text(if (busy) "Création…" else "Créer cette alliance dans le cloud") }
+                } else {
+                    Text("Alliance cloud liée : $allianceId", style = MaterialTheme.typography.bodySmall)
+                    OutlinedButton(
+                        onClick = {
+                            scope.launch {
+                                busy = true
+                                message = null
+                                auth.createAllianceInvite(allianceId, 105)
+                                    .onSuccess {
+                                        inviteCode = it
+                                        message = "Code créé. Transmets-le uniquement aux membres de ton alliance."
+                                        isError = false
+                                    }
+                                    .onFailure {
+                                        message = it.message ?: "Création du code impossible."
+                                        isError = true
+                                    }
+                                busy = false
+                            }
+                        },
+                        enabled = !busy,
+                        modifier = Modifier.fillMaxWidth()
+                    ) { Text(if (busy) "Génération…" else "Générer un code d'invitation (105 membres max.)") }
+                }
+                if (inviteCode.isNotBlank()) {
+                    OutlinedTextField(
+                        value = inviteCode,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Code d'invitation") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+                OutlinedTextField(
+                    value = inviteInput,
+                    onValueChange = { inviteInput = it.trim().take(256) },
+                    label = { Text("Code reçu pour rejoindre une alliance") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedButton(
+                    onClick = {
+                        scope.launch {
+                            busy = true
+                            message = null
+                            auth.acceptAllianceInvite(inviteInput)
+                                .onSuccess { id ->
+                                    allianceId = id
+                                    prefs.edit().putString("cloud_alliance_id", id).apply()
+                                    inviteCode = ""
+                                    message = "Invitation acceptée. Ton compte a rejoint l'alliance."
+                                    isError = false
+                                }
+                                .onFailure {
+                                    message = it.message ?: "Invitation refusée."
+                                    isError = true
+                                }
+                            busy = false
+                        }
+                    },
+                    enabled = !busy && inviteInput.isNotBlank(),
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text(if (busy) "Vérification…" else "Rejoindre avec ce code") }
+            }
+            message?.let {
+                Text(it, color = if (isError) Color(0xFFFCA5A5) else Color(0xFF86EFAC),
+                    style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
+}
