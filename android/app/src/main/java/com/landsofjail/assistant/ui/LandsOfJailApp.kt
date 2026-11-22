@@ -977,7 +977,7 @@ private fun DashboardScreen(
                         if (!hasUsagePermission) {
                             Text(
                                 "1. Statistiques d'utilisation : À autoriser",
-                                color = Color(0xFFFBBF24),
+                                color = Color(0xFFEF4444),
                                 fontWeight = FontWeight.Medium
                             )
                             Button(onClick = onOpenUsageSettings) {
@@ -1745,13 +1745,13 @@ private fun AdviceScreen(
             if (res.informationsIncertaines.isNotEmpty()) {
                 item {
                     Card(
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF422006)),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF450A0A)),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(Modifier.padding(14.dp)) {
-                            Text("Informations incertaines", fontWeight = FontWeight.SemiBold, color = Color(0xFFFCD34D))
+                            Text("AVERTISSEMENT — CONSEILS NON VÉRIFIÉS", fontWeight = FontWeight.Bold, color = Color(0xFFFF5252))
                             res.informationsIncertaines.forEach { info ->
-                                Text("• $info", color = Color(0xFFFEF3C7))
+                                Text("• $info", color = Color(0xFFFFCDD2))
                             }
                         }
                     }
