@@ -389,15 +389,36 @@ export const HeroesView: React.FC<HeroesViewProps> = ({
                         </div>
                       )}
                       {selectedDetected && (
-                        <div className="text-slate-300">
-                          Votre héros :{' '}
-                          <span className="font-semibold text-emerald-400">
-                            {selectedDetected.niveauTexte}
-                            {selectedDetected.etoiles ? ` · ${selectedDetected.etoiles}` : ''}
-                          </span>
-                          {selectedDetected.puissanceHero
-                            ? ` · Puissance ${selectedDetected.puissanceHero}`
-                            : ''}
+                        <div className="space-y-1.5">
+                          <div className="text-slate-300">
+                            Progression de votre compte :{' '}
+                            <span className="font-semibold text-emerald-400">
+                              {selectedDetected.niveauTexte || 'Niveau non relevé'}
+                              {selectedDetected.etoiles ? ` · ${selectedDetected.etoiles}` : ''}
+                            </span>
+                            {selectedDetected.incertain && (
+                              <span className="ml-1 text-amber-300">(lecture à confirmer)</span>
+                            )}
+                          </div>
+                          {selectedDetected.rarete && (
+                            <div className="text-slate-300">
+                              Rareté relevée sur votre capture :{' '}
+                              <span className="font-semibold text-emerald-400">
+                                {selectedDetected.rarete}
+                              </span>
+                              {selectedDetected.incertain && (
+                                <span className="ml-1 text-amber-300">(à confirmer)</span>
+                              )}
+                            </div>
+                          )}
+                          {selectedDetected.puissanceHero && (
+                            <div className="text-slate-300">
+                              Puissance réelle relevée :{' '}
+                              <span className="font-semibold text-emerald-400 font-mono-tabular">
+                                {selectedDetected.puissanceHero}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       )}
                       {selectedStars !== null && (
