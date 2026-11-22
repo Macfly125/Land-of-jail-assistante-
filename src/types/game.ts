@@ -216,6 +216,28 @@ export interface UncertainItem {
   raison: string;
 }
 
+export interface RobotSkill {
+  id: string;
+  nom: string;
+  niveau: string;
+  description?: string;
+  incertain: boolean;
+  raisonIncertitude?: string;
+}
+
+export interface RobotRecord {
+  id: string;
+  nom: string;
+  niveau?: string;
+  puissance?: string;
+  rarete?: string;
+  competences: RobotSkill[];
+  incertain: boolean;
+  raisonIncertitude?: string;
+  verifieManuellement?: boolean;
+  derniereMaj: string;
+}
+
 export interface ScreenshotAnalysis {
   id: string;
   analyzedAt: string;
@@ -226,6 +248,7 @@ export interface ScreenshotAnalysis {
   puissance: PowerMetric | null;
   ressources: ResourceRecord[];
   heros: HeroRecord[];
+  robots: RobotRecord[];
   champsIncertains: UncertainItem[];
   noteUtilisateur?: string;
 }
