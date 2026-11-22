@@ -76,7 +76,7 @@ function parseMultipartScreenshot(
   return null;
 }
 
-async function startServer() {
+export async function createApp(serveFrontend = true) {
   const app = express();
 
   // Web Share Target endpoint for PWA Android Chrome sharing
@@ -1310,24 +1310,34 @@ Consignes :
     });
   });
 
-  if (process.env.NODE_ENV !== 'production') {
-    const { createServer: createViteServer } = await import('vite');
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: 'spa',
-    });
-    app.use(vite.middlewares);
-  } else {
-    const distPath = path.resolve(__dirname, 'dist');
-    app.use(express.static(distPath));
-    app.get('*', (_req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
-    });
+  if (serveFrontend) {
+    if (process.env.NODE_ENV !== 'production') {
+      const { createServer: createViteServer } = await import('vite');
+      const vite = await createViteServer({
+        server: { middlewareMode: true },
+        appType: 'spa',
+      });
+      app.use(vite.middlewares);
+    } else {
+      const distPath = path.resolve(__dirname, 'dist');
+      app.use(express.static(distPath));
+      app.get('*', (_req, res) => {
+        res.sendFile(path.join(distPath, 'index.html'));
+      });
+    }
   }
 
+  return app;
+}
+
+async function startServer() {
+  const app = await createApp(true);
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Lands of Jail Assistant écoute sur http://0.0.0.0:${PORT}`);
   });
 }
 
-startServer();
+// Do not start a listening server when this module is imported by a Netlify Function.
+if (process.argv[1] && path.resolve(process.argv[1]) === __filename) {
+  void startServer();
+}
