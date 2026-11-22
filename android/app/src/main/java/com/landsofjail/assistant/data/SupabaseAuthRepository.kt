@@ -239,6 +239,101 @@ class SupabaseAuthRepository(context: Context) {
             }
         }
 
+    /**
+     * Loads alliance membership first, then player profiles. Profile visibility is
+     * intentionally enforced by Supabase RLS (R5: all, R4: R4/R3/R2/R1, others: self).
+     */
+    suspend fun fetchAllianceRoster(allianceId: String): Result<List<AlliancePlayerProfile>> =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                require(allianceId.matches(Regex("[0-9a-fA-F-]{36}"))) {
+                    "Identifiant d'alliance invalide."
+                }
+                val active = refreshSession().getOrThrow()
+                val membersRequest = Request.Builder()
+                    .url("$BASE_URL/rest/v1/alliance_members?select=user_id,game_rank,joined_at&alliance_id=eq.$allianceId&order=joined_at.asc")
+                    .header("apikey", PUBLISHABLE_KEY)
+                    .header("Authorization", "Bearer ${active.access_token}")
+                    .get()
+                    .build()
+                val memberRows = client.newCall(membersRequest).execute().use { response ->
+                    val body = response.body?.string().orEmpty()
+                    if (!response.isSuccessful) error(extractApiError(body, response.code))
+                    json.parseToJsonElement(body).jsonArray
+                }
+                val memberships = memberRows.mapNotNull { row ->
+                    val obj = row.jsonObject
+                    val userId = obj["user_id"]?.jsonPrimitive?.contentOrNull ?: return@mapNotNull null
+                    val gameRank = obj["game_rank"]?.jsonPrimitive?.contentOrNull ?: "R1"
+                    userId to gameRank
+                }.distinctBy { it.first }
+                if (memberships.isEmpty()) return@runCatching emptyList()
+
+                val userIds = memberships.map { it.first }.filter {
+                    it.matches(Regex("[0-9a-fA-F-]{36}"))
+                }
+                val profilesById = if (userIds.isEmpty()) {
+                    emptyMap()
+                } else {
+                    val inFilter = userIds.joinToString(",")
+                    val profilesRequest = Request.Builder()
+                        .url("$BASE_URL/rest/v1/player_profiles?select=user_id,player_name,power_text,hero_data,robot_data,updated_at&user_id=in.($inFilter)")
+                        .header("apikey", PUBLISHABLE_KEY)
+                        .header("Authorization", "Bearer ${active.access_token}")
+                        .get()
+                        .build()
+                    client.newCall(profilesRequest).execute().use { response ->
+                        val body = response.body?.string().orEmpty()
+                        if (!response.isSuccessful) error(extractApiError(body, response.code))
+                        json.parseToJsonElement(body).jsonArray.associateBy { row ->
+                            row.jsonObject["user_id"]?.jsonPrimitive?.contentOrNull.orEmpty()
+                        }
+                    }
+                }
+
+                memberships.filterNot { it.first == active.user_id }.map { (userId, rawRank) ->
+                    val profile = profilesById[userId]?.jsonObject
+                    val rank = runCatching { AllianceRank.valueOf(rawRank) }.getOrDefault(AllianceRank.R1)
+                    val heroSummary = profile?.get("hero_data")?.let { element ->
+                        runCatching {
+                            element.jsonArray.joinToString("\n") { heroElement ->
+                                val hero = heroElement.jsonObject
+                                val name = hero["nom"]?.jsonPrimitive?.contentOrNull.orEmpty()
+                                val skills = hero["competences"]?.let { skillsElement ->
+                                    runCatching {
+                                        skillsElement.jsonArray.joinToString("; ") { skillElement ->
+                                            val skill = skillElement.jsonObject
+                                            listOf(
+                                                skill["nom"]?.jsonPrimitive?.contentOrNull.orEmpty(),
+                                                skill["niveau"]?.jsonPrimitive?.contentOrNull.orEmpty(),
+                                                skill["description"]?.jsonPrimitive?.contentOrNull.orEmpty()
+                                            ).filter { it.isNotBlank() }.joinToString(" ")
+                                        }
+                                    }.getOrDefault("")
+                                }.orEmpty()
+                                if (skills.isBlank()) name else "$name: $skills"
+                            }.take(6000)
+                        }.getOrDefault("")
+                    }.orEmpty()
+                    val robotSummary = profile?.get("robot_data")?.let { element ->
+                        runCatching {
+                            element.jsonObject["summary"]?.jsonPrimitive?.contentOrNull.orEmpty()
+                        }.getOrDefault("")
+                    }.orEmpty()
+                    AlliancePlayerProfile(
+                        id = userId,
+                        playerName = profile?.get("player_name")?.jsonPrimitive?.contentOrNull
+                            ?.takeIf { it.isNotBlank() } ?: "Profil non synchronisé",
+                        rank = rank,
+                        powerText = profile?.get("power_text")?.jsonPrimitive?.contentOrNull.orEmpty(),
+                        heroSkillSummary = heroSummary,
+                        robotSummary = robotSummary,
+                        updatedAtIso = profile?.get("updated_at")?.jsonPrimitive?.contentOrNull.orEmpty()
+                    )
+                }
+            }
+        }
+
     suspend fun createAllianceInvite(allianceId: String, maxUses: Int = 1): Result<String> =
         callAllianceRpc("create_alliance_invite", buildJsonObject {
             put("p_alliance_id", allianceId)
