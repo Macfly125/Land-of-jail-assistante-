@@ -349,6 +349,15 @@ data class ForticladBuildingProgress(
 )
 
 @Serializable
+data class ForticladLabProgress(
+    val tier1: Int = 0,
+    val tier2: List<Int> = listOf(0, 0, 0, 0),
+    val tier3: Int = 0,
+    val tier4: Boolean = false,
+    val tier5: List<Int> = listOf(0, 0)
+)
+
+@Serializable
 data class SavedPlayerProfile(
     val id: String,
     val name: String,
@@ -361,6 +370,7 @@ data class SavedPlayerProfile(
     val currentPower: PowerMetric? = null,
     val forticladLevel: Int = 0,
     val forticladBuildings: Map<String, ForticladBuildingProgress> = emptyMap(),
+    val forticladLabProgress: Map<String, ForticladLabProgress> = emptyMap(),
     val gorillaRuns: List<GorillaDamageRecord> = emptyList()
 )
 
