@@ -1,5 +1,6 @@
 package com.landsofjail.assistant.service
 
+import com.landsofjail.assistant.MainActivity
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Notification
