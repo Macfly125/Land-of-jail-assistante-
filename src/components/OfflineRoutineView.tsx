@@ -130,6 +130,9 @@ function formatCountdown(msRemaining: number): string {
 export const OfflineRoutineView: React.FC<{ language?: AppLanguage }> = () => {
   const [tasks, setTasks] = useState<RoutineTask[]>(loadRoutineTasks);
   const [nowMs, setNowMs] = useState(() => Date.now());
+  const [customMinutes, setCustomMinutes] = useState<Record<string, string>>(() =>
+    Object.fromEntries(loadRoutineTasks().map((task) => [task.id, String(task.defaultMinutes)]))
+  );
   const [notifPerm, setNotifPerm] = useState<string>(() =>
     typeof Notification !== 'undefined' ? Notification.permission : 'unsupported'
   );
@@ -345,6 +348,34 @@ export const OfflineRoutineView: React.FC<{ language?: AppLanguage }> = () => {
                 <div className="text-[11px] font-mono-tabular text-slate-400">
                   {task.completedCount}× validé
                 </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <label className="flex items-center gap-2 text-xs text-slate-400">
+                  <span>Durée personnalisée</span>
+                  <input
+                    type="number"
+                    min="1"
+                    max="10080"
+                    step="1"
+                    inputMode="numeric"
+                    value={customMinutes[task.id] ?? String(task.defaultMinutes)}
+                    onChange={(event) =>
+                      setCustomMinutes((prev) => ({ ...prev, [task.id]: event.target.value }))
+                    }
+                    className="w-20 min-h-[36px] rounded-lg border border-slate-700 bg-slate-900 px-2 text-sm text-slate-100"
+                    aria-label={`Durée personnalisée en minutes pour ${task.title}`}
+                  />
+                  <span>min</span>
+                </label>
+                <button
+                  type="button"
+                  disabled={!Number.isInteger(Number(customMinutes[task.id])) || Number(customMinutes[task.id]) < 1 || Number(customMinutes[task.id]) > 10080}
+                  onClick={() => startTimer(task.id, Number(customMinutes[task.id]))}
+                  className="min-h-[36px] px-3 py-1 rounded-lg text-xs font-semibold bg-amber-500 text-slate-950 hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Lancer la durée
+                </button>
               </div>
 
               <div className="flex flex-wrap items-center justify-between gap-2">
