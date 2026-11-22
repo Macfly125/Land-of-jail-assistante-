@@ -32,7 +32,6 @@ import android.widget.Button
 import android.widget.LinearLayout
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
-import com.landsofjail.assistant.MainActivity
 import com.landsofjail.assistant.capture.CapturedScreenPayload
 import com.landsofjail.assistant.capture.ScreenCaptureConsentActivity
 import kotlinx.coroutines.*
@@ -312,7 +311,6 @@ class GameForegroundMonitorService : Service() {
             stopForeground(STOP_FOREGROUND_REMOVE)
             stopSelf()
         }
-        openAssistantDashboard()
     }
 
     private fun isBitmapMostlyBlank(bitmap: Bitmap): Boolean {
@@ -340,6 +338,11 @@ class GameForegroundMonitorService : Service() {
                 fos.write(jpegBytes)
                 fos.flush()
             }
+            getSharedPreferences("loj_capture_state", Context.MODE_PRIVATE)
+                .edit()
+                .putString("pending_capture_uri", Uri.fromFile(outFile).toString())
+                .putLong("pending_capture_at", System.currentTimeMillis())
+                .apply()
             // Nettoyer les captures très anciennes (garder les 30 plus récentes)
             dir.listFiles()?.sortedByDescending { it.lastModified() }?.drop(30)?.forEach {
                 it.delete()
@@ -348,17 +351,6 @@ class GameForegroundMonitorService : Service() {
         } catch (_: Throwable) {
             ""
         }
-    }
-
-    private fun openAssistantDashboard() {
-        val intent = Intent(this, MainActivity::class.java).apply {
-            addFlags(
-                Intent.FLAG_ACTIVITY_NEW_TASK or
-                    Intent.FLAG_ACTIVITY_SINGLE_TOP or
-                    Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
-            )
-        }
-        startActivity(intent)
     }
 
     private fun releaseProjection() {
