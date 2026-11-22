@@ -219,6 +219,8 @@ fun LandsOfJailAssistantApp(
 
     var analyses by remember { mutableStateOf<List<ScreenshotAnalysis>>(emptyList()) }
     var heroes by remember { mutableStateOf<List<HeroRecord>>(emptyList()) }
+    var robots by remember { mutableStateOf<List<RobotRecord>>(emptyList()) }
+    var reviewRobots by remember { mutableStateOf<List<RobotRecord>>(emptyList()) }
     var pendingReview by remember { mutableStateOf<ScreenshotAnalysis?>(null) }
     var reviewHeroes by remember { mutableStateOf<List<HeroRecord>>(emptyList()) }
     var pendingReviewCompletion by remember { mutableStateOf<CompletableDeferred<Boolean>?>(null) }
@@ -251,6 +253,9 @@ fun LandsOfJailAssistantApp(
         if (result.heros.isNotEmpty()) {
             val merged = (heroes + result.heros).associateBy { it.nom.lowercase() }
             heroes = merged.values.toList()
+        }
+        if (result.robots.isNotEmpty()) {
+            robots = (robots + result.robots).associateBy { it.nom.trim().lowercase() }.values.toList()
         }
         if (result.ressources.isNotEmpty()) {
             val merged = (resources + result.ressources).associateBy { it.nom.lowercase() }
