@@ -388,39 +388,55 @@ export const HeroesView: React.FC<HeroesViewProps> = ({
                           </span>
                         </div>
                       )}
-                      {selectedDetected && (
-                        <div className="space-y-1.5">
-                          <div className="text-slate-300">
-                            Progression de votre compte :{' '}
-                            <span className="font-semibold text-emerald-400">
-                              {selectedDetected.niveauTexte || 'Niveau non relevé'}
-                              {selectedDetected.etoiles ? ` · ${selectedDetected.etoiles}` : ''}
-                            </span>
-                            {selectedDetected.incertain && (
-                              <span className="ml-1 text-amber-300">(lecture à confirmer)</span>
-                            )}
-                          </div>
-                          {selectedDetected.rarete && (
+                      {selectedDetected && (() => {
+                        const uncertainFields = new Set(selectedDetected.champsIncertains || []);
+                        const isFieldUncertain = (field: string) =>
+                          uncertainFields.has(field) ||
+                          (!selectedDetected.champsIncertains && selectedDetected.incertain);
+                        const uncertaintyLabel = (field: string) =>
+                          isFieldUncertain(field) ? (
+                            <span className="ml-1 text-amber-300">(lecture à confirmer)</span>
+                          ) : null;
+                        return (
+                          <div className="space-y-1.5">
+                            <div className="text-slate-300">
+                              Niveau du compte :{' '}
+                              <span className="font-semibold text-emerald-400">
+                                {selectedDetected.niveauTexte || 'Niveau non relevé'}
+                              </span>
+                              {uncertaintyLabel('niveau')}
+                            </div>
+                            <div className="text-slate-300">
+                              Étoiles :{' '}
+                              <span className="font-semibold text-emerald-400">
+                                {selectedDetected.etoiles || 'Non relevées'}
+                              </span>
+                              {uncertaintyLabel('etoiles')}
+                            </div>
                             <div className="text-slate-300">
                               Rareté relevée sur votre capture :{' '}
                               <span className="font-semibold text-emerald-400">
-                                {selectedDetected.rarete}
+                                {selectedDetected.rarete || 'Non relevée'}
                               </span>
-                              {selectedDetected.incertain && (
-                                <span className="ml-1 text-amber-300">(à confirmer)</span>
-                              )}
+                              {uncertaintyLabel('rarete')}
                             </div>
-                          )}
-                          {selectedDetected.puissanceHero && (
+                            <div className="text-slate-300">
+                              Rôle :{' '}
+                              <span className="font-semibold text-emerald-400">
+                                {selectedDetected.roleHero || 'Non relevé'}
+                              </span>
+                              {uncertaintyLabel('roleHero')}
+                            </div>
                             <div className="text-slate-300">
                               Puissance réelle relevée :{' '}
                               <span className="font-semibold text-emerald-400 font-mono-tabular">
-                                {selectedDetected.puissanceHero}
+                                {selectedDetected.puissanceHero || 'Non relevée'}
                               </span>
+                              {uncertaintyLabel('puissanceHero')}
                             </div>
-                          )}
-                        </div>
-                      )}
+                          </div>
+                        );
+                      })()}
                       {selectedStars !== null && (
                         <div className="text-slate-300">
                           Palier d’étoiles détecté :{' '}
