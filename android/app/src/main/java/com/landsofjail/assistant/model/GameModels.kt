@@ -316,5 +316,6 @@ data class GorillaDamageRecord(
     val shooter: Int,
     val heroes: String = "",
     val robot: String = "",
-    val notes: String = ""
+    val notes: String = "",
+    val bonus: String = ""
 )
