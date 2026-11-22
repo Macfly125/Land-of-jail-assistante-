@@ -254,6 +254,8 @@ export interface TacticalAdviceResult {
   generatedAt: string;
   synthese: string;
   compositionRecommandee: string;
+  robotRecommande?: string;
+  ratioTroupes?: string;
   recommandations: AdviceRecommendation[];
   informationsIncertaines: string[];
   sources: GroundedWebSource[];
