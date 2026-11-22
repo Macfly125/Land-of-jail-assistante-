@@ -686,12 +686,13 @@ Règles strictes :
 
   app.post('/api/advice', async (req, res) => {
     try {
-      const { mode, language, playerRole, playerRoleLabel, eventPosition, heroes, robots, extraQuestion } = req.body as {
+      const { mode, language, playerRole, playerRoleLabel, eventPosition, gorillaName, heroes, robots, extraQuestion } = req.body as {
         mode?: AdviceEventMode;
         language?: TargetLang;
         playerRole?: string;
         playerRoleLabel?: string;
         eventPosition?: 'leader' | 'joiner' | 'solo';
+        gorillaName?: string;
         robots?: Array<{
           nom: string;
           niveau?: string;
@@ -840,6 +841,8 @@ Protocole de test : garder héros, niveaux de compétences, équipement et nombr
         solo: 'Action ou attaque solo',
       };
       const eventPositionLabel = eventPositionLabels[selectedEventPosition];
+      const validGorillas = ['Space Gorilla', 'Wise Gorilla', 'Cyber Gorilla', 'Primal Gorilla', 'Armed Gorilla', 'Treasure Gorilla', 'Gorilla Warlord / High Chieftain'];
+      const selectedGorilla = gorillaName && validGorillas.includes(gorillaName) ? gorillaName : ''; 
       const researchNotes = communityResearchByMode[mode];
       const leadSummary = liveGuides
         .slice(0, 4)
@@ -882,7 +885,7 @@ Protocole de test : garder héros, niveaux de compétences, équipement et nombr
       const cageRules = mode === 'trial_cage'
         ? `RÈGLES SPÉCIFIQUES TRIAL CAGE : le critère déterminant est le total de dégâts infligés à l'adversaire. Priorise les héros, compétences, bonus et synergies qui augmentent directement les dégâts (attaque, létalité, dégâts de compétence, réduction de défense ennemie, amplification des dégâts, attaques de zone). Ne valorise pas les bonus de PV, défense, soins ou réduction des dégâts subis s'ils n'augmentent pas les dégâts infligés dans ce mode. Ne recommande pas un héros uniquement parce qu'il est tank ou support défensif. Explique les synergies et l'ordre de priorité.`
         : mode === 'gorilla_legion'
-          ? `RÈGLES GORILLA LEGION : événement individuel de dégâts, pas un ralliement. Utilise le gorille et le bonus quotidien confirmés par l'utilisateur/capture. Si absents, demande de les vérifier et ne suppose pas le calendrier. Analyse les compétences de héros et l'équipement exclusif ainsi que les modules/armures liés au bonus du jour. Les ratios communautaires sont contradictoires : donne un point de départ et un test comparatif, pas un optimum garanti.`
+          ? `RÈGLES GORILLA LEGION : événement individuel de dégâts, pas un ralliement. Gorille sélectionné par le joueur : ${selectedGorilla || 'NON CONFIRMÉ'}. Si non confirmé, ne devine jamais lequel est actif et demande une capture ou confirmation. Adapte les conseils au gorille choisi et au bonus réellement affiché. Analyse les compétences de héros, équipement exclusif et modules/armures liés au bonus du jour. Les ratios communautaires sont contradictoires : donne un point de départ et un test comparatif, pas un optimum garanti.`
           : `Pour cet événement, distingue les objectifs réels (dégâts, contrôle, défense, occupation, collecte ou points) et sélectionne les héros/compétences en conséquence. Ne transpose pas automatiquement les critères de Trial Cage aux autres modes.`;
 
       const ai = getAiClient();
@@ -890,7 +893,7 @@ Protocole de test : garder héros, niveaux de compétences, équipement et nombr
         model: 'gemini-4-hydrogen',
         contents: `Tu es un coach tactique expert de Lands of Jail. Construis une recommandation personnalisée pour l'événement ${modeName}.
 Rôle général du compte : ${roleLabel}.
-Position choisie pour cet événement : ${eventPositionLabel}. Adapte les héros, compétences, robots, ratio et conseils à cette position ; ne mélange pas les règles du leader, du participant et du solo.
+Gorille choisi (si Gorilla Legion) : ${selectedGorilla || 'non confirmé'}. Position choisie pour cet événement : ${eventPositionLabel}. Adapte les héros, compétences, robots, ratio et conseils à cette position ; ne mélange pas les règles du leader, du participant et du solo.
 Données du compte — héros possédés :
 ${JSON.stringify(roster)}
 Robots/compagnons réellement possédés et détectés :
