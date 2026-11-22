@@ -261,6 +261,75 @@ class GeminiAssistantRepository(
             }
         }
 
+        // 3. Sources communautaires ciblées par événement (guides, vidéos référencées, héros et robots).
+        // Les pages sont relues en direct : aucune date ou compétence n'est inventée hors du contenu source.
+        val curatedUrls = buildList {
+            add("https://lojxlab.com/heropedia/")
+            add("https://lojxlab.com/guides/blog/")
+            when (mode) {
+                AdviceMode.TRIAL_CAGE -> {
+                    add("https://guideloj.com/fr/events/alliance/trial-cage-rally")
+                    add("https://lojxlab.com/topic/cage/")
+                    add("https://lojxlab.com/library/lands-of-jail-robot-upgrade-cost/")
+                }
+                AdviceMode.CRYSTAL_CLASH -> {
+                    add("https://guideloj.com/fr/events/alliance/crystal-clash")
+                    add("https://lojxlab.com/guides/blog/")
+                }
+                AdviceMode.SANDSEA_CONQUEST ->
+                    add("https://guideloj.com/fr/events/alliance/sandsea-conquest")
+                AdviceMode.SVS ->
+                    add("https://lojxlab.com/topic/svs/")
+                AdviceMode.TURMOIL_SURGE ->
+                    add("https://guideloj.com/fr/events/alliance/turmoil-surge")
+                AdviceMode.GOLD_HUNTER ->
+                    add("https://lojxlab.com/topic/gold-hunter/")
+            }
+        }.distinct()
+
+        for (sourceUrl in curatedUrls) {
+            if (sourceUrl in seenLinks) continue
+            runCatching {
+                val request = Request.Builder()
+                    .url(sourceUrl)
+                    .header("User-Agent", "LandsOfJailAssistantAndroid/1.6")
+                    .build()
+                client.newCall(request).execute().use { response ->
+                    val html = response.body?.string().orEmpty()
+                    if (response.isSuccessful && html.isNotBlank()) {
+                        val title = (
+                            Regex("<title[^>]*>(.*?)</title>", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
+                                .find(html)?.groupValues?.get(1)
+                                ?: Regex("<h1[^>]*>(.*?)</h1>", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
+                                    .find(html)?.groupValues?.get(1)
+                            ).orEmpty().let(::cleanHtml)
+                        val metaDescription = Regex(
+                            """<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["']""",
+                            RegexOption.IGNORE_CASE
+                        ).find(html)?.groupValues?.get(1).orEmpty()
+                        val firstParagraph = Regex(
+                            "<p[^>]*>(.*?)</p>",
+                            setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL)
+                        ).find(html)?.groupValues?.get(1).orEmpty()
+                        val excerpt = cleanHtml(metaDescription).ifBlank {
+                            cleanHtml(firstParagraph).take(650)
+                        }
+                        if (title.isNotBlank() && seenLinks.add(sourceUrl)) {
+                            collected.add(
+                                DirectPost(
+                                    title = translateSafely(title, language),
+                                    excerpt = translateSafely(excerpt, language),
+                                    url = sourceUrl,
+                                    dateStr = null,
+                                    imageUrl = null
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
         if (collected.isEmpty()) {
             error("Aucun guide Internet accessible. Vérifiez votre connexion.")
         }
