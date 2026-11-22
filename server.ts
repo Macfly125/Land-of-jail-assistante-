@@ -1068,6 +1068,14 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
       }).filter((signal) => signal.category >= 0 && !signal.purelyDefensive)
         .sort((a, b) => a.category - b.category);
 
+      const cageSignalLabelsByLang: Record<TargetLang, string[]> = {
+        fr: ['dégâts directs', 'bonus dégâts / dégâts subis par l’ennemi', 'réduction de DEF ennemie'],
+        tr: ['doğrudan hasar', 'hasar bonusu / düşmanın aldığı hasar', 'düşman savunmasını düşürme'],
+        ru: ['прямой урон', 'бонус урона / увеличение получаемого врагом урона', 'снижение защиты врага'],
+        zh: ['直接伤害', '伤害加成 / 提高敌人受到的伤害', '降低敌方防御'],
+        de: ['direkter Schaden', 'Schadensbonus / erhöhter erlittener Gegner-Schaden', 'Senkung der Gegnerverteidigung'],
+        en: ['direct damage', 'damage buff / increased enemy damage taken', 'enemy defense reduction'],
+      };
       const cageAssessmentText: Record<TargetLang, string> = {
         fr: 'Indices offensifs détectés dans les descriptions de compétences (heuristique, pas une simulation) :',
         tr: 'Beceri açıklamalarında bulunan saldırı işaretleri (tahmini sınıflandırma, simülasyon değildir):',
@@ -1078,7 +1086,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
       };
       const cageAssessment = mode === 'trial_cage'
         ? (cageSkillSignals.length
-            ? ` ${cageAssessmentText[targetLang]} ${cageSkillSignals.map((s) => `${s.hero} — ${s.skill} [${['direct damage', 'damage taken / damage buff', 'defense debuff'][s.category]}]`).join('; ')}.`
+            ? ` ${cageAssessmentText[targetLang]} ${cageSkillSignals.map((s) => `${s.hero} — ${s.skill} [${cageSignalLabelsByLang[targetLang][s.category]}]`).join('; ')}.`
             : (targetLang === 'fr'
                 ? ' Aucune compétence ne peut être classée de façon fiable : descriptions absentes, incertaines ou sans effet offensif explicite. Classement indisponible.'
                 : ' No skill can be classified reliably: descriptions are missing, uncertain, or contain no explicit offensive effect. Ranking unavailable.'))
