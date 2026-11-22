@@ -1897,8 +1897,8 @@ private fun ResourcesScreen(
                 val troopLabels = listOf("shieldbearer" to "Porte-boucliers", "bomber" to "Bombardiers", "shooter" to "Tireurs")
                 val labProgress = forticladLabProgress[selectedLabTroop] ?: ForticladLabProgress()
                 val remaining = remainingLabCost(labProgress)
-                val allRemaining = troopLabels.sumOf { (_, _) ->
-                    remainingLabCost(forticladLabProgress[selectedLabTroop] ?: ForticladLabProgress())
+                val allRemaining = troopLabels.sumOf { (id, _) ->
+                    remainingLabCost(forticladLabProgress[id] ?: ForticladLabProgress())
                 }
                 fun saveLabProgress(updated: ForticladLabProgress) {
                     onForticladLabProgressChange(forticladLabProgress + (selectedLabTroop to updated))
@@ -1934,8 +1934,9 @@ private fun ResourcesScreen(
                             labProgress.tier5.forEachIndexed { index, level ->
                                 OutlinedTextField(value = level.toString(), onValueChange = { value -> saveLabProgress(labProgress.copy(tier5 = labProgress.tier5.toMutableList().also { it[index] = (value.toIntOrNull() ?: 0).coerceIn(0, 10) })) }, label = { Text("Recherche ${index + 1} / 10") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                             }
-                            HorizontalDivider()
+                            Divider()
                             Text("Coût restant pour ce type : ${"%,d".format(remaining)} Hyperalliage", fontWeight = FontWeight.Bold)
+                            Text("Reste cumulé pour les trois types : ${"%,d".format(allRemaining)} Hyperalliage", style = MaterialTheme.typography.bodySmall)
                             Text("Jusqu’au déblocage Bastion (paliers 1 à 4) : 25 730 Hyperalliage au total.", style = MaterialTheme.typography.bodySmall, color = Color(0xFFFBBF24))
                             Text("Source communautaire : LOJ XLab · barème à confirmer dans le laboratoire en jeu.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
