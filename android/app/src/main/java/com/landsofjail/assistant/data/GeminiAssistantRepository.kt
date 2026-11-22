@@ -320,7 +320,19 @@ class GeminiAssistantRepository(
             synthese = synthText,
             compositionRecommandee = compText,
             recommandations = recommendations,
-            informationsIncertaines = if (heroNames.isEmpty()) listOf(noHeroesWarning(language)) else emptyList(),
+            informationsIncertaines = buildList {
+                add(
+                    when (language) {
+                        AppLanguage.FR -> "MODE DE SECOURS : conseils génériques issus de guides externes. Leur pertinence pour votre événement, votre serveur et vos héros n'est pas vérifiée. Ne les prenez pas comme une composition optimale garantie."
+                        AppLanguage.TR -> "YEDEK MOD: Harici rehberlerden alınan genel tavsiyeler. Etkinliğiniz, sunucunuz ve kahramanlarınız için uygunluğu doğrulanmadı; garantili en iyi dizilim olarak kabul etmeyin."
+                        AppLanguage.RU -> "РЕЗЕРВНЫЙ РЕЖИМ: общие советы из внешних руководств. Их соответствие вашему событию, серверу и героям не проверено. Не считайте их гарантированно оптимальным составом."
+                        AppLanguage.ZH -> "备用模式：建议来自外部攻略的通用信息，尚未验证是否适用于当前活动、服务器和英雄。请勿将其视为保证最优阵容。"
+                        AppLanguage.DE -> "ERSATZMODUS: Allgemeine Hinweise aus externen Guides. Die Eignung für Ihr Event, Ihren Server und Ihre Helden wurde nicht geprüft. Nicht als garantiert optimale Aufstellung verstehen."
+                        AppLanguage.EN -> "FALLBACK MODE: Generic advice from external guides. Compatibility with your event, server and heroes has not been verified. Do not treat this as a guaranteed optimal lineup."
+                    }
+                )
+                if (heroNames.isEmpty()) add(noHeroesWarning(language))
+            },
             sources = sources,
             geminiWarning = null
         )
