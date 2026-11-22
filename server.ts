@@ -152,7 +152,7 @@ Règles strictes :
 4. Identifie le type d'écran : "profil", "heros", "ressources", "trial_cage", "crystal_clash", ou "autre".
 5. Extrais si visibles :
    - La puissance du compte (texte exact affiché et estimation numérique entière si non ambiguë, sinon null) + niveau QG/Prison et VIP si visibles.
-   - Les ressources visibles (Cash/Or, Vivres, Bois, Acier, Pétrole, Gemmes/Diamants, Points d'arène, etc.) avec leur quantité exacte.
+   - Les ressources visibles (Cash/Or, Vivres, Bois, Acier, Pétrole, Gemmes/Diamants, Points d'arène, Hyperalliage/Hyperalloy, Noyaux Forticlad et Noyaux Forticlad avancés) avec leur quantité exacte. Pour chaque icône, lis le libellé et la quantité réellement visibles ; ne confonds pas Hyperalliage et Noyaux Forticlad.
    - Les héros visibles : nom, niveau (entier ou null si illisible), rareté/étoiles si visibles, rôle estimé ou affiché, et toutes les compétences visibles avec leur niveau (ex: "Niv. 3", "Max", "Inconnu") et description courte si visible.
    - Le robot / compagnon / unité de soutien visible sur l'écran : nom exact, niveau, puissance/rareté si affichés, compétences ou bonus visibles. Ne confonds jamais robot et héros.
    - Si aucun robot n'est visible, retourne robots: []. Ne complète jamais avec un robot supposé ni avec des données provenant d'un autre écran.
