@@ -11,6 +11,7 @@ interface ResourcesPowerViewProps {
   onOpenShareModal: () => void;
   onUpdateForticladLevel: (level: number) => void;
   onUpdateForticladBuildings: (progress: AccountState['forticladBuildings']) => void;
+  onUpdateForticladLabProgress: (progress: AccountState['forticladLabProgress']) => void;
 }
 
 export const ResourcesPowerView: React.FC<ResourcesPowerViewProps> = ({
@@ -19,6 +20,7 @@ export const ResourcesPowerView: React.FC<ResourcesPowerViewProps> = ({
   onOpenShareModal,
   onUpdateForticladLevel,
   onUpdateForticladBuildings,
+  onUpdateForticladLabProgress,
 }) => {
   const [subTab, setSubTab] = useState<'inventory' | 'calculator' | 'routine'>('inventory');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -92,7 +94,7 @@ export const ResourcesPowerView: React.FC<ResourcesPowerViewProps> = ({
       </div>
 
       {subTab === 'calculator' ? (
-        <UpgradeCalculatorView state={state} onUpdateForticladLevel={onUpdateForticladLevel} onUpdateForticladBuildings={onUpdateForticladBuildings} />
+        <UpgradeCalculatorView state={state} onUpdateForticladLevel={onUpdateForticladLevel} onUpdateForticladBuildings={onUpdateForticladBuildings} onUpdateForticladLabProgress={onUpdateForticladLabProgress} />
       ) : subTab === 'routine' ? (
         <OfflineRoutineView language={state.language} />
       ) : (
