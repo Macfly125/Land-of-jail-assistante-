@@ -352,50 +352,88 @@ fun LandsOfJailAssistantApp(
 
     suspend fun analyzeSingleUriInternal(uri: Uri, onProgress: (Int) -> Unit): ScreenshotAnalysis {
         onProgress(15)
-        val remote = repository.analyzeSharedScreenshot(context, uri, playerRole, null)
-        onProgress(55)
-        return remote.getOrElse {
-            val bitmap = runCatching {
-                context.contentResolver.openInputStream(uri)?.use { stream ->
-                    BitmapFactory.decodeStream(stream)
-                }
-            }.getOrNull()
-            onProgress(65)
-            val ocrRaw = if (bitmap != null) {
-                runCatching { LandsOfJailOcrParser.recognizeBitmap(bitmap) }.getOrDefault("")
-            } else {
-                ""
+        val bitmap = runCatching {
+            context.contentResolver.openInputStream(uri)?.use { stream ->
+                BitmapFactory.decodeStream(stream)
             }
-            onProgress(85)
-            val localExtraction = LandsOfJailOcrParser.parseLocalOcrText(ocrRaw)
-            val foundParts = buildList {
-                localExtraction.power?.let { add("Puissance : ${it.puissanceTotaleTexte}") }
-                if (localExtraction.heroes.isNotEmpty()) {
-                    add("${localExtraction.heroes.size} héros")
-                }
-                if (localExtraction.resources.isNotEmpty()) {
-                    add("${localExtraction.resources.size} ressource(s)")
-                }
-            }
-            val summaryLine = if (foundParts.isNotEmpty()) {
-                "${foundParts.joinToString(" · ")} — ${localExtraction.ocrSnippet}"
-            } else if (ocrRaw.isNotBlank()) {
-                "OCR local : ${localExtraction.ocrSnippet}"
-            } else {
-                "Image importée (aucun texte OCR lisible)"
-            }
-            ScreenshotAnalysis(
-                id = UUID.randomUUID().toString(),
-                analyzedAtIso = Instant.now().toString(),
-                imageUriString = uri.toString(),
-                typeCapture = localExtraction.detectedCategory,
-                resumeCapture = summaryLine,
-                puissance = localExtraction.power,
-                ressources = localExtraction.resources,
-                heros = localExtraction.heroes,
-                champsIncertains = localExtraction.uncertainItems
-            )
+        }.getOrNull()
+
+        onProgress(35)
+        val ocrRaw = if (bitmap != null) {
+            runCatching { LandsOfJailOcrParser.recognizeBitmap(bitmap) }.getOrDefault("")
+        } else {
+            ""
         }
+        val localExtraction = LandsOfJailOcrParser.parseLocalOcrText(ocrRaw)
+
+        onProgress(55)
+        val remote = repository.analyzeSharedScreenshot(context, uri, playerRole, null)
+        onProgress(85)
+
+        return remote.fold(
+            onSuccess = { remoteAnalysis ->
+                // L'OCR local complète toujours l'analyse distante : le profil joueur
+                // affiche la puissance près de l'icône du poing, sans libellé textuel.
+                val mergedPower = remoteAnalysis.puissance ?: localExtraction.power
+                val mergedHeroes = if (remoteAnalysis.heros.isEmpty()) {
+                    localExtraction.heroes
+                } else {
+                    remoteAnalysis.heros
+                }
+                val mergedResources = if (remoteAnalysis.ressources.isEmpty()) {
+                    localExtraction.resources
+                } else {
+                    remoteAnalysis.ressources
+                }
+                val localPowerSummary = if (
+                    remoteAnalysis.puissance == null &&
+                    localExtraction.power?.puissanceTotaleTexte?.isNotBlank() == true
+                ) {
+                    "Puissance détectée localement : ${localExtraction.power.puissanceTotaleTexte}"
+                } else {
+                    null
+                }
+                remoteAnalysis.copy(
+                    typeCapture = if (
+                        remoteAnalysis.typeCapture.equals("autre", true) &&
+                        localExtraction.detectedCategory != "ocr_local"
+                    ) localExtraction.detectedCategory else remoteAnalysis.typeCapture,
+                    resumeCapture = listOf(remoteAnalysis.resumeCapture, localPowerSummary)
+                        .filterNot { it.isNullOrBlank() }
+                        .distinct()
+                        .joinToString(" · "),
+                    puissance = mergedPower,
+                    heros = mergedHeroes,
+                    ressources = mergedResources,
+                    champsIncertains = remoteAnalysis.champsIncertains + localExtraction.uncertainItems
+                )
+            },
+            onFailure = {
+                val foundParts = buildList {
+                    localExtraction.power?.let { add("Puissance : ${it.puissanceTotaleTexte}") }
+                    if (localExtraction.heroes.isNotEmpty()) add("${localExtraction.heroes.size} héros")
+                    if (localExtraction.resources.isNotEmpty()) add("${localExtraction.resources.size} ressource(s)")
+                }
+                val summaryLine = if (foundParts.isNotEmpty()) {
+                    "${foundParts.joinToString(" · ")} — ${localExtraction.ocrSnippet}"
+                } else if (ocrRaw.isNotBlank()) {
+                    "OCR local : ${localExtraction.ocrSnippet}"
+                } else {
+                    "Image importée (aucun texte OCR lisible)"
+                }
+                ScreenshotAnalysis(
+                    id = UUID.randomUUID().toString(),
+                    analyzedAtIso = Instant.now().toString(),
+                    imageUriString = uri.toString(),
+                    typeCapture = localExtraction.detectedCategory,
+                    resumeCapture = summaryLine,
+                    puissance = localExtraction.power,
+                    ressources = localExtraction.resources,
+                    heros = localExtraction.heroes,
+                    champsIncertains = localExtraction.uncertainItems
+                )
+            }
+        )
     }
 
     fun enqueueUrisSequentially(uris: List<Uri>) {
