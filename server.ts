@@ -1077,40 +1077,17 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
                 ? ' Aucune compétence ne peut être classée de façon fiable : descriptions absentes, incertaines ou sans effet offensif explicite. Classement indisponible.'
                 : ' No skill can be classified reliably: descriptions are missing, uncertain, or contain no explicit offensive effect. Ranking unavailable.'))
         : '';
-      // Curated role references for the two events with documented entries.
-      // Other events remain unranked until their mechanics are sourced and verified.
-      const knownEventRoles: Record<string, { trial_cage: string; crystal_clash: string }> = {
-        Tyronn: { trial_cage: 'Tank principal de première ligne', crystal_clash: 'Tenue de points stratégiques' },
-        Phoenix: { trial_cage: 'DPS polyvalent contre le boss', crystal_clash: 'Soutien offensif sur les prises de points' },
-        Rin: { trial_cage: 'DPS arrière élevé', crystal_clash: 'Nettoyage des défenseurs sur points de cristal' },
-        Edwin: { trial_cage: 'Dégâts soutenus en ralliement Shooter', crystal_clash: 'Leader de ralliement offensif' },
-        Otto: { trial_cage: 'Tank secondaire / bouclier', crystal_clash: 'Garnison et défense de Crystal Ironhold' },
-        Marcus: { trial_cage: 'Absorption des dégâts en première ligne', crystal_clash: 'Défenseur de garnison' },
-        Ada: { trial_cage: 'Dégâts à distance réguliers', crystal_clash: 'Escarmouches et dépôts de cristal' },
-        Lee: { trial_cage: 'Contrôle / dégâts de zone', crystal_clash: 'Perturbation des groupes ennemis' },
-        Patrick: { trial_cage: 'Tank F2P de transition', crystal_clash: 'Garnison temporaire / renfort' },
-        Mia: { trial_cage: 'Soin et maintien en début de jeu', crystal_clash: 'Soutien / renfort' },
+      // Trial Cage rally guidance from the curated in-app reference catalogue.
+      // Keep launcher ratios separate from joiner troop composition.
+      const cageRallyGuidance: Record<TargetLang, string> = {
+        fr: ' Repères ralliement Cage (référence du catalogue, à confirmer selon la saison et les règles du serveur) : lanceur — Tyron en priorité, Phoenix en alternative; Vivian en saisons 1–2, Whisper à partir de la saison 3, Devillian comme option Shooter. Ratio indicatif du ralliement lancé : 55% Shieldbearers / 5% Bombers / 40% Shooters. Rejoigneur — seul le héros du 1er slot apporte le bonus indiqué; privilégier Rin ou Mireya, puis Edwin ou Ada selon le compte. Pour les troupes du rejoigneur, la référence recommande 100% Shooters si possible. Ne pas appliquer le ratio 55/5/40 au rejoigneur.',
+        tr: ' Cage ralliği referansı (sezon ve sunucu kurallarına göre doğrulanmalıdır): başlatan — öncelik Tyron, alternatif Phoenix; 1–2. sezonlarda Vivian, 3. sezondan itibaren Whisper, Shooter seçeneği olarak Devillian. Başlatılan ralli için gösterge oran: %55 Shieldbearer / %5 Bomber / %40 Shooter. Katılan — belirtilen bonusu yalnızca 1. kahraman yuvası sağlar; hesaba göre Rin veya Mireya, ardından Edwin ya da Ada tercih edilir. Katılan birlikleri için mümkünse %100 Shooter önerilir. %55/5/40 oranını katılan oyuncuya uygulamayın.',
+        ru: ' Ориентир для рейда в Cage (нужно сверить с сезоном и правилами сервера): инициатор — в первую очередь Tyron, альтернатива Phoenix; Vivian в сезонах 1–2, Whisper с сезона 3, Devillian как вариант Shooter. Примерное соотношение войск инициатора: 55% Shieldbearer / 5% Bomber / 40% Shooter. Участник — бонус указанного героя дает только первый слот; выбирайте Rin или Mireya, затем Edwin или Ada с учетом аккаунта. Для войск участника справочник рекомендует по возможности 100% Shooter. Не переносите соотношение 55/5/40 на участника.',
+        zh: ' Cage 集结参考（需按赛季和服务器规则核实）：发起者优先 Tyron，替代选择 Phoenix；第 1–2 赛季可选 Vivian，第 3 赛季起可选 Whisper，Devillian 是 Shooter 方案。发起集结的参考兵种比例：55% Shieldbearer / 5% Bomber / 40% Shooter。加入者只有第 1 英雄位提供所述加成；根据账号优先考虑 Rin 或 Mireya，其次 Edwin 或 Ada。加入集结的部队参考为尽可能使用 100% Shooter。不要把 55/5/40 比例套用到加入者。',
+        de: ' Cage-Rallye-Referenz (je nach Saison und Serverregeln prüfen): Starter — bevorzugt Tyron, alternativ Phoenix; Vivian in Saison 1–2, Whisper ab Saison 3, Devillian als Shooter-Option. Richtwert für die Truppen des gestarteten Rallys: 55% Shieldbearer / 5% Bomber / 40% Shooter. Beitretende — nur der Held im ersten Slot liefert den genannten Bonus; je nach Account Rin oder Mireya, danach Edwin oder Ada. Für beitretende Truppen empfiehlt die Referenz möglichst 100% Shooter. Das Verhältnis 55/5/40 nicht auf Beitretende übertragen.',
+        en: ' Trial Cage rally reference (verify against the current season and server rules): launcher — Tyron first, Phoenix alternative; Vivian in seasons 1–2, Whisper from season 3, Devillian as a Shooter option. Indicative troop ratio for the launched rally: 55% Shieldbearers / 5% Bombers / 40% Shooters. Joiner — only the first hero slot provides the stated boost; prioritize Rin or Mireya, then Edwin or Ada depending on the account. For a joiner’s troops, the reference recommends 100% Shooters if possible. Do not apply the 55/5/40 ratio to joiners.',
       };
-      const eventRoleContext = (heroes ?? []).flatMap((hero) => {
-        const entry = Object.entries(knownEventRoles).find(([name]) =>
-          name.toLocaleLowerCase() === hero.nom.trim().toLocaleLowerCase()
-        )?.[1];
-        const role = mode === 'trial_cage' ? entry?.trial_cage
-          : mode === 'crystal_clash' ? entry?.crystal_clash : undefined;
-        return role ? [`${hero.nom}: ${role}`] : [];
-      });
-      const eventRoleContextLabel: Record<TargetLang, string> = {
-        fr: 'Repères de rôle connus (pas un classement de puissance) :',
-        tr: 'Bilinen rol referansları (güç sıralaması değildir):',
-        ru: 'Известные ролевые ориентиры (не рейтинг силы):',
-        zh: '已知角色参考（并非战力排名）：',
-        de: 'Bekannte Rollenhinweise (keine Stärkerangliste):',
-        en: 'Known role references (not a power ranking):',
-      };
-      const eventRoleContextText = eventRoleContext.length
-        ? ` ${eventRoleContextLabel[targetLang]} ${eventRoleContext.join('; ')}.`
-        : '';
-
+      const cageRallyContext = mode === 'trial_cage' ? cageRallyGuidance[targetLang] : '';
       res.json({
         advice: {
           mode,
@@ -1118,7 +1095,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
           playerRole: playerRole || 'polyvalent_f2p',
           generatedAt: new Date().toISOString(),
           synthese: `${synthPrefix[targetLang]}${leadSummary}`,
-          compositionRecommandee: `${compTextByLang[targetLang]}${groundedProfileContext}${eventRoleContextText}${cageAssessment}`,
+          compositionRecommandee: `${compTextByLang[targetLang]}${groundedProfileContext}${eventRoleContextText}${cageAssessment}${cageRallyContext}`,
           recommandations: liveGuides.slice(0, 4).map((g) => ({
             titre: g.title,
             detail: g.excerpt || g.title,
