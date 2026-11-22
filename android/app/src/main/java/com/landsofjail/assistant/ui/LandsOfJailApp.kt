@@ -2237,7 +2237,7 @@ private fun AllianceScreen(
                                     "contrôle" to listOf("contrôle", "control", "étourdissement", "stun"),
                                     "attaque" to listOf("attaque", "atk", "attack", "dégât", "damage")
                                 )
-                                val tags = when (selectedEvent) {
+                                val tags: List<Pair<String, List<String>>> = when (selectedEvent) {
                                     AdviceMode.TRIAL_CAGE -> cageTags
                                     AdviceMode.TURMOIL_SURGE -> turmoilTags
                                     else -> listOf(
@@ -2247,11 +2247,14 @@ private fun AllianceScreen(
                                         "mobilité / tactique" to listOf("mobilité", "movement", "vitesse", "speed", "tactique", "tactical")
                                     )
                                 }
-                                val leader = roster.maxByOrNull(power)
-                                val joiners = roster.filter { it.id != leader?.id }
-                                    .sortedByDescending { member ->
-                                        val text = lower(member)
-                                        tags.sumOf { (_, words) -> if (words.any(text::contains)) 10 else 0 } + (power(member).coerceAtMost(9_999_999_999L) / 1_000_000_000L).toInt()
+                                val leader: AlliancePlayerProfile? = roster.maxByOrNull { candidate: AlliancePlayerProfile -> power(candidate) }
+                                val joiners: List<AlliancePlayerProfile> = roster.filter { candidate: AlliancePlayerProfile -> candidate.id != leader?.id }
+                                    .sortedByDescending { member: AlliancePlayerProfile ->
+                                        val memberText: String = lower(member)
+                                        val matchedTags = tags.sumOf { tag: Pair<String, List<String>> ->
+                                            if (tag.second.any { word: String -> memberText.contains(word) }) 10 else 0
+                                        }
+                                        matchedTags + (power(member).coerceAtMost(9_999_999_999L) / 1_000_000_000L).toInt()
                                     }
                                 val output = mutableListOf<String>()
                                 output += "Événement : ${selectedEvent.titleFor(AppLanguage.FR)}"
