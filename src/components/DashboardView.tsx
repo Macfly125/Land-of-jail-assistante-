@@ -27,6 +27,10 @@ import { formatFrenchDateTime } from '../utils/storage';
 
 interface DashboardViewProps {
   state: AccountState;
+  profiles: Array<{ id: string; name: string }>;
+  activeProfileId: string;
+  onSwitchProfile: (profileId: string) => void;
+  onCreateProfile: (name: string) => void;
   language: AppLanguage;
   onChangeLanguage: (lang: AppLanguage) => void;
   hasUsagePermission: boolean;
@@ -48,6 +52,10 @@ const LANGUAGES_ORDER: AppLanguage[] = ['fr', 'tr', 'ru', 'zh', 'de', 'en'];
 
 export const DashboardView: React.FC<DashboardViewProps> = ({
   state,
+  profiles,
+  activeProfileId,
+  onSwitchProfile,
+  onCreateProfile,
   language,
   onChangeLanguage,
   hasUsagePermission,
@@ -65,6 +73,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onNavigateTab,
 }) => {
   const [showCaptureSettings, setShowCaptureSettings] = useState(false);
+  const [newProfileName, setNewProfileName] = useState('');
   const copy = UI_COPY[language];
 
   const uncertainHeroesCount = state.heroes.filter(
@@ -88,6 +97,44 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {/* En-tête synthétique + Sélecteur de langue */}
       <section className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-slate-800/80 pb-6">
         <div className="space-y-2 max-w-2xl">
+          <div className="flex flex-wrap items-center gap-2">
+            <label htmlFor="active-game-profile" className="text-xs text-slate-400">Profil de jeu</label>
+            <select
+              id="active-game-profile"
+              value={activeProfileId}
+              onChange={(event) => onSwitchProfile(event.target.value)}
+              className="min-h-[36px] max-w-[190px] rounded-lg bg-slate-900 border border-slate-700 px-2.5 text-xs text-slate-100"
+            >
+              {profiles.map((profile) => (
+                <option key={profile.id} value={profile.id}>{profile.name}</option>
+              ))}
+            </select>
+            <input
+              aria-label="Nom du nouveau profil"
+              value={newProfileName}
+              onChange={(event) => setNewProfileName(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' && newProfileName.trim()) {
+                  onCreateProfile(newProfileName);
+                  setNewProfileName('');
+                }
+              }}
+              placeholder="Nouveau compte…"
+              maxLength={32}
+              className="min-h-[36px] w-36 rounded-lg bg-slate-900 border border-slate-700 px-2.5 text-xs text-slate-100 placeholder:text-slate-500"
+            />
+            <button
+              type="button"
+              disabled={!newProfileName.trim()}
+              onClick={() => {
+                onCreateProfile(newProfileName);
+                setNewProfileName('');
+              }}
+              className="min-h-[36px] px-3 rounded-lg bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-200 disabled:opacity-40"
+            >
+              + Ajouter
+            </button>
+          </div>
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-slate-50">
             {copy.dashboardTitle}
           </h1>
