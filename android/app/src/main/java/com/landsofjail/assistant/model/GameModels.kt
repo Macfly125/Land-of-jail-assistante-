@@ -108,7 +108,7 @@ enum class AdviceMode(
 
     fun briefFor(lang: AppLanguage): String = when (this) {
         TRIAL_CAGE -> when (lang) {
-            AppLanguage.FR -> "Shieldbearers en 1ère ligne et Shooters DPS derrière. Séparez les compétences Leader et Rejoigneur (règle des 4 compétences)."
+            AppLanguage.FR -> "Objectif : maximiser les dégâts infligés. Priorisez attaque, létalité, dégâts de compétence, réduction de défense ennemie et attaques de zone. Les bonus défensifs ne sont pas prioritaires s’ils n’augmentent pas les dégâts."
             AppLanguage.TR -> "Ön safa Shieldbearers, arkaya Shooters koyun. Ralli Lideri ile Katılımcı becerilerini ayırın."
             AppLanguage.RU -> "Ставьте Shieldbearers вперёд, а Shooters назад. Разделяйте героев лидера и участников."
             AppLanguage.ZH -> "前排放置盾兵英雄，后排放置射手输出，区分集结队长与跟车规则。"
