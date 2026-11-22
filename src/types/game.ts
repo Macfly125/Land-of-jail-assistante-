@@ -304,6 +304,7 @@ export interface AccountState {
   language?: AppLanguage;
   playerRole: PlayerRole;
   currentPower: PowerMetric | null;
+  forticladLevel?: number;
   powerHistory: Array<{
     analysisId: string;
     date: string;
