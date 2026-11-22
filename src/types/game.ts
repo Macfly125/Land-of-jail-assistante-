@@ -185,6 +185,8 @@ export interface HeroRecord {
   competences: HeroSkill[];
   incertain: boolean;
   raisonIncertitude?: string;
+  /** Personal fields whose values could not be read reliably from the screenshot. */
+  champsIncertains?: string[];
   verifieManuellement?: boolean;
   derniereMaj: string;
 }
