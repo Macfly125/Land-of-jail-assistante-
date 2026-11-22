@@ -72,7 +72,9 @@ function parseStars(etoiles?: string): number | null {
   // Ne pas extraire des chiffres d'un texte composite : "3/5 + 20 fragments"
   // ou une progression d'éclats ne représente pas un nombre d'étoiles certain.
   return null;
-}export const HeroesView: React.FC<HeroesViewProps> = ({
+}
+
+export const HeroesView: React.FC<HeroesViewProps> = ({
   heroes,
   onVerifyHero,
   onOpenShareModal,
@@ -161,11 +163,12 @@ function parseStars(etoiles?: string): number | null {
     selectedStars !== null
       ? HERO_SHARD_TIERS.find((t) => t.star === Math.min(selectedStars, 5))
       : undefined;
-  const maxTier = HERO_SHARD_TIERS[HERO_SHARD_TIERS.length - 1];
-  const shardsToMax5 =
-    selectedStars !== null
-      ? maxTier.cumulativeFromOneStar - (selectedStarTier?.cumulativeFromOneStar ?? 0)
-      : null;
+  // The screenshot gives the star tier, not the partial shard progress inside it.
+  // Show the published cost of the next tier; never present it as shards still missing.
+  const nextStarTier =
+    selectedStars !== null && selectedStars < 5
+      ? HERO_SHARD_TIERS.find((tier) => tier.star === selectedStars + 1)
+      : undefined;
 
   const startEdit = (hero: HeroRecord) => {
     setEditingHeroId(hero.id);
@@ -397,19 +400,22 @@ function parseStars(etoiles?: string): number | null {
                             : ''}
                         </div>
                       )}
-                      {shardsToMax5 !== null && (
+                      {selectedStars !== null && (
                         <div className="text-slate-300">
-                          Éclats manquants jusqu’à 5★ :{' '}
-                          <span className="font-semibold text-amber-300 font-mono-tabular">
-                            {shardsToMax5}
+                          Palier d’étoiles détecté :{' '}
+                          <span className="font-semibold text-amber-300">
+                            {selectedStarTier?.label || `${selectedStars}★`}
                           </span>
-                          {selectedStarTier && (
-                            <span className="text-slate-400">
-                              {' '}
-                              (palier {selectedStarTier.label} : {selectedStarTier.shardsForTier}{' '}
-                              éclats)
-                            </span>
-                          )}
+                        </div>
+                      )}
+                      {nextStarTier && (
+                        <div className="text-slate-300">
+                          Coût théorique du palier suivant :{' '}
+                          <span className="font-semibold text-amber-300 font-mono-tabular">
+                            {nextStarTier.shardsForTier}
+                          </span>{' '}
+                          éclats. La progression partielle en fragments n’est pas connue à partir
+                          de cette capture.
                         </div>
                       )}
                       {details.wikiUrl && (
