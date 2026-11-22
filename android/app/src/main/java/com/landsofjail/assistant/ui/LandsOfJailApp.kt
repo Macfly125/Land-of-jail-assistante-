@@ -1608,6 +1608,7 @@ private fun AdviceScreen(
     var gorillaRobotInput by remember { mutableStateOf("") }
     var gorillaNotesInput by remember { mutableStateOf("") }
     var gorillaBonusInput by remember { mutableStateOf("") }
+    var showClearGorillaConfirm by remember { mutableStateOf(false) }
     val gorillaRatioTotal = (gorillaShieldInput.toIntOrNull() ?: 0) +
         (gorillaBomberInput.toIntOrNull() ?: 0) + (gorillaShooterInput.toIntOrNull() ?: 0)
     val numberFormat = remember { java.text.NumberFormat.getIntegerInstance(java.util.Locale.FRANCE) }
@@ -1739,7 +1740,25 @@ private fun AdviceScreen(
                         gorillaRuns.take(5).forEach { run ->
                             Text("${run.gorilla} · ${numberFormat.format(run.damage)} · ${run.shield}/${run.bomber}/${run.shooter}", style = MaterialTheme.typography.bodySmall)
                         }
-                        if (gorillaRuns.isNotEmpty()) TextButton(onClick = onClearGorillaRuns) { Text("Effacer le journal") }
+                        if (gorillaRuns.isNotEmpty()) {
+                            TextButton(onClick = { showClearGorillaConfirm = true }) { Text("Effacer le journal") }
+                        }
+                        if (showClearGorillaConfirm) {
+                            AlertDialog(
+                                onDismissRequest = { showClearGorillaConfirm = false },
+                                title = { Text("Effacer le journal Gorilla ?") },
+                                text = { Text("Tous les essais enregistrés sur cet appareil seront supprimés. Cette action est irréversible.") },
+                                confirmButton = {
+                                    TextButton(onClick = {
+                                        onClearGorillaRuns()
+                                        showClearGorillaConfirm = false
+                                    }) { Text("Effacer") }
+                                },
+                                dismissButton = {
+                                    TextButton(onClick = { showClearGorillaConfirm = false }) { Text("Annuler") }
+                                }
+                            )
+                        }
                     }
                 }
             }
