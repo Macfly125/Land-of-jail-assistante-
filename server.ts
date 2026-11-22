@@ -138,18 +138,25 @@ async function startServer() {
 
       const ai = getAiClient();
 
-      const promptText = `Tu es un assistant d'analyse de captures d'écran pour le jeu mobile "Lands of Jail".
-Analyse UNIQUEMENT ce qui est réellement visible sur cette capture d'écran partagée par le joueur.
-Règles strictes :
-1. Réponds entièrement en français.
-2. N'invente JAMAIS de valeurs, niveaux, compétences ou ressources absents ou illisibles.
-3. Si une information est floue, coupée, partiellement masquée, ambiguë ou incertaine (par exemple un icône sans nom, un chiffre tronqué, un effet de compétence non affiché), marque impérativement "incertain": true et explique précisément pourquoi dans "raisonIncertitude", et ajoute une entrée dans "champsIncertains".
-4. Identifie le type d'écran : "profil", "heros", "ressources", "trial_cage", "crystal_clash", ou "autre".
-5. Extrais si visibles :
-   - La puissance du compte (texte exact affiché et estimation numérique entière si non ambiguë, sinon null) + niveau QG/Prison et VIP si visibles.
-   - Les ressources visibles (Cash/Or, Vivres, Bois, Acier, Pétrole, Gemmes/Diamants, Points d'arène, etc.) avec leur quantité exacte.
-   - Les héros visibles : nom, niveau (entier ou null si illisible), rareté/étoiles si visibles, rôle estimé ou affiché, et toutes les compétences visibles avec leur niveau (ex: "Niv. 3", "Max", "Inconnu") et description courte si visible.
-6. Contexte joueur optionnel : rôle="${playerRole || 'non précisé'}", note="${note || 'aucune'}".`;
+      const promptText = `Tu es un système expert de lecture visuelle des écrans du jeu mobile "Lands of Jail".
+Analyse l'image entière à haute attention visuelle. Réponds uniquement en français et n'invente aucune donnée.
+CONSIGNE PRIORITAIRE — ÉCRAN DES HÉROS :
+- Si l'écran montre une équipe ou une liste de 5 héros, tu DOIS examiner les 5 emplacements séparément, de gauche à droite puis de haut en bas. Ne t'arrête jamais au premier ou au deuxième héros.
+- Retourne une entrée distincte dans "heros" pour CHAQUE héros dont le portrait ou le nom est visiblement identifiable. Le nombre attendu est 5 lorsque cinq portraits sont présents.
+- Pour chaque emplacement, inspecte indépendamment le portrait, le nom sous/près du portrait, le niveau, le nombre d'étoiles/éclats, la rareté, la puissance individuelle si affichée et chaque icône/ligne de compétence avec son niveau.
+- Le niveau peut être affiché dans un badge séparé du nom : examine toute la zone autour du portrait, pas uniquement la ligne de texte qui contient le nom.
+- Ne confonds jamais la puissance maximale théorique du wiki avec la puissance réelle du héros sur le compte.
+- Si un portrait est visible mais son identité est illisible, ne devine pas son nom : ajoute une entrée dans "champsIncertains" décrivant précisément l'emplacement non identifié. N'invente pas un sixième héros.
+- Si un niveau, une puissance, une étoile ou un niveau de compétence n'est pas clairement lisible, laisse la valeur vide/null et marque le champ incertain. Ne remplace jamais une valeur illisible par une valeur estimée.
+- Si aucun niveau/puissance/compétence n'est affiché sur cette capture, indique-le clairement dans "resumeCapture" et "champsIncertains" plutôt que de prétendre que le héros est niveau 1 ou sans compétence.
+RÈGLES GÉNÉRALES :
+1. Identifie le type d'écran : "profil", "heros", "ressources", "trial_cage", "crystal_clash", ou "autre".
+2. Extrais la puissance du compte, niveau QG/Prison et VIP uniquement s'ils sont visibles.
+3. Extrais les ressources visibles avec leur quantité exacte.
+4. Pour chaque héros visible, renseigne nom, niveau exact, rareté, étoiles, rôle affiché/identifiable, puissance individuelle et toutes les compétences dont le niveau est réellement visible.
+5. Sépare strictement les faits lus sur l'image des données générales du catalogue/wiki. Les données wiki servent uniquement à décrire le héros, jamais à compléter son niveau, sa puissance personnelle, ses étoiles ou ses niveaux de compétences.
+6. Pour chaque donnée floue, coupée, masquée ou absente, marque "incertain": true et explique le motif dans "raisonIncertitude" ou "champsIncertains".
+7. Contexte facultatif : rôle joueur="${playerRole || 'non précisé'}", note="${note || 'aucune'}".`;
 
       const response = await ai.models.generateContent({
         model: 'gemini-4-hydrogen',
@@ -290,33 +297,30 @@ Règles strictes :
             h.idealPour = wikiInfo.idealPour;
             h.wikiUrl = wikiInfo.wikiUrl;
             if (Array.isArray(wikiInfo.competences) && wikiInfo.competences.length > 0) {
-              const existingSkills = Array.isArray(h.competences) ? (h.competences as Array<Record<string, unknown>>) : [];
-              if (existingSkills.length === 0) {
-                h.competences = wikiInfo.competences;
-              } else {
-                h.competences = existingSkills.map((sk, idx) => {
-                  const skName = String(sk.nom || '').toLowerCase();
-                  const matched =
-                    wikiInfo.competences.find((ws) => ws.nom.toLowerCase().includes(skName) || skName.includes(ws.nom.toLowerCase())) ||
-                    wikiInfo.competences[idx];
-                  return {
-                    ...sk,
-                    description: (typeof sk.description === 'string' && sk.description) || matched?.description,
-                    iconUrl: matched?.iconUrl,
-                  };
-                });
-                // Ajouter les autres compétences wiki non visibles sur la capture
-                for (const ws of wikiInfo.competences) {
-                  const already = (h.competences as Array<Record<string, unknown>>).some(
-                    (sk) =>
-                      String(sk.nom || '').toLowerCase().includes(ws.nom.toLowerCase()) ||
-                      ws.nom.toLowerCase().includes(String(sk.nom || '').toLowerCase())
-                  );
-                  if (!already) {
-                    (h.competences as Array<Record<string, unknown>>).push(ws);
-                  }
-                }
-              }
+              // Le wiki enrichit uniquement la description et l'icône des compétences
+              // réellement lues sur la capture. Il ne doit jamais fabriquer les niveaux
+              // personnels du joueur ni ajouter des compétences non visibles à son profil.
+              const existingSkills = Array.isArray(h.competences)
+                ? (h.competences as Array<Record<string, unknown>>)
+                : [];
+              h.competences = existingSkills.map((sk) => {
+                const skName = String(sk.nom || '').trim().toLowerCase();
+                const matched = skName
+                  ? wikiInfo.competences.find((ws) => {
+                      const wikiName = ws.nom.trim().toLowerCase();
+                      return wikiName === skName ||
+                        wikiName.includes(skName) ||
+                        skName.includes(wikiName);
+                    })
+                  : undefined;
+                return {
+                  ...sk,
+                  description:
+                    (typeof sk.description === 'string' && sk.description) ||
+                    matched?.description,
+                  iconUrl: matched?.iconUrl,
+                };
+              });
             }
           })
         );
