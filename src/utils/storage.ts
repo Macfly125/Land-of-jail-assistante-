@@ -70,6 +70,8 @@ function normalizeKey(value: string): string {
     .trim();
 }
 
+export const normalizeName = normalizeKey;
+
 export function mergeAnalysisIntoState(
   prev: AccountState,
   analysis: ScreenshotAnalysis
