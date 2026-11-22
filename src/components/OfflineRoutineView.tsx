@@ -208,7 +208,7 @@ export const OfflineRoutineView: React.FC<{ language?: AppLanguage }> = () => {
     setTasks((prev) =>
       prev.map((t) => {
         if (t.id !== id) return t;
-        const mins = Math.min(10080, Math.max(1, minutes ?? Number(t.durationInput ?? t.defaultMinutes) || t.defaultMinutes));
+        const mins = Math.min(10080, Math.max(1, (minutes ?? Number(t.durationInput ?? t.defaultMinutes)) || t.defaultMinutes));
         return {
           ...t,
           enabled: true,
