@@ -2228,6 +2228,23 @@ private fun SupabaseAccountCard() {
                         }
                     }
                 }
+                if (email.contains("@")) {
+                    TextButton(
+                        onClick = {
+                            scope.launch {
+                                busy = true
+                                message = null
+                                auth.resendSignupConfirmation(email)
+                                    .onSuccess { message = it; isError = false }
+                                    .onFailure { message = it.message ?: "Renvoi impossible."; isError = true }
+                                busy = false
+                            }
+                        },
+                        enabled = !busy
+                    ) {
+                        Text("Renvoyer l'e-mail de confirmation")
+                    }
+                }
             }
             message?.let {
                 Text(
