@@ -233,6 +233,7 @@ fun LandsOfJailAssistantApp(
     var isQueueRunning by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var selectedAdviceMode by remember { mutableStateOf(AdviceMode.TRIAL_CAGE) }
+    var selectedEventPosition by remember { mutableStateOf("joiner") }
     var adviceResult by remember { mutableStateOf<TacticalAdviceResult?>(null) }
     var isFetchingAdvice by remember { mutableStateOf(false) }
 
@@ -669,6 +670,8 @@ fun LandsOfJailAssistantApp(
                             adviceResult = null
                         },
                         playerRole = playerRole,
+                        eventPosition = selectedEventPosition,
+                        onEventPositionChange = { selectedEventPosition = it; adviceResult = null },
                         advice = adviceResult,
                         isLoading = isFetchingAdvice,
                         onGenerateAdvice = {
@@ -681,7 +684,8 @@ fun LandsOfJailAssistantApp(
                                     playerRole = playerRole,
                                     heroes = heroes,
                                     robots = robots,
-                                    powerText = currentPower?.puissanceTotaleTexte
+                                    powerText = currentPower?.puissanceTotaleTexte,
+                                    eventPosition = selectedEventPosition
                                 ).onSuccess { adviceResult = it }
                                     .onFailure { errorMessage = it.message }
                                 isFetchingAdvice = false
@@ -1556,6 +1560,8 @@ private fun AdviceScreen(
     selectedMode: AdviceMode,
     onSelectMode: (AdviceMode) -> Unit,
     playerRole: PlayerRole,
+    eventPosition: String,
+    onEventPositionChange: (String) -> Unit,
     advice: TacticalAdviceResult?,
     isLoading: Boolean,
     onGenerateAdvice: () -> Unit
@@ -1594,6 +1600,12 @@ private fun AdviceScreen(
             }
             Spacer(Modifier.height(6.dp))
             Text("Rôle : ${playerRole.labelFr}", style = MaterialTheme.typography.bodySmall)
+            Text("Position dans l'événement", style = MaterialTheme.typography.labelMedium, color = Color(0xFF94A3B8))
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                FilterChip(selected = eventPosition == "leader", onClick = { onEventPositionChange("leader") }, label = { Text("Leader") })
+                FilterChip(selected = eventPosition == "joiner", onClick = { onEventPositionChange("joiner") }, label = { Text("Participant") })
+                FilterChip(selected = eventPosition == "solo", onClick = { onEventPositionChange("solo") }, label = { Text("Solo") })
+            }
             Spacer(Modifier.height(6.dp))
             Button(onClick = onGenerateAdvice, enabled = !isLoading) {
                 Text(
