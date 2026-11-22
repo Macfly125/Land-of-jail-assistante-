@@ -112,14 +112,14 @@ export const UpgradeCalculatorView: React.FC<UpgradeCalculatorViewProps> = ({ st
   const ownedSteel = findScannedResourceAmount(state, ['steel', 'acier', 'fer']);
   const ownedGas = findScannedResourceAmount(state, ['gas', 'essence', 'pétrole', 'petrole', 'fuel']);
 
-  // --- Calculateur Forticlad (FC 1 → FC 5) ---
+  // --- Calculateur Forticlad (FC 1 → FC 8) ---
   const [fcStart, setFcStart] = useState<number>(0);
   const [fcTarget, setFcTarget] = useState<number>(1);
   const [fcBuildingCount, setFcBuildingCount] = useState<number>(1);
 
   const forticladCalculation = useMemo(() => {
-    const start = Math.max(0, Math.min(4, fcStart));
-    const end = Math.max(start + 1, Math.min(5, fcTarget));
+    const start = Math.max(0, Math.min(7, fcStart));
+    const end = Math.max(start + 1, Math.min(8, fcTarget));
     const stages = FORTICLAD_STAGES.filter((s) => s.fcLevel > start && s.fcLevel <= end);
     const totalFc = stages.reduce((s, item) => s + item.forticladCores, 0) * fcBuildingCount;
     const totalAfc = stages.reduce((s, item) => s + item.advancedForticladCores, 0) * fcBuildingCount;
@@ -203,7 +203,7 @@ export const UpgradeCalculatorView: React.FC<UpgradeCalculatorViewProps> = ({ st
           }`}
         >
           <Sparkles className="w-4 h-4" />
-          <span>Forticlad (FC 1–5)</span>
+          <span>Forticlad (FC 1–8)</span>
         </button>
         <button
           type="button"
@@ -448,7 +448,7 @@ export const UpgradeCalculatorView: React.FC<UpgradeCalculatorViewProps> = ({ st
         </div>
       )}
 
-      {/* SECTION 2 : FORTICLAD (FC 1 → FC 5) */}
+      {/* SECTION 2 : FORTICLAD (FC 1 → FC 8) */}
       {section === 'forticlad' && (
         <div className="space-y-6">
           <section className="p-6 rounded-2xl bg-[#121826] border border-slate-800/90 space-y-5">
@@ -458,13 +458,12 @@ export const UpgradeCalculatorView: React.FC<UpgradeCalculatorViewProps> = ({ st
                   Calculateur Forticlad (après niveau 30)
                 </h2>
                 <p className="text-xs text-slate-400 mt-1">
-                  Après le niveau 30, chaque niveau Forticlad (FC) se divise en 5 paliers et demande
-                  des Forticlad Cores (FC) et Advanced Forticlad Cores (AFC).
+                  Après le niveau 30, chaque niveau Forticlad (FC) se divise en 5 paliers. Les niveaux 6 à 8 utilisent une moyenne des coûts publiés pour 7 bâtiments ; les coûts varient selon le bâtiment et le laboratoire n’est pas inclus dans cette moyenne.
                 </p>
               </div>
               <span className="text-xs text-amber-300 inline-flex items-center gap-1.5 shrink-0">
                 <AlertTriangle className="w-4 h-4" />
-                <span>Valeurs estimatives · à vérifier selon bâtiment</span>
+                <span>FC 6–8 : moyenne indicative · à confirmer</span>
               </span>
             </div>
 
@@ -478,7 +477,7 @@ export const UpgradeCalculatorView: React.FC<UpgradeCalculatorViewProps> = ({ st
                   onChange={(e) => {
                     const v = Number(e.target.value);
                     setFcStart(v);
-                    if (fcTarget <= v) setFcTarget(Math.min(5, v + 1));
+                    if (fcTarget <= v) setFcTarget(Math.min(8, v + 1));
                   }}
                   className="w-full min-h-[44px] rounded-xl bg-slate-900 border border-slate-800 px-3.5 py-2 text-sm text-slate-100"
                 >
@@ -487,6 +486,9 @@ export const UpgradeCalculatorView: React.FC<UpgradeCalculatorViewProps> = ({ st
                   <option value={2}>FC 2</option>
                   <option value={3}>FC 3</option>
                   <option value={4}>FC 4</option>
+                  <option value={5}>FC 5</option>
+                  <option value={6}>FC 6</option>
+                  <option value={7}>FC 7</option>
                 </select>
               </div>
 
@@ -499,7 +501,7 @@ export const UpgradeCalculatorView: React.FC<UpgradeCalculatorViewProps> = ({ st
                   onChange={(e) => setFcTarget(Number(e.target.value))}
                   className="w-full min-h-[44px] rounded-xl bg-slate-900 border border-slate-800 px-3.5 py-2 text-sm text-slate-100"
                 >
-                  {[1, 2, 3, 4, 5]
+                  {[1, 2, 3, 4, 5, 6, 7, 8]
                     .filter((v) => v > fcStart)
                     .map((v) => (
                       <option key={v} value={v}>
@@ -511,14 +513,14 @@ export const UpgradeCalculatorView: React.FC<UpgradeCalculatorViewProps> = ({ st
 
               <div>
                 <label className="block text-xs font-medium text-slate-400 mb-1.5">
-                  Nombre de bâtiments (ex. Bureau + Comms + Casernes)
+                  Nombre de bâtiments (estimation)
                 </label>
                 <input
                   type="number"
                   min={1}
-                  max={6}
+                  max={8}
                   value={fcBuildingCount}
-                  onChange={(e) => setFcBuildingCount(Math.max(1, Math.min(6, Number(e.target.value) || 1)))}
+                  onChange={(e) => setFcBuildingCount(Math.max(1, Math.min(8, Number(e.target.value) || 1)))}
                   className="w-full min-h-[44px] rounded-xl bg-slate-900 border border-slate-800 px-3.5 py-2 text-sm font-mono-tabular text-slate-100"
                 />
               </div>
