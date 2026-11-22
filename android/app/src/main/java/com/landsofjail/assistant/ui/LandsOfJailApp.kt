@@ -2251,8 +2251,8 @@ private fun AllianceScreen(
                                 val joiners: List<AlliancePlayerProfile> = roster.filter { candidate: AlliancePlayerProfile -> candidate.id != leader?.id }
                                     .sortedByDescending { member: AlliancePlayerProfile ->
                                         val memberText: String = lower(member)
-                                        val matchedTags = tags.sumOf { tag: Pair<String, List<String>> ->
-                                            if (tag.second.any { word: String -> memberText.contains(word) }) 10 else 0
+                                        val matchedTags: Int = tags.fold(0) { total: Int, tag: Pair<String, List<String>> ->
+                                            total + if (tag.second.any { word: String -> memberText.contains(word) }) 10 else 0
                                         }
                                         matchedTags + (power(member).coerceAtMost(9_999_999_999L) / 1_000_000_000L).toInt()
                                     }
