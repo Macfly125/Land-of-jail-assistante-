@@ -166,7 +166,7 @@ object LandsOfJailOcrParser {
                     .firstNotNullOfOrNull { lineIndex ->
                         val line = lines[lineIndex]
                         val beforeEliminations = if (lineIndex == eliminationLineIndex) {
-                            (Regex("""[ée]liminations?""", RegexOption.IGNORE_CASE).find(line)?.range?.first?.let { line.substring(0, it) } ?: line)
+                            (Regex("""[ée]liminations?""", RegexOption.IGNORE_CASE).find(line)?.range?.first?.let { line.take(it) } ?: line)
                         } else {
                             line
                         }
