@@ -35,6 +35,7 @@ import coil.compose.AsyncImage
 import com.landsofjail.assistant.capture.CapturedScreenPayload
 import com.landsofjail.assistant.capture.ScreenCaptureConsentActivity
 import com.landsofjail.assistant.data.GeminiAssistantRepository
+import com.landsofjail.assistant.data.SupabaseAuthRepository
 import com.landsofjail.assistant.model.*
 import com.landsofjail.assistant.ocr.LandsOfJailOcrParser
 import com.landsofjail.assistant.service.GameForegroundMonitorService
@@ -2006,6 +2007,130 @@ private fun HistoryScreen(
 }
 }
 
+
+@Composable
+private fun SupabaseAccountCard() {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val auth = remember(context) { SupabaseAuthRepository(context) }
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var session by remember { mutableStateOf(auth.currentSession()) }
+    var createAccount by remember { mutableStateOf(false) }
+    var busy by remember { mutableStateOf(false) }
+    var message by remember { mutableStateOf<String?>(null) }
+    var isError by remember { mutableStateOf(false) }
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF151C27)),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(9.dp)
+        ) {
+            Text("Compte & sauvegarde cloud", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(
+                "Connecte un compte pour préparer la synchronisation sécurisée du profil et de l'alliance entre plusieurs téléphones.",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color(0xFFB8C3D1)
+            )
+            if (session != null) {
+                Text("Session enregistrée : ${session?.email.orEmpty()}", color = Color(0xFF86EFAC), style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    "Les jetons sont chiffrés avec Android Keystore sur cet appareil. La synchronisation des profils n'est pas encore activée.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(0xFFFBBF24)
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(
+                        onClick = {
+                            scope.launch {
+                                busy = true
+                                auth.refreshSession()
+                                    .onSuccess { session = it; message = "Session actualisée."; isError = false }
+                                    .onFailure { message = it.message ?: "Actualisation impossible."; isError = true }
+                                busy = false
+                            }
+                        },
+                        enabled = !busy,
+                        modifier = Modifier.weight(1f)
+                    ) { Text("Actualiser") }
+                    OutlinedButton(
+                        onClick = {
+                            scope.launch {
+                                busy = true
+                                auth.signOut()
+                                    .onSuccess { session = null; message = "Déconnexion effectuée."; isError = false }
+                                    .onFailure { message = it.message ?: "Déconnexion impossible."; isError = true }
+                                busy = false
+                            }
+                        },
+                        enabled = !busy,
+                        modifier = Modifier.weight(1f)
+                    ) { Text("Déconnexion") }
+                }
+            } else {
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = { email = it.trim() },
+                    label = { Text("Adresse e-mail") },
+                    singleLine = true,
+                    enabled = !busy,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = { Text("Mot de passe (8 caractères minimum)") },
+                    singleLine = true,
+                    enabled = !busy,
+                    visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    TextButton(onClick = { createAccount = !createAccount; message = null }, enabled = !busy) {
+                        Text(if (createAccount) "J'ai déjà un compte" else "Créer un compte")
+                    }
+                    Spacer(Modifier.weight(1f))
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                busy = true
+                                message = null
+                                val result = if (createAccount) auth.signUp(email, password) else auth.signIn(email, password)
+                                result.onSuccess { outcome ->
+                                    session = outcome.session ?: auth.currentSession()
+                                    message = outcome.message
+                                    isError = false
+                                }.onFailure {
+                                    message = it.message ?: "Une erreur est survenue."
+                                    isError = true
+                                }
+                                busy = false
+                            }
+                        },
+                        enabled = !busy && email.isNotBlank() && password.length >= 8
+                    ) {
+                        if (busy) {
+                            CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                        } else {
+                            Text(if (createAccount) "S'inscrire" else "Se connecter")
+                        }
+                    }
+                }
+            }
+            message?.let {
+                Text(
+                    it,
+                    color = if (isError) Color(0xFFFCA5A5) else Color(0xFF86EFAC),
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        }
+    }
+}
+
 @Composable
 private fun AllianceScreen(
     workspace: AllianceWorkspace,
@@ -2041,6 +2166,7 @@ private fun AllianceScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp),
         contentPadding = PaddingValues(bottom = 20.dp)
     ) {
+        item { SupabaseAccountCard() }
         item {
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
                 Text("Espace Alliance", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
