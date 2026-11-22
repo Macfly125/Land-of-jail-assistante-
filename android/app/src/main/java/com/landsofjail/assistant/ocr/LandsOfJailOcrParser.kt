@@ -67,7 +67,7 @@ object LandsOfJailOcrParser {
             "Cash / Or" to Regex("""(?:cash|gold|or)\s*[:\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)""", RegexOption.IGNORE_CASE)
         )
 
-        for ((index, line) in lines.withIndex()) {
+        for (line in lines) {
             wardenRegex.find(line)?.let { match ->
                 if (wardenLevel == null) {
                     wardenLevel = "Niv. ${match.groupValues[1]}"
