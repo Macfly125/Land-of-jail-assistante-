@@ -234,6 +234,7 @@ fun LandsOfJailAssistantApp(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var selectedAdviceMode by remember { mutableStateOf(AdviceMode.TRIAL_CAGE) }
     var selectedEventPosition by remember { mutableStateOf("joiner") }
+    var selectedGorilla by remember { mutableStateOf("") }
     var adviceResult by remember { mutableStateOf<TacticalAdviceResult?>(null) }
     var isFetchingAdvice by remember { mutableStateOf(false) }
 
@@ -672,6 +673,8 @@ fun LandsOfJailAssistantApp(
                         playerRole = playerRole,
                         eventPosition = selectedEventPosition,
                         onEventPositionChange = { selectedEventPosition = it; adviceResult = null },
+                        selectedGorilla = selectedGorilla,
+                        onGorillaChange = { selectedGorilla = it; adviceResult = null },
                         advice = adviceResult,
                         isLoading = isFetchingAdvice,
                         onGenerateAdvice = {
@@ -685,7 +688,8 @@ fun LandsOfJailAssistantApp(
                                     heroes = heroes,
                                     robots = robots,
                                     powerText = currentPower?.puissanceTotaleTexte,
-                                    eventPosition = selectedEventPosition
+                                    eventPosition = selectedEventPosition,
+                                    gorillaName = selectedGorilla.takeIf { selectedAdviceMode == AdviceMode.GORILLA_LEGION }
                                 ).onSuccess { adviceResult = it }
                                     .onFailure { errorMessage = it.message }
                                 isFetchingAdvice = false
@@ -1562,6 +1566,8 @@ private fun AdviceScreen(
     playerRole: PlayerRole,
     eventPosition: String,
     onEventPositionChange: (String) -> Unit,
+    selectedGorilla: String,
+    onGorillaChange: (String) -> Unit,
     advice: TacticalAdviceResult?,
     isLoading: Boolean,
     onGenerateAdvice: () -> Unit
@@ -1600,6 +1606,27 @@ private fun AdviceScreen(
             }
             Spacer(Modifier.height(6.dp))
             Text("Rôle : ${playerRole.labelFr}", style = MaterialTheme.typography.bodySmall)
+            if (selectedMode == AdviceMode.GORILLA_LEGION) {
+                Text("Gorille affiché dans le jeu", style = MaterialTheme.typography.labelMedium, color = Color(0xFF94A3B8))
+                val gorillaOptions = listOf(
+                    "Space Gorilla", "Wise Gorilla", "Cyber Gorilla", "Primal Gorilla",
+                    "Armed Gorilla", "Treasure Gorilla", "Gorilla Warlord / High Chieftain"
+                )
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        FilterChip(selected = selectedGorilla.isBlank(), onClick = { onGorillaChange("") }, label = { Text("À confirmer") })
+                        gorillaOptions.take(3).forEach { gorilla ->
+                            FilterChip(selected = selectedGorilla == gorilla, onClick = { onGorillaChange(gorilla) }, label = { Text(gorilla) })
+                        }
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        gorillaOptions.drop(3).forEach { gorilla ->
+                            FilterChip(selected = selectedGorilla == gorilla, onClick = { onGorillaChange(gorilla) }, label = { Text(gorilla) })
+                        }
+                    }
+                }
+                Text("Choisis le nom exact visible : ne te fie pas uniquement au jour de la semaine.", style = MaterialTheme.typography.bodySmall, color = Color(0xFF94A3B8))
+            }
             if (selectedMode != AdviceMode.GORILLA_LEGION) {
                 Text("Position dans l'événement", style = MaterialTheme.typography.labelMedium, color = Color(0xFF94A3B8))
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
