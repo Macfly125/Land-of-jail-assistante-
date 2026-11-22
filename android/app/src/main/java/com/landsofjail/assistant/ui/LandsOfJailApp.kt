@@ -2031,14 +2031,14 @@ private fun SupabaseAccountCard() {
         ) {
             Text("Compte & sauvegarde cloud", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Text(
-                "Connecte un compte pour préparer la synchronisation sécurisée du profil et de l'alliance entre plusieurs téléphones.",
+                "Connecte ton compte pour synchroniser ton profil de joueur et tes héros dans l'espace cloud sécurisé.",
                 style = MaterialTheme.typography.bodySmall,
                 color = Color(0xFFB8C3D1)
             )
             if (session != null) {
                 Text("Session enregistrée : ${session?.email.orEmpty()}", color = Color(0xFF86EFAC), style = MaterialTheme.typography.bodyMedium)
                 Text(
-                    "Les jetons sont chiffrés avec Android Keystore sur cet appareil. La synchronisation des profils n'est pas encore activée.",
+                    "Les jetons sont chiffrés avec Android Keystore. La synchronisation du profil se lance depuis le formulaire joueur ci-dessous.",
                     style = MaterialTheme.typography.bodySmall,
                     color = Color(0xFFFBBF24)
                 )
@@ -2138,6 +2138,12 @@ private fun AllianceScreen(
     currentPowerText: String,
     onSaveWorkspace: (AllianceWorkspace) -> Unit
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val cloudAuth = remember(context) { SupabaseAuthRepository(context) }
+    var cloudSyncBusy by remember { mutableStateOf(false) }
+    var cloudSyncMessage by remember { mutableStateOf<String?>(null) }
+    var cloudSyncError by remember { mutableStateOf(false) }
     var playerName by remember(workspace.ownProfile.playerName) { mutableStateOf(workspace.ownProfile.playerName) }
     var server by remember(workspace.server) { mutableStateOf(workspace.server) }
     var allianceName by remember(workspace.allianceName) { mutableStateOf(workspace.allianceName) }
@@ -2241,6 +2247,60 @@ private fun AllianceScreen(
                         enabled = playerName.isNotBlank() && server.isNotBlank() && allianceName.isNotBlank(),
                         modifier = Modifier.fillMaxWidth()
                     ) { Text("Enregistrer mon inscription") }
+                    OutlinedButton(
+                        onClick = {
+                            if (cloudAuth.currentSession() == null) {
+                                cloudSyncMessage = "Connecte-toi à ton compte cloud avant de synchroniser."
+                                cloudSyncError = true
+                            } else {
+                                val profile = AlliancePlayerProfile(
+                                    id = workspace.ownProfile.id.ifBlank { UUID.randomUUID().toString() },
+                                    playerName = playerName.trim(),
+                                    server = server.trim(),
+                                    allianceName = allianceName.trim(),
+                                    rank = rank,
+                                    powerText = currentPowerText.ifBlank { workspace.ownProfile.powerText },
+                                    heroSkillSummary = ownHeroSummary,
+                                    robotSummary = ownRobotSummary.trim(),
+                                    updatedAtIso = Instant.now().toString()
+                                )
+                                onSaveWorkspace(workspace.copy(
+                                    server = server.trim(),
+                                    allianceName = allianceName.trim(),
+                                    ownProfile = profile
+                                ))
+                                scope.launch {
+                                    cloudSyncBusy = true
+                                    cloudSyncMessage = null
+                                    cloudAuth.syncPlayerProfile(profile, heroes)
+                                        .onSuccess {
+                                            cloudSyncMessage = "Profil et ${heroes.size} héros synchronisés avec ton compte."
+                                            cloudSyncError = false
+                                        }
+                                        .onFailure {
+                                            cloudSyncMessage = it.message ?: "Synchronisation impossible."
+                                            cloudSyncError = true
+                                        }
+                                    cloudSyncBusy = false
+                                }
+                            }
+                        },
+                        enabled = !cloudSyncBusy && playerName.isNotBlank() && server.isNotBlank() && allianceName.isNotBlank(),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        if (cloudSyncBusy) {
+                            CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                            Spacer(Modifier.width(8.dp))
+                        }
+                        Text(if (cloudSyncBusy) "Synchronisation…" else "Synchroniser mon profil et mes héros")
+                    }
+                    cloudSyncMessage?.let {
+                        Text(
+                            it,
+                            color = if (cloudSyncError) Color(0xFFFCA5A5) else Color(0xFF86EFAC),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
                     Text(
                         if (isOfficer) "Rang déclaré R4/R5 : gestion du roster et simulations activées sur cet appareil. Vérification du rang requise pour l’espace cloud partagé."
                         else "Rang déclaré R1/R2/R3 : tu peux enregistrer ton profil. La gestion du roster et les simulations sont réservées aux R4/R5.",
