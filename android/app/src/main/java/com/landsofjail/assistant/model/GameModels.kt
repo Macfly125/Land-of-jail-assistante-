@@ -342,6 +342,20 @@ data class TacticalAdviceResult(
 
 
 @Serializable
+data class SavedPlayerProfile(
+    val id: String,
+    val name: String,
+    val languageCode: String = "fr",
+    val playerRoleName: String = "POLYVALENT_F2P",
+    val analyses: List<ScreenshotAnalysis> = emptyList(),
+    val heroes: List<HeroRecord> = emptyList(),
+    val robots: List<RobotRecord> = emptyList(),
+    val resources: List<ResourceRecord> = emptyList(),
+    val currentPower: PowerMetric? = null,
+    val gorillaRuns: List<GorillaDamageRecord> = emptyList()
+)
+
+@Serializable
 data class GorillaDamageRecord(
     val id: String,
     val date: String,
