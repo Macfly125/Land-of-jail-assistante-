@@ -8,6 +8,7 @@ interface RoutineTask {
   category: string;
   description: string;
   defaultMinutes: number;
+  durationInput?: string;
   enabled: boolean;
   endsAtMs: number | null;
   pausedRemainingMs?: number | null;
@@ -207,11 +208,12 @@ export const OfflineRoutineView: React.FC<{ language?: AppLanguage }> = () => {
     setTasks((prev) =>
       prev.map((t) => {
         if (t.id !== id) return t;
-        const mins = minutes ?? t.defaultMinutes;
+        const mins = Math.min(10080, Math.max(1, minutes ?? Number(t.durationInput ?? t.defaultMinutes) || t.defaultMinutes));
         return {
           ...t,
           enabled: true,
           defaultMinutes: mins,
+          durationInput: String(mins),
           endsAtMs: Date.now() + mins * 60_000,
           pausedRemainingMs: null,
         };
@@ -240,7 +242,7 @@ export const OfflineRoutineView: React.FC<{ language?: AppLanguage }> = () => {
     setTasks((prev) =>
       prev.map((t) =>
         t.enabled
-          ? { ...t, endsAtMs: base + t.defaultMinutes * 60_000, pausedRemainingMs: null }
+          ? (() => { const mins = Math.min(10080, Math.max(1, Number(t.durationInput ?? t.defaultMinutes) || t.defaultMinutes)); return { ...t, defaultMinutes: mins, durationInput: String(mins), endsAtMs: base + mins * 60_000, pausedRemainingMs: null }; })()
           : t
       )
     );
@@ -345,6 +347,32 @@ export const OfflineRoutineView: React.FC<{ language?: AppLanguage }> = () => {
                 <div className="text-[11px] font-mono-tabular text-slate-400">
                   {task.completedCount}× validé
                 </div>
+              </div>
+
+              <div className="flex flex-wrap items-end gap-2 pt-1">
+                <label className="flex flex-col gap-1 text-[11px] text-slate-400">
+                  Durée personnalisée (minutes)
+                  <input
+                    type="number"
+                    min="1"
+                    max="10080"
+                    inputMode="numeric"
+                    value={task.durationInput ?? String(task.defaultMinutes)}
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      setTasks((prev) => prev.map((t) => t.id === task.id ? { ...t, durationInput: value } : t));
+                    }}
+                    className="w-32 min-h-[38px] rounded-lg border border-slate-700 bg-slate-900 px-3 text-sm text-slate-100 outline-none focus:border-amber-500"
+                  />
+                </label>
+                <button
+                  type="button"
+                  onClick={() => startTimer(task.id)}
+                  disabled={!Number.isFinite(Number(task.durationInput ?? task.defaultMinutes)) || Number(task.durationInput ?? task.defaultMinutes) < 1 || Number(task.durationInput ?? task.defaultMinutes) > 10080}
+                  className="min-h-[38px] px-3 rounded-lg text-xs font-semibold bg-amber-500 text-slate-950 hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <Play className="w-3 h-3 inline mr-1" /> Démarrer
+                </button>
               </div>
 
               <div className="flex flex-wrap items-center justify-between gap-2">
