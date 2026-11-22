@@ -70,6 +70,11 @@ function normalizeKey(value: string): string {
     .trim();
 }
 
+/** Normalize hero/resource names for consistent matching across OCR and catalog data. */
+export function normalizeName(value: string): string {
+  return normalizeKey(value);
+}
+
 export function mergeAnalysisIntoState(
   prev: AccountState,
   analysis: ScreenshotAnalysis
