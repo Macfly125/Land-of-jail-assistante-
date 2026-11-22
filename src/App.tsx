@@ -639,6 +639,7 @@ export default function App() {
             state={state}
             onVerifyResource={handleVerifyResource}
             onUpdateForticladLevel={(level) => setState((prev) => ({ ...prev, forticladLevel: level }))}
+            onUpdateForticladBuildings={(progress) => setState((prev) => ({ ...prev, forticladBuildings: progress }))}
             onOpenShareModal={() => {
               setAnalyzeError(null);
               setIsShareModalOpen(true);
