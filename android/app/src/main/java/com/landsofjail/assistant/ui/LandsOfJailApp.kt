@@ -2004,3 +2004,346 @@ private fun HistoryScreen(
     }
 }
 }
+
+@Composable
+private fun AllianceScreen(
+    workspace: AllianceWorkspace,
+    heroes: List<HeroRecord>,
+    onSaveWorkspace: (AllianceWorkspace) -> Unit
+) {
+    var playerName by remember(workspace.ownProfile.playerName) { mutableStateOf(workspace.ownProfile.playerName) }
+    var server by remember(workspace.server) { mutableStateOf(workspace.server) }
+    var allianceName by remember(workspace.allianceName) { mutableStateOf(workspace.allianceName) }
+    var rank by remember(workspace.ownProfile.rank) { mutableStateOf(workspace.ownProfile.rank) }
+    var showAddMember by remember { mutableStateOf(false) }
+    var memberName by remember { mutableStateOf("") }
+    var memberPower by remember { mutableStateOf("") }
+    var memberRank by remember { mutableStateOf(AllianceRank.R1) }
+    var memberSkills by remember { mutableStateOf("") }
+    var memberRobots by remember { mutableStateOf("") }
+    var selectedEvent by remember { mutableStateOf(AdviceMode.TRIAL_CAGE) }
+    var simulation by remember { mutableStateOf<List<String>>(emptyList()) }
+    val isOfficer = rank == AllianceRank.R5 || rank == AllianceRank.R4
+    val ownHeroSummary = remember(heroes) {
+        heroes.sortedByDescending { it.competences.size }.joinToString("\n") { hero ->
+            val skills = hero.competences.joinToString("; ") { skill ->
+                listOf(skill.nom, skill.niveau, skill.description.orEmpty()).filter { it.isNotBlank() }.joinToString(" ")
+            }
+            "${hero.nom}: ${skills.ifBlank { "compétences non renseignées" }}"
+        }
+    }
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(bottom = 20.dp)
+    ) {
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                Text("Espace Alliance", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                Text(
+                    "Inscris ton profil de jeu et rassemble les capacités de tes membres pour préparer les événements.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        item {
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                    Text("Inscription du joueur", fontWeight = FontWeight.Bold)
+                    OutlinedTextField(
+                        value = playerName,
+                        onValueChange = { playerName = it },
+                        label = { Text("Pseudo dans le jeu") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = server,
+                        onValueChange = { server = it.filter(Char::isDigit).take(6) },
+                        label = { Text("Serveur (ex. 311)") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = allianceName,
+                        onValueChange = { allianceName = it },
+                        label = { Text("Nom / tag de l'alliance") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Text("Ton rang dans le jeu", style = MaterialTheme.typography.labelLarge)
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        items(AllianceRank.entries) { item ->
+                            FilterChip(
+                                selected = rank == item,
+                                onClick = { rank = item },
+                                label = { Text(item.labelFr) }
+                            )
+                        }
+                    }
+                    Button(
+                        onClick = {
+                            val profile = AlliancePlayerProfile(
+                                id = workspace.ownProfile.id.ifBlank { UUID.randomUUID().toString() },
+                                playerName = playerName.trim(),
+                                server = server.trim(),
+                                allianceName = allianceName.trim(),
+                                rank = rank,
+                                powerText = workspace.ownProfile.powerText,
+                                heroSkillSummary = ownHeroSummary,
+                                robotSummary = workspace.ownProfile.robotSummary,
+                                updatedAtIso = Instant.now().toString()
+                            )
+                            onSaveWorkspace(workspace.copy(
+                                server = server.trim(),
+                                allianceName = allianceName.trim(),
+                                ownProfile = profile
+                            ))
+                        },
+                        enabled = playerName.isNotBlank() && server.isNotBlank() && allianceName.isNotBlank(),
+                        modifier = Modifier.fillMaxWidth()
+                    ) { Text("Enregistrer mon inscription") }
+                    Text(
+                        if (isOfficer) "Droits détectés : R4/R5 — gestion du roster et simulations autorisées."
+                        else "Mode membre : tu peux enregistrer ton profil. Les simulations et la gestion du roster sont réservées aux R4/R5.",
+                        color = if (isOfficer) Color(0xFF34D399) else Color(0xFFFBBF24),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+        }
+        item {
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Roster de l'alliance", fontWeight = FontWeight.Bold)
+                        Text("${workspace.members.size + if (workspace.ownProfile.playerName.isNotBlank()) 1 else 0} joueur(s)",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.labelSmall)
+                    }
+                    Text(
+                        "Serveur ${workspace.server.ifBlank { "—" }} · Alliance ${workspace.allianceName.ifBlank { "—" }}",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    if (workspace.ownProfile.playerName.isNotBlank()) {
+                        Text(
+                            "Toi : ${workspace.ownProfile.playerName} · ${workspace.ownProfile.rank.labelFr} · ${heroes.size} héros analysés",
+                            color = Color(0xFF34D399),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                    if (isOfficer) {
+                        Button(onClick = { showAddMember = true }, modifier = Modifier.fillMaxWidth()) {
+                            Icon(Icons.Outlined.PersonAdd, contentDescription = null)
+                            Spacer(Modifier.width(6.dp))
+                            Text("Ajouter un membre au roster")
+                        }
+                    } else {
+                        Text("Demande à un R4/R5 d'ajouter les profils des membres.", style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+            }
+        }
+        items(workspace.members, key = { it.id }) { member ->
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(member.playerName, fontWeight = FontWeight.SemiBold)
+                        Text(member.rank.labelFr, color = Color(0xFFFFB36B), style = MaterialTheme.typography.labelSmall)
+                    }
+                    Text("Puissance : ${member.powerText.ifBlank { "non renseignée" }}", style = MaterialTheme.typography.bodySmall)
+                    if (member.heroSkillSummary.isNotBlank()) Text("Héros / compétences : ${member.heroSkillSummary}", style = MaterialTheme.typography.bodySmall)
+                    if (member.robotSummary.isNotBlank()) Text("Robot : ${member.robotSummary}", style = MaterialTheme.typography.bodySmall)
+                    if (isOfficer) {
+                        TextButton(onClick = {
+                            onSaveWorkspace(workspace.copy(members = workspace.members.filterNot { it.id == member.id }))
+                            simulation = emptyList()
+                        }) { Text("Retirer du roster") }
+                    }
+                }
+            }
+        }
+        item {
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                    Text("Simulateur de performance", fontWeight = FontWeight.Bold)
+                    Text(
+                        "Compare les profils disponibles et propose une répartition des rôles. Les données manquantes ne sont pas inventées.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        items(AdviceMode.entries) { event ->
+                            FilterChip(
+                                selected = selectedEvent == event,
+                                onClick = { selectedEvent = event; simulation = emptyList() },
+                                label = { Text(event.titleFor(AppLanguage.FR), maxLines = 1) }
+                            )
+                        }
+                    }
+                    Button(
+                        onClick = {
+                            val roster = buildList {
+                                if (workspace.ownProfile.playerName.isNotBlank()) {
+                                    add(workspace.ownProfile.copy(
+                                        server = workspace.server,
+                                        allianceName = workspace.allianceName,
+                                        heroSkillSummary = ownHeroSummary
+                                    ))
+                                }
+                                addAll(workspace.members)
+                            }
+                            if (roster.isEmpty()) {
+                                simulation = listOf("Aucun joueur enregistré. Inscris ton profil et ajoute les membres.")
+                            } else {
+                                val power = { p: AlliancePlayerProfile ->
+                                    p.powerText.filter(Char::isDigit).toLongOrNull() ?: 0L
+                                }
+                                val lower = { p: AlliancePlayerProfile ->
+                                    (p.heroSkillSummary + " " + p.robotSummary).lowercase()
+                                }
+                                val cageTags = listOf(
+                                    "def reduction" to listOf("réduction de def", "baisse de def", "def ennemie", "defense reduction", "def reduction"),
+                                    "dégâts" to listOf("dégât", "damage", "dmg"),
+                                    "attaque" to listOf("attaque", "atk", "attack"),
+                                    "létalité" to listOf("létalité", "lethality", "letalite"),
+                                    "critique" to listOf("critique", "critical", "crit")
+                                )
+                                val turmoilTags = listOf(
+                                    "défense" to listOf("défense", "defense", "def"),
+                                    "points de vie" to listOf("pv", "hp", "santé", "health"),
+                                    "renfort" to listOf("renfort", "reinforce", "garnison", "garrison"),
+                                    "contrôle" to listOf("contrôle", "control", "étourdissement", "stun"),
+                                    "attaque" to listOf("attaque", "atk", "attack", "dégât", "damage")
+                                )
+                                val tags = when (selectedEvent) {
+                                    AdviceMode.TRIAL_CAGE -> cageTags
+                                    AdviceMode.TURMOIL_SURGE -> turmoilTags
+                                    else -> listOf(
+                                        "attaque / dégâts" to listOf("attaque", "atk", "attack", "dégât", "damage"),
+                                        "défense / résistance" to listOf("défense", "defense", "résistance", "resistance", "hp", "pv"),
+                                        "contrôle / soutien" to listOf("contrôle", "control", "soin", "heal", "stun", "étourdissement"),
+                                        "mobilité / tactique" to listOf("mobilité", "movement", "vitesse", "speed", "tactique", "tactical")
+                                    )
+                                }
+                                val leader = roster.maxByOrNull(power)
+                                val joiners = roster.filter { it.id != leader?.id }
+                                    .sortedByDescending { member ->
+                                        val text = lower(member)
+                                        tags.sumOf { (_, words) -> if (words.any(text::contains)) 10 else 0 } + power(member).coerceAtMost(9_999_999_999L) / 1_000_000_000L
+                                    }
+                                val output = mutableListOf<String>()
+                                output += "Événement : ${selectedEvent.titleFor(AppLanguage.FR)}"
+                                output += "Effectif analysé : ${roster.size} membre(s)"
+                                leader?.let {
+                                    output += "LEADER proposé : ${it.playerName} (${it.rank.labelFr}) — puissance ${it.powerText.ifBlank { "non renseignée" }}"
+                                    if (it.heroSkillSummary.isNotBlank()) output += "Capacités du leader : ${it.heroSkillSummary.take(420)}"
+                                    if (it.robotSummary.isNotBlank()) output += "Robot du leader : ${it.robotSummary}"
+                                }
+                                val used = mutableSetOf<String>()
+                                joiners.forEach { member ->
+                                    val text = lower(member)
+                                    val tag = tags.firstOrNull { (_, words) ->
+                                        words.any(text::contains) && itTagNotUsed(used, it.first)
+                                    }?.first
+                                    if (tag != null && used.add(tag)) {
+                                        output += "Soutien ${used.size} — ${member.playerName} : rôle ${tag}; ${member.heroSkillSummary.take(220)}"
+                                    }
+                                    if (used.size >= 4) return@forEach
+                                }
+                                if (used.isEmpty()) {
+                                    output += "Aucun bonus distinct identifiable : complète les compétences War et les données du robot pour obtenir une répartition fiable."
+                                }
+                                output += "À confirmer : simulation basée sur les informations saisies/scannées, pas sur des tests de combat de cette alliance."
+                                simulation = output
+                            }
+                        },
+                        enabled = isOfficer && (workspace.ownProfile.playerName.isNotBlank() || workspace.members.isNotEmpty()),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Outlined.AutoAwesome, contentDescription = null)
+                        Spacer(Modifier.width(6.dp))
+                        Text("Lancer la simulation (R4 / R5)")
+                    }
+                    simulation.forEach { line ->
+                        Text(line, style = MaterialTheme.typography.bodySmall, color = if (line.startsWith("À confirmer")) Color(0xFFFBBF24) else MaterialTheme.colorScheme.onSurface)
+                    }
+                }
+            }
+        }
+        item {
+            Text(
+                "Important : cette version conserve le roster sur cet appareil. Pour que chaque membre s'inscrive depuis son téléphone et que les R4/R5 voient automatiquement les données partagées, il faut connecter la base cloud sécurisée de l'alliance.",
+                color = Color(0xFFFBBF24),
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
+    }
+
+    if (showAddMember) {
+        AlertDialog(
+            onDismissRequest = { showAddMember = false },
+            title = { Text("Ajouter un membre") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                    OutlinedTextField(memberName, { memberName = it }, label = { Text("Pseudo du joueur") }, singleLine = true)
+                    OutlinedTextField(memberPower, { memberPower = it }, label = { Text("Puissance (facultatif)") }, singleLine = true)
+                    Text("Rang dans l'alliance", style = MaterialTheme.typography.labelMedium)
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                        items(AllianceRank.entries) { item ->
+                            FilterChip(selected = memberRank == item, onClick = { memberRank = item }, label = { Text(item.name) })
+                        }
+                    }
+                    OutlinedTextField(
+                        memberSkills, { memberSkills = it },
+                        label = { Text("Héros et compétences War (copier les infos)") },
+                        minLines = 3, modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        memberRobots, { memberRobots = it },
+                        label = { Text("Robot / bonus (facultatif)") },
+                        minLines = 2, modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val newMember = AlliancePlayerProfile(
+                            id = UUID.randomUUID().toString(),
+                            playerName = memberName.trim(),
+                            server = workspace.server,
+                            allianceName = workspace.allianceName,
+                            rank = memberRank,
+                            powerText = memberPower.trim(),
+                            heroSkillSummary = memberSkills.trim(),
+                            robotSummary = memberRobots.trim(),
+                            updatedAtIso = Instant.now().toString()
+                        )
+                        onSaveWorkspace(workspace.copy(members = workspace.members.filterNot { it.playerName.equals(newMember.playerName, true) } + newMember))
+                        memberName = ""; memberPower = ""; memberSkills = ""; memberRobots = ""
+                        memberRank = AllianceRank.R1
+                        showAddMember = false
+                        simulation = emptyList()
+                    },
+                    enabled = memberName.isNotBlank() && isOfficer
+                ) { Text("Enregistrer") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showAddMember = false }) { Text("Annuler") }
+            }
+        )
+    }
+}
+
+private fun itTagNotUsed(used: Set<String>, tag: String): Boolean = tag !in used
