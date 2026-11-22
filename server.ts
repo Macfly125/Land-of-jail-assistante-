@@ -748,7 +748,31 @@ Règles strictes :
       const heroNames = (heroes ?? []).map((h) => h.nom).filter(Boolean);
       const liveGuides = await fetchLiveLojGuides(mode, heroNames, targetLang);
 
+      const communityResearchByMode: Record<AdviceEventMode, string> = {
+        trial_cage: `RECHERCHE COMMUNAUTAIRE TRIAL CAGE — comparer les sources et ne pas masquer les divergences :
+GuideLOJ (mis à jour le 20 octobre 2026) propose, pour saisons 1–7, des ratios de départ : leader sans Ada 0/10/90, leader avec Ada 1/9/90, participant mixte 0/10/90, participant shooters uniquement 0/0/100 (Shield/Bomber/Shooter). Vérifier le nombre réel de Shield avec Ada (environ 1 000 dans la référence), et distinguer leader et participant.
+LOJ XLab (guide observé, 5 octobre 2026) décrit un système différent : leader = 3 héros et toutes leurs compétences de guerre + statistiques ; participants = première compétence de guerre du premier héros, seules les 4 meilleures compétences participantes sont retenues, doublons de bonus potentiellement gaspillés. Il indique que les statistiques des participants et leur type de troupe n'influencent pas directement le score. Il privilégie des bonus offensifs distincts.
+Ces descriptions ne concordent pas parfaitement sur le fonctionnement des participants. Présente les ratios comme points de départ communautaires, pas comme loi universelle. Signale explicitement le désaccord sur la sélection des compétences et demande de confirmer par version du jeu, rapport de combat et tests de l'alliance. Le critère du joueur reste les dégâts infligés : ne valorise pas la défense, les PV ou les soins sans preuve d'un effet offensif direct.`,
+        crystal_clash: `Pour Crystal Clash, utilise les guides d'événement récupérés en direct. Distingue attaque, défense, contrôle des objectifs, durée de présence et points. Ne transpose pas les ratios de Trial Cage.`,
+        sandsea_conquest: `Pour Sandsea Conquest, utilise uniquement les règles et guides propres à cet événement récupérés en direct. Distingue mobilité, contrôle, objectifs et combat selon les règles observées. Ne transpose pas les ratios de Trial Cage.`,
+        svs: `Pour SvS / Supreme Honor, distingue préparation, jours de score, combat et récupération. Vérifie les calendriers et règles actuels dans les sources récupérées ; ne conseille pas de dépenser des ressources sans relier cela au jour et à l'objectif.`,
+        turmoil_surge: `Pour Turmoil Surge, utilise les guides et règles spécifiques récupérés en direct. Distingue les objectifs et récompenses réels ; ne transpose pas les formations d'un autre événement.`,
+        gold_hunter: `Pour Gold Hunter & Sprint, utilise les guides spécifiques récupérés en direct. Prends en compte les marches, les déplacements, les coffres et le timing uniquement si la source les confirme ; ne transpose pas les ratios de combat d'un autre événement.`,
+      };
+      const communityResearchSources = mode === 'trial_cage'
+        ? [
+            { title: 'GuideLOJ — Trial Cage : chefs, troupes et participants', url: 'https://guideloj.com/en/events/alliance/trial-cage-rally-guide', date: '2026-10-20' },
+            { title: 'GuideLOJ — ratios de troupes', url: 'https://www.guideloj.com/fr/tips/fight/troop-guide-shieldbearer-bombardiers-shooters', date: '2026-11-04' },
+            { title: 'LOJ XLab — CAGE Advanced Guide', url: 'https://lojxlab.com/blog/lands-of-jail-cage-advanced-guide/', date: '2026-10-05' },
+            { title: 'LOJ Wiki — guides et événements', url: 'https://lojwiki.com/fr/', date: '2026-11-22' },
+          ]
+        : [
+            { title: 'LOJ Wiki — guides et événements', url: 'https://lojwiki.com/fr/', date: '2026-11-22' },
+            { title: 'LOJ XLab — guides et calendrier', url: 'https://lojxlab.com/', date: '2026-11-22' },
+            { title: 'GuideLOJ — centre de guides', url: 'https://guideloj.com/fr/tips', date: '2026-11-04' },
+          ];
       const roleLabel = playerRoleLabel || playerRole || 'Polyvalent / F2P';
+      const researchNotes = communityResearchByMode[mode];
       const leadSummary = liveGuides
         .slice(0, 4)
         .map((g) => g.excerpt)
@@ -800,8 +824,11 @@ Données du compte — héros possédés :
 ${JSON.stringify(roster)}
 Robots/compagnons réellement possédés et détectés :
 ${JSON.stringify(robotRoster)}
-Guides externes consultés (à utiliser comme contexte, pas comme vérité absolue) :
+Guides externes consultés en direct (à utiliser comme contexte, pas comme vérité absolue) :
 ${leadSummary || 'Aucun guide externe accessible.'}
+
+Base de connaissances communautaire structurée :
+${researchNotes}
 Question complémentaire : ${extraQuestion || 'Aucune'}.
 ${cageRules}
 
@@ -907,12 +934,7 @@ Consignes :
             imageUrl: liveGuides[index]?.imageUrl ?? null,
           })),
           informationsIncertaines: personalized.informationsIncertaines ?? [],
-          sources: liveGuides.map((g) => ({
-            title: g.title,
-            url: g.url,
-            detectedDate: g.date,
-            imageUrl: g.imageUrl,
-          })),
+          sources: [...liveGuides.map((g) => ({ title: g.title, url: g.url, detectedDate: g.date, imageUrl: g.imageUrl })), ...communityResearchSources.map((s) => ({ title: s.title, url: s.url, detectedDate: s.date, imageUrl: null }))].filter((source, index, all) => all.findIndex((item) => item.url === source.url) === index),
           requetesRecherche: [modeName, targetLang],
         },
       });
