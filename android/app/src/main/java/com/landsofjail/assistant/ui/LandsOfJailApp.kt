@@ -1,5 +1,6 @@
 package com.landsofjail.assistant.ui
 
+import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -1033,6 +1034,8 @@ private fun ResourcesScreen(
     power: PowerMetric?,
     resources: List<ResourceRecord>
 ) {
+    val context = LocalContext.current
+    val routinePrefs = remember(context) { context.getSharedPreferences("offline_routine", Context.MODE_PRIVATE) }
     var subTab by remember { mutableStateOf(ResourceSubTab.INVENTAIRE) }
     var targetBuildingLvl by remember { mutableIntStateOf(16) }
     var starFrom by remember { mutableIntStateOf(0) }
@@ -1041,7 +1044,7 @@ private fun ResourcesScreen(
     var tomeFrom by remember { mutableIntStateOf(0) }
     var tomeTo by remember { mutableIntStateOf(5) }
 
-    var routineItems by remember {
+    var routineItems by remember(routinePrefs) {
         mutableStateOf(
             listOf(
                 AndroidRoutineItem("g1", "Marche Récolte #1 (Vivres/Bois/Acier/Essence)", "Lancer avant de quitter le jeu", 120, true, null),
@@ -1050,8 +1053,30 @@ private fun ResourcesScreen(
                 AndroidRoutineItem("aj", "Aide Alliance, Dons & Auto-Join Ralliement", "Renouveler avant expiration", 480, true, null),
                 AndroidRoutineItem("vip", "VIP, Courrier, Arrestation & Distributrice", "Collecte quotidienne", 1440, true, null),
                 AndroidRoutineItem("sh", "Alerte Bouclier (8h)", "Rappel avant fin de protection", 480, true, null)
-            )
+            ).map { item ->
+                val savedEnd = routinePrefs.getLong("end_${item.id}", -1L).takeIf { it >= 0L }
+                val savedPaused = routinePrefs.getLong("paused_${item.id}", -1L).takeIf { it >= 0L }
+                val savedMinutes = routinePrefs.getInt("minutes_${item.id}", item.minutes).coerceIn(1, 10080)
+                item.copy(
+                    minutes = savedMinutes,
+                    enabled = routinePrefs.getBoolean("enabled_${item.id}", item.enabled),
+                    endsAtMs = savedEnd,
+                    pausedRemainingMs = savedPaused,
+                    durationInput = routinePrefs.getString("duration_${item.id}", savedMinutes.toString()) ?: savedMinutes.toString()
+                )
+            }
         )
+    }
+    LaunchedEffect(routineItems) {
+        val editor = routinePrefs.edit()
+        routineItems.forEach { item ->
+            editor.putInt("minutes_${item.id}", item.minutes)
+            editor.putString("duration_${item.id}", item.durationInput)
+            editor.putBoolean("enabled_${item.id}", item.enabled)
+            if (item.endsAtMs != null) editor.putLong("end_${item.id}", item.endsAtMs) else editor.remove("end_${item.id}")
+            if (item.pausedRemainingMs != null) editor.putLong("paused_${item.id}", item.pausedRemainingMs) else editor.remove("paused_${item.id}")
+        }
+        editor.apply()
     }
     var nowMs by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(subTab) {
