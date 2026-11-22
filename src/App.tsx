@@ -4,6 +4,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
+import { readApiJson } from './utils/api';
 import {
   Camera,
   History,
@@ -146,11 +147,11 @@ export default function App() {
         try {
           const res = await fetch(`/api/shared-capture/${encodeURIComponent(sharedToken)}`);
           if (!res.ok) return;
-          const data = (await res.json()) as {
+          const data = await readApiJson<{
             base64: string;
             mimeType: string;
             fileName: string;
-          };
+          }>(res, '/api/shared-capture');
           setSharedPayload(data);
           setIsShareModalOpen(true);
         } catch {
@@ -192,7 +193,7 @@ export default function App() {
         }),
       });
 
-      const resultJson = (await response.json()) as {
+      const resultJson = await readApiJson<{
         analysis?: {
           typeCapture?: string;
           resumeCapture?: string;
@@ -254,7 +255,7 @@ export default function App() {
         };
         analyzedAt?: string;
         error?: string;
-      };
+      }>(response, '/api/analyze-screenshot');
 
       if (!response.ok || !resultJson.analysis) {
         throw new Error(resultJson.error || 'Échec de l’analyse de la capture.');
