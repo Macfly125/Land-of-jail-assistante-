@@ -572,32 +572,32 @@ fun LandsOfJailAssistantApp(
 
     MaterialTheme(
         colorScheme = darkColorScheme(
-            primary = Color(0xFFF2B84B),
-            onPrimary = Color(0xFF17120A),
-            secondary = Color(0xFFB8A06A),
-            background = Color(0xFF080D16),
-            surface = Color(0xFF111A29),
-            surfaceVariant = Color(0xFF1A2638),
-            onBackground = Color(0xFFF3F5F8),
-            onSurface = Color(0xFFF3F5F8),
-            onSurfaceVariant = Color(0xFF9AA8BA),
-            outline = Color(0xFF29364A)
+            primary = Color(0xFFF26B32),
+            onPrimary = Color(0xFF030405),
+            secondary = Color(0xFFFF9A55),
+            background = Color(0xFF080A0F),
+            surface = Color(0xFF10141C),
+            surfaceVariant = Color(0xFF171D28),
+            onBackground = Color(0xFFF4F0E8),
+            onSurface = Color(0xFFF4F0E8),
+            onSurfaceVariant = Color(0xFFA9ADB5),
+            outline = Color(0xFF2D3745)
         ),
         shapes = Shapes(
-            small = RoundedCornerShape(12.dp),
-            medium = RoundedCornerShape(18.dp),
-            large = RoundedCornerShape(24.dp)
+            small = RoundedCornerShape(4.dp),
+            medium = RoundedCornerShape(4.dp),
+            large = RoundedCornerShape(4.dp)
         )
     ) {
         Scaffold(
-            containerColor = Color(0xFF080D16),
+            containerColor = Color(0xFF080A0F),
             snackbarHost = { SnackbarHost(snackbarHostState) },
             topBar = {
                 TopAppBar(
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color(0xFF0D1421),
-                        titleContentColor = Color(0xFFF5F2EA),
-                        actionIconContentColor = Color(0xFFF2B84B)
+                        containerColor = Color(0xFF0B0D13),
+                        titleContentColor = Color(0xFFF4F0E8),
+                        actionIconContentColor = Color(0xFFFF9A55)
                     ),
                     title = {
                         Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
@@ -610,7 +610,7 @@ fun LandsOfJailAssistantApp(
                             )
                             Text(
                                 "ASSISTANT TACTIQUE",
-                                color = Color(0xFFB8A06A),
+                                color = Color(0xFFFF9A55),
                                 fontSize = 9.sp,
                                 fontWeight = FontWeight.Bold,
                                 letterSpacing = 2.sp
@@ -627,8 +627,8 @@ fun LandsOfJailAssistantApp(
                                 )
                             },
                             colors = ButtonDefaults.filledTonalButtonColors(
-                                containerColor = Color(0xFF3B2D15),
-                                contentColor = Color(0xFFFFD27A)
+                                containerColor = Color(0xFF5B2D1D),
+                                contentColor = Color(0xFFFF9A55)
                             ),
                             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 7.dp)
                         ) {
@@ -653,7 +653,7 @@ fun LandsOfJailAssistantApp(
             },
             bottomBar = {
                 NavigationBar(
-                    containerColor = Color(0xFF0D1421),
+                    containerColor = Color(0xFF0B0D13),
                     contentColor = Color(0xFF9AA8BA),
                     tonalElevation = 0.dp
                 ) {
@@ -669,11 +669,11 @@ fun LandsOfJailAssistantApp(
                             selected = currentTab == tab,
                             onClick = { currentTab = tab },
                             colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = Color(0xFFFFD27A),
-                                selectedTextColor = Color(0xFFFFD27A),
-                                indicatorColor = Color(0xFF3B2D15),
-                                unselectedIconColor = Color(0xFF8290A4),
-                                unselectedTextColor = Color(0xFF8290A4)
+                                selectedIconColor = Color(0xFFFF9A55),
+                                selectedTextColor = Color(0xFFFF9A55),
+                                indicatorColor = Color(0xFF5B2D1D),
+                                unselectedIconColor = Color(0xFF6E7785),
+                                unselectedTextColor = Color(0xFF6E7785)
                             ),
                             icon = { Icon(icon, contentDescription = tab.titleFor(currentLang)) },
                             label = {
