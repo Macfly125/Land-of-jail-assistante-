@@ -46,31 +46,62 @@ jobs:
           unzip -q /tmp/gradle.zip -d /tmp
           echo "/tmp/gradle-8.11.1/bin" >> "$GITHUB_PATH"
 
-      - name: Compiler app-debug.apk
-        working-directory: android
-        run: gradle assembleDebug --no-daemon --stacktrace
+      - name: Préparer la signature Android stable
+        id: signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/loj-upload-key.jks"
+            echo "available=true" >> "$GITHUB_OUTPUT"
+            echo "ANDROID_KEYSTORE_FILE=$RUNNER_TEMP/loj-upload-key.jks" >> "$GITHUB_ENV"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Clé de signature stable absente. L'APK debug sera généré uniquement pour test et ne doit pas être considéré comme une mise à jour installable par-dessus la version précédente."
+          fi
 
-      - name: Publier l'APK téléchargeable
+      - name: Compiler APK release signé (mise à jour)
+        if: steps.signing.outputs.available == 'true'
+        working-directory: android
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: gradle assembleRelease --no-daemon --stacktrace -PVERSION_CODE=${{ github.run_number }} -PVERSION_NAME=1.1.${{ github.run_number }}
+
+      - name: Publier l'APK release signé
+        if: steps.signing.outputs.available == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: lands-of-jail-assistant-debug-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: lands-of-jail-assistant-release-apk
+          path: android/app/build/outputs/apk/release/app-release.apk
           retention-days: 30
+
+      - name: Compiler APK debug (tests uniquement)
+        if: steps.signing.outputs.available != 'true'
+        working-directory: android
+        run: gradle assembleDebug --no-daemon --stacktrace -PVERSION_CODE=${{ github.run_number }} -PVERSION_NAME=1.1.${{ github.run_number }}
+
+      - name: Publier l'APK debug (tests uniquement)
+        if: steps.signing.outputs.available != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: lands-of-jail-assistant-debug-test-only
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 14
 
       - name: Nettoyer les anciens artefacts APK (garder les 3 dernières réussites)
         uses: actions/github-script@v7
         with:
           script: |
             const { owner, repo } = context.repo;
-            const workflow_id = 'android-apk.yml';
             const { data } = await github.rest.actions.listWorkflowRuns({
-              owner, repo, workflow_id, per_page: 100
+              owner, repo, workflow_id: 'android-apk.yml', per_page: 100
             });
             const successful = data.workflow_runs
               .filter(run => run.conclusion === 'success')
               .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
             const keepRunIds = new Set(successful.slice(0, 3).map(run => run.id));
-            // Le run courant n'a pas encore de conclusion success pendant cette étape : ne jamais supprimer son APK.
             keepRunIds.add(context.runId);
             let deleted = 0;
             for (const run of data.workflow_runs) {
@@ -79,12 +110,10 @@ jobs:
                 owner, repo, run_id: run.id, per_page: 100
               });
               for (const artifact of artifacts.artifacts) {
-                if (artifact.name === 'lands-of-jail-assistant-debug-apk') {
-                  await github.rest.actions.deleteArtifact({
-                    owner, repo, artifact_id: artifact.id
-                  });
+                if (artifact.name.startsWith('lands-of-jail-assistant-')) {
+                  await github.rest.actions.deleteArtifact({ owner, repo, artifact_id: artifact.id });
                   deleted += 1;
                 }
               }
             }
-            core.info(`Conservation des 3 dernières compilations réussies ; ${deleted} ancien(s) artefact(s) APK supprimé(s). Les journaux des runs sont conservés.`);
+            core.info(`Conservation des 3 dernières compilations réussies ; ${deleted} ancien(s) artefact(s) APK supprimé(s).`);
