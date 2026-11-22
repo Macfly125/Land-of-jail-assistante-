@@ -755,6 +755,20 @@ Règles strictes :
         .filter(Boolean)
         .join(' ');
 
+      const robotRoster = (robots ?? []).map((robot) => ({
+        nom: robot.nom,
+        niveau: robot.niveau ?? 'Non capturé',
+        puissance: robot.puissance ?? 'Non capturée',
+        rarete: robot.rarete ?? 'Inconnue',
+        incertain: Boolean(robot.incertain),
+        competences: (robot.competences ?? []).map((skill) => ({
+          nom: skill.nom,
+          niveau: skill.niveau,
+          description: skill.description ?? 'Description non disponible',
+          incertain: Boolean(skill.incertain),
+        })),
+      }));
+
       const roster = (heroes ?? []).map((h) => ({
         nom: h.nom,
         niveau: h.niveau ?? null,
