@@ -37,6 +37,7 @@ import {
 } from './utils/storage';
 import { DashboardView } from './components/DashboardView';
 import { HeroesView } from './components/HeroesView';
+import { AnalysisReviewModal } from './components/AnalysisReviewModal';
 import { ResourcesPowerView } from './components/ResourcesPowerView';
 import { AdviceView } from './components/AdviceView';
 import { HistoryView } from './components/HistoryView';
@@ -81,6 +82,8 @@ export default function App() {
   } | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [crestFailed, setCrestFailed] = useState(false);
+  const [pendingAnalysis, setPendingAnalysis] = useState<ScreenshotAnalysis | null>(null);
+  const [pendingAnalysisSource, setPendingAnalysisSource] = useState<'share' | 'ocr_screen' | null>(null);
 
   useEffect(() => {
     saveAccountState(state);
@@ -271,22 +274,14 @@ export default function App() {
         noteUtilisateur: payload.note,
       };
 
-      setState((prev) => mergeAnalysisIntoState(prev, newAnalysis));
+      setPendingAnalysis(newAnalysis);
+      setPendingAnalysisSource(source);
       setSharedPayload(null);
+      setIsShareModalOpen(false);
+      setIsConsentModalOpen(false);
 
       const summary = `${SCREEN_CATEGORY_LABELS[typeCapture]} · ${newAnalysis.heros.length} héros, ${newAnalysis.ressources.length} ressource(s)`;
-
-      if (!options?.keepModalOpen) {
-        setIsShareModalOpen(false);
-        setIsConsentModalOpen(false);
-        if (source === 'ocr_screen' && (typeCapture === 'trial_cage' || typeCapture === 'crystal_clash')) {
-          setActiveTab('conseils');
-        } else {
-          setActiveTab('tableau');
-        }
-      }
-
-      showToast(`Analyse terminée (${summary})`);
+      showToast('Analyse terminée : vérifie les héros avant de confirmer.');
       return { summary };
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Erreur lors de l’analyse.';
@@ -324,6 +319,25 @@ export default function App() {
     if (!isDetectionActive) return;
     setIsGameDetectedForeground(true);
     showToast('Lands of Jail détecté au premier plan : bouton « Analyser l’écran » affiché.');
+  };
+
+  const handleConfirmPendingAnalysis = (analysis: ScreenshotAnalysis) => {
+    setState((prev) => mergeAnalysisIntoState(prev, analysis));
+    const source = pendingAnalysisSource;
+    setPendingAnalysis(null);
+    setPendingAnalysisSource(null);
+    if (source === 'ocr_screen' && (analysis.typeCapture === 'trial_cage' || analysis.typeCapture === 'crystal_clash')) {
+      setActiveTab('conseils');
+    } else {
+      setActiveTab('tableau');
+    }
+    showToast('Capture vérifiée et enregistrée dans ton profil.');
+  };
+
+  const handleDiscardPendingAnalysis = () => {
+    setPendingAnalysis(null);
+    setPendingAnalysisSource(null);
+    showToast('Analyse ignorée : aucune donnée n’a été enregistrée.');
   };
 
   const handleVerifyHero = (heroId: string, updated: Partial<HeroRecord>) => {
@@ -607,6 +621,15 @@ export default function App() {
           })}
         </div>
       </nav>
+
+      {pendingAnalysis && (
+        <AnalysisReviewModal
+          key={pendingAnalysis.id}
+          analysis={pendingAnalysis}
+          onConfirm={handleConfirmPendingAnalysis}
+          onDiscard={handleDiscardPendingAnalysis}
+        />
+      )}
 
       {/* Modale de partage / import manuel de capture */}
       <ShareCaptureModal
