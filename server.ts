@@ -153,7 +153,12 @@ Règles strictes :
 7. Pour chaque héros, lis les informations dans sa propre carte/zone visuelle. N'attribue jamais un niveau, une étoile ou une compétence à partir d'une autre carte ou d'une ligne voisine.
 8. Si le nom n'est pas lisible avec certitude, conserve le texte observé et marque le héros incertain ; ne le remplace pas par le nom d'un héros supposé.
 9. Ne complète pas les niveaux de compétences avec des niveaux maximum provenant d'un wiki. Les compétences visibles sur la capture et les informations générales du catalogue sont deux sources distinctes.
-10. Ne fusionne jamais deux héros et ne déduplique pas des cartes distinctes simplement parce que leurs noms se ressemblent.`;
+10. Ne fusionne jamais deux héros et ne déduplique pas des cartes distinctes simplement parce que leurs noms se ressemblent.
+11. Pour les compétences, analyse chaque ligne séparément : associe le nom, l'icône et le niveau uniquement lorsqu'ils sont visuellement reliés dans la même carte. Ne déduis jamais un niveau à partir de la couleur, de la puissance du héros, de son nombre d'étoiles ou d'une autre capture.
+12. Respecte l'ordre visuel des compétences (de gauche à droite puis de haut en bas) et conserve chaque compétence séparément, même si deux icônes se ressemblent.
+13. Si tu vois une icône de compétence mais que son nom ou son niveau ne peut pas être lu, conserve-la avec un libellé descriptif neutre (ex. « Compétence 1 — nom illisible ») et marque-la incertaine. Ne lui attribue pas un nom issu de ta connaissance du jeu.
+14. « Max » n'est accepté que si le libellé MAX / MAXIMUM est réellement visible. Un niveau absent doit être « Inconnu » et incertain=true.
+15. Ne transforme jamais une supposition en lecture certaine : en cas de doute, préfère un champ vide ou « Inconnu » avec une raison précise.`;
 
       const response = await ai.models.generateContent({
         model: 'gemini-4-hydrogen',
@@ -268,6 +273,47 @@ Règles strictes :
 
       const rawText = (response.text ?? '{}').trim();
       const parsed = JSON.parse(rawText);
+
+      // Garde-fou déterministe : un nom ou un niveau de compétence absent ne peut jamais être déclaré fiable.
+      if (Array.isArray(parsed?.heros)) {
+        parsed.heros = parsed.heros.map((hero: Record<string, unknown>) => {
+          const heroName = typeof hero.nom === 'string' ? hero.nom.trim() : '';
+          const heroLevelText = typeof hero.niveauTexte === 'string' ? hero.niveauTexte.trim() : '';
+          const heroLevelUnknown = !heroLevelText || /^(inconnu|non lu|illisible|unknown|n\/?a|-)$/i.test(heroLevelText);
+          const heroReasons = typeof hero.raisonIncertitude === 'string' ? hero.raisonIncertitude : '';
+          const skills = Array.isArray(hero.competences) ? hero.competences : [];
+          const normalizedSkills = skills.map((skill: Record<string, unknown>, index: number) => {
+            const skillName = typeof skill.nom === 'string' ? skill.nom.trim() : '';
+            const skillLevel = typeof skill.niveau === 'string' ? skill.niveau.trim() : '';
+            const missingName = !skillName;
+            const missingLevel = !skillLevel || /^(inconnu|non lu|illisible|unknown|n\/?a|-)$/i.test(skillLevel);
+            const wasUncertain = skill.incertain === true;
+            const reason = typeof skill.raisonIncertitude === 'string' ? skill.raisonIncertitude : '';
+            return {
+              ...skill,
+              nom: skillName || `Compétence ${index + 1} — nom illisible`,
+              niveau: skillLevel || 'Inconnu',
+              incertain: wasUncertain || missingName || missingLevel,
+              raisonIncertitude: reason || (missingName
+                ? 'Nom de compétence non lisible sur la capture'
+                : missingLevel
+                  ? 'Niveau de compétence non lisible sur la capture'
+                  : undefined),
+            };
+          });
+          return {
+            ...hero,
+            nom: heroName || 'Héros — nom illisible',
+            incertain: hero.incertain === true || !heroName || heroLevelUnknown,
+            raisonIncertitude: heroReasons || (!heroName
+              ? 'Nom du héros non lisible sur la capture'
+              : heroLevelUnknown
+                ? 'Niveau du héros non lisible sur la capture'
+                : undefined),
+            competences: normalizedSkills,
+          };
+        });
+      }
 
       // Enrichissement automatique des héros détectés avec photo et caractéristiques officielles lojwiki.com
       if (Array.isArray(parsed?.heros) && parsed.heros.length > 0) {
