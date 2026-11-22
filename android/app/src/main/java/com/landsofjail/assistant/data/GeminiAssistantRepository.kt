@@ -156,7 +156,6 @@ class GeminiAssistantRepository(
     ): TacticalAdviceResult {
         val collected = mutableListOf<DirectPost>()
         val seenLinks = mutableSetOf<String>()
-        val todayDate = Instant.now().toString().take(10)
 
         // 1. Sites natifs dans la langue choisie sur lojwiki.com (FR, TR, RU, ZH, DE, EN)
         for (slug in mode.wikiSlugs) {
@@ -188,7 +187,7 @@ class GeminiAssistantRepository(
                                     title = cleanHtml(title),
                                     excerpt = cleanHtml(desc),
                                     url = wikiUrl,
-                                    dateStr = todayDate,
+                                    dateStr = null,
                                     imageUrl = photo
                                 )
                             )
@@ -266,7 +265,6 @@ class GeminiAssistantRepository(
             error("Aucun guide Internet accessible. Vérifiez votre connexion.")
         }
 
-        val heroNames = heroes.map { it.nom }
         val modeLabel = mode.titleFor(language)
         val nowIso = Instant.now().toString()
 
@@ -274,8 +272,10 @@ class GeminiAssistantRepository(
             AdviceRecommendation(
                 titre = post.title.ifBlank { modeLabel },
                 detail = post.excerpt.ifBlank { mode.briefFor(language) },
-                herosCibles = heroNames.take(3),
-                incertain = false,
+                // Aucune association héros-guide n'est prouvée par le simple titre/extrait d'une page.
+                herosCibles = emptyList(),
+                incertain = true,
+                raisonIncertitude = "Guide externe trouvé, mais compatibilité avec vos héros non vérifiée.",
                 imageUrl = post.imageUrl
             )
         }
