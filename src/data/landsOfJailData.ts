@@ -172,18 +172,41 @@ export const BUILDINGS_CATALOG: BuildingDefinition[] = [
 ];
 
 // Données Forticlad (après niveau 30) : chaque niveau FC comporte 5 paliers (étapes 1 à 5)
-export const FORTICLAD_STAGES: ForticladStageCost[] = [
-  { fcLevel: 1, forticladCores: 600, advancedForticladCores: 0, prerequisites: 'Warden Office Niv. 30 + 5 paliers d’amélioration', verifiedWiki: false },
-  { fcLevel: 2, forticladCores: 900, advancedForticladCores: 40, prerequisites: 'Bâtiment FC1 complet + Comms/Caserne FC1', verifiedWiki: false },
-  { fcLevel: 3, forticladCores: 1_350, advancedForticladCores: 90, prerequisites: 'Bâtiment FC2 complet + Comms/Caserne FC2', verifiedWiki: false },
-  { fcLevel: 4, forticladCores: 1_900, advancedForticladCores: 160, prerequisites: 'Bâtiment FC3 complet', verifiedWiki: false },
-  { fcLevel: 5, forticladCores: 2_600, advancedForticladCores: 250, prerequisites: 'Bâtiment FC4 complet', verifiedWiki: false },
-  // FC6–8 : GuideLOJ publie les totaux de 7 bâtiments (hors laboratoire).
-  // Moyenne indicative par bâtiment pour le calcul multi-bâtiments ; non vérifiée bâtiment par bâtiment.
-  { fcLevel: 6, forticladCores: 764, advancedForticladCores: 49, prerequisites: 'Bâtiment FC5 complet · moyenne indicative GuideLOJ (7 bâtiments)', verifiedWiki: false },
-  { fcLevel: 7, forticladCores: 857, advancedForticladCores: 75, prerequisites: 'Bâtiment FC6 complet · moyenne indicative GuideLOJ (7 bâtiments)', verifiedWiki: false },
-  { fcLevel: 8, forticladCores: 985, advancedForticladCores: 107, prerequisites: 'Bâtiment FC7 complet · moyenne indicative GuideLOJ (7 bâtiments)', verifiedWiki: false },
+export interface ForticladBuildingCost {
+  id: string;
+  nomFr: string;
+  nomEn: string;
+  /** Cost for one of the five tiers that completes this FC level. */
+  costsByTargetLevel: Array<{ fc: number; afc: number }>;
+}
+
+/** Per-tier costs for the seven core buildings, transcribed from LOJ XLab / GuideLOJ.
+ * Forticlad Lab is a separate Hyperalloy research system and is not included here.
+ */
+export const FORTICLAD_BUILDINGS: ForticladBuildingCost[] = [
+  { id: 'warden_office', nomFr: 'Bureau du directeur', nomEn: "Warden's Office", costsByTargetLevel: [
+    {fc:250,afc:0},{fc:320,afc:0},{fc:490,afc:0},{fc:600,afc:0},{fc:720,afc:0},{fc:360,afc:24},{fc:400,afc:36},{fc:460,afc:48}
+  ]},
+  { id: 'shield_barracks', nomFr: 'Caserne des porte-boucliers', nomEn: 'Shieldbearer Barrack', costsByTargetLevel: [
+    {fc:130,afc:0},{fc:150,afc:0},{fc:230,afc:0},{fc:250,afc:0},{fc:300,afc:0},{fc:160,afc:10},{fc:180,afc:15},{fc:210,afc:22}
+  ]},
+  { id: 'bomber_barracks', nomFr: 'Caserne des bombardiers', nomEn: 'Bomber Barrack', costsByTargetLevel: [
+    {fc:130,afc:0},{fc:150,afc:0},{fc:230,afc:0},{fc:250,afc:0},{fc:300,afc:0},{fc:160,afc:10},{fc:180,afc:15},{fc:210,afc:22}
+  ]},
+  { id: 'shooter_barracks', nomFr: 'Caserne des tireurs', nomEn: 'Shooter Barrack', costsByTargetLevel: [
+    {fc:130,afc:0},{fc:150,afc:0},{fc:230,afc:0},{fc:250,afc:0},{fc:300,afc:0},{fc:160,afc:10},{fc:180,afc:15},{fc:210,afc:22}
+  ]},
+  { id: 'communication_center', nomFr: 'Centre de communication', nomEn: 'Communication Center', costsByTargetLevel: [
+    {fc:50,afc:0},{fc:60,afc:0},{fc:80,afc:0},{fc:110,afc:0},{fc:130,afc:0},{fc:90,afc:5},{fc:100,afc:8},{fc:110,afc:12}
+  ]},
+  { id: 'command_center', nomFr: 'Centre de commandement', nomEn: 'Command Center', costsByTargetLevel: [
+    {fc:50,afc:0},{fc:60,afc:0},{fc:80,afc:0},{fc:110,afc:0},{fc:130,afc:0},{fc:70,afc:5},{fc:80,afc:8},{fc:90,afc:12}
+  ]},
+  { id: 'medical_station', nomFr: 'Poste médical', nomEn: 'Medical Station', costsByTargetLevel: [
+    {fc:50,afc:0},{fc:60,afc:0},{fc:80,afc:0},{fc:110,afc:0},{fc:130,afc:0},{fc:70,afc:5},{fc:80,afc:8},{fc:90,afc:12}
+  ]},
 ];
+
 
 // Éclats de héros exacts vérifiés sur lojxlab.com (Total = 1 075 éclats de 0★ à 5★, + 10 au déblocage)
 export const HERO_SHARD_TIERS: HeroStarTier[] = [
