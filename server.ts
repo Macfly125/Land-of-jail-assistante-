@@ -928,6 +928,42 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
         });
         return `${hero.nom} [${personalFields.join(', ')}]${skills.length ? ` | compétences: ${skills.join('; ')}` : ''}`;
       });
+      // Event-specific reference notes are deliberately limited to the small
+      // curated roster whose roles are already documented in landsOfJailData.ts.
+      // They are role hints, not a numerical power ranking.
+      const knownEventRoles: Record<string, { cage: string; crystal: string }> = {
+        Tyronn: { cage: 'Tank principal de première ligne', crystal: 'Tenue de points stratégiques' },
+        Phoenix: { cage: 'DPS polyvalent contre le boss', crystal: 'Soutien offensif sur les prises de points' },
+        Rin: { cage: 'DPS arrière élevé', crystal: 'Nettoyage des défenseurs sur points de cristal' },
+        Edwin: { cage: 'Dégâts soutenus en ralliement Shooter', crystal: 'Leader de ralliement offensif' },
+        Otto: { cage: 'Tank secondaire / bouclier', crystal: 'Garnison et défense de Crystal Ironhold' },
+        Marcus: { cage: 'Absorption des dégâts en première ligne', crystal: 'Défenseur de garnison' },
+        Ada: { cage: 'Dégâts à distance réguliers', crystal: 'Escarmouches et dépôts de cristal' },
+        Lee: { cage: 'Contrôle / dégâts de zone', crystal: 'Perturbation des groupes ennemis' },
+        Patrick: { cage: 'Tank F2P de transition', crystal: 'Garnison temporaire / renfort' },
+        Mia: { cage: 'Soin et maintien en début de jeu', crystal: 'Soutien / renfort' },
+      };
+      const eventRoleContext = (heroes ?? []).flatMap((hero) => {
+        const match = Object.entries(knownEventRoles).find(([name]) =>
+          name.toLocaleLowerCase() === hero.nom.trim().toLocaleLowerCase()
+        );
+        if (!match) return [];
+        const role = mode === 'trial_cage' ? match[1].cage
+          : mode === 'crystal_clash' ? match[1].crystal : '';
+        return role ? [`${hero.nom}: ${role} (rôle de référence; progression personnelle à considérer séparément)`] : [];
+      });
+      const eventRoleContextLabel: Record<TargetLang, string> = {
+        fr: 'Repères de rôle du catalogue pour cet événement (pas un classement de puissance) :',
+        tr: 'Etkinlik için katalog rol notları (güç sıralaması değildir):',
+        ru: 'Ролевые заметки каталога для события (это не рейтинг силы):',
+        zh: '该活动的图鉴定位参考（并非战力排名）：',
+        de: 'Katalog-Rollenhinweise für dieses Event (keine Stärkerangliste):',
+        en: 'Catalog role references for this event (not a power ranking):',
+      };
+      const eventRoleContextText = eventRoleContext.length
+        ? ` ${eventRoleContextLabel[targetLang]} ${eventRoleContext.join('; ')}.`
+        : '';
+
       const liveGuides = await fetchLiveLojGuides(mode, heroNames, targetLang);
 
       if (liveGuides.length === 0) {
@@ -1048,7 +1084,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
           playerRole: playerRole || 'polyvalent_f2p',
           generatedAt: new Date().toISOString(),
           synthese: `${synthPrefix[targetLang]}${leadSummary}`,
-          compositionRecommandee: `${compTextByLang[targetLang]}${groundedProfileContext}${cageAssessment}`,
+          compositionRecommandee: `${compTextByLang[targetLang]}${groundedProfileContext}${eventRoleContextText}${cageAssessment}`,
           recommandations: liveGuides.slice(0, 4).map((g) => ({
             titre: g.title,
             detail: g.excerpt || g.title,
