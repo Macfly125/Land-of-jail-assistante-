@@ -1649,10 +1649,6 @@ private fun ResourcesScreen(
     var ownedShardsText by remember { mutableStateOf("0") }
     var tomeFrom by remember { mutableIntStateOf(0) }
     var tomeTo by remember { mutableIntStateOf(5) }
-    var fcStart by remember { mutableIntStateOf(forticladLevel.coerceIn(0, 8)) }
-    LaunchedEffect(forticladLevel) { fcStart = forticladLevel.coerceIn(0, 8) }
-    var fcTarget by remember { mutableIntStateOf(1) }
-    var fcBuildingCountText by remember { mutableStateOf("1") }
 
     var routineItems by remember {
         mutableStateOf(
