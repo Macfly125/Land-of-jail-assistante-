@@ -27,6 +27,7 @@ interface AdviceViewProps {
   playerRole: PlayerRole;
   onChangePlayerRole: (role: PlayerRole) => void;
   heroes: HeroRecord[];
+  robots: RobotRecord[];
   powerText?: string;
   adviceByMode: Partial<Record<AdviceMode, TacticalAdviceResult>>;
   onSaveAdvice: (mode: AdviceMode, advice: TacticalAdviceResult) => void;
@@ -40,6 +41,7 @@ export const AdviceView: React.FC<AdviceViewProps> = ({
   playerRole,
   onChangePlayerRole,
   heroes,
+  robots,
   powerText,
   adviceByMode,
   onSaveAdvice,
@@ -73,6 +75,19 @@ export const AdviceView: React.FC<AdviceViewProps> = ({
           language,
           playerRole,
           playerRoleLabel: PLAYER_ROLE_LABELS[playerRole].label,
+          robots: robots.map((robot) => ({
+            nom: robot.nom,
+            niveau: robot.niveau,
+            puissance: robot.puissance,
+            rarete: robot.rarete,
+            incertain: robot.incertain,
+            competences: robot.competences.map((skill) => ({
+              nom: skill.nom,
+              niveau: skill.niveau,
+              description: skill.description,
+              incertain: skill.incertain,
+            })),
+          })),
           heroes: heroes.map((h) => ({
             nom: h.nom,
             niveau: h.niveau,
