@@ -277,6 +277,8 @@ data class TacticalAdviceResult(
     val generatedAtIso: String = "",
     val synthese: String = "",
     val compositionRecommandee: String = "",
+    val robotRecommande: String? = null,
+    val ratioTroupes: String? = null,
     val recommandations: List<AdviceRecommendation> = emptyList(),
     val informationsIncertaines: List<String> = emptyList(),
     val sources: List<GroundedWebSource> = emptyList(),
