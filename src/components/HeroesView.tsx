@@ -12,6 +12,7 @@ import {
 import { HeroRecord } from '../types/game';
 import { formatFrenchDateTime, normalizeName } from '../utils/storage';
 import { HERO_SHARD_TIERS } from '../data/landsOfJailData';
+import { readApiJson } from '../utils/api';
 
 interface CatalogHero {
   slug: string;
@@ -92,7 +93,7 @@ export const HeroesView: React.FC<HeroesViewProps> = ({
     void (async () => {
       try {
         const res = await fetch('/api/heroes/catalog?lang=fr');
-        const data = (await res.json()) as { heroes?: CatalogHero[] };
+        const data = await readApiJson<{ heroes?: CatalogHero[] }>(res, '/api/heroes/catalog');
         if (!cancelled && Array.isArray(data.heroes)) {
           setCatalog(data.heroes);
         } else if (!cancelled) {
@@ -122,7 +123,7 @@ export const HeroesView: React.FC<HeroesViewProps> = ({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ names: [catalogHero?.nom || slug], language: 'fr' }),
         });
-        const data = (await res.json()) as { details?: EnrichedHeroDetails[]; error?: string };
+        const data = await readApiJson<{ details?: EnrichedHeroDetails[]; error?: string }>(res, '/api/heroes/enrich');
         const first = data.details?.[0];
         if (!res.ok || !first) {
           throw new Error(data.error || 'Fiche indisponible.');
