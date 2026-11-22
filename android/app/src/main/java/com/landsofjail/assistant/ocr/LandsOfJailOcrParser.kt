@@ -161,12 +161,12 @@ object LandsOfJailOcrParser {
                 Regex("""[ée]liminations?""", RegexOption.IGNORE_CASE).containsMatchIn(it)
             }
             if (eliminationLineIndex >= 0) {
-                val compactValueRegex = Regex("""\\b\\d+(?:[.,]\\d+)?\\s*[MB]\\b""", RegexOption.IGNORE_CASE)
+                val compactValueRegex = Regex("""\b\d+(?:[.,]\d+)?\s*[MB]\b""", RegexOption.IGNORE_CASE)
                 val candidate = (eliminationLineIndex downTo maxOf(0, eliminationLineIndex - 2))
                     .firstNotNullOfOrNull { lineIndex ->
                         val line = lines[lineIndex]
                         val beforeEliminations = if (lineIndex == eliminationLineIndex) {
-                            line.substringBefore(Regex("""[ée]liminations?""", RegexOption.IGNORE_CASE))
+                            (Regex("""[ée]liminations?""", RegexOption.IGNORE_CASE).find(line)?.range?.first?.let { line.substring(0, it) } ?: line)
                         } else {
                             line
                         }
