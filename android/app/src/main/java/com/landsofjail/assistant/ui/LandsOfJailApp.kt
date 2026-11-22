@@ -1193,29 +1193,113 @@ private fun DashboardScreen(
 
 @Composable
 private fun HeroesScreen(heroes: List<HeroRecord>) {
-    if (heroes.isEmpty()) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Aucun héros extrait. Appuyez sur « Analyser l’écran » sur votre fiche héros.")
+    var search by remember { mutableStateOf("") }
+    var selectedClass by remember { mutableStateOf("Tous") }
+    val profileByName = remember(heroes) { heroes.associateBy { it.nom.trim().lowercase() } }
+    val visibleHeroes = remember(search, selectedClass, heroes) {
+        HeroCatalog.entries.filter { entry ->
+            (search.isBlank() || entry.nom.contains(search.trim(), ignoreCase = true)) &&
+                (selectedClass == "Tous" || entry.typeTroupe == selectedClass)
         }
-        return
     }
+
     LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        items(heroes) { hero ->
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("${hero.nom} · ${hero.niveauTexte}", fontWeight = FontWeight.SemiBold)
-                    if (hero.incertain) {
-                        Text(
-                            "Information incertaine : ${hero.raisonIncertitude ?: "vérification conseillée"}",
-                            color = Color(0xFFFBBF24),
-                            style = MaterialTheme.typography.bodySmall
+        item {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Catalogue des héros", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                Text(
+                    "${HeroCatalog.entries.size} héros référencés · ${heroes.size} héros détectés sur ton compte",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                OutlinedTextField(
+                    value = search,
+                    onValueChange = { search = it },
+                    label = { Text("Rechercher un héros") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    items(listOf("Tous", "Shieldbearer", "Shooter", "Bomber")) { troopClass ->
+                        FilterChip(
+                            selected = selectedClass == troopClass,
+                            onClick = { selectedClass = troopClass },
+                            label = { Text(troopClass) }
                         )
                     }
-                    hero.competences.forEach { skill ->
-                        Text("• ${skill.nom} (${skill.niveau})${if (skill.incertain) " [Incertain]" else ""}")
+                }
+                Text(
+                    "Les données du catalogue sont des références communautaires. Seules les valeurs détectées sur tes captures décrivent ton compte.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(0xFFFBBF24)
+                )
+            }
+        }
+        items(visibleHeroes, key = { it.nom }) { entry ->
+            val hero = profileByName[entry.nom.lowercase()]
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(entry.nom, fontWeight = FontWeight.SemiBold)
+                        Text(
+                            if (hero != null) "Profil détecté" else "Catalogue",
+                            color = if (hero != null) Color(0xFF34D399) else MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.labelSmall
+                        )
                     }
+                    Text(
+                        "${entry.rarete} · ${entry.saison} · ${entry.typeTroupe}",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    if (hero != null) {
+                        Text(
+                            listOfNotNull(
+                                hero.niveauTexte.takeIf { it.isNotBlank() },
+                                hero.etoiles,
+                                hero.puissanceHero?.let { "Puissance $it" }
+                            ).joinToString(" · "),
+                            fontWeight = FontWeight.Medium
+                        )
+                        if (!hero.rarete.isNullOrBlank() && !hero.rarete.equals(entry.rarete, true)) {
+                            Text("Rareté lue sur capture : ${hero.rarete}", style = MaterialTheme.typography.bodySmall)
+                        }
+                        if (hero.incertain) {
+                            Text(
+                                "À vérifier : ${hero.raisonIncertitude ?: "données de capture incomplètes"}",
+                                color = Color(0xFFFBBF24),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                        hero.competences.forEach { skill ->
+                            Text(
+                                "• ${skill.nom} (${skill.niveau})${if (skill.incertain) " · Incertain" else ""}",
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                            if (!skill.description.isNullOrBlank()) {
+                                Text(skill.description, style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                    } else {
+                        Text("Niveau, étoiles et compétences personnels : à scanner depuis le jeu.", style = MaterialTheme.typography.bodySmall)
+                    }
+                    entry.usageWarObserve?.let {
+                        Text("War / équipement observé : $it", style = MaterialTheme.typography.bodySmall)
+                    }
+                    Text(
+                        if (entry.sourceNiveau == "Observé en jeu") "Référence : LOJ XLab · données observées en jeu"
+                        else "Référence : LOJ Strats / Wiki · à confirmer dans ton jeu",
+                        color = if (entry.sourceNiveau == "Observé en jeu") Color(0xFF34D399) else Color(0xFFFBBF24),
+                        style = MaterialTheme.typography.labelSmall
+                    )
                 }
             }
+        }
+        if (visibleHeroes.isEmpty()) {
+            item { Text("Aucun héros ne correspond à cette recherche.") }
         }
     }
 }
