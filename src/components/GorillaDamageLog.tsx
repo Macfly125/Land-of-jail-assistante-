@@ -11,6 +11,7 @@ type GorillaRun = {
   heroes: string;
   robot: string;
   notes: string;
+  bonus?: string;
 };
 
 const STORAGE_KEY = 'loj_gorilla_damage_log_v1';
@@ -40,6 +41,7 @@ export const GorillaDamageLog: React.FC = () => {
   const [heroes, setHeroes] = useState('');
   const [robot, setRobot] = useState('');
   const [notes, setNotes] = useState('');
+  const [bonus, setBonus] = useState('');
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
 
   useEffect(() => {
@@ -66,6 +68,25 @@ export const GorillaDamageLog: React.FC = () => {
     (sum, value) => sum + (Number(value) || 0),
     0
   );
+
+  const ratioComparisons = useMemo(() => {
+    const groups = new Map<string, { gorilla: string; bonus: string; ratio: string; total: number; count: number; best: number }>();
+    for (const run of runs) {
+      // Do not compare runs when the active bonus is unknown.
+      const activeBonus = (run.bonus || '').trim();
+      if (!activeBonus) continue;
+      const ratio = `${run.shield}/${run.bomber}/${run.shooter}`;
+      const key = `${run.gorilla}::${activeBonus.toLocaleLowerCase()}::${ratio}`;
+      const group = groups.get(key) || { gorilla: run.gorilla, bonus: activeBonus, ratio, total: 0, count: 0, best: 0 };
+      group.total += run.damage;
+      group.count += 1;
+      group.best = Math.max(group.best, run.damage);
+      groups.set(key, group);
+    }
+    return Array.from(groups.values())
+      .filter((group) => group.count >= 2)
+      .sort((a, b) => b.total / b.count - a.total / a.count);
+  }, [runs]);
 
   const bestByGorilla = useMemo(() => {
     const best = new Map<string, GorillaRun>();
@@ -95,6 +116,7 @@ export const GorillaDamageLog: React.FC = () => {
         heroes: heroes.trim(),
         robot: robot.trim(),
         notes: notes.trim(),
+        bonus: bonus.trim(),
       },
       ...previous,
     ].slice(0, 100));
@@ -146,7 +168,11 @@ export const GorillaDamageLog: React.FC = () => {
           <input className={fieldClass} value={robot} onChange={(e) => setRobot(e.target.value)} placeholder="Nom / niveau du robot" />
         </label>
         <label className="text-xs text-slate-400 space-y-1 md:col-span-2">
-          Bonus actifs, équipement ou remarques
+          Bonus actif (même libellé pour comparer les essais)
+          <input className={fieldClass} value={bonus} onChange={(e) => setBonus(e.target.value)} placeholder="Ex. Bonus équipement héros +1000 %" />
+        </label>
+        <label className="text-xs text-slate-400 space-y-1 md:col-span-2">
+          Équipement ou autres remarques
           <textarea className={fieldClass} rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Note le bonus du jour et les conditions du test..." />
         </label>
         <button type="submit" disabled={!gorilla || !damage || ratioTotal !== 100} className="md:col-span-2 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed text-slate-950 font-semibold text-sm py-3">
@@ -172,6 +198,23 @@ export const GorillaDamageLog: React.FC = () => {
         )}
       </div>
 
+      <div className="border-t border-slate-800 pt-4 space-y-3">
+        <h3 className="text-sm font-semibold text-slate-100">Comparaison des ratios (même gorille et même bonus)</h3>
+        <p className="text-xs text-slate-500">Moyenne calculée uniquement avec au moins deux essais enregistrés pour le même gorille, le même bonus déclaré et le même ratio.</p>
+        {ratioComparisons.length === 0 ? (
+          <p className="text-sm text-slate-500">Ajoute au moins deux essais comparables avec le même bonus pour afficher une comparaison fiable.</p>
+        ) : ratioComparisons.map((group) => (
+          <div key={`${group.gorilla}-${group.bonus}-${group.ratio}`} className="rounded-lg bg-slate-950/60 border border-slate-800 p-3">
+            <div className="text-xs font-medium text-slate-200">{group.gorilla} · {group.bonus}</div>
+            <div className="flex flex-wrap justify-between gap-2 text-sm mt-1">
+              <span className="text-slate-300">Ratio {group.ratio}</span>
+              <strong className="text-amber-300 tabular-nums">Moyenne : {formatDamage(Math.round(group.total / group.count))}</strong>
+            </div>
+            <div className="text-[11px] text-slate-500">{group.count} essais · meilleur : {formatDamage(group.best)}</div>
+          </div>
+        ))}
+      </div>
+
       <div className="border-t border-slate-800 pt-4 space-y-2">
         <div className="flex items-center justify-between gap-3">
           <h3 className="text-sm font-semibold text-slate-100">Historique des essais ({runs.length})</h3>
@@ -183,7 +226,7 @@ export const GorillaDamageLog: React.FC = () => {
           <div key={run.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-slate-950/50 px-3 py-2">
             <div className="min-w-0">
               <div className="text-xs font-medium text-slate-200">{run.gorilla} · {run.date}</div>
-              <div className="text-[11px] text-slate-500">{run.shield}/{run.bomber}/{run.shooter} · {[run.heroes, run.robot].filter(Boolean).join(' · ') || 'Composition non précisée'}</div>
+              <div className="text-[11px] text-slate-500">{run.shield}/{run.bomber}/{run.shooter} · {run.bonus || 'Bonus non précisé'} · {[run.heroes, run.robot].filter(Boolean).join(' · ') || 'Composition non précisée'}</div>
             </div>
             <div className="text-sm font-semibold text-amber-300 tabular-nums">{formatDamage(run.damage)}</div>
           </div>
