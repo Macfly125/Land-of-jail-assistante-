@@ -50,14 +50,17 @@ jobs:
         id: signing
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          if [ -n "$KEYSTORE_BASE64" ]; then
+          if [ -n "$KEYSTORE_BASE64" ] && [ -n "$KEYSTORE_PASSWORD" ] && [ -n "$KEY_ALIAS" ] && [ -n "$KEY_PASSWORD" ]; then
             echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/loj-upload-key.jks"
             echo "available=true" >> "$GITHUB_OUTPUT"
             echo "ANDROID_KEYSTORE_FILE=$RUNNER_TEMP/loj-upload-key.jks" >> "$GITHUB_ENV"
           else
             echo "available=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::Clé de signature stable absente. L'APK debug sera généré uniquement pour test et ne doit pas être considéré comme une mise à jour installable par-dessus la version précédente."
+            echo "::warning::Secrets de signature stables incomplets ou absents. L'APK debug sera généré uniquement pour test et ne doit pas être considéré comme une mise à jour installable par-dessus la version précédente."
           fi
 
       - name: Compiler APK release signé (mise à jour)
