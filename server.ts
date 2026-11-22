@@ -278,7 +278,6 @@ RÈGLES GÉNÉRALES :
       if (
         (parsed.typeCapture === 'heros' || /héros|heros|heroes/i.test(String(note || ''))) &&
         Array.isArray(parsed.heros) &&
-        parsed.heros.length > 0 &&
         parsed.heros.length < 5
       ) {
         try {
@@ -356,7 +355,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
           const merged = new Map<string, Record<string, unknown>>();
           for (const hero of [...parsed.heros, ...(Array.isArray(retryParsed.heros) ? retryParsed.heros : [])]) {
             if (!hero || typeof hero.nom !== 'string' || !hero.nom.trim()) continue;
-            const key = hero.nom.normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            const key = hero.nom.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
             const previous = merged.get(key);
             if (!previous) {
               merged.set(key, hero);
