@@ -41,9 +41,9 @@ import com.landsofjail.assistant.ocr.LandsOfJailOcrParser
 import com.landsofjail.assistant.service.GameForegroundMonitorService
 import com.landsofjail.assistant.service.UsageStatsDetector
 import kotlinx.coroutines.launch
-import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
+import kotlinx.serialization.decodeFromString
 import kotlinx.coroutines.CompletableDeferred
 import java.time.Instant
 import java.util.UUID
@@ -1600,6 +1600,16 @@ private fun AdviceScreen(
     onGenerateAdvice: () -> Unit
 ) {
     val uriHandler = LocalUriHandler.current
+    var gorillaDamageInput by remember { mutableStateOf("") }
+    var gorillaShieldInput by remember { mutableStateOf("0") }
+    var gorillaBomberInput by remember { mutableStateOf("15") }
+    var gorillaShooterInput by remember { mutableStateOf("85") }
+    var gorillaHeroesInput by remember { mutableStateOf("") }
+    var gorillaRobotInput by remember { mutableStateOf("") }
+    var gorillaNotesInput by remember { mutableStateOf("") }
+    val gorillaRatioTotal = (gorillaShieldInput.toIntOrNull() ?: 0) +
+        (gorillaBomberInput.toIntOrNull() ?: 0) + (gorillaShooterInput.toIntOrNull() ?: 0)
+    val numberFormat = remember { java.text.NumberFormat.getIntegerInstance(java.util.Locale.FRANCE) }
     LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item {
             Spacer(Modifier.height(6.dp))
@@ -1653,6 +1663,66 @@ private fun AdviceScreen(
                     }
                 }
                 Text("Choisis le nom exact visible : ne te fie pas uniquement au jour de la semaine.", style = MaterialTheme.typography.bodySmall, color = Color(0xFF94A3B8))
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF161E2E))
+                ) {
+                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("Journal des dégâts Gorilla", fontWeight = FontWeight.SemiBold, color = Color(0xFFF59E0B))
+                        Text("Enregistre tes essais pour comparer les compositions sur ce même gorille.", style = MaterialTheme.typography.bodySmall)
+                        OutlinedTextField(value = gorillaDamageInput, onValueChange = { gorillaDamageInput = it.filter(Char::isDigit) }, label = { Text("Dégâts infligés") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                        Text("Ratio Boucliers / Bombardiers / Tireurs (%)", style = MaterialTheme.typography.labelMedium)
+                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            OutlinedTextField(value = gorillaShieldInput, onValueChange = { gorillaShieldInput = it.filter(Char::isDigit).take(3) }, label = { Text("Boucliers") }, modifier = Modifier.weight(1f), singleLine = true)
+                            OutlinedTextField(value = gorillaBomberInput, onValueChange = { gorillaBomberInput = it.filter(Char::isDigit).take(3) }, label = { Text("Bombardiers") }, modifier = Modifier.weight(1f), singleLine = true)
+                            OutlinedTextField(value = gorillaShooterInput, onValueChange = { gorillaShooterInput = it.filter(Char::isDigit).take(3) }, label = { Text("Tireurs") }, modifier = Modifier.weight(1f), singleLine = true)
+                        }
+                        Text("Total : $gorillaRatioTotal %", color = if (gorillaRatioTotal == 100) Color(0xFF34D399) else Color(0xFFFBBF24), style = MaterialTheme.typography.labelSmall)
+                        OutlinedTextField(value = gorillaHeroesInput, onValueChange = { gorillaHeroesInput = it }, label = { Text("Héros utilisés") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                        OutlinedTextField(value = gorillaRobotInput, onValueChange = { gorillaRobotInput = it }, label = { Text("Robot utilisé") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                        OutlinedTextField(value = gorillaNotesInput, onValueChange = { gorillaNotesInput = it }, label = { Text("Bonus / remarques") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+                        Button(
+                            onClick = {
+                                val parsedDamage = gorillaDamageInput.toLongOrNull()
+                                val shield = gorillaShieldInput.toIntOrNull()
+                                val bomber = gorillaBomberInput.toIntOrNull()
+                                val shooter = gorillaShooterInput.toIntOrNull()
+                                if (selectedGorilla.isNotBlank() && parsedDamage != null && parsedDamage > 0 &&
+                                    shield != null && bomber != null && shooter != null &&
+                                    listOf(shield, bomber, shooter).all { it in 0..100 } && gorillaRatioTotal == 100
+                                ) {
+                                    onAddGorillaRun(GorillaDamageRecord(
+                                        id = UUID.randomUUID().toString(),
+                                        date = java.time.LocalDate.now().toString(),
+                                        gorilla = selectedGorilla,
+                                        damage = parsedDamage,
+                                        shield = shield,
+                                        bomber = bomber,
+                                        shooter = shooter,
+                                        heroes = gorillaHeroesInput.trim(),
+                                        robot = gorillaRobotInput.trim(),
+                                        notes = gorillaNotesInput.trim()
+                                    ))
+                                    gorillaDamageInput = ""
+                                    gorillaNotesInput = ""
+                                }
+                            },
+                            enabled = selectedGorilla.isNotBlank() && gorillaDamageInput.toLongOrNull()?.let { it > 0 } == true && gorillaRatioTotal == 100
+                        ) { Text("Enregistrer l’essai") }
+                        val bestRun = gorillaRuns.filter { it.gorilla == selectedGorilla }.maxByOrNull { it.damage }
+                        Text("Meilleur résultat — $selectedGorilla", fontWeight = FontWeight.Medium)
+                        if (bestRun == null) {
+                            Text("Aucun essai enregistré pour ce gorille.", style = MaterialTheme.typography.bodySmall, color = Color(0xFF94A3B8))
+                        } else {
+                            Text("${numberFormat.format(bestRun.damage)} dégâts · ${bestRun.shield}/${bestRun.bomber}/${bestRun.shooter} · ${bestRun.date}", color = Color(0xFFFBBF24), style = MaterialTheme.typography.bodySmall)
+                        }
+                        Text("Historique : ${gorillaRuns.size} essai(s)", fontWeight = FontWeight.Medium)
+                        gorillaRuns.take(5).forEach { run ->
+                            Text("${run.gorilla} · ${numberFormat.format(run.damage)} · ${run.shield}/${run.bomber}/${run.shooter}", style = MaterialTheme.typography.bodySmall)
+                        }
+                        if (gorillaRuns.isNotEmpty()) TextButton(onClick = onClearGorillaRuns) { Text("Effacer le journal") }
+                    }
+                }
             }
             if (selectedMode != AdviceMode.GORILLA_LEGION) {
                 Text("Position dans l'événement", style = MaterialTheme.typography.labelMedium, color = Color(0xFF94A3B8))
