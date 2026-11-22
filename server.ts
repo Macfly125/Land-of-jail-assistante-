@@ -280,6 +280,66 @@ RÈGLES GÉNÉRALES :
       const rawText = (response.text ?? '{}').trim();
       const parsed = JSON.parse(rawText);
 
+      // Deuxième passe dédiée aux ressources : la première analyse peut reconnaître
+      // l'écran sans extraire les compteurs. On relit alors l'image originale avec
+      // un schéma isolé pour éviter que les héros/profil prennent la priorité.
+      const resourceContext = parsed.typeCapture === 'ressources' ||
+        /ressource|inventaire|entrep[oô]t|warehouse|stock/i.test(String(note || ''));
+      if (resourceContext && (!Array.isArray(parsed.ressources) || parsed.ressources.length === 0)) {
+        try {
+          const resourceRetry = await ai.models.generateContent({
+            model: 'gemini-4-hydrogen',
+            contents: {
+              parts: [
+                { inlineData: { mimeType, data: imageBase64 } },
+                {
+                  text: `SECONDE PASSE OBLIGATOIRE — EXTRACTION DES COMPTEURS DE RESSOURCES.
+L'analyse générale n'a retourné aucune ressource. Réinspecte cette image originale uniquement pour trouver les ressources et leurs quantités.
+Repère les icônes par leur apparence et leur position, même si aucun libellé n'est écrit. Lis les nombres immédiatement associés à chaque icône, y compris les formats K, M, B, les espaces et séparateurs.
+Vérifie toute la capture, notamment la barre supérieure, les panneaux d'inventaire et les lignes de ressources. Distingue les quantités possédées des coûts, récompenses et gains.
+Retourne une ligne par compteur réellement visible. N'invente jamais une valeur. Si l'icône est identifiable mais le chiffre illisible, conserve la ressource avec quantiteTexte vide et incertain=true. Si aucun compteur n'est visible, retourne une liste vide.`,
+                },
+              ],
+            },
+            config: {
+              responseMimeType: 'application/json',
+              responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                  ressources: {
+                    type: Type.ARRAY,
+                    items: {
+                      type: Type.OBJECT,
+                      properties: {
+                        nom: { type: Type.STRING },
+                        quantiteTexte: { type: Type.STRING },
+                        quantiteNumerique: { type: Type.NUMBER },
+                        unite: { type: Type.STRING },
+                        incertain: { type: Type.BOOLEAN },
+                        raisonIncertitude: { type: Type.STRING },
+                      },
+                      required: ['nom', 'quantiteTexte', 'incertain'],
+                    },
+                  },
+                },
+                required: ['ressources'],
+              },
+            },
+          });
+          const retryText = (resourceRetry.text ?? '{}').trim();
+          const retryParsed = JSON.parse(retryText);
+          if (Array.isArray(retryParsed.ressources) && retryParsed.ressources.length > 0) {
+            parsed.ressources = retryParsed.ressources;
+            parsed.typeCapture = 'ressources';
+            parsed.resumeCapture = [String(parsed.resumeCapture || ''), 'Compteurs relus lors du contrôle visuel ciblé.']
+              .filter(Boolean)
+              .join(' ');
+          }
+        } catch (resourceRetryError) {
+          console.error('Seconde passe ressources échouée:', resourceRetryError);
+        }
+      }
+
       // Deuxième passe ciblée uniquement si l'écran est une fiche/liste de héros
       // et que moins de cinq héros ont été restitués. Cela évite de valider trop
       // vite une lecture partielle de la rangée de portraits.
