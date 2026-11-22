@@ -13,6 +13,11 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import java.time.Instant
+import com.landsofjail.assistant.model.AlliancePlayerProfile
+import com.landsofjail.assistant.model.HeroRecord
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -43,7 +48,8 @@ class SupabaseAuthRepository(context: Context) {
         val refresh_token: String,
         val token_type: String = "bearer",
         val expires_in: Long = 3600,
-        val email: String = ""
+        val email: String = "",
+        val user_id: String = ""
     )
 
     data class AuthOutcome(
@@ -92,7 +98,8 @@ class SupabaseAuthRepository(context: Context) {
                         refresh_token = refresh,
                         token_type = obj["token_type"]?.jsonPrimitive?.contentOrNull ?: "bearer",
                         expires_in = obj["expires_in"]?.jsonPrimitive?.contentOrNull?.toLongOrNull() ?: 3600L,
-                        email = obj["user"]?.jsonObject?.get("email")?.jsonPrimitive?.contentOrNull ?: email
+                        email = obj["user"]?.jsonObject?.get("email")?.jsonPrimitive?.contentOrNull ?: email,
+                        user_id = obj["user"]?.jsonObject?.get("id")?.jsonPrimitive?.contentOrNull.orEmpty()
                     )
                 }
                 session?.let(::saveSession)
@@ -137,8 +144,53 @@ class SupabaseAuthRepository(context: Context) {
                     refresh_token = refresh,
                     token_type = obj["token_type"]?.jsonPrimitive?.contentOrNull ?: "bearer",
                     expires_in = obj["expires_in"]?.jsonPrimitive?.contentOrNull?.toLongOrNull() ?: 3600L,
-                    email = obj["user"]?.jsonObject?.get("email")?.jsonPrimitive?.contentOrNull ?: current.email
+                    email = obj["user"]?.jsonObject?.get("email")?.jsonPrimitive?.contentOrNull ?: current.email,
+                    user_id = obj["user"]?.jsonObject?.get("id")?.jsonPrimitive?.contentOrNull ?: current.user_id
                 ).also(::saveSession)
+            }
+        }
+    }
+
+
+    /**
+     * Uploads only the signed-in player's own profile. RLS remains the authority:
+     * user_id must match auth.uid(); the locally selected game rank is never uploaded.
+     */
+    suspend fun syncPlayerProfile(
+        profile: AlliancePlayerProfile,
+        heroes: List<HeroRecord>
+    ): Result<Unit> = withContext(Dispatchers.IO) {
+        runCatching {
+            require(profile.playerName.isNotBlank()) { "Renseigne ton pseudo avant la synchronisation." }
+            val active = refreshSession().getOrThrow()
+            require(active.user_id.isNotBlank()) { "Identifiant du compte absent. Reconnecte-toi." }
+            val payload = buildJsonObject {
+                put("user_id", active.user_id)
+                put("player_name", profile.playerName.trim())
+                put("power_text", profile.powerText.trim())
+                put("hero_data", json.parseToJsonElement(Json.encodeToString(heroes)))
+                put("robot_data", buildJsonObject { put("summary", profile.robotSummary.trim()) })
+                put("troop_data", buildJsonObject { put("status", "not_provided") })
+                put("updated_at", Instant.now().toString())
+            }
+            val request = Request.Builder()
+                .url("$BASE_URL/rest/v1/player_profiles?on_conflict=user_id")
+                .header("apikey", PUBLISHABLE_KEY)
+                .header("Authorization", "Bearer \${active.access_token}")
+                .header("Content-Type", "application/json")
+                .header("Prefer", "resolution=merge-duplicates,return=minimal")
+                .post(payload.toString().toRequestBody("application/json".toMediaType()))
+                .build()
+            client.newCall(request).execute().use { response ->
+                val body = response.body?.string().orEmpty()
+                if (!response.isSuccessful) {
+                    val parsed = runCatching { json.parseToJsonElement(body).jsonObject }.getOrNull()
+                    val message = parsed?.get("message")?.jsonPrimitive?.contentOrNull
+                        ?: parsed?.get("details")?.jsonPrimitive?.contentOrNull
+                        ?: parsed?.get("hint")?.jsonPrimitive?.contentOrNull
+                        ?: "Synchronisation refusée (HTTP \${response.code})."
+                    error(message)
+                }
             }
         }
     }
