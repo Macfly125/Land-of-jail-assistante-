@@ -49,6 +49,7 @@ export const AdviceView: React.FC<AdviceViewProps> = ({
 }) => {
   const [selectedMode, setSelectedMode] = useState<AdviceMode>('trial_cage');
   const [eventPosition, setEventPosition] = useState<'leader' | 'joiner' | 'solo'>('joiner');
+  const [gorillaName, setGorillaName] = useState('');
   const [extraQuestion, setExtraQuestion] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -78,6 +79,7 @@ export const AdviceView: React.FC<AdviceViewProps> = ({
           playerRole,
           playerRoleLabel: PLAYER_ROLE_LABELS[playerRole].label,
           eventPosition: selectedMode === 'gorilla_legion' ? 'solo' : eventPosition,
+          gorillaName: selectedMode === 'gorilla_legion' ? gorillaName : undefined,
           robots: robots.map((robot) => ({
             nom: robot.nom,
             niveau: robot.niveau,
@@ -240,6 +242,29 @@ export const AdviceView: React.FC<AdviceViewProps> = ({
             </select>
           </div>
 
+          {selectedMode === 'gorilla_legion' && (
+            <div>
+              <label htmlFor="advice-gorilla-name" className="block text-xs font-medium text-slate-400 mb-1.5">
+                Gorille affiché dans le jeu
+              </label>
+              <select
+                id="advice-gorilla-name"
+                value={gorillaName}
+                onChange={(e) => setGorillaName(e.target.value)}
+                className="w-full rounded-xl bg-slate-900 border border-slate-800 px-3.5 py-2.5 text-sm text-slate-100 focus:outline-none focus:border-amber-500"
+              >
+                <option value="">À confirmer sur la capture</option>
+                <option value="Space Gorilla">Space Gorilla</option>
+                <option value="Wise Gorilla">Wise Gorilla</option>
+                <option value="Cyber Gorilla">Cyber Gorilla</option>
+                <option value="Primal Gorilla">Primal Gorilla</option>
+                <option value="Armed Gorilla">Armed Gorilla</option>
+                <option value="Treasure Gorilla">Treasure Gorilla</option>
+                <option value="Gorilla Warlord / High Chieftain">Gorilla Warlord / High Chieftain</option>
+              </select>
+              <p className="mt-1 text-[11px] text-slate-500">Sélectionne le nom exact visible : les calendriers communautaires ne concordent pas toujours.</p>
+            </div>
+          )}
           {selectedMode !== 'gorilla_legion' && (
                       <div>
                         <label htmlFor="advice-event-position" className="block text-xs font-medium text-slate-400 mb-1.5">
