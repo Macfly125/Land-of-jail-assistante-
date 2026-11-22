@@ -841,6 +841,7 @@ fun LandsOfJailAssistantApp(
                             TextButton(onClick = {
                                     pendingReview = null
                                     reviewHeroes = emptyList()
+                                    reviewRobots = emptyList()
                                     pendingReviewCompletion?.complete(false)
                                 }) {
                                 Text("Ignorer")
