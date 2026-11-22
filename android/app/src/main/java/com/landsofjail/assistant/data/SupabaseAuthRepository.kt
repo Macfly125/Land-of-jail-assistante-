@@ -118,12 +118,12 @@ class SupabaseAuthRepository(context: Context) {
                 .build()
             client.newCall(request).execute().use { response ->
                 val body = response.body?.string().orEmpty()
-                val obj = runCatching { json.parseToJsonElement(body).jsonObject }.getOrNull()
+                val parsed = runCatching { json.parseToJsonElement(body).jsonObject }.getOrNull()
                 if (!response.isSuccessful) {
                     if (response.code == 400 || response.code == 401) clearSession()
                     error(
-                        obj?.get("msg")?.jsonPrimitive?.contentOrNull
-                            ?: obj?.get("message")?.jsonPrimitive?.contentOrNull
+                        parsed?.get("msg")?.jsonPrimitive?.contentOrNull
+                            ?: parsed?.get("message")?.jsonPrimitive?.contentOrNull
                             ?: "Impossible d'actualiser la session (HTTP ${response.code})."
                     )
                 }
