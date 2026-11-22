@@ -213,26 +213,49 @@ fun LandsOfJailAssistantApp(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    var currentLang by remember { mutableStateOf(AppLanguage.FR) }
+    val profilePreferences = remember {
+        context.getSharedPreferences("loj_assistant", android.content.Context.MODE_PRIVATE)
+    }
+    val gorillaJson = remember { Json { ignoreUnknownKeys = true } }
+    var savedProfiles by remember {
+        mutableStateOf(
+            runCatching {
+                val raw = profilePreferences.getString("player_profiles_v1", "[]") ?: "[]"
+                gorillaJson.decodeFromString<List<SavedPlayerProfile>>(raw)
+            }.getOrDefault(emptyList())
+        )
+    }
+    var activeProfileId by remember {
+        mutableStateOf(profilePreferences.getString("active_profile_id", "profile-main") ?: "profile-main")
+    }
+    val initialProfile = savedProfiles.firstOrNull { it.id == activeProfileId }
+    var currentLang by remember {
+        mutableStateOf(AppLanguage.entries.firstOrNull { it.code == initialProfile?.languageCode } ?: AppLanguage.FR)
+    }
     var currentTab by remember { mutableStateOf(AssistantTab.TABLEAU) }
-    var playerRole by remember { mutableStateOf(PlayerRole.POLYVALENT_F2P) }
+    var playerRole by remember {
+        mutableStateOf(PlayerRole.entries.firstOrNull { it.name == initialProfile?.playerRoleName } ?: PlayerRole.POLYVALENT_F2P)
+    }
     var packageFilter by remember { mutableStateOf(UsageStatsDetector.DEFAULT_GAME_PACKAGE_KEYWORD) }
     var alwaysKeepOverlay by remember { mutableStateOf(true) }
+    var showProfilesMenu by remember { mutableStateOf(false) }
+    var showCreateProfileDialog by remember { mutableStateOf(false) }
+    var newProfileName by remember { mutableStateOf("") }
 
     var hasUsagePermission by remember { mutableStateOf(UsageStatsDetector.hasUsageStatsPermission(context)) }
     var hasOverlayPermission by remember { mutableStateOf(Settings.canDrawOverlays(context)) }
     val isMonitoringRunning by GameForegroundMonitorService.isRunning.collectAsState()
     val isGameForeground by GameForegroundMonitorService.detectedGameForeground.collectAsState()
 
-    var analyses by remember { mutableStateOf<List<ScreenshotAnalysis>>(emptyList()) }
-    var heroes by remember { mutableStateOf<List<HeroRecord>>(emptyList()) }
-    var robots by remember { mutableStateOf<List<RobotRecord>>(emptyList()) }
+    var analyses by remember { mutableStateOf(initialProfile?.analyses ?: emptyList()) }
+    var heroes by remember { mutableStateOf(initialProfile?.heroes ?: emptyList()) }
+    var robots by remember { mutableStateOf(initialProfile?.robots ?: emptyList()) }
     var reviewRobots by remember { mutableStateOf<List<RobotRecord>>(emptyList()) }
     var pendingReview by remember { mutableStateOf<ScreenshotAnalysis?>(null) }
     var reviewHeroes by remember { mutableStateOf<List<HeroRecord>>(emptyList()) }
     var pendingReviewCompletion by remember { mutableStateOf<CompletableDeferred<Boolean>?>(null) }
-    var resources by remember { mutableStateOf<List<ResourceRecord>>(emptyList()) }
-    var currentPower by remember { mutableStateOf<PowerMetric?>(null) }
+    var resources by remember { mutableStateOf(initialProfile?.resources ?: emptyList()) }
+    var currentPower by remember { mutableStateOf(initialProfile?.currentPower) }
 
     var isAnalyzing by remember { mutableStateOf(false) }
     var singleAnalysisPercent by remember { mutableIntStateOf(0) }
@@ -244,20 +267,53 @@ fun LandsOfJailAssistantApp(
     var selectedGorilla by remember { mutableStateOf("") }
     var adviceResult by remember { mutableStateOf<TacticalAdviceResult?>(null) }
     var isFetchingAdvice by remember { mutableStateOf(false) }
-    val gorillaJson = remember { Json { ignoreUnknownKeys = true } }
     var gorillaRuns by remember {
         mutableStateOf(
-            runCatching {
-                val saved = context.getSharedPreferences("loj_assistant", android.content.Context.MODE_PRIVATE)
-                    .getString("gorilla_damage_log_v1", "[]") ?: "[]"
-                gorillaJson.decodeFromString<List<GorillaDamageRecord>>(saved)
+            initialProfile?.gorillaRuns ?: runCatching {
+                val legacy = profilePreferences.getString("gorilla_damage_log_v1", "[]") ?: "[]"
+                gorillaJson.decodeFromString<List<GorillaDamageRecord>>(legacy)
             }.getOrDefault(emptyList())
         )
     }
-    LaunchedEffect(gorillaRuns) {
+
+    fun snapshotProfile(id: String, name: String) = SavedPlayerProfile(
+        id = id,
+        name = name,
+        languageCode = currentLang.code,
+        playerRoleName = playerRole.name,
+        analyses = analyses,
+        heroes = heroes,
+        robots = robots,
+        resources = resources,
+        currentPower = currentPower,
+        gorillaRuns = gorillaRuns
+    )
+
+    fun switchGameProfile(target: SavedPlayerProfile) {
+        val currentName = savedProfiles.firstOrNull { it.id == activeProfileId }?.name ?: "Compte principal"
+        val currentSnapshot = snapshotProfile(activeProfileId, currentName)
+        savedProfiles = (savedProfiles.filterNot { it.id == activeProfileId } + currentSnapshot)
+        activeProfileId = target.id
+        currentLang = AppLanguage.entries.firstOrNull { it.code == target.languageCode } ?: AppLanguage.FR
+        playerRole = PlayerRole.entries.firstOrNull { it.name == target.playerRoleName } ?: PlayerRole.POLYVALENT_F2P
+        analyses = target.analyses
+        heroes = target.heroes
+        robots = target.robots
+        resources = target.resources
+        currentPower = target.currentPower
+        gorillaRuns = target.gorillaRuns
+        adviceResult = null
+        currentTab = AssistantTab.TABLEAU
+    }
+
+    LaunchedEffect(currentLang, playerRole, analyses, heroes, robots, resources, currentPower, gorillaRuns, savedProfiles, activeProfileId) {
         runCatching {
-            context.getSharedPreferences("loj_assistant", android.content.Context.MODE_PRIVATE)
-                .edit()
+            val currentName = savedProfiles.firstOrNull { it.id == activeProfileId }?.name ?: "Compte principal"
+            val snapshot = snapshotProfile(activeProfileId, currentName)
+            val persisted = (savedProfiles.filterNot { it.id == activeProfileId } + snapshot)
+            profilePreferences.edit()
+                .putString("player_profiles_v1", gorillaJson.encodeToString(persisted))
+                .putString("active_profile_id", activeProfileId)
                 .putString("gorilla_damage_log_v1", gorillaJson.encodeToString(gorillaRuns))
                 .apply()
         }
@@ -578,6 +634,77 @@ fun LandsOfJailAssistantApp(
                     .fillMaxSize()
                     .padding(horizontal = 16.dp)
             ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 6.dp, bottom = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "Compte : ${savedProfiles.firstOrNull { it.id == activeProfileId }?.name ?: "Compte principal"}",
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.labelLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Box {
+                        TextButton(onClick = { showProfilesMenu = true }) { Text("Changer") }
+                        DropdownMenu(expanded = showProfilesMenu, onDismissRequest = { showProfilesMenu = false }) {
+                            savedProfiles.forEach { profile ->
+                                DropdownMenuItem(
+                                    text = { Text(profile.name) },
+                                    onClick = {
+                                        showProfilesMenu = false
+                                        if (profile.id != activeProfileId) switchGameProfile(profile)
+                                    }
+                                )
+                            }
+                        }
+                    }
+                    TextButton(onClick = { newProfileName = ""; showCreateProfileDialog = true }) {
+                        Text("+ Profil")
+                    }
+                }
+                if (showCreateProfileDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showCreateProfileDialog = false },
+                        title = { Text("Ajouter un compte de jeu") },
+                        text = {
+                            OutlinedTextField(
+                                value = newProfileName,
+                                onValueChange = { newProfileName = it.take(32) },
+                                label = { Text("Nom du profil (ex. Compte secondaire)") },
+                                singleLine = true
+                            )
+                        },
+                        confirmButton = {
+                            TextButton(
+                                enabled = newProfileName.isNotBlank(),
+                                onClick = {
+                                    val currentName = savedProfiles.firstOrNull { it.id == activeProfileId }?.name ?: "Compte principal"
+                                    val currentSnapshot = snapshotProfile(activeProfileId, currentName)
+                                    val fresh = SavedPlayerProfile(
+                                        id = "profile-${UUID.randomUUID()}",
+                                        name = newProfileName.trim()
+                                    )
+                                    savedProfiles = savedProfiles.filterNot { it.id == activeProfileId } + currentSnapshot + fresh
+                                    activeProfileId = fresh.id
+                                    analyses = emptyList()
+                                    heroes = emptyList()
+                                    robots = emptyList()
+                                    resources = emptyList()
+                                    currentPower = null
+                                    gorillaRuns = emptyList()
+                                    adviceResult = null
+                                    currentTab = AssistantTab.TABLEAU
+                                    showCreateProfileDialog = false
+                                }
+                            ) { Text("Créer") }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { showCreateProfileDialog = false }) { Text("Annuler") }
+                        }
+                    )
+                }
                 if (analysisQueue.isNotEmpty()) {
                     val total = analysisQueue.size
                     val done = analysisQueue.count { it.status == "done" }
