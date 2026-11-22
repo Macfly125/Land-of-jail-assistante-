@@ -305,6 +305,7 @@ export interface AccountState {
   playerRole: PlayerRole;
   currentPower: PowerMetric | null;
   forticladLevel?: number;
+  forticladBuildings?: Record<string, { level: number; completedStages: number; targetLevel: number }>;
   powerHistory: Array<{
     analysisId: string;
     date: string;
