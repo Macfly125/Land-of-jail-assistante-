@@ -821,7 +821,13 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
           champsIncertains?: string[];
           incertain?: boolean;
           verifieManuellement?: boolean;
-          competences?: Array<{ nom: string; niveau: string; incertain?: boolean }>;
+          competences?: Array<{
+            nom: string;
+            niveau: string;
+            description?: string;
+            incertain?: boolean;
+            raisonIncertitude?: string;
+          }>;
         }>;
         powerText?: string;
         extraQuestion?: string;
@@ -908,9 +914,18 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
           !uncertain.has('typeTroupe') ? hero.typeTroupe : 'type de troupe à confirmer',
           !uncertain.has('puissanceHero') ? hero.puissanceHero : 'puissance à confirmer',
         ].filter(Boolean);
-        const skills = (hero.competences || []).map((skill) =>
-          `${skill.nom}: ${skill.incertain ? 'niveau à confirmer' : skill.niveau || 'niveau non relevé'}`
-        );
+        const skills = (hero.competences || []).map((skill) => {
+          const level = skill.incertain
+            ? 'niveau à confirmer'
+            : skill.niveau || 'niveau non relevé';
+          const description = skill.description?.trim()
+            ? ` ; effet décrit : ${skill.description.trim()}`
+            : ' ; effet non documenté dans la capture';
+          const uncertainty = skill.incertain && skill.raisonIncertitude
+            ? ` ; incertitude : ${skill.raisonIncertitude}`
+            : '';
+          return `${skill.nom}: ${level}${description}${uncertainty}`;
+        });
         return `${hero.nom} [${personalFields.join(', ')}]${skills.length ? ` | compétences: ${skills.join('; ')}` : ''}`;
       });
       const liveGuides = await fetchLiveLojGuides(mode, heroNames, targetLang);
