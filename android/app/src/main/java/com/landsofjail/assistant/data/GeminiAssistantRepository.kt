@@ -141,7 +141,8 @@ class GeminiAssistantRepository(
                     mode = mode,
                     language = language,
                     playerRole = playerRole,
-                    heroes = heroes
+                    heroes = heroes,
+                    gorillaName = gorillaName
                 )
             }
         }
@@ -159,7 +160,8 @@ class GeminiAssistantRepository(
         mode: AdviceMode,
         language: AppLanguage,
         playerRole: PlayerRole,
-        heroes: List<HeroRecord>
+        heroes: List<HeroRecord>,
+        gorillaName: String? = null
     ): TacticalAdviceResult {
         val collected = mutableListOf<DirectPost>()
         val seenLinks = mutableSetOf<String>()
@@ -296,7 +298,32 @@ class GeminiAssistantRepository(
             )
         }
 
-        val tacticalBase = mode.briefFor(language)
+        val tacticalBase = buildString {
+            append(mode.briefFor(language))
+            if (mode == AdviceMode.GORILLA_LEGION) {
+                if (!gorillaName.isNullOrBlank()) {
+                    append(" ")
+                    append(when (language) {
+                        AppLanguage.FR -> "Gorille sélectionné : $gorillaName. Vérifiez le bonus affiché en jeu ; les calendriers communautaires divergent."
+                        AppLanguage.EN -> "Selected Gorilla: $gorillaName. Verify the in-game bonus; community schedules conflict."
+                        AppLanguage.DE -> "Ausgewählter Gorilla: $gorillaName. Prüfe den Bonus im Spiel; Community-Zeitpläne widersprechen sich."
+                        AppLanguage.TR -> "Seçilen Goril: $gorillaName. Topluluk takvimleri farklı olduğundan oyun içi bonusu doğrulayın."
+                        AppLanguage.RU -> "Выбранная горилла: $gorillaName. Проверьте бонус в игре: расписания сообщества расходятся."
+                        AppLanguage.ZH -> "已选择大猩猩：$gorillaName。社区日程存在差异，请以游戏内显示的加成为准。"
+                    })
+                } else {
+                    append(" ")
+                    append(when (language) {
+                        AppLanguage.FR -> "Gorille non confirmé : ne déduisez pas le boss ou son bonus du seul jour de la semaine."
+                        AppLanguage.EN -> "Gorilla not confirmed: do not infer the boss or bonus from the weekday alone."
+                        AppLanguage.DE -> "Gorilla nicht bestätigt: Leite Boss oder Bonus nicht allein aus dem Wochentag ab."
+                        AppLanguage.TR -> "Goril doğrulanmadı: Boss veya bonusu yalnızca haftanın gününe göre tahmin etmeyin."
+                        AppLanguage.RU -> "Горилла не подтверждена: не определяйте босса или бонус только по дню недели."
+                        AppLanguage.ZH -> "尚未确认大猩猩：不要仅凭星期推断首领或加成。"
+                    })
+                }
+            }
+        }
         val synthText = when (language) {
             AppLanguage.FR -> "$modeLabel (${playerRole.labelFr}) — $tacticalBase"
             AppLanguage.TR -> "$modeLabel (${playerRole.labelFr}) — $tacticalBase"
