@@ -248,6 +248,17 @@ export interface AdviceRecommendation {
   imageUrl?: string | null;
 }
 
+export interface AdviceTroopRatioProfile {
+  id: string;
+  role: 'lanceur' | 'rejoigneur';
+  roleLabel: string;
+  label: string;
+  shieldbearer: number;
+  bomber: number;
+  shooter: number;
+  note: string;
+}
+
 export interface TacticalAdviceResult {
   id: string;
   mode: AdviceMode;
@@ -256,6 +267,8 @@ export interface TacticalAdviceResult {
   generatedAt: string;
   synthese: string;
   compositionRecommandee: string;
+  troopRatioTitle?: string;
+  troopRatioProfiles?: AdviceTroopRatioProfile[];
   recommandations: AdviceRecommendation[];
   informationsIncertaines: string[];
   sources: GroundedWebSource[];
