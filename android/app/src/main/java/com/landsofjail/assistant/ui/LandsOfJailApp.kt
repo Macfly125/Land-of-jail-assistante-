@@ -264,6 +264,7 @@ fun LandsOfJailAssistantApp(
     var pendingReviewCompletion by remember { mutableStateOf<CompletableDeferred<Boolean>?>(null) }
     var resources by remember { mutableStateOf(initialProfile?.resources ?: emptyList()) }
     var currentPower by remember { mutableStateOf(initialProfile?.currentPower) }
+    var forticladLevel by remember { mutableIntStateOf(initialProfile?.forticladLevel ?: 0) }
 
     var isAnalyzing by remember { mutableStateOf(false) }
     var singleAnalysisPercent by remember { mutableIntStateOf(0) }
@@ -294,6 +295,7 @@ fun LandsOfJailAssistantApp(
         robots = robots,
         resources = resources,
         currentPower = currentPower,
+        forticladLevel = forticladLevel,
         gorillaRuns = gorillaRuns
     )
 
@@ -309,6 +311,7 @@ fun LandsOfJailAssistantApp(
         robots = target.robots
         resources = target.resources
         currentPower = target.currentPower
+        forticladLevel = target.forticladLevel.coerceIn(0, 7)
         gorillaRuns = target.gorillaRuns
         adviceResult = null
         currentTab = AssistantTab.TABLEAU
@@ -821,7 +824,7 @@ fun LandsOfJailAssistantApp(
                         onPickImage = { imagePicker.launch("image/*") }
                     )
                     AssistantTab.HEROS -> HeroesScreen(heroes, repository, currentLang)
-                    AssistantTab.RESSOURCES -> ResourcesScreen(currentLang, currentPower, resources)
+                    AssistantTab.RESSOURCES -> ResourcesScreen(currentLang, currentPower, resources, forticladLevel, { forticladLevel = it })
                     AssistantTab.CONSEILS -> AdviceScreen(
                         currentLang = currentLang,
                         onChangeLang = { currentLang = it },
@@ -1628,7 +1631,9 @@ private fun HeroesScreen(
 private fun ResourcesScreen(
     currentLang: AppLanguage,
     power: PowerMetric?,
-    resources: List<ResourceRecord>
+    resources: List<ResourceRecord>,
+    forticladLevel: Int,
+    onForticladLevelChange: (Int) -> Unit
 ) {
     var subTab by remember { mutableStateOf(ResourceSubTab.INVENTAIRE) }
     var targetBuildingLvl by remember { mutableIntStateOf(16) }
@@ -1637,7 +1642,8 @@ private fun ResourcesScreen(
     var ownedShardsText by remember { mutableStateOf("0") }
     var tomeFrom by remember { mutableIntStateOf(0) }
     var tomeTo by remember { mutableIntStateOf(5) }
-    var fcStart by remember { mutableIntStateOf(0) }
+    var fcStart by remember { mutableIntStateOf(forticladLevel.coerceIn(0, 7)) }
+    LaunchedEffect(forticladLevel) { fcStart = forticladLevel.coerceIn(0, 7) }
     var fcTarget by remember { mutableIntStateOf(1) }
     var fcBuildingCountText by remember { mutableStateOf("1") }
 
@@ -1783,10 +1789,10 @@ private fun ResourcesScreen(
                                 color = Color(0xFFFBBF24)
                             )
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                                OutlinedButton(onClick = { fcStart = (fcStart - 1).coerceAtLeast(0); if (fcTarget <= fcStart) fcTarget = fcStart + 1 }) {
+                                OutlinedButton(onClick = { fcStart = (fcStart - 1).coerceAtLeast(0); onForticladLevelChange(fcStart); if (fcTarget <= fcStart) fcTarget = fcStart + 1 }) {
                                     Text("Départ : ${if (fcStart == 0) "Niv.30" else "FC$fcStart"}")
                                 }
-                                OutlinedButton(onClick = { fcStart = (fcStart + 1).coerceAtMost(7); if (fcTarget <= fcStart) fcTarget = fcStart + 1 }) {
+                                OutlinedButton(onClick = { fcStart = (fcStart + 1).coerceAtMost(7); onForticladLevelChange(fcStart); if (fcTarget <= fcStart) fcTarget = fcStart + 1 }) {
                                     Text("+")
                                 }
                             }
