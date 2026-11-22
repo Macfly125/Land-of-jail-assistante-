@@ -382,15 +382,15 @@ export default function App() {
   }));
 
   return (
-    <div className="min-h-screen bg-[#0B0F17] text-slate-100 flex flex-col">
+    <div className="app-shell min-h-screen text-slate-100 flex flex-col">
       {/* Barre supérieure (Top Bar Contract : 3 zones) */}
-      <header className="sticky top-0 z-30 h-16 border-b border-slate-800/80 bg-[#0B0F17]/90 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto h-full px-4 md:px-6 flex items-center justify-between gap-8">
+      <header className="app-header sticky top-0 z-30 min-h-16 border-b border-slate-800/80 backdrop-blur-xl">
+        <div className="max-w-7xl mx-auto min-h-16 px-4 md:px-6 flex items-center justify-between gap-4 md:gap-8">
           {/* Zone 1 : Marque sur une seule ligne */}
           <button
             type="button"
             onClick={() => setActiveTab('tableau')}
-            className="flex items-center gap-2.5 text-left whitespace-nowrap shrink-0 focus:outline-none"
+            className="app-brand flex items-center gap-3 text-left whitespace-nowrap shrink-0 focus:outline-none"
           >
             {!crestFailed ? (
               <img
@@ -405,13 +405,14 @@ export default function App() {
                 <Shield className="w-4 h-4" />
               </div>
             )}
-            <span className="font-display text-base md:text-lg font-semibold tracking-tight text-slate-50 whitespace-nowrap shrink-0">
-              Lands of Jail Assistant
+            <span className="flex flex-col items-start leading-tight">
+              <span className="font-display text-sm md:text-base font-bold tracking-tight text-slate-50 whitespace-nowrap shrink-0">Lands of Jail</span>
+              <span className="text-[9px] md:text-[10px] uppercase tracking-[0.2em] text-amber-400/90 font-semibold">Assistant tactique</span>
             </span>
           </button>
 
           {/* Zone 2 : 5 liens texte simples sur bureau */}
-          <nav className="hidden md:flex items-center gap-6" aria-label="Navigation principale">
+          <nav className="app-desktop-nav hidden md:flex items-center gap-1 p-1 rounded-2xl" aria-label="Navigation principale">
             {navItems.map((item) => {
               const active = activeTab === item.id;
               return (
@@ -419,10 +420,10 @@ export default function App() {
                   key={item.id}
                   type="button"
                   onClick={() => setActiveTab(item.id)}
-                  className={`py-2 text-sm font-medium transition-colors border-b-2 whitespace-nowrap shrink-0 ${
+                  className={`nav-pill px-3.5 py-2 rounded-xl text-sm font-semibold transition-all whitespace-nowrap shrink-0 ${
                     active
-                      ? 'text-amber-400 border-amber-400'
-                      : 'text-slate-400 border-transparent hover:text-slate-100'
+                      ? 'is-active text-amber-300'
+                      : 'text-slate-400 hover:text-slate-100 hover:bg-white/[0.04]'
                   }`}
                 >
                   {item.label}
@@ -439,7 +440,7 @@ export default function App() {
                 setAnalyzeError(null);
                 setIsShareModalOpen(true);
               }}
-              className="min-h-[40px] px-3.5 md:px-4 py-2 rounded-xl text-xs md:text-sm font-semibold bg-amber-500 text-slate-950 hover:bg-amber-400 transition-colors flex items-center gap-2 whitespace-nowrap shrink-0"
+              className="app-primary-action min-h-[42px] px-3.5 md:px-4 py-2 rounded-xl text-xs md:text-sm font-bold text-slate-950 transition-all flex items-center gap-2 whitespace-nowrap shrink-0"
             >
               <Upload className="w-4 h-4" />
               <span className="hidden sm:inline">{copy.shareCapture}</span>
@@ -499,7 +500,7 @@ export default function App() {
       )}
 
       {/* Contenu principal */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 md:px-6 py-6 pb-24 md:pb-12">
+      <main className="page-frame flex-1 max-w-7xl w-full mx-auto px-4 md:px-6 py-6 md:py-8 pb-28 md:pb-14">
         {activeTab === 'tableau' && (
           <DashboardView
             state={state}
@@ -582,10 +583,10 @@ export default function App() {
 
       {/* Barre de navigation inférieure sur mobile (zone du pouce) */}
       <nav
-        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#0B0F17]/95 backdrop-blur-md border-t border-slate-800 pb-safe"
+        className="mobile-nav md:hidden fixed bottom-0 left-0 right-0 z-40 backdrop-blur-xl border-t border-slate-800/80 pb-safe"
         aria-label="Navigation mobile"
       >
-        <div className="grid grid-cols-5 h-16 items-center">
+        <div className="grid grid-cols-5 max-w-xl mx-auto h-[68px] items-center px-2">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = activeTab === item.id;
@@ -594,8 +595,8 @@ export default function App() {
                 key={item.id}
                 type="button"
                 onClick={() => setActiveTab(item.id)}
-                className={`min-h-[44px] flex flex-col items-center justify-center gap-1 transition-colors ${
-                  active ? 'text-amber-400' : 'text-slate-400 hover:text-slate-200'
+                className={`mobile-nav-item min-h-[48px] mx-0.5 rounded-xl flex flex-col items-center justify-center gap-1 transition-all ${
+                  active ? 'is-active text-amber-300' : 'text-slate-500 hover:text-slate-200'
                 }`}
               >
                 <Icon className="w-5 h-5" />
