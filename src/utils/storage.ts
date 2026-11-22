@@ -175,26 +175,33 @@ export function mergeAnalysisIntoState(
         });
       }
 
-      if (incoming.incertain) {
-        heroMap.set(key, {
-          ...existing,
-          competences: Array.from(skillMap.values()),
-          derniereMaj: analysis.analyzedAt,
-        });
-        continue;
-      }
+      // Older analyses only had one hero-wide confidence flag. Keep their
+      // conservative behavior; newer analyses can mark each personal field.
+      const fieldUncertainty = new Set(incoming.champsIncertains || []);
+      const hasFieldUncertaintyList = Array.isArray(incoming.champsIncertains);
+      const canUpdateField = (field: string) =>
+        hasFieldUncertaintyList
+          ? !fieldUncertainty.has(field)
+          : !incoming.incertain;
+      const incomingLevelIsUsable =
+        incoming.niveau !== null && incoming.niveau !== undefined;
+      const incomingLevelTextIsUsable =
+        Boolean(incoming.niveauTexte?.trim()) && incoming.niveauTexte !== 'Inconnu';
 
       heroMap.set(key, {
         ...existing,
-        niveau: incoming.niveau ?? existing.niveau,
-        niveauTexte:
-          incoming.niveauTexte && incoming.niveauTexte !== 'Inconnu'
-            ? incoming.niveauTexte
-            : existing.niveauTexte,
-        rarete: incoming.rarete || existing.rarete,
-        etoiles: incoming.etoiles || existing.etoiles,
-        roleHero: incoming.roleHero || existing.roleHero,
-        puissanceHero: incoming.puissanceHero || existing.puissanceHero,
+        niveau: canUpdateField('niveau') && incomingLevelIsUsable
+          ? incoming.niveau
+          : existing.niveau,
+        niveauTexte: canUpdateField('niveau') && incomingLevelTextIsUsable
+          ? incoming.niveauTexte
+          : existing.niveauTexte,
+        rarete: canUpdateField('rarete') ? (incoming.rarete || existing.rarete) : existing.rarete,
+        etoiles: canUpdateField('etoiles') ? (incoming.etoiles || existing.etoiles) : existing.etoiles,
+        roleHero: canUpdateField('roleHero') ? (incoming.roleHero || existing.roleHero) : existing.roleHero,
+        puissanceHero: canUpdateField('puissanceHero')
+          ? (incoming.puissanceHero || existing.puissanceHero)
+          : existing.puissanceHero,
         imageUrl: incoming.imageUrl || existing.imageUrl,
         avatarUrl: incoming.avatarUrl || existing.avatarUrl,
         titre: incoming.titre || existing.titre,
@@ -206,8 +213,11 @@ export function mergeAnalysisIntoState(
         idealPour: incoming.idealPour || existing.idealPour,
         wikiUrl: incoming.wikiUrl || existing.wikiUrl,
         competences: Array.from(skillMap.values()),
-        incertain: false,
-        raisonIncertitude: undefined,
+        incertain: hasFieldUncertaintyList ? fieldUncertainty.size > 0 : false,
+        raisonIncertitude: hasFieldUncertaintyList && fieldUncertainty.size > 0
+          ? incoming.raisonIncertitude
+          : undefined,
+        champsIncertains: hasFieldUncertaintyList ? incoming.champsIncertains : undefined,
         verifieManuellement: existing.verifieManuellement,
         derniereMaj: analysis.analyzedAt,
       });
