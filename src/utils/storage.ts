@@ -79,11 +79,19 @@ export function mergeAnalysisIntoState(
   prev: AccountState,
   analysis: ScreenshotAnalysis
 ): AccountState {
-  // 1. Update power if present
+  // 1. Update account power only from a dedicated profile screen.
+  // Other screens may show partial, contextual or unrelated power values;
+  // uncertain OCR must never overwrite the player's trusted total.
   let nextPower = prev.currentPower;
   const nextPowerHistory = [...prev.powerHistory];
 
-  if (analysis.puissance && analysis.puissance.puissanceTotaleTexte) {
+  const hasVerifiedProfilePower =
+    analysis.typeCapture === 'profil' &&
+    analysis.puissance !== null &&
+    Boolean(analysis.puissance.puissanceTotaleTexte?.trim()) &&
+    analysis.puissance.incertain !== true;
+
+  if (hasVerifiedProfilePower && analysis.puissance) {
     nextPower = analysis.puissance;
     nextPowerHistory.push({
       analysisId: analysis.id,
