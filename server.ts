@@ -272,6 +272,123 @@ RÈGLES GÉNÉRALES :
       const rawText = (response.text ?? '{}').trim();
       const parsed = JSON.parse(rawText);
 
+      // Deuxième passe ciblée uniquement si l'écran est une fiche/liste de héros
+      // et que moins de cinq héros ont été restitués. Cela évite de valider trop
+      // vite une lecture partielle de la rangée de portraits.
+      if (
+        (parsed.typeCapture === 'heros' || /héros|heros|heroes/i.test(String(note || ''))) &&
+        Array.isArray(parsed.heros) &&
+        parsed.heros.length > 0 &&
+        parsed.heros.length < 5
+      ) {
+        try {
+          const retry = await ai.models.generateContent({
+            model: 'gemini-4-hydrogen',
+            contents: {
+              parts: [
+                { inlineData: { mimeType, data: imageBase64 } },
+                {
+                  text: `SECONDE PASSE DE CONTRÔLE VISUEL — l'analyse précédente n'a détecté que ${parsed.heros.length} héros.
+Recommence l'inspection de l'image entière en te concentrant exclusivement sur l'écran des héros.
+Compte les portraits visibles un par un, de gauche à droite et de haut en bas. Si cinq portraits sont visibles, cherche à identifier les cinq, pas seulement les noms les plus faciles à lire.
+Pour chaque portrait identifiable, relis séparément le nom, le niveau, la puissance individuelle, la rareté, les étoiles et les niveaux de compétences visibles.
+Inspecte les badges de niveau même s'ils sont éloignés du nom. Ne transforme pas les valeurs du wiki en valeurs du joueur.
+N'invente aucun nom ni niveau. Si un portrait reste illisible, signale son emplacement dans champsIncertains.
+Réponds en français et retourne uniquement le JSON conforme au schéma.`,
+                },
+              ],
+            },
+            config: {
+              responseMimeType: 'application/json',
+              responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                  heros: {
+                    type: Type.ARRAY,
+                    items: {
+                      type: Type.OBJECT,
+                      properties: {
+                        nom: { type: Type.STRING },
+                        niveau: { type: Type.NUMBER },
+                        niveauTexte: { type: Type.STRING },
+                        rarete: { type: Type.STRING },
+                        etoiles: { type: Type.STRING },
+                        roleHero: { type: Type.STRING },
+                        puissanceHero: { type: Type.STRING },
+                        incertain: { type: Type.BOOLEAN },
+                        raisonIncertitude: { type: Type.STRING },
+                        competences: {
+                          type: Type.ARRAY,
+                          items: {
+                            type: Type.OBJECT,
+                            properties: {
+                              nom: { type: Type.STRING },
+                              niveau: { type: Type.STRING },
+                              description: { type: Type.STRING },
+                              incertain: { type: Type.BOOLEAN },
+                              raisonIncertitude: { type: Type.STRING },
+                            },
+                            required: ['nom', 'niveau', 'incertain'],
+                          },
+                        },
+                      },
+                      required: ['nom', 'niveauTexte', 'incertain', 'competences'],
+                    },
+                  },
+                  champsIncertains: {
+                    type: Type.ARRAY,
+                    items: {
+                      type: Type.OBJECT,
+                      properties: {
+                        champ: { type: Type.STRING },
+                        valeurObservee: { type: Type.STRING },
+                        raison: { type: Type.STRING },
+                      },
+                      required: ['champ', 'valeurObservee', 'raison'],
+                    },
+                  },
+                },
+                required: ['heros', 'champsIncertains'],
+              },
+            },
+          });
+          const retryParsed = JSON.parse((retry.text ?? '{}').trim());
+          const merged = new Map<string, Record<string, unknown>>();
+          for (const hero of [...parsed.heros, ...(Array.isArray(retryParsed.heros) ? retryParsed.heros : [])]) {
+            if (!hero || typeof hero.nom !== 'string' || !hero.nom.trim()) continue;
+            const key = hero.nom.normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            const previous = merged.get(key);
+            if (!previous) {
+              merged.set(key, hero);
+              continue;
+            }
+            const previousSkills = Array.isArray(previous.competences) ? previous.competences : [];
+            const nextSkills = Array.isArray(hero.competences) ? hero.competences : [];
+            merged.set(key, {
+              ...previous,
+              ...Object.fromEntries(
+                Object.entries(hero).filter(([field, value]) =>
+                  value !== undefined && value !== null && value !== '' &&
+                  (previous[field] === undefined || previous[field] === null || previous[field] === '' ||
+                    (field === 'competences' && nextSkills.length > previousSkills.length))
+                )
+              ),
+            });
+          }
+          parsed.heros = [...merged.values()].slice(0, 5);
+          if (Array.isArray(retryParsed.champsIncertains)) {
+            parsed.champsIncertains = [
+              ...(Array.isArray(parsed.champsIncertains) ? parsed.champsIncertains : []),
+              ...retryParsed.champsIncertains,
+            ].filter((item: Record<string, unknown>, index: number, all: Record<string, unknown>[]) =>
+              all.findIndex((other) => other.champ === item.champ && other.valeurObservee === item.valeurObservee) === index
+            );
+          }
+        } catch (retryError) {
+          console.warn('Seconde passe héros ignorée :', retryError);
+        }
+      }
+
       // Enrichissement automatique des héros détectés avec photo et caractéristiques officielles lojwiki.com
       if (Array.isArray(parsed?.heros) && parsed.heros.length > 0) {
         const targetLang: TargetLang =
