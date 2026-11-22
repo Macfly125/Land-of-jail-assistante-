@@ -8,6 +8,10 @@ import com.landsofjail.assistant.model.AdviceRecommendation
 import com.landsofjail.assistant.model.AppLanguage
 import com.landsofjail.assistant.model.GroundedWebSource
 import com.landsofjail.assistant.model.HeroRecord
+import com.landsofjail.assistant.model.HeroCatalogEntry
+import com.landsofjail.assistant.model.HeroCatalogResponse
+import com.landsofjail.assistant.model.HeroWikiDetails
+import com.landsofjail.assistant.model.HeroDetailsResponse
 import com.landsofjail.assistant.model.PlayerRole
 import com.landsofjail.assistant.model.RobotRecord
 import com.landsofjail.assistant.model.ScreenshotAnalysis
