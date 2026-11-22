@@ -467,50 +467,91 @@ fun LandsOfJailAssistantApp(
 
     MaterialTheme(
         colorScheme = darkColorScheme(
-            primary = Color(0xFFF59E0B),
-            background = Color(0xFF0B0F17),
-            surface = Color(0xFF121826),
-            onBackground = Color(0xFFF1F5F9),
-            onSurface = Color(0xFFF1F5F9)
+            primary = Color(0xFFF2B84B),
+            onPrimary = Color(0xFF17120A),
+            secondary = Color(0xFFB8A06A),
+            background = Color(0xFF080D16),
+            surface = Color(0xFF111A29),
+            surfaceVariant = Color(0xFF1A2638),
+            onBackground = Color(0xFFF3F5F8),
+            onSurface = Color(0xFFF3F5F8),
+            onSurfaceVariant = Color(0xFF9AA8BA),
+            outline = Color(0xFF29364A)
+        ),
+        shapes = Shapes(
+            small = RoundedCornerShape(12.dp),
+            medium = RoundedCornerShape(18.dp),
+            large = RoundedCornerShape(24.dp)
         )
     ) {
         Scaffold(
+            containerColor = Color(0xFF080D16),
             snackbarHost = { SnackbarHost(snackbarHostState) },
             topBar = {
                 TopAppBar(
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color(0xFF0D1421),
+                        titleContentColor = Color(0xFFF5F2EA),
+                        actionIconContentColor = Color(0xFFF2B84B)
+                    ),
                     title = {
-                        Text(
-                            "Lands of Jail",
-                            fontWeight = FontWeight.SemiBold,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    },
-                    actions = {
-                        TextButton(onClick = {
-                            context.startActivity(
-                                Intent(context, ScreenCaptureConsentActivity::class.java).apply {
-                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                }
-                            )
-                        }) {
+                        Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
                             Text(
-                                when (currentLang) {
-                                    AppLanguage.FR -> "Analyser l’écran"
-                                    AppLanguage.TR -> "Ekranı Tara"
-                                    AppLanguage.RU -> "Сканировать"
-                                    AppLanguage.ZH -> "扫描屏幕"
-                                    AppLanguage.DE -> "Scannen"
-                                    AppLanguage.EN -> "Scan screen"
-                                },
-                                maxLines = 1
+                                "LANDS OF JAIL",
+                                fontWeight = FontWeight.ExtraBold,
+                                letterSpacing = 1.1.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Text(
+                                "ASSISTANT TACTIQUE",
+                                color = Color(0xFFB8A06A),
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 2.sp
                             )
                         }
+                    },
+                    actions = {
+                        FilledTonalButton(
+                            onClick = {
+                                context.startActivity(
+                                    Intent(context, ScreenCaptureConsentActivity::class.java).apply {
+                                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    }
+                                )
+                            },
+                            colors = ButtonDefaults.filledTonalButtonColors(
+                                containerColor = Color(0xFF3B2D15),
+                                contentColor = Color(0xFFFFD27A)
+                            ),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 7.dp)
+                        ) {
+                            Icon(Icons.Outlined.CenterFocusStrong, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(6.dp))
+                            Text(
+                                when (currentLang) {
+                                    AppLanguage.FR -> "Analyser"
+                                    AppLanguage.TR -> "Tara"
+                                    AppLanguage.RU -> "Сканировать"
+                                    AppLanguage.ZH -> "扫描"
+                                    AppLanguage.DE -> "Scannen"
+                                    AppLanguage.EN -> "Scan"
+                                },
+                                maxLines = 1,
+                                fontSize = 12.sp
+                            )
+                        }
+                        Spacer(Modifier.width(8.dp))
                     }
                 )
             },
             bottomBar = {
-                NavigationBar {
+                NavigationBar(
+                    containerColor = Color(0xFF0D1421),
+                    contentColor = Color(0xFF9AA8BA),
+                    tonalElevation = 0.dp
+                ) {
                     AssistantTab.entries.forEach { tab ->
                         val icon = when (tab) {
                             AssistantTab.TABLEAU -> Icons.Outlined.Dashboard
@@ -522,6 +563,13 @@ fun LandsOfJailAssistantApp(
                         NavigationBarItem(
                             selected = currentTab == tab,
                             onClick = { currentTab = tab },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = Color(0xFFFFD27A),
+                                selectedTextColor = Color(0xFFFFD27A),
+                                indicatorColor = Color(0xFF3B2D15),
+                                unselectedIconColor = Color(0xFF8290A4),
+                                unselectedTextColor = Color(0xFF8290A4)
+                            ),
                             icon = { Icon(icon, contentDescription = tab.titleFor(currentLang)) },
                             label = {
                                 Text(
@@ -529,7 +577,8 @@ fun LandsOfJailAssistantApp(
                                     maxLines = 1,
                                     softWrap = false,
                                     overflow = TextOverflow.Ellipsis,
-                                    fontSize = 10.sp
+                                    fontSize = 10.sp,
+                                    fontWeight = if (currentTab == tab) FontWeight.Bold else FontWeight.Medium
                                 )
                             }
                         )
