@@ -743,7 +743,6 @@ Règles strictes :
           turmoil_surge: 'Turmoil Surge',
           gold_hunter: 'Gold Hunter & Sprint',
           gorilla_legion: 'Gorilla Legion',
-          gorilla_legion: 'Gorilla Legion',
         },
         tr: {
           trial_cage: 'Deneme Kafesi',
@@ -788,6 +787,7 @@ Règles strictes :
           svs: 'SvS / Supreme Honor',
           turmoil_surge: 'Turmoil Surge',
           gold_hunter: 'Gold Hunter & Sprint',
+          gorilla_legion: 'Gorilla Legion',
         },
       };
 
@@ -797,7 +797,7 @@ Règles strictes :
 
       const communityResearchByMode: Record<AdviceEventMode, string> = {
         trial_cage: `RECHERCHE COMMUNAUTAIRE TRIAL CAGE — comparer les sources et ne pas masquer les divergences :
-GuideLOJ (mis à jour le 20 octobre 2026) propose, pour saisons 1–7, des ratios de départ : leader sans Ada 0/10/90, leader avec Ada 1/9/90, participant mixte 0/10/90, participant shooters uniquement 0/0/100 (Shield/Bomber/Shooter). Vérifier le nombre réel de Shield avec Ada (environ 1 000 dans la référence), et distinguer leader et participant.
+GuideLOJ (mis à jour le 4 novembre 2026) propose, pour saisons 1–7, des ratios de départ : leader sans Ada 0/10/90, leader avec Ada 1/9/90, participant mixte 0/10/90, participant shooters uniquement 0/0/100 (Shield/Bomber/Shooter). Vérifier le nombre réel de Shield avec Ada (environ 1 000 dans la référence), et distinguer leader et participant.
 LOJ XLab (guide observé, 5 octobre 2026) décrit un système différent : leader = 3 héros et toutes leurs compétences de guerre + statistiques ; participants = première compétence de guerre du premier héros, seules les 4 meilleures compétences participantes sont retenues, doublons de bonus potentiellement gaspillés. Il indique que les statistiques des participants et leur type de troupe n'influencent pas directement le score. Il privilégie des bonus offensifs distincts.
 Ces descriptions ne concordent pas parfaitement sur le fonctionnement des participants. Présente les ratios comme points de départ communautaires, pas comme loi universelle. Signale explicitement le désaccord sur la sélection des compétences et demande de confirmer par version du jeu, rapport de combat et tests de l'alliance. Le critère du joueur reste les dégâts infligés : ne valorise pas la défense, les PV ou les soins sans preuve d'un effet offensif direct.`,
         crystal_clash: `Pour Crystal Clash, utilise les guides d'événement récupérés en direct. Distingue attaque, défense, contrôle des objectifs, durée de présence et points. Ne transpose pas les ratios de Trial Cage.`,
