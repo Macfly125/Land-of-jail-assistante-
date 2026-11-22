@@ -1006,6 +1006,41 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
         en: `${modeName} · Role: ${roleLabel}. `,
       };
 
+      // Heuristic Trial Cage assessment: only explicit skill text can qualify a hero.
+      // This is a transparent signal detector, not a combat-damage simulation.
+      const cageSkillSignals = (heroes ?? []).flatMap((hero) => {
+        const uncertainFields = new Set(hero.champsIncertains || []);
+        if (uncertainFields.has('etoiles') || uncertainFields.has('niveau')) return [];
+        return (hero.competences || [])
+          .filter((skill) => !skill.incertain && Boolean(skill.description?.trim()))
+          .map((skill) => {
+            const effect = skill.description!.toLocaleLowerCase();
+            const directDamage = /damage|dmg|deal[s]? damage|inflict[s]? damage|dégâts?|inflige|наносит урон|урон|伤害|hasar|schaden/i.test(effect);
+            const damageBoost = /attack increase|damage increase|increase[s]? damage|bonus damage|dégâts? augment|attaque augment|увелич.*урон|урон.*увелич|伤害.*提高|攻击.*提高|hasar.*art|schaden.*erhöh/i.test(effect);
+            const defenseBreak = /defen[cs]e reduc|armor reduc|降低防御|防御降低|défense.*réduit|réduit.*défense|уменьш.*защит|сниж.*защит|savunma.*azal|verteidig.*senk/i.test(effect);
+            const purelyDefensive = /heal|healing|shield|damage reduction|reduce damage taken|soin|soigne|bouclier|réduction des dégâts reçus|лечени|щит|лечение|护盾|治疗|iyileştir|kalkan|heilung|schild/i.test(effect)
+              && !directDamage && !damageBoost && !defenseBreak;
+            const category = directDamage ? 0 : damageBoost ? 1 : defenseBreak ? 2 : -1;
+            return { hero: hero.nom, skill: skill.nom, category, purelyDefensive };
+          });
+      }).filter((signal) => signal.category >= 0 && !signal.purelyDefensive)
+        .sort((a, b) => a.category - b.category);
+
+      const cageAssessmentText: Record<TargetLang, string> = {
+        fr: 'Indices offensifs détectés dans les descriptions de compétences (heuristique, pas une simulation) :',
+        tr: 'Beceri açıklamalarında bulunan saldırı işaretleri (tahmini sınıflandırma, simülasyon değildir):',
+        ru: 'Атакующие признаки в описаниях навыков (эвристика, не симуляция):',
+        zh: '技能描述中识别的进攻效果（启发式判断，并非伤害模拟）：',
+        de: 'Offensive Hinweise in Fertigkeitsbeschreibungen (Heuristik, keine Simulation):',
+        en: 'Offensive signals found in skill descriptions (heuristic, not a simulation):',
+      };
+      const cageAssessment = mode === 'trial_cage'
+        ? (cageSkillSignals.length
+            ? ` ${cageAssessmentText[targetLang]} ${cageSkillSignals.map((s) => `${s.hero} — ${s.skill} [${['direct damage', 'damage buff', 'defense debuff'][s.category]}]`).join('; ')}.`
+            : (targetLang === 'fr'
+                ? ' Aucune compétence ne peut être classée de façon fiable : descriptions absentes, incertaines ou sans effet offensif explicite. Classement indisponible.'
+                : ' No skill can be classified reliably: descriptions are missing, uncertain, or contain no explicit offensive effect. Ranking unavailable.'))
+        : '';
       res.json({
         advice: {
           mode,
@@ -1013,7 +1048,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
           playerRole: playerRole || 'polyvalent_f2p',
           generatedAt: new Date().toISOString(),
           synthese: `${synthPrefix[targetLang]}${leadSummary}`,
-          compositionRecommandee: `${compTextByLang[targetLang]}${groundedProfileContext}`,
+          compositionRecommandee: `${compTextByLang[targetLang]}${groundedProfileContext}${cageAssessment}`,
           recommandations: liveGuides.slice(0, 4).map((g) => ({
             titre: g.title,
             detail: g.excerpt || g.title,
