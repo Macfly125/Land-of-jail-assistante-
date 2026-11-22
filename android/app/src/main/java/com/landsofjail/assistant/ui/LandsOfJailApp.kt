@@ -865,7 +865,12 @@ fun LandsOfJailAssistantApp(
                         onOpenHistory = { currentTab = AssistantTab.HISTORIQUE },
                         onPickImage = { imagePicker.launch("image/*") }
                     )
-                    AssistantTab.HEROS -> HeroesScreen(heroes)
+                    AssistantTab.HEROS -> HeroesScreen(
+                        heroes = heroes,
+                        onUpdateHero = { original, updated ->
+                            heroes = heroes.map { if (it.nom == original.nom) updated else it }
+                        }
+                    )
                     AssistantTab.RESSOURCES -> ResourcesScreen(currentLang, currentPower, resources)
                     AssistantTab.CONSEILS -> AdviceScreen(
                         currentLang = currentLang,
@@ -1222,7 +1227,11 @@ private fun DashboardScreen(
 }
 
 @Composable
-private fun HeroesScreen(heroes: List<HeroRecord>) {
+private fun HeroesScreen(
+    heroes: List<HeroRecord>,
+    onUpdateHero: (HeroRecord, HeroRecord) -> Unit
+) {
+    var editingHero by remember { mutableStateOf<HeroRecord?>(null) }
     var search by remember { mutableStateOf("") }
     var selectedClass by remember { mutableStateOf("Tous") }
     val profileByName = remember(heroes) { heroes.associateBy { it.nom.trim().lowercase() } }
@@ -1294,6 +1303,9 @@ private fun HeroesScreen(heroes: List<HeroRecord>) {
                             ).joinToString(" · "),
                             fontWeight = FontWeight.Medium
                         )
+                        TextButton(onClick = { editingHero = hero }) {
+                            Text("Modifier les données détectées")
+                        }
                         if (!hero.rarete.isNullOrBlank() && !hero.rarete.equals(entry.rarete, true)) {
                             Text("Rareté lue sur capture : ${hero.rarete}", style = MaterialTheme.typography.bodySmall)
                         }
@@ -1331,7 +1343,104 @@ private fun HeroesScreen(heroes: List<HeroRecord>) {
         if (visibleHeroes.isEmpty()) {
             item { Text("Aucun héros ne correspond à cette recherche.") }
         }
+        val detectedOutsideCatalog = heroes.filter { detected ->
+            HeroCatalog.entries.none { it.nom.equals(detected.nom, ignoreCase = true) }
+        }
+        if (detectedOutsideCatalog.isNotEmpty()) {
+            item { Text("Autres héros détectés", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold) }
+            items(detectedOutsideCatalog, key = { "detected-" + it.nom }) { hero ->
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(hero.nom, fontWeight = FontWeight.SemiBold)
+                        Text(listOfNotNull(hero.niveauTexte.takeIf { it.isNotBlank() }, hero.etoiles, hero.puissanceHero).joinToString(" · "))
+                        TextButton(onClick = { editingHero = hero }) { Text("Modifier les données détectées") }
+                    }
+                }
+            }
+        }
     }
+    editingHero?.let { original ->
+        HeroEditDialog(
+            hero = original,
+            onDismiss = { editingHero = null },
+            onSave = { updated ->
+                onUpdateHero(original, updated)
+                editingHero = null
+            }
+        )
+    }
+}
+
+@Composable
+private fun HeroEditDialog(
+    hero: HeroRecord,
+    onDismiss: () -> Unit,
+    onSave: (HeroRecord) -> Unit
+) {
+    var name by remember(hero) { mutableStateOf(hero.nom) }
+    var level by remember(hero) { mutableStateOf(hero.niveauTexte.ifBlank { hero.niveau?.toString().orEmpty() }) }
+    var rarity by remember(hero) { mutableStateOf(hero.rarete.orEmpty()) }
+    var stars by remember(hero) { mutableStateOf(hero.etoiles.orEmpty()) }
+    var power by remember(hero) { mutableStateOf(hero.puissanceHero.orEmpty()) }
+    var skills by remember(hero) {
+        mutableStateOf(hero.competences.joinToString("\n") { it.nom + " | " + it.niveau + " | " + it.description.orEmpty() })
+    }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Corriger le héros détecté") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(name, { name = it }, label = { Text("Nom du héros") }, singleLine = true)
+                OutlinedTextField(level, { level = it }, label = { Text("Niveau") }, singleLine = true)
+                OutlinedTextField(rarity, { rarity = it }, label = { Text("Rareté") }, singleLine = true)
+                OutlinedTextField(stars, { stars = it }, label = { Text("Étoiles") }, singleLine = true)
+                OutlinedTextField(power, { power = it }, label = { Text("Puissance") }, singleLine = true)
+                OutlinedTextField(
+                    skills,
+                    { skills = it },
+                    label = { Text("Compétences : Nom | niveau | description (une ligne par compétence)") },
+                    minLines = 3,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Text("Les corrections manuelles remplacent les valeurs incertaines de la capture.", style = MaterialTheme.typography.bodySmall)
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    val oldSkills = hero.competences.associateBy { it.nom.trim().lowercase() }
+                    val correctedSkills = skills.lines().mapNotNull { line ->
+                        val parts = line.split("|", limit = 3)
+                        val skillName = parts.getOrNull(0)?.trim().orEmpty()
+                        if (skillName.isBlank()) null else {
+                            val previous = oldSkills[skillName.lowercase()]
+                            HeroSkill(
+                                nom = skillName,
+                                niveau = parts.getOrNull(1)?.trim()?.takeIf { it.isNotBlank() } ?: previous?.niveau.orEmpty(),
+                                description = parts.getOrNull(2)?.trim()?.takeIf { it.isNotBlank() } ?: previous?.description,
+                                incertain = false
+                            )
+                        }
+                    }
+                    onSave(
+                        hero.copy(
+                            nom = name.trim(),
+                            niveau = level.filter { it.isDigit() }.toIntOrNull(),
+                            niveauTexte = level.trim(),
+                            rarete = rarity.trim().ifBlank { null },
+                            etoiles = stars.trim().ifBlank { null },
+                            puissanceHero = power.trim().ifBlank { null },
+                            competences = correctedSkills,
+                            incertain = false,
+                            raisonIncertitude = null
+                        )
+                    )
+                },
+                enabled = name.isNotBlank()
+            ) { Text("Enregistrer") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Annuler") } }
+    )
 }
 
 @Composable
