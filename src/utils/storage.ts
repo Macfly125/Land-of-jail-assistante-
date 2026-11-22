@@ -213,10 +213,10 @@ export function mergeAnalysisIntoState(
         idealPour: incoming.idealPour || existing.idealPour,
         wikiUrl: incoming.wikiUrl || existing.wikiUrl,
         competences: Array.from(skillMap.values()),
-        incertain: hasFieldUncertaintyList ? fieldUncertainty.size > 0 : false,
-        raisonIncertitude: hasFieldUncertaintyList && fieldUncertainty.size > 0
-          ? incoming.raisonIncertitude
-          : undefined,
+        incertain: hasFieldUncertaintyList
+          ? fieldUncertainty.size > 0 || incoming.incertain
+          : incoming.incertain,
+        raisonIncertitude: incoming.incertain ? incoming.raisonIncertitude : undefined,
         champsIncertains: hasFieldUncertaintyList ? incoming.champsIncertains : undefined,
         verifieManuellement: existing.verifieManuellement,
         derniereMaj: analysis.analyzedAt,
