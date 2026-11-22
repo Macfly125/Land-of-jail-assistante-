@@ -212,6 +212,42 @@ data class HeroRecord(
 )
 
 @Serializable
+data class HeroCatalogEntry(
+    val slug: String,
+    val nom: String,
+    val avatarUrl: String? = null,
+    val imageUrl: String? = null,
+    val rarete: String? = null,
+    val typeTroupe: String? = null,
+    val categorie: String? = null,
+    val wikiUrl: String = ""
+)
+
+@Serializable
+data class HeroWikiDetails(
+    val slug: String,
+    val nom: String,
+    val titre: String? = null,
+    val avatarUrl: String? = null,
+    val imageUrl: String? = null,
+    val rarete: String? = null,
+    val typeTroupe: String? = null,
+    val categorie: String? = null,
+    val saison: String? = null,
+    val puissanceMax5Etoiles: String? = null,
+    val resumeBio: String? = null,
+    val idealPour: String? = null,
+    val wikiUrl: String = "",
+    val competences: List<HeroSkill> = emptyList()
+)
+
+@Serializable
+data class HeroCatalogResponse(val heroes: List<HeroCatalogEntry> = emptyList())
+
+@Serializable
+data class HeroDetailsResponse(val details: List<HeroWikiDetails> = emptyList())
+
+@Serializable
 data class RobotSkill(
     val nom: String,
     val niveau: String = "Inconnu",
