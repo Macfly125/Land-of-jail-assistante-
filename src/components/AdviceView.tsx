@@ -349,6 +349,20 @@ export const AdviceView: React.FC<AdviceViewProps> = ({
                 {currentAdvice.compositionRecommandee}
               </p>
             </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-3">
+              <div className="rounded-xl bg-slate-900/70 border border-slate-800 p-4 space-y-1.5">
+                <h3 className="text-sm font-semibold text-amber-300">Robot recommandé</h3>
+                <p className="text-sm text-slate-300 leading-relaxed">
+                  {currentAdvice.robotRecommande || 'Capture du robot nécessaire pour une recommandation fiable.'}
+                </p>
+              </div>
+              <div className="rounded-xl bg-slate-900/70 border border-slate-800 p-4 space-y-1.5">
+                <h3 className="text-sm font-semibold text-amber-300">Ratio de troupes</h3>
+                <p className="text-sm text-slate-300 leading-relaxed">
+                  {currentAdvice.ratioTroupes || 'Ratio non déterminable avec les captures actuelles.'}
+                </p>
+              </div>
+            </div>
           </section>
 
           {/* Informations incertaines */}
