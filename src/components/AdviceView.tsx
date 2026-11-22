@@ -88,7 +88,9 @@ export const AdviceView: React.FC<AdviceViewProps> = ({
             competences: h.competences.map((s) => ({
               nom: s.nom,
               niveau: s.niveau,
+              description: s.description,
               incertain: s.incertain,
+              raisonIncertitude: s.raisonIncertitude,
             })),
           })),
           powerText,
