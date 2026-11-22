@@ -110,10 +110,11 @@ object LandsOfJailOcrParser {
 
             // Héros connus du jeu détectés dans la ligne
             for (heroName in KNOWN_HEROES) {
-                if (line.contains(heroName, ignoreCase = true) && !seenHeroKeys.contains(heroName.lowercase())) {
-                    val sameLineLvl = levelRegex.find(line)?.groupValues?.get(1)?.toIntOrNull()
-                    val nextLineLvl = lines.getOrNull(index + 1)?.let { levelRegex.find(it)?.groupValues?.get(1)?.toIntOrNull() }
-                    val lvl = sameLineLvl ?: nextLineLvl
+                val heroPattern = Regex("""(?<![A-Za-zÀ-ÿ])${Regex.escape(heroName)}(?![A-Za-zÀ-ÿ])""", RegexOption.IGNORE_CASE)
+                if (heroPattern.containsMatchIn(line) && !seenHeroKeys.contains(heroName.lowercase())) {
+                    // Ne jamais attribuer le niveau de la ligne suivante : elle peut appartenir
+                    // à un autre héros ou à un élément de l'interface.
+                    val lvl = levelRegex.find(line)?.groupValues?.get(1)?.toIntOrNull()
                     seenHeroKeys.add(heroName.lowercase())
                     heroes.add(
                         HeroRecord(
@@ -127,31 +128,10 @@ object LandsOfJailOcrParser {
                 }
             }
 
-            // Héros générique avec motif Lv/Niv
-            val lvlMatch = levelRegex.find(line)
-            if (lvlMatch != null) {
-                val candidateName = line.substring(0, lvlMatch.range.first)
-                    .replace(Regex("""[^A-Za-zÀ-ÿ0-9\s\-']"""), " ")
-                    .trim()
-                val lvl = lvlMatch.groupValues[1].toIntOrNull()
-                if (candidateName.length in 3..24 &&
-                    !seenHeroKeys.contains(candidateName.lowercase()) &&
-                    !candidateName.contains("warden", true) &&
-                    !candidateName.contains("prison", true) &&
-                    !candidateName.contains("bureau", true)
-                ) {
-                    seenHeroKeys.add(candidateName.lowercase())
-                    heroes.add(
-                        HeroRecord(
-                            nom = candidateName,
-                            niveau = lvl,
-                            niveauTexte = "Niv. ${lvl ?: "?"}",
-                            incertain = true,
-                            raisonIncertitude = "Extrait par OCR local ; vérifiez le nom en jeu"
-                        )
-                    )
-                }
-            }
+            // Ne pas créer de héros à partir d'un texte arbitraire avant « Niv. » :
+            // les libellés d'interface et les erreurs OCR produisaient de faux héros.
+            // Les héros non reconnus sont laissés à l'analyse visuelle serveur/catalogue.
+
         }
 
         // Si aucune puissance explicite mais grand nombre de puissance top-bar (ex: "12.4M" ou "8,450,120")
