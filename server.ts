@@ -929,31 +929,45 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
         .filter(Boolean)
         .join(' ');
 
+      const cageDamagePriorityByLang: Record<TargetLang, string> = {
+        fr: 'Règle Cage : privilégier les compétences et bonus qui augmentent directement les dégâts infligés ou réduisent les défenses de la cible. Les bonus uniquement défensifs/soins ne sont pas prioritaires pour le score de dégâts.',
+        tr: 'Kafes kuralı: verilen hasarı doğrudan artıran veya hedef savunmasını düşüren beceri ve bonuslara öncelik verin. Yalnızca savunma/iyileştirme bonusları hasar puanı için öncelikli değildir.',
+        ru: 'Правило Клетки: отдавайте приоритет навыкам и бонусам, напрямую повышающим наносимый урон или снижающим защиту цели. Чисто защитные бонусы и лечение не являются приоритетом для очков урона.',
+        zh: '试炼牢笼规则：优先选择直接提高伤害或降低目标防御的技能与加成。纯防御和治疗加成不是伤害积分的优先项。',
+        de: 'Käfig-Regel: Fähigkeiten und Boni priorisieren, die verursachten Schaden direkt erhöhen oder die gegnerische Verteidigung senken. Rein defensive Boni/Heilung haben für den Schadenswert keine Priorität.',
+        en: 'Cage rule: prioritize skills and buffs that directly increase damage dealt or reduce the target’s defenses. Purely defensive bonuses/healing are not priorities for a damage score.',
+      };
       const compTextByLang: Record<TargetLang, string> = {
         fr:
-          heroNames.length > 0
+          (heroNames.length > 0
             ? `Héros du compte intégrés : ${heroNames.join(', ')} (rôle : ${roleLabel}).`
-            : `Aucun héros encore scanné : utilisez vos meilleurs Shieldbearers devant et Shooters derrière (${roleLabel}).`,
+            : `Aucun héros encore scanné : composition personnalisée impossible tant que le roster n’est pas analysé (${roleLabel}).`) +
+          (mode === 'trial_cage' ? ` ${cageDamagePriorityByLang[targetLang]}` : ''),
         tr:
-          heroNames.length > 0
+          (heroNames.length > 0
             ? `Tespit edilen kahramanlar: ${heroNames.join(', ')} (rol: ${roleLabel}).`
-            : `Henüz kahraman taranmadı: ön safta Shieldbearers, arkada Shooters kullanın.`,
+            : 'Henüz kahraman taranmadı; kişisel takım önerisi için önce kahramanları tarayın.') +
+          (mode === 'trial_cage' ? ` ${cageDamagePriorityByLang[targetLang]}` : ''),
         ru:
-          heroNames.length > 0
+          (heroNames.length > 0
             ? `Обнаруженные герои: ${heroNames.join(', ')} (роль: ${roleLabel}).`
-            : `Герои ещё не отсканированы: ставьте Shieldbearers вперёд, Shooters назад.`,
+            : 'Герои ещё не отсканированы; для персонального состава сначала просканируйте ростер.') +
+          (mode === 'trial_cage' ? ` ${cageDamagePriorityByLang[targetLang]}` : ''),
         zh:
-          heroNames.length > 0
-            ? `已加入账号英雄：${heroNames.join('、')}（定位：${roleLabel}）。`
-            : `暂未扫描到英雄：前排推荐 Shieldbearers，后排配置 Shooters。`,
+          (heroNames.length > 0
+            ? `已纳入账号英雄：${heroNames.join('、')}（定位：${roleLabel}）。`
+            : '尚未扫描英雄；请先扫描英雄列表，再生成个性化阵容。') +
+          (mode === 'trial_cage' ? ` ${cageDamagePriorityByLang[targetLang]}` : ''),
         de:
-          heroNames.length > 0
-            ? `Erkannte Helden: ${heroNames.join(', ')} (Rolle: ${roleLabel}).`
-            : `Noch keine Helden gescannt: Shieldbearers vorne, Shooters hinten einsetzen.`,
+          (heroNames.length > 0
+            ? `Erkannte Kontohelden: ${heroNames.join(', ')} (Rolle: ${roleLabel}).`
+            : 'Noch keine Helden gescannt; für eine persönliche Aufstellung zuerst das Helden-Roster erfassen.') +
+          (mode === 'trial_cage' ? ` ${cageDamagePriorityByLang[targetLang]}` : ''),
         en:
-          heroNames.length > 0
+          (heroNames.length > 0
             ? `Account heroes included: ${heroNames.join(', ')} (role: ${roleLabel}).`
-            : `No heroes scanned yet: pair frontline Shieldbearers with backline Shooters (${roleLabel}).`,
+            : 'No heroes scanned; scan the roster first to generate a personalized lineup.') +
+          (mode === 'trial_cage' ? ` ${cageDamagePriorityByLang[targetLang]}` : ''),
       };
 
       const profileContextLabel: Record<TargetLang, string> = {
@@ -988,7 +1002,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
           recommandations: liveGuides.slice(0, 4).map((g) => ({
             titre: g.title,
             detail: g.excerpt || g.title,
-            herosCibles: heroNames.slice(0, 3),
+            // Do not label arbitrary first heroes as targets without a source-backed match.\n            herosCibles: [],
             incertain: false,
             imageUrl: g.imageUrl,
           })),
