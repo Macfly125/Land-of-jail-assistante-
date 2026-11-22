@@ -176,7 +176,7 @@ class SupabaseAuthRepository(context: Context) {
             val request = Request.Builder()
                 .url("$BASE_URL/rest/v1/player_profiles?on_conflict=user_id")
                 .header("apikey", PUBLISHABLE_KEY)
-                .header("Authorization", "Bearer \${active.access_token}")
+                .header("Authorization", "Bearer ${active.access_token}")
                 .header("Content-Type", "application/json")
                 .header("Prefer", "resolution=merge-duplicates,return=minimal")
                 .post(payload.toString().toRequestBody("application/json".toMediaType()))
@@ -188,7 +188,7 @@ class SupabaseAuthRepository(context: Context) {
                     val message = parsed?.get("message")?.jsonPrimitive?.contentOrNull
                         ?: parsed?.get("details")?.jsonPrimitive?.contentOrNull
                         ?: parsed?.get("hint")?.jsonPrimitive?.contentOrNull
-                        ?: "Synchronisation refusée (HTTP \${response.code})."
+                        ?: "Synchronisation refusée (HTTP ${response.code})."
                     error(message)
                 }
             }
