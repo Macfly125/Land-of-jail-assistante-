@@ -135,10 +135,12 @@ export function mergeAnalysisIntoState(
       const skillMap = new Map(
         existing.competences.map((s) => [normalizeKey(s.nom), s])
       );
+      // Never let uncertain OCR overwrite known skill data.
       for (const s of incoming.competences) {
         const sKey = normalizeKey(s.nom);
         if (!sKey) continue;
         const prevSkill = skillMap.get(sKey);
+        if (s.incertain && prevSkill) continue;
         skillMap.set(sKey, {
           ...prevSkill,
           ...s,
@@ -146,6 +148,16 @@ export function mergeAnalysisIntoState(
           description: s.description || prevSkill?.description,
           iconUrl: s.iconUrl || prevSkill?.iconUrl,
         });
+      }
+
+      // A manually verified hero is authoritative. For other existing heroes,
+      // ignore a wholly uncertain OCR result rather than replacing trusted fields.
+      if (existing.verifieManuellement || incoming.incertain) {
+        heroMap.set(key, {
+          ...existing,
+          competences: Array.from(skillMap.values()),
+        });
+        continue;
       }
 
       heroMap.set(key, {
@@ -170,9 +182,9 @@ export function mergeAnalysisIntoState(
         idealPour: incoming.idealPour || existing.idealPour,
         wikiUrl: incoming.wikiUrl || existing.wikiUrl,
         competences: Array.from(skillMap.values()),
-        incertain: incoming.incertain,
-        raisonIncertitude: incoming.raisonIncertitude,
-        verifieManuellement: false,
+        incertain: false,
+        raisonIncertitude: undefined,
+        verifieManuellement: existing.verifieManuellement,
         derniereMaj: analysis.analyzedAt,
       });
     }
