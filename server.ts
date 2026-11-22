@@ -156,6 +156,7 @@ CONSIGNE PRIORITAIRE — ÉCRAN DES HÉROS :
 - Ne confonds jamais la puissance maximale théorique du wiki avec la puissance réelle du héros sur le compte.
 - Si un portrait est visible mais son identité est illisible, ne devine pas son nom : ajoute une entrée dans "champsIncertains" décrivant précisément l'emplacement non identifié. N'invente pas un sixième héros.
 - Si un niveau, une puissance, une étoile ou un niveau de compétence n'est pas clairement lisible, laisse la valeur vide/null et marque le champ incertain. Ne remplace jamais une valeur illisible par une valeur estimée.
+- Pour chaque héros, renseigne aussi "champsIncertains" avec les noms exacts des champs personnels illisibles parmi : "niveau", "rarete", "etoiles", "roleHero", "puissanceHero". Un champ absent de cette liste doit être suffisamment lisible pour être mis à jour. N'ajoute jamais les champs wiki/catalogue à cette liste.
 - Si aucun niveau/puissance/compétence n'est affiché sur cette capture, indique-le clairement dans "resumeCapture" et "champsIncertains" plutôt que de prétendre que le héros est niveau 1 ou sans compétence.
 RÈGLES GÉNÉRALES :
 1. Identifie le type d'écran : "profil", "heros", "ressources", "trial_cage", "crystal_clash", ou "autre".
@@ -233,6 +234,7 @@ RÈGLES GÉNÉRALES :
                     etoiles: { type: Type.STRING },
                     roleHero: { type: Type.STRING },
                     puissanceHero: { type: Type.STRING },
+                    champsIncertains: { type: Type.ARRAY, items: { type: Type.STRING } },
                     incertain: { type: Type.BOOLEAN },
                     raisonIncertitude: { type: Type.STRING },
                     competences: {
