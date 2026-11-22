@@ -147,7 +147,7 @@ export const UpgradeCalculatorView: React.FC<UpgradeCalculatorViewProps> = ({ st
       return [building.id, {
         level,
         completedStages: Math.max(0, Math.min(4, existing?.completedStages ?? 0)),
-        targetLevel: Math.max(level + 1, Math.min(8, existing?.targetLevel ?? Math.min(8, level + 1))),
+        targetLevel: level >= 8 ? 8 : Math.max(level + 1, Math.min(8, existing?.targetLevel ?? level + 1)),
       }];
     }));
   });
@@ -163,8 +163,8 @@ export const UpgradeCalculatorView: React.FC<UpgradeCalculatorViewProps> = ({ st
   const forticladCalculation = useMemo(() => {
     const perBuilding = FORTICLAD_BUILDINGS.map((building) => {
       const progress = forticladProgress[building.id];
-      const start = Math.max(0, Math.min(7, progress.level));
-      const end = Math.max(start + 1, Math.min(8, progress.targetLevel));
+      const start = Math.max(0, Math.min(8, progress.level));
+      const end = Math.max(start, Math.min(8, progress.targetLevel));
       let totalFc = 0;
       let totalAfc = 0;
       for (let level = start + 1; level <= end; level += 1) {
@@ -537,17 +537,17 @@ export const UpgradeCalculatorView: React.FC<UpgradeCalculatorViewProps> = ({ st
                       <select
                         value={building.progress.level}
                         onChange={(event) => {
-                          const level = Math.max(0, Math.min(7, Number(event.target.value)));
+                          const level = Math.max(0, Math.min(8, Number(event.target.value)));
                           updateForticladBuilding(building.id, {
                             level,
                             completedStages: 0,
-                            targetLevel: Math.min(8, level + 1),
+                            targetLevel: level >= 8 ? 8 : level + 1,
                           });
                         }}
                         className="w-full min-h-[40px] rounded-lg bg-slate-950 border border-slate-700 px-2 text-sm text-slate-100"
                       >
                         <option value={0}>Niveau 30 (avant FC1)</option>
-                        {[1,2,3,4,5,6,7].map((level) => <option key={level} value={level}>FC {level}</option>)}
+                        {[1,2,3,4,5,6,7,8].map((level) => <option key={level} value={level}>FC {level}</option>)}
                       </select>
                     </label>
                     <label className="text-xs text-slate-400 space-y-1">
@@ -567,7 +567,7 @@ export const UpgradeCalculatorView: React.FC<UpgradeCalculatorViewProps> = ({ st
                         onChange={(event) => updateForticladBuilding(building.id, { targetLevel: Number(event.target.value) })}
                         className="w-full min-h-[40px] rounded-lg bg-slate-950 border border-slate-700 px-2 text-sm text-slate-100"
                       >
-                        {Array.from({length: 8 - building.progress.level}, (_, index) => building.progress.level + index + 1)
+                        {(building.progress.level >= 8 ? [8] : Array.from({length: 8 - building.progress.level}, (_, index) => building.progress.level + index + 1))
                           .map((level) => <option key={level} value={level}>FC {level}</option>)}
                       </select>
                     </label>
