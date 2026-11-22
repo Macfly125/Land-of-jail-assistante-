@@ -31,6 +31,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         handleShareIntent(intent)
+        ScreenCaptureConsentActivity.restorePendingCapture(applicationContext)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
@@ -51,7 +52,7 @@ class MainActivity : ComponentActivity() {
                 sharedScreenshotUri = pendingSharedUri,
                 onConsumeSharedUri = { pendingSharedUri = null },
                 capturedScreenPayload = capturedScreen,
-                onConsumeCapturedScreen = { ScreenCaptureConsentActivity.consumeCapture() }
+                onConsumeCapturedScreen = { ScreenCaptureConsentActivity.consumeCapture(applicationContext) }
             )
         }
     }
