@@ -341,7 +341,7 @@ export const OfflineRoutineView: React.FC<{ language?: AppLanguage }> = () => {
                         ? `${formatCountdown(remaining)} · EN PAUSE`
                         : remaining !== null
                           ? formatCountdown(remaining)
-                          : `${Math.round((task.defaultMinutes / 60) * 10) / 10}h (${task.defaultMinutes} min)`}
+                          : `${Math.round(((Number(task.durationInput ?? task.defaultMinutes) || task.defaultMinutes) / 60) * 10) / 10}h (${Number(task.durationInput ?? task.defaultMinutes) || task.defaultMinutes} min)`}
                   </span>
                 </div>
                 <div className="text-[11px] font-mono-tabular text-slate-400">
@@ -356,6 +356,7 @@ export const OfflineRoutineView: React.FC<{ language?: AppLanguage }> = () => {
                     type="number"
                     min="1"
                     max="10080"
+                    step="1"
                     inputMode="numeric"
                     value={task.durationInput ?? String(task.defaultMinutes)}
                     onChange={(event) => {
