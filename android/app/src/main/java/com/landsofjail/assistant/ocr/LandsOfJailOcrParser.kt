@@ -115,17 +115,35 @@ object LandsOfJailOcrParser {
             for (heroName in KNOWN_HEROES) {
                 val heroToken = Regex("(?<![\\p{L}])${Regex.escape(heroName)}(?![\\p{L}])", RegexOption.IGNORE_CASE)
                 if (heroToken.containsMatchIn(line) && !seenHeroKeys.contains(heroName.lowercase())) {
+                    val contextLines = lines.subList(index, minOf(lines.size, index + 3))
+                    val contextText = contextLines.joinToString(" ")
                     val sameLineLvl = levelRegex.find(line)?.groupValues?.get(1)?.toIntOrNull()
                     val nextLineLvl = lines.getOrNull(index + 1)?.let { levelRegex.find(it)?.groupValues?.get(1)?.toIntOrNull() }
                     val lvl = sameLineLvl ?: nextLineLvl
+                    // Ne renseigner les étoiles et la rareté que si un libellé/visuel explicite est lu.
+                    val starMatch = Regex("""(?:([1-5])\\s*(?:étoiles?|stars?)|([1-5])\\s*[★☆]|([★☆]{1,5}))""", RegexOption.IGNORE_CASE)
+                        .find(contextText)
+                    val stars = when {
+                        starMatch == null -> null
+                        starMatch.groupValues[3].isNotBlank() -> starMatch.groupValues[3].count { it == '★' }.takeIf { it > 0 }?.toString()
+                        else -> (starMatch.groupValues[1].ifBlank { starMatch.groupValues[2].ifBlank { starMatch.groupValues[0].filter { it.isDigit() } } })
+                    }?.let { "$it/5" }
+                    val rarity = Regex("""\\b(legendary|mythic|epic|rare|common|légendaire|épique|rare)\\b""", RegexOption.IGNORE_CASE)
+                        .find(contextText)?.value
                     seenHeroKeys.add(heroName.lowercase())
                     heroes.add(
                         HeroRecord(
                             nom = heroName,
                             niveau = lvl,
                             niveauTexte = if (lvl != null) "Niv. $lvl" else "Niveau non lu",
-                            incertain = lvl == null,
-                            raisonIncertitude = if (lvl == null) "Héros repéré par OCR mais niveau non lu" else null
+                            rarete = rarity,
+                            etoiles = stars,
+                            incertain = lvl == null || stars == null || rarity == null,
+                            raisonIncertitude = listOfNotNull(
+                                if (lvl == null) "Niveau non lu" else null,
+                                if (stars == null) "Étoiles non lues explicitement" else null,
+                                if (rarity == null) "Rareté non lue explicitement" else null
+                            ).joinToString(" ; ")
                         )
                     )
                 }
