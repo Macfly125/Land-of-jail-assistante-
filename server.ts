@@ -140,6 +140,14 @@ async function startServer() {
 
       const promptText = `Tu es un système expert de lecture visuelle des écrans du jeu mobile "Lands of Jail".
 Analyse l'image entière à haute attention visuelle. Réponds uniquement en français et n'invente aucune donnée.
+CONSIGNE PRIORITAIRE — ÉCRAN DES RESSOURCES :
+- Si l'écran affiche l'inventaire, l'entrepôt, les ressources du joueur ou des compteurs de ressources, traite-le comme un écran "ressources" même si aucun mot "Food/Bois/Steel" n'est écrit.
+- Les ressources peuvent être représentées uniquement par des icônes. Identifie visuellement chaque icône grâce à son dessin et à sa position, puis associe-lui le nombre placé juste à côté, dessous ou dans le même encadré.
+- Parcours toute l'image méthodiquement, ligne par ligne et colonne par colonne. N'ignore aucun compteur lisible, même si le nombre est compact (K/M/B), comporte des séparateurs ou est affiché en blanc sur fond coloré.
+- Pour chaque compteur, retourne le nom normalisé de la ressource (nourriture, bois, acier/fer, essence/carburant, diamants/gemmes, cash/or ou autre ressource clairement identifiable), le texte exact affiché et la valeur numérique uniquement si la conversion est certaine.
+- Ne confonds pas les compteurs de la barre supérieure, les coûts d'amélioration, les récompenses, les quantités possédées et les gains proposés. Indique le contexte/zone dans "raisonIncertitude" si le type de compteur n'est pas certain.
+- Ne rejette jamais une ressource uniquement parce que son nom n'est pas écrit. Si l'icône est identifiable mais le nombre ne l'est pas, retourne quand même la ressource avec quantité vide et une incertitude explicite.
+- Si plusieurs nombres sont proches, associe-les uniquement selon leur proximité et leur alignement visuels ; ne devine pas. Si aucun compteur de ressource n'est présent, explique pourquoi dans "resumeCapture".
 CONSIGNE PRIORITAIRE — ÉCRAN DES HÉROS :
 - Si l'écran montre une équipe ou une liste de 5 héros, tu DOIS examiner les 5 emplacements séparément, de gauche à droite puis de haut en bas. Ne t'arrête jamais au premier ou au deuxième héros.
 - Retourne une entrée distincte dans "heros" pour CHAQUE héros dont le portrait ou le nom est visiblement identifiable. Le nombre attendu est 5 lorsque cinq portraits sont présents.
