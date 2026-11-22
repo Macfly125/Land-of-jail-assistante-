@@ -14,6 +14,7 @@ import { formatCompactNumber } from '../utils/storage';
 
 interface UpgradeCalculatorViewProps {
   state: AccountState;
+  onUpdateForticladLevel: (level: number) => void;
 }
 
 type CalcSection = 'buildings' | 'forticlad' | 'heroes';
@@ -65,7 +66,7 @@ function findForticladResourceAmount(state: AccountState, advanced: boolean): nu
   return Math.round(Number(match[1]) * multiplier);
 }
 
-export const UpgradeCalculatorView: React.FC<UpgradeCalculatorViewProps> = ({ state }) => {
+export const UpgradeCalculatorView: React.FC<UpgradeCalculatorViewProps> = ({ state, onUpdateForticladLevel }) => {
   const [section, setSection] = useState<CalcSection>('buildings');
 
   // --- Calculateur Bâtiments (1 à 30) ---
@@ -136,7 +137,7 @@ export const UpgradeCalculatorView: React.FC<UpgradeCalculatorViewProps> = ({ st
   const ownedAdvancedForticladCores = findForticladResourceAmount(state, true);
 
   // --- Calculateur Forticlad (FC 1 → FC 8) ---
-  const [fcStart, setFcStart] = useState<number>(0);
+  const [fcStart, setFcStart] = useState<number>(state.forticladLevel ?? 0);
   const [fcTarget, setFcTarget] = useState<number>(1);
   const [fcBuildingCount, setFcBuildingCount] = useState<number>(1);
 
@@ -500,6 +501,7 @@ export const UpgradeCalculatorView: React.FC<UpgradeCalculatorViewProps> = ({ st
                   onChange={(e) => {
                     const v = Number(e.target.value);
                     setFcStart(v);
+                    onUpdateForticladLevel(v);
                     if (fcTarget <= v) setFcTarget(Math.min(8, v + 1));
                   }}
                   className="w-full min-h-[44px] rounded-xl bg-slate-900 border border-slate-800 px-3.5 py-2 text-sm text-slate-100"
