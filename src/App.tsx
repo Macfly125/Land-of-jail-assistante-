@@ -47,6 +47,23 @@ import { MobileInstallGuideModal } from './components/MobileInstallGuideModal';
 
 type NavTab = 'tableau' | 'heros' | 'ressources' | 'conseils' | 'historique';
 
+/**
+ * Récupère le niveau uniquement lorsqu'il est explicitement lisible.
+ * Le texte OCR peut contenir le niveau alors que le champ numérique est absent.
+ */
+function getReliableHeroLevel(level: unknown, levelText: unknown): number | null {
+  if (typeof level === 'number' && Number.isInteger(level) && level >= 1 && level <= 999) {
+    return level;
+  }
+
+  if (typeof levelText !== 'string') return null;
+  const match = levelText.trim().match(/^(?:(?:niv(?:eau)?|lv|level)\.?\s*)?(\d{1,3})$/i);
+  if (!match) return null;
+
+  const parsed = Number(match[1]);
+  return parsed >= 1 && parsed <= 999 ? parsed : null;
+}
+
 const NAV_ICONS: Array<{ id: NavTab; icon: React.ComponentType<{ className?: string }> }> = [
   { id: 'tableau', icon: LayoutDashboard },
   { id: 'heros', icon: Users },
@@ -249,8 +266,8 @@ export default function App() {
         heros: (raw.heros ?? []).map((h, idx) => ({
           id: `hero-${Date.now()}-${idx}`,
           nom: h.nom,
-          niveau: typeof h.niveau === 'number' ? h.niveau : null,
-          niveauTexte: h.niveauTexte || (typeof h.niveau === 'number' ? `Niv. ${h.niveau}` : 'Inconnu'),
+          niveau: getReliableHeroLevel(h.niveau, h.niveauTexte),
+          niveauTexte: h.niveauTexte || (getReliableHeroLevel(h.niveau, h.niveauTexte) !== null ? `Niv. ${getReliableHeroLevel(h.niveau, h.niveauTexte)}` : 'Inconnu'),
           rarete: h.rarete || undefined,
           etoiles: h.etoiles || undefined,
           roleHero: h.roleHero || undefined,
