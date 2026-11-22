@@ -453,12 +453,12 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
             const skillMap = new Map<string, Record<string, unknown>>();
             for (const skill of previousSkills) {
               const skillKey = String(skill.nom || '').normalize('NFD')
-                .replace(/[\\u0300-\\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+                .replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
               if (skillKey) skillMap.set(skillKey, skill);
             }
             for (const skill of nextSkills) {
               const skillKey = String(skill.nom || '').normalize('NFD')
-                .replace(/[\\u0300-\\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+                .replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
               if (!skillKey) continue;
               const oldSkill = skillMap.get(skillKey);
               if (!oldSkill || (oldSkill.incertain === true && skill.incertain === false)) {
