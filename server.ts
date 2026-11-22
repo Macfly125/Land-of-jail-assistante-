@@ -106,6 +106,11 @@ async function startServer() {
 
   app.use(express.json({ limit: '15mb' }));
 
+  // Endpoint simple pour vérifier que le serveur Express (et non seulement le site statique) répond.
+  app.get('/api/health', (_req, res) => {
+    res.json({ ok: true, service: 'lands-of-jail-assistant-api' });
+  });
+
   app.get('/api/shared-capture/:token', (req, res) => {
     cleanupRelay();
     const entry = sharedCaptureRelay.get(req.params.token);
@@ -1295,6 +1300,14 @@ Consignes :
     } catch (err: unknown) {
       res.status(500).json({ error: err instanceof Error ? err.message : 'Erreur enrichissement héros.' });
     }
+  });
+
+  // Une route API inconnue doit toujours renvoyer du JSON, jamais la page HTML de la SPA.
+  app.use('/api', (req, res) => {
+    res.status(404).json({
+      error: `Route API introuvable : ${req.method} ${req.originalUrl}`,
+      hint: 'Vérifie que la version du serveur API correspond à la version du site.',
+    });
   });
 
   if (process.env.NODE_ENV !== 'production') {
