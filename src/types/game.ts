@@ -299,6 +299,7 @@ export interface AccountState {
     incertain: boolean;
   }>;
   heroes: HeroRecord[];
+  robots: RobotRecord[];
   resources: ResourceRecord[];
   analyses: ScreenshotAnalysis[];
   adviceByMode: Partial<Record<AdviceMode, TacticalAdviceResult>>;
