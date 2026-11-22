@@ -2116,8 +2116,8 @@ private fun AllianceScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) { Text("Enregistrer mon inscription") }
                     Text(
-                        if (isOfficer) "Droits détectés : R4/R5 — gestion du roster et simulations autorisées."
-                        else "Mode membre : tu peux enregistrer ton profil. Les simulations et la gestion du roster sont réservées aux R4/R5.",
+                        if (isOfficer) "Rang déclaré R4/R5 : gestion du roster et simulations activées sur cet appareil. Vérification du rang requise pour l’espace cloud partagé."
+                        else "Rang déclaré R1/R2/R3 : tu peux enregistrer ton profil. La gestion du roster et les simulations sont réservées aux R4/R5.",
                         color = if (isOfficer) Color(0xFF34D399) else Color(0xFFFBBF24),
                         style = MaterialTheme.typography.bodySmall
                     )
