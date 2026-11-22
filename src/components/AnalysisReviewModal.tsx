@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { AlertTriangle, Check, X } from 'lucide-react';
-import { HeroRecord, ScreenshotAnalysis } from '../types/game';
+import { HeroRecord, RobotRecord, ScreenshotAnalysis } from '../types/game';
 
 interface AnalysisReviewModalProps {
   analysis: ScreenshotAnalysis;
@@ -16,10 +16,14 @@ export const AnalysisReviewModal: React.FC<AnalysisReviewModalProps> = ({
   const [drafts, setDrafts] = useState<HeroRecord[]>(() =>
     analysis.heros.map((hero) => ({ ...hero, competences: hero.competences.map((skill) => ({ ...skill })) }))
   );
+  const [robotDrafts, setRobotDrafts] = useState<RobotRecord[]>(() =>
+    (analysis.robots ?? []).map((robot) => ({ ...robot, competences: robot.competences.map((skill) => ({ ...skill })) }))
+  );
 
   const uncertainCount = useMemo(
-    () => drafts.filter((hero) => hero.incertain || hero.competences.some((skill) => skill.incertain)).length,
-    [drafts]
+    () => drafts.filter((hero) => hero.incertain || hero.competences.some((skill) => skill.incertain)).length
+      + robotDrafts.filter((robot) => robot.incertain || robot.competences.some((skill) => skill.incertain)).length,
+    [drafts, robotDrafts]
   );
 
   const updateHero = (id: string, patch: Partial<HeroRecord>) => {
@@ -30,6 +34,17 @@ export const AnalysisReviewModal: React.FC<AnalysisReviewModalProps> = ({
     setDrafts((current) => current.map((hero) => hero.id !== heroId ? hero : {
       ...hero,
       competences: hero.competences.map((skill) => skill.id === skillId ? { ...skill, niveau } : skill),
+    }));
+  };
+
+  const updateRobot = (id: string, patch: Partial<RobotRecord>) => {
+    setRobotDrafts((current) => current.map((robot) => robot.id === id ? { ...robot, ...patch } : robot));
+  };
+
+  const updateRobotSkill = (robotId: string, skillId: string, patch: { nom?: string; niveau?: string }) => {
+    setRobotDrafts((current) => current.map((robot) => robot.id !== robotId ? robot : {
+      ...robot,
+      competences: robot.competences.map((skill) => skill.id === skillId ? { ...skill, ...patch } : skill),
     }));
   };
 
@@ -54,7 +69,25 @@ export const AnalysisReviewModal: React.FC<AnalysisReviewModalProps> = ({
         raisonIncertitude: undefined,
       })),
     }));
-    onConfirm({ ...analysis, heros: verifiedHeroes });
+    const verifiedRobots = robotDrafts.map((robot) => {
+      const complete = Boolean(robot.nom.trim() && robot.niveau?.trim()
+        && robot.competences.every((skill) => skill.nom.trim() && skill.niveau.trim()
+          && !/^(inconnu|non lu|illisible|unknown|n\/?a|-)$/i.test(skill.niveau.trim())));
+      return {
+        ...robot,
+        nom: robot.nom.trim(),
+        incertain: !complete,
+        raisonIncertitude: complete ? undefined : robot.raisonIncertitude || 'Certaines informations du robot restent à vérifier',
+        verifieManuellement: complete,
+        competences: robot.competences.map((skill) => ({
+          ...skill,
+          nom: skill.nom.trim(),
+          niveau: skill.niveau.trim() || 'Inconnu',
+          incertain: !complete || skill.incertain,
+        })),
+      };
+    });
+    onConfirm({ ...analysis, heros: verifiedHeroes, robots: verifiedRobots });
   };
 
   return (
@@ -71,7 +104,7 @@ export const AnalysisReviewModal: React.FC<AnalysisReviewModalProps> = ({
         <div className="overflow-y-auto p-4 sm:p-6 space-y-4">
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-100 flex gap-2">
             <AlertTriangle className="w-4 h-4 shrink-0 text-amber-300" />
-            <span>Vérifie les noms, niveaux, étoiles et compétences avec la capture originale. Les données ne seront ajoutées au profil qu'après confirmation.</span>
+            <span>Vérifie les noms, niveaux, étoiles, compétences et robots avec la capture originale. Les données ne seront ajoutées au profil qu'après confirmation.</span>
           </div>
 
           {analysis.thumbnailDataUrl && (
@@ -79,6 +112,46 @@ export const AnalysisReviewModal: React.FC<AnalysisReviewModalProps> = ({
               <summary className="cursor-pointer text-sm font-medium text-slate-200">Afficher la capture originale</summary>
               <img src={analysis.thumbnailDataUrl} alt="Capture originale à vérifier" className="mt-3 max-h-72 w-full object-contain rounded-lg bg-black" />
             </details>
+          )}
+
+          {robotDrafts.length > 0 && (
+            <section className="space-y-3">
+              <h3 className="text-sm font-semibold text-amber-300">Robots / compagnons détectés</h3>
+              {robotDrafts.map((robot, index) => (
+                <article key={robot.id} className="rounded-xl border border-sky-500/30 bg-slate-900/60 p-3 sm:p-4 space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <h4 className="text-sm font-semibold text-slate-100">Robot {index + 1}</h4>
+                    {robot.incertain ? <span className="text-[11px] text-amber-300">À vérifier</span> : <span className="text-[11px] text-emerald-300">Lecture nette</span>}
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <label className="text-xs text-slate-400">Nom
+                      <input value={robot.nom} onChange={(e) => updateRobot(robot.id, { nom: e.target.value })} className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white" />
+                    </label>
+                    <label className="text-xs text-slate-400">Niveau
+                      <input value={robot.niveau || ''} onChange={(e) => updateRobot(robot.id, { niveau: e.target.value })} placeholder="Non détecté" className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white" />
+                    </label>
+                    <label className="text-xs text-slate-400">Puissance
+                      <input value={robot.puissance || ''} onChange={(e) => updateRobot(robot.id, { puissance: e.target.value })} placeholder="Non détectée" className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white" />
+                    </label>
+                    <label className="text-xs text-slate-400">Rareté
+                      <input value={robot.rarete || ''} onChange={(e) => updateRobot(robot.id, { rarete: e.target.value })} placeholder="Non détectée" className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white" />
+                    </label>
+                  </div>
+                  {robot.competences.length > 0 && (
+                    <div className="border-t border-slate-700 pt-3 space-y-2">
+                      <p className="text-xs font-medium text-slate-300">Compétences / bonus</p>
+                      {robot.competences.map((skill) => (
+                        <div key={skill.id} className="grid grid-cols-[minmax(0,1fr)_110px] gap-2">
+                          <input value={skill.nom} onChange={(e) => updateRobotSkill(robot.id, skill.id, { nom: e.target.value })} aria-label="Nom de compétence robot" className="w-full rounded-lg border border-slate-700 bg-slate-950 px-2.5 py-2 text-xs text-white" />
+                          <input value={skill.niveau} onChange={(e) => updateRobotSkill(robot.id, skill.id, { niveau: e.target.value })} aria-label="Niveau de compétence robot" className="w-full rounded-lg border border-slate-700 bg-slate-950 px-2.5 py-2 text-xs text-white" />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {robot.raisonIncertitude && <p className="text-[11px] text-amber-300">{robot.raisonIncertitude}</p>}
+                </article>
+              ))}
+            </section>
           )}
 
           {drafts.length === 0 ? (
