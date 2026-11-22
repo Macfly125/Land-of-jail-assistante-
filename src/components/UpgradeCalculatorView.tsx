@@ -45,6 +45,26 @@ function findScannedResourceAmount(state: AccountState, keywords: string[]): num
   return null;
 }
 
+function findForticladResourceAmount(state: AccountState, advanced: boolean): number | null {
+  const resource = state.resources.find((item) => {
+    const name = item.nom.normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase();
+    const isForticladCore = name.includes('forticlad') && (name.includes('core') || name.includes('noyau'));
+    const isAdvanced = name.includes('advanced') || name.includes('avance');
+    return isForticladCore && isAdvanced === advanced;
+  });
+  if (!resource) return null;
+  if (typeof resource.quantiteNumerique === 'number' && Number.isFinite(resource.quantiteNumerique)) {
+    return resource.quantiteNumerique;
+  }
+  const cleaned = resource.quantiteTexte.replace(/\\s+/g, '').replace(',', '.');
+  const match = cleaned.match(/^(\\d+(?:\\.\\d+)?)([kmb])?$/i);
+  if (!match) return null;
+  const multiplier = match[2]?.toLowerCase() === 'm' ? 1_000_000
+    : match[2]?.toLowerCase() === 'k' ? 1_000
+    : match[2]?.toLowerCase() === 'b' ? 1_000_000_000 : 1;
+  return Math.round(Number(match[1]) * multiplier);
+}
+
 export const UpgradeCalculatorView: React.FC<UpgradeCalculatorViewProps> = ({ state }) => {
   const [section, setSection] = useState<CalcSection>('buildings');
 
@@ -111,6 +131,9 @@ export const UpgradeCalculatorView: React.FC<UpgradeCalculatorViewProps> = ({ st
   const ownedWood = findScannedResourceAmount(state, ['wood', 'bois']);
   const ownedSteel = findScannedResourceAmount(state, ['steel', 'acier', 'fer']);
   const ownedGas = findScannedResourceAmount(state, ['gas', 'essence', 'pétrole', 'petrole', 'fuel']);
+
+  const ownedForticladCores = findForticladResourceAmount(state, false);
+  const ownedAdvancedForticladCores = findForticladResourceAmount(state, true);
 
   // --- Calculateur Forticlad (FC 1 → FC 8) ---
   const [fcStart, setFcStart] = useState<number>(0);
@@ -539,6 +562,16 @@ export const UpgradeCalculatorView: React.FC<UpgradeCalculatorViewProps> = ({ st
                   {formatCompactNumber(forticladCalculation.totalAfc)}
                 </div>
               </div>
+            </div>
+            <div className="p-4 rounded-xl bg-slate-900/70 border border-slate-800 space-y-1.5">
+              <div className="text-xs font-semibold text-slate-200">Comparaison avec l’inventaire du profil actif</div>
+              <div className="text-xs text-slate-400">
+                Stock détecté : FC {ownedForticladCores === null ? 'non détecté' : formatCompactNumber(ownedForticladCores)} · AFC {ownedAdvancedForticladCores === null ? 'non détecté' : formatCompactNumber(ownedAdvancedForticladCores)}
+              </div>
+              <div className="text-sm font-medium text-amber-300">
+                Manquant estimé : FC {ownedForticladCores === null ? '—' : formatCompactNumber(Math.max(0, forticladCalculation.totalFc - ownedForticladCores))} · AFC {ownedAdvancedForticladCores === null ? '—' : formatCompactNumber(Math.max(0, forticladCalculation.totalAfc - ownedAdvancedForticladCores))}
+              </div>
+              <p className="text-xs text-slate-500">Les stocks sont lus dans les ressources enregistrées pour le compte sélectionné. Mets à jour l’inventaire par capture pour affiner le résultat.</p>
             </div>
           </section>
         </div>
