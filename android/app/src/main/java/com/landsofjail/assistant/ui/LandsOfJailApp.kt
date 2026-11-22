@@ -320,7 +320,7 @@ fun LandsOfJailAssistantApp(
         currentTab = AssistantTab.TABLEAU
     }
 
-    LaunchedEffect(currentLang, playerRole, analyses, heroes, robots, resources, currentPower, gorillaRuns, savedProfiles, activeProfileId) {
+    LaunchedEffect(currentLang, playerRole, analyses, heroes, robots, resources, currentPower, forticladLevel, forticladBuildings, gorillaRuns, savedProfiles, activeProfileId) {
         runCatching {
             val currentName = savedProfiles.firstOrNull { it.id == activeProfileId }?.name ?: "Compte principal"
             val snapshot = snapshotProfile(activeProfileId, currentName)
