@@ -153,14 +153,11 @@ export const UpgradeCalculatorView: React.FC<UpgradeCalculatorViewProps> = ({ st
   });
 
   const updateForticladBuilding = (buildingId: string, patch: Partial<ForticladProgress>) => {
-    setForticladProgress((current) => {
-      const previous = current[buildingId];
-      const next = { ...previous, ...patch };
-      const updated = { ...current, [buildingId]: next };
-      onUpdateForticladBuildings(updated);
-      if (buildingId === 'warden_office' && patch.level !== undefined) onUpdateForticladLevel(patch.level);
-      return updated;
-    });
+    const next = { ...forticladProgress[buildingId], ...patch };
+    const updated = { ...forticladProgress, [buildingId]: next };
+    setForticladProgress(updated);
+    onUpdateForticladBuildings(updated);
+    if (buildingId === 'warden_office' && patch.level !== undefined) onUpdateForticladLevel(patch.level);
   };
 
   const forticladCalculation = useMemo(() => {
