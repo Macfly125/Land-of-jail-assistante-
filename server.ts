@@ -429,17 +429,54 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
               merged.set(key, hero);
               continue;
             }
-            const previousSkills = Array.isArray(previous.competences) ? previous.competences : [];
-            const nextSkills = Array.isArray(hero.competences) ? hero.competences : [];
+            const previousSkills = Array.isArray(previous.competences)
+              ? previous.competences as Array<Record<string, unknown>>
+              : [];
+            const nextSkills = Array.isArray(hero.competences)
+              ? hero.competences as Array<Record<string, unknown>>
+              : [];
+            const retryIsMoreReliable = previous.incertain === true && hero.incertain === false;
+            const mergedFields = Object.fromEntries(
+              Object.entries(hero).filter(([field, value]) => {
+                if (value === undefined || value === null || value === '') return false;
+                if (field === 'competences') return false;
+                return retryIsMoreReliable ||
+                  previous[field] === undefined ||
+                  previous[field] === null ||
+                  previous[field] === '';
+              })
+            );
+
+            // Merge skill-by-skill: a reliable second pass may correct an
+            // uncertain first read, while never replacing a reliable skill
+            // with an uncertain or empty value.
+            const skillMap = new Map<string, Record<string, unknown>>();
+            for (const skill of previousSkills) {
+              const skillKey = String(skill.nom || '').normalize('NFD')
+                .replace(/[\\u0300-\\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+              if (skillKey) skillMap.set(skillKey, skill);
+            }
+            for (const skill of nextSkills) {
+              const skillKey = String(skill.nom || '').normalize('NFD')
+                .replace(/[\\u0300-\\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+              if (!skillKey) continue;
+              const oldSkill = skillMap.get(skillKey);
+              if (!oldSkill || (oldSkill.incertain === true && skill.incertain === false)) {
+                skillMap.set(skillKey, skill);
+              } else if (oldSkill.incertain !== true && skill.incertain !== true) {
+                skillMap.set(skillKey, {
+                  ...oldSkill,
+                  ...Object.fromEntries(Object.entries(skill).filter(([, value]) =>
+                    value !== undefined && value !== null && value !== ''
+                  )),
+                });
+              }
+            }
+
             merged.set(key, {
               ...previous,
-              ...Object.fromEntries(
-                Object.entries(hero).filter(([field, value]) =>
-                  value !== undefined && value !== null && value !== '' &&
-                  (previous[field] === undefined || previous[field] === null || previous[field] === '' ||
-                    (field === 'competences' && nextSkills.length > previousSkills.length))
-                )
-              ),
+              ...mergedFields,
+              competences: Array.from(skillMap.values()),
             });
           }
           parsed.heros = [...merged.values()].slice(0, 5);
