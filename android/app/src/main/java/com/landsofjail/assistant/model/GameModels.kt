@@ -261,3 +261,76 @@ data class TacticalAdviceResult(
     val sources: List<GroundedWebSource> = emptyList(),
     val geminiWarning: String? = null
 )
+
+/**
+ * Catalogue de référence communautaire. Les métadonnées de classe/saison/rareté
+ * sont issues du catalogue LOJ Strats (50 héros, vérifié le 06/11/2026).
+ * Les spécialités War indiquées comme observées proviennent de HEROpedia LOJ XLab
+ * (captures en jeu, saisons 1 à 7, vérifiées en novembre 2026).
+ * Ce catalogue n'est PAS le profil du joueur : niveaux, étoiles et compétences
+ * personnelles doivent être lus sur ses propres captures.
+ */
+data class HeroCatalogEntry(
+    val nom: String,
+    val rarete: String,
+    val saison: String,
+    val typeTroupe: String,
+    val usageWarObserve: String? = null,
+    val sourceNiveau: String = "Catalogue communautaire",
+    val sourceUrl: String = "https://lojstrats.com/hero"
+)
+
+object HeroCatalog {
+    val entries: List<HeroCatalogEntry> = listOf(
+        HeroCatalogEntry("Tyronn", "SSR", "S1", "Shieldbearer", "Rally · ATK +16% au niveau de compétence 5", "Observé en jeu"),
+        HeroCatalogEntry("Phoenix", "SSR", "S1", "Shieldbearer", "Solo · HP +16% au niveau de compétence 5", "Observé en jeu"),
+        HeroCatalogEntry("Devilian", "SSR", "S1", "Shooter", "Rally · DEF +16% au niveau de compétence 5", "Observé en jeu"),
+        HeroCatalogEntry("Inata", "SSR", "S1", "Shooter", "Défense · HP +16% au niveau de compétence 5", "Observé en jeu"),
+        HeroCatalogEntry("Tormund", "SSR", "S1", "Bomber", "Défense · DEF +16% au niveau de compétence 5", "Observé en jeu"),
+        HeroCatalogEntry("Vivian", "SSR", "S1", "Bomber", "Rally · Létalité +16% au niveau de compétence 5", "Observé en jeu"),
+        HeroCatalogEntry("Mia", "SSR / SR", "S1", "Shooter", "Expéditions · pas d'équipement exclusif", "Observé en jeu"),
+        HeroCatalogEntry("Aiksen", "R", "S1", "Shooter"),
+        HeroCatalogEntry("Beary", "SSR", "S1", "Shieldbearer"),
+        HeroCatalogEntry("Durga", "R", "S1", "Shieldbearer"),
+        HeroCatalogEntry("Ekko", "SR", "S1", "Bomber"),
+        HeroCatalogEntry("Flora", "SR", "S1", "Shooter"),
+        HeroCatalogEntry("Gerd", "SR", "S1", "Shieldbearer"),
+        HeroCatalogEntry("Gimes", "SR", "S1", "Bomber"),
+        HeroCatalogEntry("Harton", "R", "S1", "Shieldbearer"),
+        HeroCatalogEntry("Iwakado", "SR", "S1", "Shieldbearer"),
+        HeroCatalogEntry("Lofili", "SR", "S1", "Shooter"),
+        HeroCatalogEntry("Lunarl", "SR", "S1", "Bomber"),
+        HeroCatalogEntry("Pasino", "R", "S1", "Bomber"),
+        HeroCatalogEntry("Platos", "SR", "S1", "Shooter"),
+        HeroCatalogEntry("Samir", "SR", "S1", "Bomber"),
+        HeroCatalogEntry("Vesaryon", "SR", "S1", "Shieldbearer"),
+        HeroCatalogEntry("Alph", "SSR", "S2", "Bomber", "Solo · ATK +16% au niveau de compétence 5", "Observé en jeu"),
+        HeroCatalogEntry("Caesar", "SSR", "S2", "Shieldbearer", "Défense · ATK +16% au niveau de compétence 5", "Observé en jeu"),
+        HeroCatalogEntry("Lanchester", "SSR", "S2", "Bomber", "Défense · DEF +16% au niveau de compétence 5", "Observé en jeu"),
+        HeroCatalogEntry("Mireya", "SSR", "S2", "Shooter", "Rally · Létalité +16% au niveau de compétence 5", "Observé en jeu"),
+        HeroCatalogEntry("Sawyer", "SSR", "S3", "Shooter", "Rally · HP +16% au niveau de compétence 5", "Observé en jeu"),
+        HeroCatalogEntry("Veronica", "SSR", "S3", "Shooter", "Solo · Létalité +16% au niveau de compétence 5", "Observé en jeu"),
+        HeroCatalogEntry("Whisper", "SSR", "S3", "Bomber", "Rally · Létalité +16% au niveau de compétence 5", "Observé en jeu"),
+        HeroCatalogEntry("Xuanming", "SSR", "S3", "Shieldbearer", "Défense · ATK +16% au niveau de compétence 5", "Observé en jeu"),
+        HeroCatalogEntry("Drake", "SSR", "S4", "Shooter", "Défense · Létalité +16% au niveau de compétence 5", "Observé en jeu"),
+        HeroCatalogEntry("Koschevoi", "SSR", "S4", "Bomber", "Solo · DEF +16% au niveau de compétence 5", "Observé en jeu"),
+        HeroCatalogEntry("Ryuichi Ito", "SSR", "S4", "Bomber", "Rally · ATK +16% au niveau de compétence 5", "Observé en jeu"),
+        HeroCatalogEntry("Zoltan", "SSR", "S4", "Shieldbearer", "Défense · DEF +16% au niveau de compétence 5", "Observé en jeu"),
+        HeroCatalogEntry("Ada", "SSR", "S5", "Shooter", "Rally · ATK +16% au niveau de compétence 5", "Observé en jeu"),
+        HeroCatalogEntry("Edwin", "SSR", "S5", "Shooter", "Solo · HP +16% au niveau de compétence 5", "Observé en jeu"),
+        HeroCatalogEntry("Lee", "SSR", "S5", "Bomber", "Défense · ATK +16% au niveau de compétence 5", "Observé en jeu"),
+        HeroCatalogEntry("Marcus", "SSR", "S5", "Shieldbearer", "Défense · HP +16% au niveau de compétence 5", "Observé en jeu"),
+        HeroCatalogEntry("Kate", "SSR", "S6", "Shooter", "Défense · Létalité +16% au niveau de compétence 5", "Observé en jeu"),
+        HeroCatalogEntry("Otto", "SSR", "S6", "Shieldbearer", "Défense · DEF +16% au niveau de compétence 5", "Observé en jeu"),
+        HeroCatalogEntry("Worrell", "SSR", "S6", "Bomber", "Solo · ATK +16% au niveau de compétence 5", "Observé en jeu"),
+        HeroCatalogEntry("Wukong", "SSR", "S6", "Bomber", "Rally · Létalité +16% au niveau de compétence 5", "Observé en jeu"),
+        HeroCatalogEntry("Boogie", "SSR", "S7", "Bomber", "Défense · ATK +16% au niveau de compétence 5", "Observé en jeu"),
+        HeroCatalogEntry("Fran & Pike", "SSR", "S7", "Shieldbearer", "Défense · HP +16% au niveau de compétence 5", "Observé en jeu"),
+        HeroCatalogEntry("Rex", "SSR", "S7", "Shooter", "Solo · Létalité +16% au niveau de compétence 5", "Observé en jeu"),
+        HeroCatalogEntry("Rin", "SSR", "S7", "Shooter", "Rally · ATK +16% au niveau de compétence 5", "Observé en jeu"),
+        HeroCatalogEntry("Mai Shiranui", "SSR", "KOF Legend", "Shooter"),
+        HeroCatalogEntry("Omega Rugal", "SSR", "KOF Legend", "Shieldbearer"),
+        HeroCatalogEntry("Terry Bogard", "SSR", "KOF Legend", "Bomber"),
+        HeroCatalogEntry("Minyeon & Taehun", "SR", "S1", "Bomber")
+    )
+}
