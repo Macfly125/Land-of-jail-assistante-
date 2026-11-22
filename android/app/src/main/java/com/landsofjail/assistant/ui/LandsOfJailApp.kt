@@ -977,7 +977,7 @@ private fun DashboardScreen(
                         if (!hasUsagePermission) {
                             Text(
                                 "1. Statistiques d'utilisation : À autoriser",
-                                color = Color(0xFFEF4444),
+                                color = Color(0xFFFBBF24),
                                 fontWeight = FontWeight.Medium
                             )
                             Button(onClick = onOpenUsageSettings) {
@@ -1733,7 +1733,7 @@ private fun AdviceScreen(
                             if (rec.incertain && !rec.raisonIncertitude.isNullOrBlank()) {
                                 Text(
                                     "Incertain : ${rec.raisonIncertitude}",
-                                    color = Color(0xFFFBBF24),
+                                    color = Color(0xFFEF4444),
                                     style = MaterialTheme.typography.bodySmall
                                 )
                             }
