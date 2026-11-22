@@ -11,14 +11,16 @@ import {
 } from '../data/landsOfJailData';
 import { AccountState } from '../types/game';
 import { formatCompactNumber } from '../utils/storage';
+import { ForticladLabCalculator } from './ForticladLabCalculator';
 
 interface UpgradeCalculatorViewProps {
   state: AccountState;
   onUpdateForticladLevel: (level: number) => void;
   onUpdateForticladBuildings: (progress: AccountState['forticladBuildings']) => void;
+  onUpdateForticladLabProgress: (progress: AccountState['forticladLabProgress']) => void;
 }
 
-type CalcSection = 'buildings' | 'forticlad' | 'heroes';
+type CalcSection = 'buildings' | 'forticlad' | 'forticladLab' | 'heroes';
 
 function findScannedResourceAmount(state: AccountState, keywords: string[]): number | null {
   for (const res of state.resources) {
@@ -67,7 +69,7 @@ function findForticladResourceAmount(state: AccountState, advanced: boolean): nu
   return Math.round(Number(match[1]) * multiplier);
 }
 
-export const UpgradeCalculatorView: React.FC<UpgradeCalculatorViewProps> = ({ state, onUpdateForticladLevel, onUpdateForticladBuildings }) => {
+export const UpgradeCalculatorView: React.FC<UpgradeCalculatorViewProps> = ({ state, onUpdateForticladLevel, onUpdateForticladBuildings, onUpdateForticladLabProgress }) => {
   const [section, setSection] = useState<CalcSection>('buildings');
 
   // --- Calculateur Bâtiments (1 à 30) ---
@@ -260,6 +262,18 @@ export const UpgradeCalculatorView: React.FC<UpgradeCalculatorViewProps> = ({ st
         >
           <Sparkles className="w-4 h-4" />
           <span>Forticlad (FC 1–8)</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setSection('forticladLab')}
+          className={`min-h-[40px] px-4 py-2 rounded-lg text-xs font-semibold transition-colors inline-flex items-center gap-2 whitespace-nowrap ${
+            section === 'forticladLab'
+              ? 'bg-amber-500 text-slate-950'
+              : 'text-slate-300 hover:text-slate-100'
+          }`}
+        >
+          <Sparkles className="w-4 h-4" />
+          <span>Laboratoire (Hyperalliage)</span>
         </button>
         <button
           type="button"
@@ -595,7 +609,12 @@ export const UpgradeCalculatorView: React.FC<UpgradeCalculatorViewProps> = ({ st
         </div>
       )}
 
-      {/* SECTION 3 : HÉROS, ÉCLATS, TOMES & LIVRES */}
+      {/* SECTION 3 : LABORATOIRE FORTICLAD */}
+      {section === 'forticladLab' && (
+        <ForticladLabCalculator state={state} onUpdate={onUpdateForticladLabProgress} />
+      )}
+
+      {/* SECTION 4 : HÉROS, ÉCLATS, TOMES & LIVRES */}
       {section === 'heroes' && (
         <div className="space-y-6">
           {/* Éclats de héros */}
