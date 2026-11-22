@@ -643,7 +643,6 @@ fun LandsOfJailAssistantApp(
                         currentPower = currentPower,
                         heroesCount = heroes.size,
                         resourcesCount = resources.size,
-                        analysesCount = analyses.size,
                         latestAnalysis = analyses.firstOrNull(),
                         onOpenHistory = { currentTab = AssistantTab.HISTORIQUE },
                         onPickImage = { imagePicker.launch("image/*") }
@@ -722,7 +721,6 @@ private fun DashboardScreen(
     currentPower: PowerMetric?,
     heroesCount: Int,
     resourcesCount: Int,
-    analysesCount: Int,
     latestAnalysis: ScreenshotAnalysis?,
     onOpenHistory: () -> Unit,
     onPickImage: () -> Unit
@@ -975,7 +973,7 @@ private fun DashboardScreen(
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
-                    Text("Héros suivis : $heroesCount · Ressources : $resourcesCount · Captures : $analysesCount")
+                    Text("Héros suivis : $heroesCount · Ressources : $resourcesCount")
                 }
             }
         }
