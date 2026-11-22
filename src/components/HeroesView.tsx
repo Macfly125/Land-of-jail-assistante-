@@ -74,8 +74,12 @@ export const HeroesView: React.FC<HeroesViewProps> = ({
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [detailsError, setDetailsError] = useState<string | null>(null);
   const [editingHeroId, setEditingHeroId] = useState<string | null>(null);
+  const [draftName, setDraftName] = useState('');
   const [draftLevel, setDraftLevel] = useState('');
+  const [draftStars, setDraftStars] = useState('');
+  const [draftPower, setDraftPower] = useState('');
   const [draftRole, setDraftRole] = useState('');
+  const [draftSkills, setDraftSkills] = useState<Record<string, string>>({});
 
   const detectedByName = useMemo(() => {
     const map = new Map<string, HeroRecord>();
@@ -157,19 +161,33 @@ export const HeroesView: React.FC<HeroesViewProps> = ({
 
   const startEdit = (hero: HeroRecord) => {
     setEditingHeroId(hero.id);
+    setDraftName(hero.nom || '');
     setDraftLevel(hero.niveau !== null ? String(hero.niveau) : '');
+    setDraftStars(hero.etoiles || '');
+    setDraftPower(hero.puissanceHero || '');
     setDraftRole(hero.roleHero || '');
+    setDraftSkills(Object.fromEntries(hero.competences.map((skill) => [skill.id, skill.niveau || ''])));
   };
 
   const saveEdit = (hero: HeroRecord) => {
     const parsedLvl = draftLevel.trim() ? Number(draftLevel.trim()) : null;
+    if (parsedLvl !== null && (!Number.isInteger(parsedLvl) || parsedLvl < 1 || parsedLvl > 999)) {
+      return;
+    }
+    const competences = hero.competences.map((skill) => ({
+      ...skill,
+      niveau: draftSkills[skill.id]?.trim() || skill.niveau,
+      incertain: false,
+      raisonIncertitude: undefined,
+    }));
     onVerifyHero(hero.id, {
-      niveau: parsedLvl !== null && !Number.isNaN(parsedLvl) ? parsedLvl : hero.niveau,
-      niveauTexte:
-        parsedLvl !== null && !Number.isNaN(parsedLvl)
-          ? `Niv. ${parsedLvl}`
-          : hero.niveauTexte,
+      nom: draftName.trim() || hero.nom,
+      niveau: parsedLvl !== null ? parsedLvl : hero.niveau,
+      niveauTexte: parsedLvl !== null ? `Niv. ${parsedLvl}` : hero.niveauTexte,
+      etoiles: draftStars.trim() || undefined,
+      puissanceHero: draftPower.trim() || undefined,
       roleHero: draftRole.trim() || hero.roleHero,
+      competences,
       incertain: false,
       raisonIncertitude: undefined,
       verifieManuellement: true,
@@ -531,26 +549,37 @@ export const HeroesView: React.FC<HeroesViewProps> = ({
                     <div className="p-3.5 rounded-xl bg-slate-900 border border-slate-700 space-y-3">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-xs text-slate-400 mb-1">Niveau exact</label>
-                          <input
-                            type="number"
-                            value={draftLevel}
-                            onChange={(e) => setDraftLevel(e.target.value)}
-                            placeholder="ex: 80"
-                            className="w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm font-mono text-slate-100"
-                          />
+                          <label className="block text-xs text-slate-400 mb-1">Nom du héros</label>
+                          <input type="text" value={draftName} onChange={(e) => setDraftName(e.target.value)} className="w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm text-slate-100" />
                         </div>
                         <div>
+                          <label className="block text-xs text-slate-400 mb-1">Niveau exact (1–999)</label>
+                          <input type="number" min="1" max="999" step="1" value={draftLevel} onChange={(e) => setDraftLevel(e.target.value)} placeholder="ex: 80" className="w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm font-mono text-slate-100" />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-slate-400 mb-1">Étoiles</label>
+                          <input type="text" value={draftStars} onChange={(e) => setDraftStars(e.target.value)} placeholder="ex: ★★★★☆ ou 4" className="w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm text-slate-100" />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-slate-400 mb-1">Puissance du héros</label>
+                          <input type="text" value={draftPower} onChange={(e) => setDraftPower(e.target.value)} placeholder="Valeur affichée en jeu" className="w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm text-slate-100" />
+                        </div>
+                        <div className="sm:col-span-2">
                           <label className="block text-xs text-slate-400 mb-1">Rôle du héros</label>
-                          <input
-                            type="text"
-                            value={draftRole}
-                            onChange={(e) => setDraftRole(e.target.value)}
-                            placeholder="Tank, DPS, Soutien…"
-                            className="w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm text-slate-100"
-                          />
+                          <input type="text" value={draftRole} onChange={(e) => setDraftRole(e.target.value)} placeholder="Tank, DPS, Soutien…" className="w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm text-slate-100" />
                         </div>
                       </div>
+                      {hero.competences.length > 0 && (
+                        <div className="space-y-2">
+                          <p className="text-xs font-medium text-slate-300">Niveaux des compétences</p>
+                          {hero.competences.map((skill) => (
+                            <div key={skill.id} className="grid grid-cols-[1fr_110px] gap-2 items-center">
+                              <label htmlFor={`skill-${skill.id}`} className="text-xs text-slate-300">{skill.nom}</label>
+                              <input id={`skill-${skill.id}`} type="text" value={draftSkills[skill.id] ?? skill.niveau} onChange={(e) => setDraftSkills((prev) => ({ ...prev, [skill.id]: e.target.value }))} placeholder="Niveau" className="w-full rounded-lg bg-slate-950 border border-slate-800 px-2.5 py-2 text-xs text-slate-100" />
+                            </div>
+                          ))}
+                        </div>
+                      )}
                       <div className="flex items-center justify-end gap-2">
                         <button
                           type="button"
