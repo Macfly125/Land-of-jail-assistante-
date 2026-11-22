@@ -352,6 +352,7 @@ data class SavedPlayerProfile(
     val robots: List<RobotRecord> = emptyList(),
     val resources: List<ResourceRecord> = emptyList(),
     val currentPower: PowerMetric? = null,
+    val forticladLevel: Int = 0,
     val gorillaRuns: List<GorillaDamageRecord> = emptyList()
 )
 
