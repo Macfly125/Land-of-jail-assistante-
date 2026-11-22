@@ -159,6 +159,36 @@ enum class AdviceMode(
 }
 
 @Serializable
+enum class AllianceRank(val labelFr: String) {
+    R5("R5 · Chef"),
+    R4("R4 · Officier"),
+    R3("R3"),
+    R2("R2"),
+    R1("R1")
+}
+
+@Serializable
+data class AlliancePlayerProfile(
+    val id: String = "",
+    val playerName: String = "",
+    val server: String = "",
+    val allianceName: String = "",
+    val rank: AllianceRank = AllianceRank.R1,
+    val powerText: String = "",
+    val heroSkillSummary: String = "",
+    val robotSummary: String = "",
+    val updatedAtIso: String = ""
+)
+
+@Serializable
+data class AllianceWorkspace(
+    val server: String = "",
+    val allianceName: String = "",
+    val ownProfile: AlliancePlayerProfile = AlliancePlayerProfile(),
+    val members: List<AlliancePlayerProfile> = emptyList()
+)
+
+@Serializable
 data class HeroSkill(
     val nom: String,
     val niveau: String,
