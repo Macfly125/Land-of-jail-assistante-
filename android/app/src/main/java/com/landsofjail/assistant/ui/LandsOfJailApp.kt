@@ -1649,8 +1649,8 @@ private fun ResourcesScreen(
     var ownedShardsText by remember { mutableStateOf("0") }
     var tomeFrom by remember { mutableIntStateOf(0) }
     var tomeTo by remember { mutableIntStateOf(5) }
-    var fcStart by remember { mutableIntStateOf(forticladLevel.coerceIn(0, 7)) }
-    LaunchedEffect(forticladLevel) { fcStart = forticladLevel.coerceIn(0, 7) }
+    var fcStart by remember { mutableIntStateOf(forticladLevel.coerceIn(0, 8)) }
+    LaunchedEffect(forticladLevel) { fcStart = forticladLevel.coerceIn(0, 8) }
     var fcTarget by remember { mutableIntStateOf(1) }
     var fcBuildingCountText by remember { mutableStateOf("1") }
 
@@ -1775,16 +1775,17 @@ private fun ResourcesScreen(
                 )
                 val computed = buildingCosts.map { (id, name, costs) ->
                     val progress = forticladBuildings[id] ?: ForticladBuildingProgress(
-                        level = forticladLevel.coerceIn(0, 7),
+                        level = forticladLevel.coerceIn(0, 8),
                         completedStages = 0,
                         targetLevel = (forticladLevel + 1).coerceIn(1, 8)
                     )
-                    val target = progress.targetLevel.coerceIn(progress.level + 1, 8)
+                    val currentLevel = progress.level.coerceIn(0, 8)
+                    val target = if (currentLevel >= 8) 8 else progress.targetLevel.coerceIn(currentLevel + 1, 8)
                     var fc = 0L
                     var afc = 0L
-                    for (level in (progress.level + 1)..target) {
+                    for (level in (currentLevel + 1)..target) {
                         val cost = costs[level - 1]
-                        val stages = if (level == progress.level + 1) 5 - progress.completedStages.coerceIn(0, 4) else 5
+                        val stages = if (level == currentLevel + 1) 5 - progress.completedStages.coerceIn(0, 4) else 5
                         fc += cost.first.toLong() * stages
                         afc += cost.second.toLong() * stages
                     }
@@ -1816,10 +1817,10 @@ private fun ResourcesScreen(
                                             }, enabled = progress.level > 0) { Text("−") }
                                             Text(if (progress.level == 0) "Niv.30" else "FC ${progress.level}", fontWeight = FontWeight.Medium)
                                             TextButton(onClick = {
-                                                val level = (progress.level + 1).coerceAtMost(7)
+                                                val level = (progress.level + 1).coerceAtMost(8)
                                                 onForticladBuildingsChange(forticladBuildings + (id to progress.copy(level = level, completedStages = 0, targetLevel = (level + 1).coerceAtMost(8))))
                                                 if (id == "warden_office") onForticladLevelChange(level)
-                                            }, enabled = progress.level < 7) { Text("+") }
+                                            }, enabled = progress.level < 8) { Text("+") }
                                         }
                                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                             Text("Paliers faits", style = MaterialTheme.typography.labelSmall, modifier = Modifier.weight(1f))
