@@ -584,11 +584,15 @@ Règles strictes :
         playerRoleLabel?: string;
         heroes?: Array<{
           nom: string;
+          niveau?: number | null;
           niveauTexte: string;
           rarete?: string;
+          etoiles?: string;
           roleHero?: string;
+          typeTroupe?: string;
+          puissanceHero?: string;
           incertain?: boolean;
-          competences?: Array<{ nom: string; niveau: string; incertain?: boolean }>;
+          competences?: Array<{ nom: string; niveau: string; description?: string; incertain?: boolean }>;
         }>;
         powerText?: string;
         extraQuestion?: string;
@@ -666,19 +670,91 @@ Règles strictes :
       const heroNames = (heroes ?? []).map((h) => h.nom).filter(Boolean);
       const liveGuides = await fetchLiveLojGuides(mode, heroNames, targetLang);
 
-      if (liveGuides.length === 0) {
-        res.status(502).json({
-          error: 'Aucun guide Internet accessible pour le moment. Vérifiez votre connexion.',
-        });
-        return;
-      }
-
       const roleLabel = playerRoleLabel || playerRole || 'Polyvalent / F2P';
       const leadSummary = liveGuides
-        .slice(0, 2)
+        .slice(0, 4)
         .map((g) => g.excerpt)
         .filter(Boolean)
         .join(' ');
+
+      const roster = (heroes ?? []).map((h) => ({
+        nom: h.nom,
+        niveau: h.niveau ?? null,
+        niveauTexte: h.niveauTexte,
+        rarete: h.rarete ?? 'Inconnue',
+        etoiles: h.etoiles ?? 'Inconnues',
+        role: h.roleHero ?? 'Non identifié',
+        typeTroupe: h.typeTroupe ?? 'Non identifié',
+        puissance: h.puissanceHero ?? 'Non capturée',
+        incertain: Boolean(h.incertain),
+        competences: (h.competences ?? []).map((skill) => ({
+          nom: skill.nom,
+          niveau: skill.niveau,
+          description: skill.description ?? 'Description non disponible',
+          incertain: Boolean(skill.incertain),
+        })),
+      }));
+
+      const cageRules = mode === 'trial_cage'
+        ? `RÈGLES SPÉCIFIQUES TRIAL CAGE : le critère déterminant est le total de dégâts infligés à l'adversaire. Priorise les héros, compétences, bonus et synergies qui augmentent directement les dégâts (attaque, létalité, dégâts de compétence, réduction de défense ennemie, amplification des dégâts, attaques de zone). Ne valorise pas les bonus de PV, défense, soins ou réduction des dégâts subis s'ils n'augmentent pas les dégâts infligés dans ce mode. Ne recommande pas un héros uniquement parce qu'il est tank ou support défensif. Explique les synergies et l'ordre de priorité.`
+        : `Pour cet événement, distingue les objectifs réels (dégâts, contrôle, défense, occupation, collecte ou points) et sélectionne les héros/compétences en conséquence. Ne transpose pas automatiquement les critères de Trial Cage aux autres modes.`;
+
+      const ai = getAiClient();
+      const tacticalResponse = await ai.models.generateContent({
+        model: 'gemini-4-hydrogen',
+        contents: `Tu es un coach tactique expert de Lands of Jail. Construis une recommandation personnalisée pour l'événement ${modeName}.
+Rôle du joueur : ${roleLabel}.
+Données du compte (seules données autorisées pour affirmer le niveau de progression) :
+${JSON.stringify(roster)}
+Guides externes consultés (à utiliser comme contexte, pas comme vérité absolue) :
+${leadSummary || 'Aucun guide externe accessible.'}
+Question complémentaire : ${extraQuestion || 'Aucune'}.
+${cageRules}
+
+Consignes :
+- Choisis uniquement parmi les héros présents dans le roster fourni. Ne propose jamais de héros non possédés comme composition principale.
+- Évalue niveau, rareté, étoiles, puissance individuelle, type de troupe et niveaux/descriptions de compétences. Une donnée inconnue ou incertaine ne doit pas être inventée.
+- Donne la meilleure composition possible avec les informations disponibles, puis une alternative si pertinente.
+- Explique pourquoi chaque héros est retenu et quels héros du compte sont moins prioritaires.
+- Propose un ratio de troupes uniquement si les données fournies permettent de le justifier. Sinon indique clairement quelles captures/données manquent et donne au plus une base provisoire clairement marquée comme telle.
+- Ne fabrique jamais de pourcentages, statistiques, compétences ou effets non confirmés. Signale les incertitudes.
+- Réponds dans la langue demandée (${targetLang}).
+- Le résumé doit être directement exploitable en jeu.`,
+        config: {
+          responseMimeType: 'application/json',
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              synthese: { type: Type.STRING },
+              compositionRecommandee: { type: Type.STRING },
+              recommandations: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    titre: { type: Type.STRING },
+                    detail: { type: Type.STRING },
+                    herosCibles: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    incertain: { type: Type.BOOLEAN },
+                    raisonIncertitude: { type: Type.STRING },
+                  },
+                  required: ['titre', 'detail', 'herosCibles', 'incertain'],
+                },
+              },
+              informationsIncertaines: { type: Type.ARRAY, items: { type: Type.STRING } },
+            },
+            required: ['synthese', 'compositionRecommandee', 'recommandations', 'informationsIncertaines'],
+          },
+        },
+      });
+      const tacticalText = (tacticalResponse.text ?? '').trim();
+      if (!tacticalText) throw new Error('Le coach tactique n’a retourné aucune recommandation.');
+      const personalized = JSON.parse(tacticalText) as {
+        synthese: string;
+        compositionRecommandee: string;
+        recommandations: Array<{ titre: string; detail: string; herosCibles: string[]; incertain: boolean; raisonIncertitude?: string }>;
+        informationsIncertaines: string[];
+      };
 
       const compTextByLang: Record<TargetLang, string> = {
         fr:
@@ -722,19 +798,13 @@ Règles strictes :
           language: targetLang,
           playerRole: playerRole || 'polyvalent_f2p',
           generatedAt: new Date().toISOString(),
-          synthese: `${synthPrefix[targetLang]}${leadSummary}`,
-          compositionRecommandee: compTextByLang[targetLang],
-          recommandations: liveGuides.slice(0, 4).map((g) => ({
-            titre: g.title,
-            detail: g.excerpt || g.title,
-            herosCibles: heroNames.slice(0, 3),
-            incertain: false,
-            imageUrl: g.imageUrl,
+          synthese: personalized.synthese || `${synthPrefix[targetLang]}${leadSummary}`,
+          compositionRecommandee: personalized.compositionRecommandee || compTextByLang[targetLang],
+          recommandations: (personalized.recommandations ?? []).map((item, index) => ({
+            ...item,
+            imageUrl: liveGuides[index]?.imageUrl ?? null,
           })),
-          informationsIncertaines:
-            heroNames.length === 0
-              ? [compTextByLang[targetLang]]
-              : [],
+          informationsIncertaines: personalized.informationsIncertaines ?? [],
           sources: liveGuides.map((g) => ({
             title: g.title,
             url: g.url,
