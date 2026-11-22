@@ -578,6 +578,42 @@ Règles strictes :
 
     const [wikiGuides] = await Promise.all([fetchLocalizedLojWikiPages(mode, language)]);
 
+    const guideLojCollected: LiveGuideItem[] = [];
+    const guideLojUrls = mode === 'trial_cage'
+      ? [
+          'https://guideloj.com/en/events/alliance/trial-cage-rally-guide',
+          'https://www.guideloj.com/fr/tips/fight/troop-guide-shieldbearer-bombardiers-shooters',
+        ]
+      : [];
+    await Promise.all(guideLojUrls.map(async (pageUrl) => {
+      try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 7000);
+        const resp = await fetch(pageUrl, {
+          signal: controller.signal,
+          headers: { Accept: 'text/html', 'User-Agent': 'LandsOfJailAssistant/1.5' },
+        });
+        clearTimeout(timer);
+        if (!resp.ok) return;
+        const html = await resp.text();
+        const title = html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i)?.[1]
+          || html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]
+          || 'GuideLOJ';
+        const mainHtml = html.match(/<(?:main|article)[^>]*>([\s\S]*?)<\/(?:main|article)>/i)?.[1] || html;
+        const excerpt = stripHtml(mainHtml).slice(0, 4200);
+        guideLojCollected.push({
+          title: stripHtml(title),
+          url: pageUrl,
+          date: new Date().toISOString().slice(0, 10),
+          excerpt,
+          imageUrl: null,
+          langMatch: pageUrl.includes('/fr/'),
+        });
+      } catch {
+        // Une source GuideLOJ indisponible ne bloque pas le coach.
+      }
+    }));
+
     const lojxlabCollected: LiveGuideItem[] = [];
     const seen = new Set<string>(wikiGuides.map((g) => g.url));
 
@@ -642,7 +678,7 @@ Règles strictes :
       })
     );
 
-    return [...wikiGuides, ...lojxlabCollected].slice(0, 8);
+    return [...wikiGuides, ...guideLojCollected, ...lojxlabCollected].filter((item, index, all) => all.findIndex((candidate) => candidate.url === item.url) === index).slice(0, 12);
   }
 
   app.post('/api/advice', async (req, res) => {
