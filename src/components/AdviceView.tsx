@@ -14,6 +14,7 @@ import {
   AdviceMode,
   AppLanguage,
   HeroRecord,
+  RobotRecord,
   PLAYER_ROLE_LABELS,
   PlayerRole,
   TacticalAdviceResult,
