@@ -300,12 +300,23 @@ export interface TacticalAdviceResult {
   geminiWarning?: string;
 }
 
+export type ForticladLabTroopType = 'shieldbearer' | 'bomber' | 'shooter';
+
+export interface ForticladLabProgress {
+  tier1: number;
+  tier2: number[];
+  tier3: number;
+  tier4: boolean;
+  tier5: number[];
+}
+
 export interface AccountState {
   language?: AppLanguage;
   playerRole: PlayerRole;
   currentPower: PowerMetric | null;
   forticladLevel?: number;
   forticladBuildings?: Record<string, { level: number; completedStages: number; targetLevel: number }>;
+  forticladLabProgress?: Partial<Record<ForticladLabTroopType, ForticladLabProgress>>;
   powerHistory: Array<{
     analysisId: string;
     date: string;
