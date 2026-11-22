@@ -811,10 +811,16 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
         playerRoleLabel?: string;
         heroes?: Array<{
           nom: string;
+          niveau?: number | null;
           niveauTexte: string;
           rarete?: string;
+          etoiles?: string;
           roleHero?: string;
+          typeTroupe?: string;
+          puissanceHero?: string;
+          champsIncertains?: string[];
           incertain?: boolean;
+          verifieManuellement?: boolean;
           competences?: Array<{ nom: string; niveau: string; incertain?: boolean }>;
         }>;
         powerText?: string;
@@ -891,6 +897,22 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
 
       const modeName = modeNamesByLang[targetLang][mode];
       const heroNames = (heroes ?? []).map((h) => h.nom).filter(Boolean);
+      // Pass only account-observed data to the tactical context. Wiki maximums
+      // are intentionally excluded because they are not the player's progression.
+      const accountHeroContext = (heroes ?? []).map((hero) => {
+        const uncertain = new Set(hero.champsIncertains || []);
+        const personalFields = [
+          !uncertain.has('niveau') ? hero.niveauTexte : 'niveau à confirmer',
+          !uncertain.has('etoiles') ? hero.etoiles : 'étoiles à confirmer',
+          !uncertain.has('rarete') ? hero.rarete : 'rareté à confirmer',
+          !uncertain.has('typeTroupe') ? hero.typeTroupe : 'type de troupe à confirmer',
+          !uncertain.has('puissanceHero') ? hero.puissanceHero : 'puissance à confirmer',
+        ].filter(Boolean);
+        const skills = (hero.competences || []).map((skill) =>
+          `${skill.nom}: ${skill.incertain ? 'niveau à confirmer' : skill.niveau || 'niveau non relevé'}`
+        );
+        return `${hero.nom} [${personalFields.join(', ')}]${skills.length ? ` | compétences: ${skills.join('; ')}` : ''}`;
+      });
       const liveGuides = await fetchLiveLojGuides(mode, heroNames, targetLang);
 
       if (liveGuides.length === 0) {
@@ -934,6 +956,18 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
             : `No heroes scanned yet: pair frontline Shieldbearers with backline Shooters (${roleLabel}).`,
       };
 
+      const profileContextLabel: Record<TargetLang, string> = {
+        fr: 'Données personnelles détectées (les champs incertains sont signalés) :',
+        tr: 'Algılanan hesap verileri (belirsiz alanlar işaretlenmiştir):',
+        ru: 'Данные аккаунта (неуверенно распознанные поля отмечены):',
+        zh: '识别到的账号数据（不确定字段已标注）：',
+        de: 'Erkannte Kontodaten (unsichere Felder sind gekennzeichnet):',
+        en: 'Detected account data (uncertain fields are marked):',
+      };
+      const groundedProfileContext = accountHeroContext.length
+        ? ` ${profileContextLabel[targetLang]} ${accountHeroContext.join(' || ')}`
+        : '';
+
       const synthPrefix: Record<TargetLang, string> = {
         fr: `${modeName} · Rôle : ${roleLabel}${extraQuestion ? ` · Question : ${extraQuestion}` : ''}. `,
         tr: `${modeName} · Rol: ${roleLabel}. `,
@@ -950,7 +984,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
           playerRole: playerRole || 'polyvalent_f2p',
           generatedAt: new Date().toISOString(),
           synthese: `${synthPrefix[targetLang]}${leadSummary}`,
-          compositionRecommandee: compTextByLang[targetLang],
+          compositionRecommandee: `${compTextByLang[targetLang]}${groundedProfileContext}`,
           recommandations: liveGuides.slice(0, 4).map((g) => ({
             titre: g.title,
             detail: g.excerpt || g.title,
