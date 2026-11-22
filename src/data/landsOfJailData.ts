@@ -413,31 +413,71 @@ export const RALLY_HERO_PICKS: RallyHeroPick[] = [
   },
 ];
 
-// Ratio de troupes recommandé pour un ralliement Trial Cage (55/5/40)
-export const RALLY_TROOP_RATIOS: Array<{ classe: HeroClass; pourcentage: number; note: string }> = [
+// Ratios de départ Trial Cage issus du guide communautaire actualisé le 4 novembre 2026.
+// Les profils distinguent le chef du ralliement et le participant : ne pas mélanger leurs ratios.
+export interface RallyTroopRatioProfile {
+  id: 'leader_standard' | 'leader_ada' | 'joiner_mixed' | 'joiner_shooters';
+  role: 'lanceur' | 'rejoigneur';
+  label: string;
+  shieldbearer: number;
+  bomber: number;
+  shooter: number;
+  note: string;
+}
+
+export const RALLY_TROOP_RATIO_PROFILES: RallyTroopRatioProfile[] = [
   {
-    classe: 'Shieldbearer',
-    pourcentage: 55,
-    note: 'Absorbe les ripostes du boss et protège les lignes arrière.',
+    id: 'leader_standard',
+    role: 'lanceur',
+    label: 'Chef sans Ada',
+    shieldbearer: 0,
+    bomber: 10,
+    shooter: 90,
+    note: 'Ratio de départ publié pour le chef de ralliement sans Ada.',
   },
   {
-    classe: 'Bomber',
-    pourcentage: 5,
-    note: 'Quota minimal : sert de déclencheur de compétences.',
+    id: 'leader_ada',
+    role: 'lanceur',
+    label: 'Chef avec Ada',
+    shieldbearer: 1,
+    bomber: 9,
+    shooter: 90,
+    note: 'Vérifier aussi le nombre réel de Shieldbearers : la référence indique environ 1 000, ce qui ne correspond à 1% que pour une marche de 100 000.',
   },
   {
-    classe: 'Shooter',
-    pourcentage: 40,
-    note: 'Cœur des dégâts sur le boss de la Cage.',
+    id: 'joiner_mixed',
+    role: 'rejoigneur',
+    label: 'Participant — troupes mixtes',
+    shieldbearer: 0,
+    bomber: 10,
+    shooter: 90,
+    note: 'Option de départ publiée pour le participant ; respecter les consignes du chef de ralliement.',
+  },
+  {
+    id: 'joiner_shooters',
+    role: 'rejoigneur',
+    label: 'Participant — Shooters uniquement',
+    shieldbearer: 0,
+    bomber: 0,
+    shooter: 100,
+    note: 'Option publiée si le joueur peut envoyer uniquement des Shooters.',
   },
 ];
 
-export const RALLY_JOIN_TIPS: string[] = [
-  'Seul le 1er slot de héros compte pour booster un ralliement que vous rejoignez.',
-  'En rejoigneur, privilégiez les héros à bonus d’attaque et de dégâts (pas de létalité, réservée aux attaques de prison).',
-  'Si possible, rejoignez avec 100% de Shooters : ce sont eux qui infligent le plus de dégâts sur un ralliement par défaut.',
-  'Préparez des formations enregistrées dans le jeu pour rejoindre rapidement avec le bon héros et le bon ratio.',
+// Compatibilité avec les écrans qui attendent encore une liste simple : ratio standard du chef sans Ada.
+export const RALLY_TROOP_RATIOS: Array<{ classe: HeroClass; pourcentage: number; note: string }> = [
+  { classe: 'Shieldbearer', pourcentage: 0, note: 'Aucun Shieldbearer dans le ratio standard publié.' },
+  { classe: 'Bomber', pourcentage: 10, note: 'Partie de la composition offensive standard.' },
+  { classe: 'Shooter', pourcentage: 90, note: 'Principale composante de dégâts de la composition standard.' },
 ];
+
+export const RALLY_JOIN_TIPS: string[] = [
+  'Placez en premier le héros dont la première compétence de guerre apporte le meilleur bonus collectif, puis vérifiez dans l’écran du ralliement que sa compétence est réellement sélectionnée.',
+  'Une analyse communautaire indique que seuls les quatre premiers emplacements de compétences des participants sont retenus ; à niveau égal, le participant arrivé plus tôt peut être prioritaire. À confirmer après chaque mise à jour.',
+  'Coordonnez les participants pour apporter des bonus différents (ATQ, dégâts infligés, dégâts subis par l’ennemi ou réduction de DEF) et éviter de dupliquer un bonus déjà présent.',
+  'Le rôle du participant et celui du chef sont différents : ne copiez pas automatiquement le ratio du chef. Utilisez le profil de troupes demandé par le chef et les règles de votre alliance.',
+  'Enregistrez des formations distinctes pour lancer et rejoindre, puis vérifiez le héros en premier slot, les troupes réellement disponibles et le nombre envoyé.',
+
 
 export function formatMinutesToDurationFr(totalMinutes: number): string {
   if (totalMinutes <= 0) return 'Instantané';
