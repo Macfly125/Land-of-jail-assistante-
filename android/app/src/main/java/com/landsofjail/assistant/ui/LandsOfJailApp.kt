@@ -47,7 +47,7 @@ import java.time.Instant
 import java.util.UUID
 
 private enum class AssistantTab {
-    TABLEAU, HEROS, RESSOURCES, CONSEILS, HISTORIQUE;
+    TABLEAU, HEROS, RESSOURCES, CONSEILS, ALLIANCE, HISTORIQUE;
 
     fun titleFor(lang: AppLanguage): String = when (this) {
         TABLEAU -> when (lang) {
@@ -81,6 +81,14 @@ private enum class AssistantTab {
             AppLanguage.ZH -> "活动"
             AppLanguage.DE -> "Events"
             AppLanguage.EN -> "Events"
+        }
+        ALLIANCE -> when (lang) {
+            AppLanguage.FR -> "Alliance"
+            AppLanguage.TR -> "İttifak"
+            AppLanguage.RU -> "Альянс"
+            AppLanguage.ZH -> "联盟"
+            AppLanguage.DE -> "Allianz"
+            AppLanguage.EN -> "Alliance"
         }
         HISTORIQUE -> when (lang) {
             AppLanguage.FR -> "Historique"
@@ -224,6 +232,14 @@ fun LandsOfJailAssistantApp(
     }
     val accountJson = remember { Json { ignoreUnknownKeys = true } }
     var accountDataLoaded by remember { mutableStateOf(false) }
+    var allianceWorkspace by remember {
+        mutableStateOf(runCatching {
+            accountJson.decodeFromString<AllianceWorkspace>(
+                accountPrefs.getString("alliance_workspace", "{}") ?: "{}"
+            )
+        }.getOrDefault(AllianceWorkspace()))
+    }
+
     var analyses by remember {
         mutableStateOf(runCatching {
             accountJson.decodeFromString<List<ScreenshotAnalysis>>(
@@ -251,6 +267,12 @@ fun LandsOfJailAssistantApp(
                 accountPrefs.getString("current_power", "null") ?: "null"
             )
         }.getOrNull())
+    }
+
+    LaunchedEffect(allianceWorkspace) {
+        accountPrefs.edit()
+            .putString("alliance_workspace", accountJson.encodeToString(allianceWorkspace))
+            .apply()
     }
 
     LaunchedEffect(analyses, heroes, resources, currentPower) {
@@ -701,6 +723,7 @@ fun LandsOfJailAssistantApp(
                             AssistantTab.HEROS -> Icons.Outlined.Groups
                             AssistantTab.RESSOURCES -> Icons.Outlined.Inventory2
                             AssistantTab.CONSEILS -> Icons.Outlined.MilitaryTech
+                            AssistantTab.ALLIANCE -> Icons.Outlined.Groups
                             AssistantTab.HISTORIQUE -> Icons.Outlined.History
                         }
                         NavigationBarItem(
@@ -869,6 +892,11 @@ fun LandsOfJailAssistantApp(
                                 isFetchingAdvice = false
                             }
                         }
+                    )
+                    AssistantTab.ALLIANCE -> AllianceScreen(
+                        workspace = allianceWorkspace,
+                        heroes = heroes,
+                        onSaveWorkspace = { allianceWorkspace = it }
                     )
                     AssistantTab.HISTORIQUE -> HistoryScreen(analyses, onClearHistory = { analyses = emptyList() })
                 }
