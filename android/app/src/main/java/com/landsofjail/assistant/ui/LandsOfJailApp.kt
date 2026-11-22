@@ -1054,6 +1054,7 @@ private fun ResourcesScreen(
             )
         )
     }
+    var customRoutineMinutes by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
     var nowMs by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(subTab) {
         while (true) {
@@ -1284,6 +1285,42 @@ private fun ResourcesScreen(
                                 )
                             }
                             Text(task.subtitle, style = MaterialTheme.typography.bodySmall)
+                            val customText = customRoutineMinutes[task.id] ?: task.minutes.toString()
+                            val parsedCustomMinutes = customText.toIntOrNull()
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                OutlinedTextField(
+                                    value = customText,
+                                    onValueChange = { value ->
+                                        customRoutineMinutes = customRoutineMinutes + (task.id to value.filter { it.isDigit() }.take(5))
+                                    },
+                                    modifier = Modifier.weight(1f),
+                                    label = { Text("Durée personnalisée (minutes)") },
+                                    singleLine = true
+                                )
+                                Button(
+                                    enabled = parsedCustomMinutes != null && parsedCustomMinutes in 1..10080,
+                                    onClick = {
+                                        val minutes = parsedCustomMinutes ?: return@Button
+                                        val base = System.currentTimeMillis()
+                                        routineItems = routineItems.map {
+                                            if (it.id == task.id) {
+                                                it.copy(
+                                                    minutes = minutes,
+                                                    enabled = true,
+                                                    endsAtMs = base + minutes * 60_000L,
+                                                    pausedRemainingMs = null
+                                                )
+                                            } else it
+                                        }
+                                    }
+                                ) {
+                                    Text("Lancer")
+                                }
+                            }
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
