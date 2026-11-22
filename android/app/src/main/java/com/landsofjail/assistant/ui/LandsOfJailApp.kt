@@ -216,6 +216,8 @@ fun LandsOfJailAssistantApp(
 
     var analyses by remember { mutableStateOf<List<ScreenshotAnalysis>>(emptyList()) }
     var heroes by remember { mutableStateOf<List<HeroRecord>>(emptyList()) }
+    var pendingReview by remember { mutableStateOf<ScreenshotAnalysis?>(null) }
+    var reviewHeroes by remember { mutableStateOf<List<HeroRecord>>(emptyList()) }
     var resources by remember { mutableStateOf<List<ResourceRecord>>(emptyList()) }
     var currentPower by remember { mutableStateOf<PowerMetric?>(null) }
 
@@ -421,25 +423,15 @@ fun LandsOfJailAssistantApp(
                 }
 
                 singleAnalysisPercent = 100
-                mergeNewAnalysis(result)
+                pendingReview = result
+                reviewHeroes = result.heros
                 AdviceMode.entries.firstOrNull { it.apiId == result.typeCapture }?.let {
                     selectedAdviceMode = it
                 }
-
                 currentTab = AssistantTab.TABLEAU
                 snackbarHostState.showSnackbar(
-                    "Capture analysée 100 % (${result.heros.size} héros, ${result.ressources.size} ressource(s))"
+                    "Analyse terminée : vérifie les héros avant l'enregistrement."
                 )
-
-                isFetchingAdvice = true
-                repository.fetchTacticalAdvice(
-                    mode = selectedAdviceMode,
-                    language = currentLang,
-                    playerRole = playerRole,
-                    heroes = heroes,
-                    powerText = currentPower?.puissanceTotaleTexte
-                ).onSuccess { adviceResult = it }
-                isFetchingAdvice = false
             } catch (e: Throwable) {
                 errorMessage = e.message ?: "Erreur pendant l'analyse OCR."
             } finally {
@@ -678,6 +670,132 @@ fun LandsOfJailAssistantApp(
                         }
                     )
                     AssistantTab.HISTORIQUE -> HistoryScreen(analyses)
+                }
+
+                pendingReview?.let { review ->
+                    AlertDialog(
+                        onDismissRequest = { pendingReview = null; reviewHeroes = emptyList() },
+                        title = { Text("Vérifier les héros détectés") },
+                        text = {
+                            Column(
+                                modifier = Modifier.heightIn(max = 440.dp).verticalScroll(rememberScrollState()),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Text(
+                                    "Corrige les informations à partir de la capture originale. Rien ne sera enregistré avant confirmation.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color(0xFFFBBF24)
+                                )
+                                if (reviewHeroes.isEmpty()) {
+                                    Text("Aucun héros détecté. Tu peux confirmer pour enregistrer les autres données.")
+                                }
+                                reviewHeroes.forEachIndexed { index, hero ->
+                                    Card(
+                                        colors = CardDefaults.cardColors(containerColor = Color(0xFF172033)),
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                                            Text("Héros ${index + 1}", fontWeight = FontWeight.SemiBold)
+                                            OutlinedTextField(
+                                                value = hero.nom,
+                                                onValueChange = { value ->
+                                                    reviewHeroes = reviewHeroes.toMutableList().also { it[index] = hero.copy(nom = value) }
+                                                },
+                                                label = { Text("Nom") },
+                                                singleLine = true,
+                                                modifier = Modifier.fillMaxWidth()
+                                            )
+                                            OutlinedTextField(
+                                                value = hero.niveau?.toString() ?: "",
+                                                onValueChange = { value ->
+                                                    val level = value.toIntOrNull()
+                                                    reviewHeroes = reviewHeroes.toMutableList().also {
+                                                        it[index] = hero.copy(niveau = level, niveauTexte = level?.let { "Niv. $it" } ?: "Inconnu")
+                                                    }
+                                                },
+                                                label = { Text("Niveau") },
+                                                singleLine = true,
+                                                modifier = Modifier.fillMaxWidth()
+                                            )
+                                            OutlinedTextField(
+                                                value = hero.etoiles.orEmpty(),
+                                                onValueChange = { value -> reviewHeroes = reviewHeroes.toMutableList().also { it[index] = hero.copy(etoiles = value) } },
+                                                label = { Text("Étoiles") },
+                                                singleLine = true,
+                                                modifier = Modifier.fillMaxWidth()
+                                            )
+                                            OutlinedTextField(
+                                                value = hero.puissanceHero.orEmpty(),
+                                                onValueChange = { value -> reviewHeroes = reviewHeroes.toMutableList().also { it[index] = hero.copy(puissanceHero = value) } },
+                                                label = { Text("Puissance") },
+                                                singleLine = true,
+                                                modifier = Modifier.fillMaxWidth()
+                                            )
+                                            hero.competences.forEachIndexed { skillIndex, skill ->
+                                                OutlinedTextField(
+                                                    value = skill.niveau,
+                                                    onValueChange = { value ->
+                                                        reviewHeroes = reviewHeroes.toMutableList().also { list ->
+                                                            val current = list[index]
+                                                            list[index] = current.copy(
+                                                                competences = current.competences.toMutableList().also { skills ->
+                                                                    skills[skillIndex] = skill.copy(niveau = value)
+                                                                }
+                                                            )
+                                                        }
+                                                    },
+                                                    label = { Text(skill.nom) },
+                                                    singleLine = true,
+                                                    modifier = Modifier.fillMaxWidth()
+                                                )
+                                            }
+                                            if (hero.incertain) {
+                                                Text(hero.raisonIncertitude ?: "Lecture incertaine : vérifie ce héros.", color = Color(0xFFFBBF24), style = MaterialTheme.typography.labelSmall)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        confirmButton = {
+                            TextButton(
+                                enabled = reviewHeroes.all { it.nom.isNotBlank() && (it.niveau == null || it.niveau in 1..999) },
+                                onClick = {
+                                    val confirmed = review.copy(heros = reviewHeroes.map { hero ->
+                                        hero.copy(
+                                            nom = hero.nom.trim(),
+                                            incertain = false,
+                                            raisonIncertitude = null,
+                                            competences = hero.competences.map { skill ->
+                                                skill.copy(incertain = skill.niveau.isBlank() || skill.niveau.equals("Inconnu", true))
+                                            }
+                                        )
+                                    })
+                                    mergeNewAnalysis(confirmed)
+                                    pendingReview = null
+                                    reviewHeroes = emptyList()
+                                    scope.launch {
+                                        isFetchingAdvice = true
+                                        repository.fetchTacticalAdvice(
+                                            mode = selectedAdviceMode,
+                                            language = currentLang,
+                                            playerRole = playerRole,
+                                            heroes = (heroes + confirmed.heros).associateBy { it.nom.lowercase() }.values.toList(),
+                                            powerText = confirmed.puissance?.puissanceTotaleTexte ?: currentPower?.puissanceTotaleTexte
+                                        ).onSuccess { adviceResult = it }
+                                            .onFailure { errorMessage = it.message }
+                                        isFetchingAdvice = false
+                                        snackbarHostState.showSnackbar("Capture vérifiée et enregistrée.")
+                                    }
+                                }
+                            ) { Text("Confirmer et enregistrer") }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { pendingReview = null; reviewHeroes = emptyList() }) {
+                                Text("Ignorer")
+                            }
+                        }
+                    )
                 }
             }
         }
