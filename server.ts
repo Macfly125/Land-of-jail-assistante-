@@ -774,8 +774,10 @@ Règles strictes :
         model: 'gemini-4-hydrogen',
         contents: `Tu es un coach tactique expert de Lands of Jail. Construis une recommandation personnalisée pour l'événement ${modeName}.
 Rôle du joueur : ${roleLabel}.
-Données du compte (seules données autorisées pour affirmer le niveau de progression) :
+Données du compte — héros possédés :
 ${JSON.stringify(roster)}
+Robots/compagnons réellement possédés et détectés :
+${JSON.stringify(robotRoster)}
 Guides externes consultés (à utiliser comme contexte, pas comme vérité absolue) :
 ${leadSummary || 'Aucun guide externe accessible.'}
 Question complémentaire : ${extraQuestion || 'Aucune'}.
@@ -786,7 +788,7 @@ Consignes :
 - Évalue niveau, rareté, étoiles, puissance individuelle, type de troupe et niveaux/descriptions de compétences. Une donnée inconnue ou incertaine ne doit pas être inventée.
 - Donne la meilleure composition possible avec les informations disponibles, puis une alternative si pertinente.
 - Explique pourquoi chaque héros est retenu et quels héros du compte sont moins prioritaires.
-- Robot : aucune donnée de robot n'est actuellement transmise par le profil. Ne choisis donc jamais un robot précis au hasard ; indique que sa capture (nom, niveau, compétences/bonus) est nécessaire, sauf si une source fiable consultée confirme explicitement un choix valable pour cet événement.
+- Robot : choisis uniquement parmi les robots/compagnons transmis dans le profil. Compare leurs niveaux, puissance et bonus/compétences. Ne propose jamais un robot absent de la liste. Si la liste est vide, indique clairement qu'une capture du robot est nécessaire. Si les données sont incertaines, précise-le et n'invente aucun bonus.
 - Ratio de troupes : propose des pourcentages uniquement si les règles de l'événement et les données disponibles les justifient. Sinon indique explicitement « ratio non déterminable avec les captures actuelles » et précise la capture requise. Ne donne pas de ratio générique présenté comme optimal.
 - Pour chaque événement, fournis un champ robotRecommande et un champ ratioTroupes, avec une explication exploitable ou la mention claire des données manquantes.
 - Ne fabrique jamais de pourcentages, statistiques, compétences ou effets non confirmés. Signale les incertitudes.
@@ -876,7 +878,7 @@ Consignes :
           generatedAt: new Date().toISOString(),
           synthese: personalized.synthese || `${synthPrefix[targetLang]}${leadSummary}`,
           compositionRecommandee: personalized.compositionRecommandee || compTextByLang[targetLang],
-          robotRecommande: personalized.robotRecommande || 'Données du robot non disponibles : capture du robot nécessaire.',
+          robotRecommande: personalized.robotRecommande || ((robots ?? []).length > 0 ? 'Comparer les robots détectés ; aucune sélection fiable n’a été retournée.' : 'Données du robot non disponibles : capture du robot nécessaire.'),
           ratioTroupes: personalized.ratioTroupes || 'Ratio non déterminable avec les captures actuelles.',
           recommandations: (personalized.recommandations ?? []).map((item, index) => ({
             ...item,
