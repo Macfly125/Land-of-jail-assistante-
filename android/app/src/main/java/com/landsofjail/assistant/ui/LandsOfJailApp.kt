@@ -681,7 +681,7 @@ fun LandsOfJailAssistantApp(
                         onOpenHistory = { currentTab = AssistantTab.HISTORIQUE },
                         onPickImage = { imagePicker.launch("image/*") }
                     )
-                    AssistantTab.HEROS -> HeroesScreen(heroes)
+                    AssistantTab.HEROS -> HeroesScreen(heroes, repository, currentLang)
                     AssistantTab.RESSOURCES -> ResourcesScreen(currentLang, currentPower, resources)
                     AssistantTab.CONSEILS -> AdviceScreen(
                         currentLang = currentLang,
@@ -1202,33 +1202,289 @@ private fun DashboardScreen(
 }
 
 @Composable
-private fun HeroesScreen(heroes: List<HeroRecord>) {
-    if (heroes.isEmpty()) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Aucun héros extrait. Appuyez sur « Analyser l’écran » sur votre fiche héros.")
-        }
-        return
+@Composable
+private fun HeroesScreen(
+    heroes: List<HeroRecord>,
+    repository: GeminiAssistantRepository,
+    language: AppLanguage
+) {
+    val scope = rememberCoroutineScope()
+    var catalog by remember { mutableStateOf<List<HeroCatalogEntry>>(emptyList()) }
+    var isLoadingCatalog by remember { mutableStateOf(true) }
+    var catalogError by remember { mutableStateOf<String?>(null) }
+    var selectedHero by remember { mutableStateOf<HeroCatalogEntry?>(null) }
+    var selectedDetails by remember { mutableStateOf<HeroWikiDetails?>(null) }
+    var isLoadingDetails by remember { mutableStateOf(false) }
+    var detailsError by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(language, repository) {
+        isLoadingCatalog = true
+        repository.fetchHeroCatalog(language)
+            .onSuccess {
+                catalog = it
+                catalogError = null
+            }
+            .onFailure {
+                catalogError = it.message ?: "Catalogue indisponible."
+            }
+        isLoadingCatalog = false
     }
-    LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        items(heroes) { hero ->
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("${hero.nom} · ${hero.niveauTexte}", fontWeight = FontWeight.SemiBold)
-                    if (hero.incertain) {
-                        Text(
-                            "Information incertaine : ${hero.raisonIncertitude ?: "vérification conseillée"}",
-                            color = Color(0xFFFBBF24),
-                            style = MaterialTheme.typography.bodySmall
+
+    val ownedByName = remember(heroes) {
+        heroes.associateBy { it.nom.lowercase().filter(Char::isLetterOrDigit) }
+    }
+    val visibleEntries = remember(catalog, heroes) {
+        val source = if (catalog.isNotEmpty()) catalog else heroes.map { hero ->
+            HeroCatalogEntry(
+                slug = hero.nom.lowercase().replace(Regex("[^a-z0-9]+"), "-"),
+                nom = hero.nom,
+                avatarUrl = hero.avatarUrl,
+                imageUrl = hero.imageUrl,
+                rarete = hero.rarete,
+                typeTroupe = hero.typeTroupe,
+                wikiUrl = hero.wikiUrl.orEmpty()
+            )
+        }
+        source.distinctBy { it.slug }.sortedByDescending { entry ->
+            ownedByName.containsKey(entry.nom.lowercase().filter(Char::isLetterOrDigit))
+        }
+    }
+
+    fun openHero(entry: HeroCatalogEntry) {
+        selectedHero = entry
+        selectedDetails = null
+        detailsError = null
+        isLoadingDetails = true
+        scope.launch {
+            repository.fetchHeroDetails(entry.nom, language)
+                .onSuccess { selectedDetails = it }
+                .onFailure { detailsError = it.message ?: "Détails non disponibles." }
+            isLoadingDetails = false
+        }
+    }
+
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Text("Catalogue des héros", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                Text(
+                    "${heroes.size} héros dans ton profil · ${if (catalog.isNotEmpty()) catalog.size else visibleEntries.size} affichés",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            if (isLoadingCatalog) {
+                CircularProgressIndicator(modifier = Modifier.size(22.dp), strokeWidth = 2.dp)
+            }
+        }
+
+        if (catalogError != null && catalog.isEmpty()) {
+            Text(
+                "Catalogue en ligne indisponible : les héros déjà enregistrés restent accessibles.",
+                color = Color(0xFFFBBF24),
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
+
+        if (visibleEntries.isEmpty()) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("Aucun héros disponible. Analyse une capture de ta fiche héros pour commencer.")
+            }
+        } else {
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(minSize = 112.dp),
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 18.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                items(visibleEntries, key = { it.slug }) { entry ->
+                    val owned = ownedByName[entry.nom.lowercase().filter(Char::isLetterOrDigit)]
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { openHero(entry) },
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (owned != null) Color(0xFF202B3C) else Color(0xFF121A28)
+                        ),
+                        border = androidx.compose.foundation.BorderStroke(
+                            1.dp,
+                            if (owned != null) Color(0xFFD69E36) else Color(0xFF344054)
                         )
-                    }
-                    hero.competences.forEach { skill ->
-                        Text("• ${skill.nom} (${skill.niveau})${if (skill.incertain) " [Incertain]" else ""}")
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .aspectRatio(1f)
+                                    .background(Color(0xFF0B1220)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                val portrait = entry.avatarUrl ?: entry.imageUrl
+                                if (!portrait.isNullOrBlank()) {
+                                    AsyncImage(
+                                        model = portrait,
+                                        contentDescription = entry.nom,
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                } else {
+                                    Text(
+                                        entry.nom.take(1).uppercase(),
+                                        color = Color(0xFFFBBF24),
+                                        style = MaterialTheme.typography.headlineLarge
+                                    )
+                                }
+                                if (owned == null) {
+                                    Box(
+                                        Modifier
+                                            .align(Alignment.BottomEnd)
+                                            .padding(5.dp)
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .background(Color(0xAA080D16))
+                                            .padding(horizontal = 6.dp, vertical = 3.dp)
+                                    ) {
+                                        Text("À obtenir", color = Color.LightGray, style = MaterialTheme.typography.labelSmall)
+                                    }
+                                }
+                            }
+                            Column(Modifier.padding(horizontal = 8.dp, vertical = 5.dp)) {
+                                Text(
+                                    entry.nom,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    fontWeight = FontWeight.SemiBold,
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                                Row(
+                                    Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(entry.rarete ?: "—", color = Color(0xFFFBBF24), style = MaterialTheme.typography.labelSmall)
+                                    if (owned != null) {
+                                        Text(owned.niveauTexte, color = Color(0xFF6EE7B7), style = MaterialTheme.typography.labelSmall)
+                                    }
+                                }
+                                if (owned?.etoiles != null) {
+                                    Text(owned.etoiles, color = Color(0xFFFBBF24), style = MaterialTheme.typography.labelSmall)
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
     }
+
+    selectedHero?.let { entry ->
+        val owned = ownedByName[entry.nom.lowercase().filter(Char::isLetterOrDigit)]
+        AlertDialog(
+            onDismissRequest = { selectedHero = null },
+            title = {
+                Text(selectedDetails?.nom ?: entry.nom, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            },
+            text = {
+                Column(
+                    modifier = Modifier
+                        .heightIn(max = 520.dp)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    val portrait = selectedDetails?.imageUrl ?: selectedDetails?.avatarUrl ?: entry.imageUrl ?: entry.avatarUrl
+                    if (!portrait.isNullOrBlank()) {
+                        AsyncImage(
+                            model = portrait,
+                            contentDescription = entry.nom,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(190.dp)
+                                .clip(RoundedCornerShape(12.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                    if (isLoadingDetails) {
+                        CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
+                    }
+                    if (detailsError != null) {
+                        Text(detailsError.orEmpty(), color = Color(0xFFFBBF24), style = MaterialTheme.typography.bodySmall)
+                    }
+                    Text(
+                        if (owned != null) "HÉROS DANS TON PROFIL" else "HÉROS NON ENCORE DÉBLOQUÉ",
+                        color = if (owned != null) Color(0xFF6EE7B7) else MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    val rarity = selectedDetails?.rarete ?: entry.rarete
+                    val troop = selectedDetails?.typeTroupe ?: entry.typeTroupe
+                    Text(listOfNotNull(rarity, troop, selectedDetails?.saison).joinToString(" · "))
+                    if (owned != null) {
+                        Text("Niveau : ${owned.niveauTexte}")
+                        Text("Étoiles : ${owned.etoiles ?: "Non renseigné"}")
+                        Text("Puissance : ${owned.puissanceHero ?: "Non renseignée"}")
+                        Text("Rôle : ${owned.roleHero ?: troop ?: "Non renseigné"}")
+                        if (owned.incertain) {
+                            Text(
+                                "À vérifier : ${owned.raisonIncertitude ?: "certaines données sont incertaines"}",
+                                color = Color(0xFFFBBF24),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                        if (owned.competences.isNotEmpty()) {
+                            Text("Compétences de ton héros", fontWeight = FontWeight.Bold)
+                            owned.competences.forEach { skill ->
+                                Text("${skill.nom} · ${skill.niveau}", fontWeight = FontWeight.SemiBold)
+                                skill.description?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+                            }
+                        }
+                    } else {
+                        Text("Niveau, étoiles et puissance seront renseignés dès que tu auras analysé sa fiche en jeu.")
+                    }
+                    selectedDetails?.puissanceMax5Etoiles?.let { Text("Puissance max à 5★ : $it") }
+                    selectedDetails?.resumeBio?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+                    selectedDetails?.idealPour?.let { Text("Idéal pour : $it", style = MaterialTheme.typography.bodySmall) }
+                    val skills = selectedDetails?.competences.orEmpty()
+                    if (skills.isNotEmpty()) {
+                        Text("Compétences du héros", fontWeight = FontWeight.Bold)
+                        skills.forEach { skill ->
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                if (!skill.iconUrl.isNullOrBlank()) {
+                                    AsyncImage(
+                                        model = skill.iconUrl,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(36.dp).clip(RoundedCornerShape(8.dp)),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
+                                Column(Modifier.weight(1f)) {
+                                    Text("${skill.nom} · ${skill.niveau}", fontWeight = FontWeight.SemiBold)
+                                    skill.description?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+                                }
+                            }
+                        }
+                    }
+                    if (!selectedDetails?.wikiUrl.isNullOrBlank()) {
+                        val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
+                        TextButton(onClick = { uriHandler.openUri(selectedDetails!!.wikiUrl) }) {
+                            Text("Ouvrir la fiche wiki")
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { selectedHero = null }) { Text("Fermer") }
+            }
+        )
+    }
 }
+
 
 @Composable
 private fun ResourcesScreen(
