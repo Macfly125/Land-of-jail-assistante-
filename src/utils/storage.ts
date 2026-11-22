@@ -4,6 +4,7 @@ import {
   HeroRecord,
   PlayerRole,
   ResourceRecord,
+  RobotRecord,
   ScreenshotAnalysis,
   TacticalAdviceResult,
   AdviceMode,
@@ -17,6 +18,7 @@ export const DEFAULT_ACCOUNT_STATE: AccountState = {
   currentPower: null,
   powerHistory: [],
   heroes: [],
+  robots: [],
   resources: [],
   analyses: [],
   adviceByMode: {},
@@ -33,8 +35,9 @@ export function loadAccountState(): AccountState {
       language: parsed.language ?? 'fr',
       powerHistory: Array.isArray(parsed.powerHistory) ? parsed.powerHistory : [],
       heroes: Array.isArray(parsed.heroes) ? parsed.heroes : [],
+      robots: Array.isArray(parsed.robots) ? parsed.robots : [],
       resources: Array.isArray(parsed.resources) ? parsed.resources : [],
-      analyses: Array.isArray(parsed.analyses) ? parsed.analyses : [],
+      analyses: Array.isArray(parsed.analyses) ? parsed.analyses.map((analysis) => ({ ...analysis, robots: analysis.robots ?? [] })) : [],
       adviceByMode: parsed.adviceByMode ?? {},
     };
   } catch {
@@ -167,12 +170,46 @@ export function mergeAnalysisIntoState(
     }
   }
 
+  // 4. Merge robots / companions by exact normalized name.
+  const robotMap = new Map<string, RobotRecord>();
+  for (const robot of prev.robots ?? []) robotMap.set(normalizeKey(robot.nom), robot);
+  for (const incoming of analysis.robots ?? []) {
+    const key = normalizeKey(incoming.nom);
+    if (!key) continue;
+    const existing = robotMap.get(key);
+    if (!existing) {
+      robotMap.set(key, { ...incoming, derniereMaj: analysis.analyzedAt });
+      continue;
+    }
+    const skillMap = new Map(existing.competences.map((skill) => [normalizeKey(skill.nom), skill]));
+    for (const skill of incoming.competences) {
+      const skillKey = normalizeKey(skill.nom);
+      if (!skillKey) continue;
+      const previousSkill = skillMap.get(skillKey);
+      skillMap.set(skillKey, {
+        ...previousSkill,
+        ...skill,
+        niveau: skill.niveau && skill.niveau !== 'Inconnu' ? skill.niveau : (previousSkill?.niveau || skill.niveau),
+      });
+    }
+    robotMap.set(key, {
+      ...existing,
+      ...incoming,
+      niveau: incoming.niveau || existing.niveau,
+      puissance: incoming.puissance || existing.puissance,
+      rarete: incoming.rarete || existing.rarete,
+      competences: Array.from(skillMap.values()),
+      derniereMaj: analysis.analyzedAt,
+    });
+  }
+
   return {
     ...prev,
     currentPower: nextPower,
     powerHistory: nextPowerHistory.slice(-30),
     resources: Array.from(resourceMap.values()),
     heroes: Array.from(heroMap.values()),
+    robots: Array.from(robotMap.values()),
     analyses: [analysis, ...prev.analyses].slice(0, 50),
   };
 }
