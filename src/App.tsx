@@ -605,6 +605,7 @@ export default function App() {
               setState((prev) => updatePlayerRoleInState(prev, role))
             }
             heroes={state.heroes}
+            robots={state.robots ?? []}
             powerText={state.currentPower?.puissanceTotaleTexte}
             adviceByMode={state.adviceByMode}
             onSaveAdvice={(mode: AdviceMode, advice: TacticalAdviceResult) =>
