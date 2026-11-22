@@ -2017,6 +2017,7 @@ private fun AllianceScreen(
     var server by remember(workspace.server) { mutableStateOf(workspace.server) }
     var allianceName by remember(workspace.allianceName) { mutableStateOf(workspace.allianceName) }
     var rank by remember(workspace.ownProfile.rank) { mutableStateOf(workspace.ownProfile.rank) }
+    var ownRobotSummary by remember(workspace.ownProfile.robotSummary) { mutableStateOf(workspace.ownProfile.robotSummary) }
     var showAddMember by remember { mutableStateOf(false) }
     var memberName by remember { mutableStateOf("") }
     var memberPower by remember { mutableStateOf("") }
@@ -2075,6 +2076,13 @@ private fun AllianceScreen(
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
+                    OutlinedTextField(
+                        value = ownRobotSummary,
+                        onValueChange = { ownRobotSummary = it },
+                        label = { Text("Ton robot / bonus actif (facultatif)") },
+                        minLines = 2,
+                        modifier = Modifier.fillMaxWidth()
+                    )
                     Text("Ton rang dans le jeu", style = MaterialTheme.typography.labelLarge)
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         items(AllianceRank.entries) { item ->
@@ -2095,7 +2103,7 @@ private fun AllianceScreen(
                                 rank = rank,
                                 powerText = currentPowerText.ifBlank { workspace.ownProfile.powerText },
                                 heroSkillSummary = ownHeroSummary,
-                                robotSummary = workspace.ownProfile.robotSummary,
+                                robotSummary = ownRobotSummary.trim(),
                                 updatedAtIso = Instant.now().toString()
                             )
                             onSaveWorkspace(workspace.copy(
