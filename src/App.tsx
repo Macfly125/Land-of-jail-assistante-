@@ -43,8 +43,6 @@ import { AdviceView } from './components/AdviceView';
 import { HistoryView } from './components/HistoryView';
 import { ShareCaptureModal } from './components/ShareCaptureModal';
 import { ScreenCaptureConsentModal } from './components/ScreenCaptureConsentModal';
-import { AndroidKotlinModal } from './components/AndroidKotlinModal';
-import { MobileInstallGuideModal } from './components/MobileInstallGuideModal';
 
 type NavTab = 'tableau' | 'heros' | 'ressources' | 'conseils' | 'historique';
 
@@ -63,8 +61,6 @@ export default function App() {
   // Modales
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isConsentModalOpen, setIsConsentModalOpen] = useState(false);
-  const [isAndroidCodeOpen, setIsAndroidCodeOpen] = useState(false);
-  const [isMobileGuideOpen, setIsMobileGuideOpen] = useState(false);
 
   // Détection de premier plan (modèle UsageStatsManager)
   const [hasUsagePermission, setHasUsagePermission] = useState(false);
@@ -569,8 +565,6 @@ export default function App() {
               setState((prev) => updatePlayerRoleInState(prev, role))
             }
             onNavigateTab={setActiveTab}
-            onOpenAndroidCode={() => setIsAndroidCodeOpen(true)}
-            onOpenMobileGuide={() => setIsMobileGuideOpen(true)}
           />
         )}
 
@@ -696,18 +690,6 @@ export default function App() {
         }}
       />
 
-      {/* Modale des sources natives Android Kotlin & Jetpack Compose */}
-      <AndroidKotlinModal
-        isOpen={isAndroidCodeOpen}
-        onClose={() => setIsAndroidCodeOpen(false)}
-      />
-
-      {/* Guide pas à pas illustré sur téléphone sans PC */}
-      <MobileInstallGuideModal
-        isOpen={isMobileGuideOpen}
-        onClose={() => setIsMobileGuideOpen(false)}
-        onOpenAndroidCode={() => setIsAndroidCodeOpen(true)}
-      />
     </div>
   );
 }
