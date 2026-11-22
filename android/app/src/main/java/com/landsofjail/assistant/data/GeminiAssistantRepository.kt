@@ -100,7 +100,8 @@ class GeminiAssistantRepository(
         playerRole: PlayerRole,
         heroes: List<HeroRecord>,
         robots: List<RobotRecord>,
-        powerText: String?
+        powerText: String?,
+        eventPosition: String = "joiner"
     ): Result<TacticalAdviceResult> = withContext(Dispatchers.IO) {
         runCatching {
             val apiLang = when (language) {
@@ -115,7 +116,8 @@ class GeminiAssistantRepository(
                     playerRoleLabel = playerRole.labelFr,
                     heroes = heroes,
                     robots = robots,
-                    powerText = powerText
+                    powerText = powerText,
+                    eventPosition = eventPosition
                 )
                 val request = Request.Builder()
                     .url("$backendBaseUrl/api/advice")
@@ -424,6 +426,7 @@ class GeminiAssistantRepository(
         val playerRoleLabel: String,
         val heroes: List<HeroRecord>,
         val robots: List<RobotRecord> = emptyList(),
-        val powerText: String? = null
+        val powerText: String? = null,
+        val eventPosition: String = "joiner"
     )
 }
