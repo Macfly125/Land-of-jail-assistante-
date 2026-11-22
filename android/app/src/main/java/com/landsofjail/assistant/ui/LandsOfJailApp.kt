@@ -1600,11 +1600,13 @@ private fun AdviceScreen(
             }
             Spacer(Modifier.height(6.dp))
             Text("Rôle : ${playerRole.labelFr}", style = MaterialTheme.typography.bodySmall)
-            Text("Position dans l'événement", style = MaterialTheme.typography.labelMedium, color = Color(0xFF94A3B8))
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                FilterChip(selected = eventPosition == "leader", onClick = { onEventPositionChange("leader") }, label = { Text("Leader") })
-                FilterChip(selected = eventPosition == "joiner", onClick = { onEventPositionChange("joiner") }, label = { Text("Participant") })
-                FilterChip(selected = eventPosition == "solo", onClick = { onEventPositionChange("solo") }, label = { Text("Solo") })
+            if (selectedMode != AdviceMode.GORILLA_LEGION) {
+                Text("Position dans l'événement", style = MaterialTheme.typography.labelMedium, color = Color(0xFF94A3B8))
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    FilterChip(selected = eventPosition == "leader", onClick = { onEventPositionChange("leader") }, label = { Text("Leader") })
+                    FilterChip(selected = eventPosition == "joiner", onClick = { onEventPositionChange("joiner") }, label = { Text("Participant") })
+                    FilterChip(selected = eventPosition == "solo", onClick = { onEventPositionChange("solo") }, label = { Text("Solo") })
+                }
             }
             Spacer(Modifier.height(6.dp))
             Button(onClick = onGenerateAdvice, enabled = !isLoading) {
