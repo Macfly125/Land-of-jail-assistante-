@@ -184,6 +184,21 @@ export default function App() {
               raisonIncertitude?: string;
             }>;
           }>;
+          robots?: Array<{
+            nom: string;
+            niveau?: string;
+            puissance?: string;
+            rarete?: string;
+            incertain: boolean;
+            raisonIncertitude?: string;
+            competences?: Array<{
+              nom: string;
+              niveau: string;
+              description?: string;
+              incertain: boolean;
+              raisonIncertitude?: string;
+            }>;
+          }>;
           champsIncertains?: Array<{
             champ: string;
             valeurObservee: string;
@@ -267,6 +282,24 @@ export default function App() {
             description: s.description || undefined,
             incertain: Boolean(s.incertain),
             raisonIncertitude: s.raisonIncertitude || undefined,
+          })),
+        })),
+        robots: (raw.robots ?? []).map((robot, idx) => ({
+          id: `robot-${Date.now()}-${idx}`,
+          nom: robot.nom,
+          niveau: robot.niveau || undefined,
+          puissance: robot.puissance || undefined,
+          rarete: robot.rarete || undefined,
+          incertain: Boolean(robot.incertain),
+          raisonIncertitude: robot.raisonIncertitude || undefined,
+          derniereMaj: analyzedAt,
+          competences: (robot.competences ?? []).map((skill, skillIdx) => ({
+            id: `robot-skill-${Date.now()}-${idx}-${skillIdx}`,
+            nom: skill.nom,
+            niveau: skill.niveau || 'Inconnu',
+            description: skill.description || undefined,
+            incertain: Boolean(skill.incertain),
+            raisonIncertitude: skill.raisonIncertitude || undefined,
           })),
         })),
         champsIncertains: raw.champsIncertains ?? [],
