@@ -265,6 +265,7 @@ fun LandsOfJailAssistantApp(
     var resources by remember { mutableStateOf(initialProfile?.resources ?: emptyList()) }
     var currentPower by remember { mutableStateOf(initialProfile?.currentPower) }
     var forticladLevel by remember { mutableIntStateOf(initialProfile?.forticladLevel ?: 0) }
+    var forticladBuildings by remember { mutableStateOf(initialProfile?.forticladBuildings ?: emptyMap()) }
 
     var isAnalyzing by remember { mutableStateOf(false) }
     var singleAnalysisPercent by remember { mutableIntStateOf(0) }
@@ -296,6 +297,7 @@ fun LandsOfJailAssistantApp(
         resources = resources,
         currentPower = currentPower,
         forticladLevel = forticladLevel,
+        forticladBuildings = forticladBuildings,
         gorillaRuns = gorillaRuns
     )
 
@@ -311,7 +313,8 @@ fun LandsOfJailAssistantApp(
         robots = target.robots
         resources = target.resources
         currentPower = target.currentPower
-        forticladLevel = target.forticladLevel.coerceIn(0, 7)
+        forticladLevel = target.forticladLevel.coerceIn(0, 8)
+        forticladBuildings = target.forticladBuildings
         gorillaRuns = target.gorillaRuns
         adviceResult = null
         currentTab = AssistantTab.TABLEAU
@@ -824,7 +827,7 @@ fun LandsOfJailAssistantApp(
                         onPickImage = { imagePicker.launch("image/*") }
                     )
                     AssistantTab.HEROS -> HeroesScreen(heroes, repository, currentLang)
-                    AssistantTab.RESSOURCES -> ResourcesScreen(currentLang, currentPower, resources, forticladLevel, { forticladLevel = it })
+                    AssistantTab.RESSOURCES -> ResourcesScreen(currentLang, currentPower, resources, forticladLevel, forticladBuildings, { forticladLevel = it }, { forticladBuildings = it })
                     AssistantTab.CONSEILS -> AdviceScreen(
                         currentLang = currentLang,
                         onChangeLang = { currentLang = it },
@@ -1633,7 +1636,9 @@ private fun ResourcesScreen(
     power: PowerMetric?,
     resources: List<ResourceRecord>,
     forticladLevel: Int,
-    onForticladLevelChange: (Int) -> Unit
+    forticladBuildings: Map<String, ForticladBuildingProgress>,
+    onForticladLevelChange: (Int) -> Unit,
+    onForticladBuildingsChange: (Map<String, ForticladBuildingProgress>) -> Unit
 ) {
     var subTab by remember { mutableStateOf(ResourceSubTab.INVENTAIRE) }
     var targetBuildingLvl by remember { mutableIntStateOf(16) }
@@ -1757,70 +1762,102 @@ private fun ResourcesScreen(
             }
 
             ResourceSubTab.FORTICLAD -> {
-                val stageCosts = mapOf(
-                    1 to (600L to 0L),
-                    2 to (900L to 40L),
-                    3 to (1_350L to 90L),
-                    4 to (1_900L to 160L),
-                    5 to (2_600L to 250L),
-                    6 to (764L to 49L),
-                    7 to (857L to 75L),
-                    8 to (985L to 107L)
+                val buildingCosts = listOf(
+                    Triple("warden_office", "Bureau du directeur", listOf(250 to 0,320 to 0,490 to 0,600 to 0,720 to 0,360 to 24,400 to 36,460 to 48)),
+                    Triple("shield_barracks", "Caserne porte-boucliers", listOf(130 to 0,150 to 0,230 to 0,250 to 0,300 to 0,160 to 10,180 to 15,210 to 22)),
+                    Triple("bomber_barracks", "Caserne bombardiers", listOf(130 to 0,150 to 0,230 to 0,250 to 0,300 to 0,160 to 10,180 to 15,210 to 22)),
+                    Triple("shooter_barracks", "Caserne tireurs", listOf(130 to 0,150 to 0,230 to 0,250 to 0,300 to 0,160 to 10,180 to 15,210 to 22)),
+                    Triple("communication_center", "Centre de communication", listOf(50 to 0,60 to 0,80 to 0,110 to 0,130 to 0,90 to 5,100 to 8,110 to 12)),
+                    Triple("command_center", "Centre de commandement", listOf(50 to 0,60 to 0,80 to 0,110 to 0,130 to 0,70 to 5,80 to 8,90 to 12)),
+                    Triple("medical_station", "Poste médical", listOf(50 to 0,60 to 0,80 to 0,110 to 0,130 to 0,70 to 5,80 to 8,90 to 12))
                 )
-                val buildingCount = (fcBuildingCountText.toIntOrNull() ?: 1).coerceIn(1, 8)
-                val selectedStages = ((fcStart + 1)..fcTarget).mapNotNull { stageCosts[it] }
-                val requiredFc = selectedStages.sumOf { it.first } * buildingCount
-                val requiredAfc = selectedStages.sumOf { it.second } * buildingCount
-                val ownedFc = resources.firstOrNull {
-                    val n = it.nom.lowercase()
-                    n.contains("forticlad") && n.contains("core") && !n.contains("advanced")
-                }?.quantiteNumerique?.toLong()
-                val ownedAfc = resources.firstOrNull {
-                    val n = it.nom.lowercase()
-                    n.contains("advanced") && n.contains("forticlad")
-                }?.quantiteNumerique?.toLong()
+                val computed = buildingCosts.map { (id, name, costs) ->
+                    val progress = forticladBuildings[id] ?: ForticladBuildingProgress(
+                        level = forticladLevel.coerceIn(0, 7),
+                        completedStages = 0,
+                        targetLevel = (forticladLevel + 1).coerceIn(1, 8)
+                    )
+                    val target = progress.targetLevel.coerceIn(progress.level + 1, 8)
+                    var fc = 0L
+                    var afc = 0L
+                    for (level in (progress.level + 1)..target) {
+                        val cost = costs[level - 1]
+                        val stages = if (level == progress.level + 1) 5 - progress.completedStages.coerceIn(0, 4) else 5
+                        fc += cost.first.toLong() * stages
+                        afc += cost.second.toLong() * stages
+                    }
+                    Triple(name, progress.copy(targetLevel = target), fc to afc)
+                }
+                val totalFc = computed.sumOf { it.third.first }
+                val totalAfc = computed.sumOf { it.third.second }
+                val ownedFc = resources.firstOrNull { it.nom.contains("forticlad", true) && it.nom.contains("core", true) && !it.nom.contains("advanced", true) }?.quantiteNumerique?.toLong()
+                val ownedAfc = resources.firstOrNull { it.nom.contains("forticlad", true) && (it.nom.contains("advanced", true) || it.nom.contains("avancé", true)) }?.quantiteNumerique?.toLong()
                 item {
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Text("Calculateur Forticlad · jusqu’au FC 8", fontWeight = FontWeight.SemiBold)
+                            Text("Calculateur Forticlad · FC 1 à FC 8", fontWeight = FontWeight.SemiBold)
                             Text(
-                                "Chaque niveau comporte 5 paliers. Les coûts FC6–8 sont une moyenne indicative calculée depuis les totaux GuideLOJ pour 7 bâtiments ; ils varient selon le bâtiment et le laboratoire n’est pas inclus.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color(0xFFFBBF24)
-                            )
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                                OutlinedButton(onClick = { fcStart = (fcStart - 1).coerceAtLeast(0); onForticladLevelChange(fcStart); if (fcTarget <= fcStart) fcTarget = fcStart + 1 }) {
-                                    Text("Départ : ${if (fcStart == 0) "Niv.30" else "FC$fcStart"}")
-                                }
-                                OutlinedButton(onClick = { fcStart = (fcStart + 1).coerceAtMost(7); onForticladLevelChange(fcStart); if (fcTarget <= fcStart) fcTarget = fcStart + 1 }) {
-                                    Text("+")
-                                }
-                            }
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                                OutlinedButton(onClick = { fcTarget = (fcTarget - 1).coerceAtLeast(fcStart + 1) }) { Text("Cible −") }
-                                Button(onClick = { fcTarget = (fcTarget + 1).coerceAtMost(8) }, enabled = fcTarget < 8) { Text("Cible : FC$fcTarget  +") }
-                            }
-                            OutlinedTextField(
-                                value = fcBuildingCountText,
-                                onValueChange = { fcBuildingCountText = it.filter(Char::isDigit).take(1) },
-                                label = { Text("Nombre de bâtiments (1 à 8)") },
-                                singleLine = true,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                            Text("Forticlad Cores requis : ${formatCompactFr(requiredFc)}", fontWeight = FontWeight.SemiBold)
-                            Text("Advanced Forticlad Cores requis : ${formatCompactFr(requiredAfc)}", fontWeight = FontWeight.SemiBold)
-                            Text(
-                                "Stock détecté : FC ${ownedFc?.let(::formatCompactFr) ?: "non détecté"} · AFC ${ownedAfc?.let(::formatCompactFr) ?: "non détecté"}",
+                                "Coûts par palier et par bâtiment, selon les tableaux LOJ XLab / GuideLOJ. Chaque niveau comporte 5 paliers.",
                                 style = MaterialTheme.typography.bodySmall
                             )
-                            if (ownedFc != null || ownedAfc != null) {
-                                Text(
-                                    "Manquant estimé : FC ${(requiredFc - (ownedFc ?: 0L)).coerceAtLeast(0L).let(::formatCompactFr)} · AFC ${(requiredAfc - (ownedAfc ?: 0L)).coerceAtLeast(0L).let(::formatCompactFr)}",
-                                    color = Color(0xFFFBBF24),
-                                    fontWeight = FontWeight.Medium
-                                )
+                            Text("Total : FC ${formatCompactFr(totalFc)} · AFC ${formatCompactFr(totalAfc)}", fontWeight = FontWeight.Bold)
+                            computed.forEachIndexed { index, (name, progress, cost) ->
+                                val id = buildingCosts[index].first
+                                Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+                                    Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                        Text(name, fontWeight = FontWeight.SemiBold)
+                                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                            Text("Niveau actuel", style = MaterialTheme.typography.labelSmall, modifier = Modifier.weight(1f))
+                                            TextButton(onClick = {
+                                                val level = (progress.level - 1).coerceAtLeast(0)
+                                                onForticladBuildingsChange(forticladBuildings + (id to progress.copy(level = level, completedStages = 0, targetLevel = (level + 1).coerceAtMost(8))))
+                                            }, enabled = progress.level > 0) { Text("−") }
+                                            Text(if (progress.level == 0) "Niv.30" else "FC ${progress.level}", fontWeight = FontWeight.Medium)
+                                            TextButton(onClick = {
+                                                val level = (progress.level + 1).coerceAtMost(7)
+                                                onForticladBuildingsChange(forticladBuildings + (id to progress.copy(level = level, completedStages = 0, targetLevel = (level + 1).coerceAtMost(8))))
+                                                if (id == "warden_office") onForticladLevelChange(level)
+                                            }, enabled = progress.level < 7) { Text("+") }
+                                        }
+                                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                            Text("Paliers faits", style = MaterialTheme.typography.labelSmall, modifier = Modifier.weight(1f))
+                                            TextButton(onClick = {
+                                                onForticladBuildingsChange(forticladBuildings + (id to progress.copy(completedStages = (progress.completedStages - 1).coerceAtLeast(0))))
+                                            }, enabled = progress.completedStages > 0) { Text("−") }
+                                            Text("${progress.completedStages}/5")
+                                            TextButton(onClick = {
+                                                onForticladBuildingsChange(forticladBuildings + (id to progress.copy(completedStages = (progress.completedStages + 1).coerceAtMost(4))))
+                                            }, enabled = progress.completedStages < 4) { Text("+") }
+                                        }
+                                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                            Text("Cible FC", style = MaterialTheme.typography.labelSmall, modifier = Modifier.weight(1f))
+                                            TextButton(onClick = {
+                                                onForticladBuildingsChange(forticladBuildings + (id to progress.copy(targetLevel = (progress.targetLevel - 1).coerceAtLeast(progress.level + 1))))
+                                            }, enabled = progress.targetLevel > progress.level + 1) { Text("−") }
+                                            Text("FC ${progress.targetLevel}")
+                                            TextButton(onClick = {
+                                                onForticladBuildingsChange(forticladBuildings + (id to progress.copy(targetLevel = (progress.targetLevel + 1).coerceAtMost(8))))
+                                            }, enabled = progress.targetLevel < 8) { Text("+") }
+                                        }
+                                        Text("Requis : FC ${formatCompactFr(cost.first)} · AFC ${formatCompactFr(cost.second)}", style = MaterialTheme.typography.bodySmall)
+                                    }
+                                }
                             }
-                            Text("Source : GuideLOJ · valeurs FC6–8 à confirmer dans le jeu.", style = MaterialTheme.typography.bodySmall)
+                            Text(
+                                "Stock : FC ${ownedFc?.let(::formatCompactFr) ?: "non détecté"} · AFC ${ownedAfc?.let(::formatCompactFr) ?: "non détecté"}",
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                            Text(
+                                "Manquant : FC ${ownedFc?.let { (totalFc - it).coerceAtLeast(0L) }?.let(::formatCompactFr) ?: "—"} · AFC ${ownedAfc?.let { (totalAfc - it).coerceAtLeast(0L) }?.let(::formatCompactFr) ?: "—"}",
+                                color = Color(0xFFFBBF24),
+                                fontWeight = FontWeight.Medium
+                            )
+                            Text(
+                                "Le Laboratoire Forticlad est séparé : ses recherches utilisent l’Hyperalliage, pas ces noyaux. Il fera l’objet d’un calculateur distinct.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text("Sources communautaires : GuideLOJ et LOJ XLab · barèmes non officiels.", style = MaterialTheme.typography.bodySmall)
                         }
                     }
                 }
