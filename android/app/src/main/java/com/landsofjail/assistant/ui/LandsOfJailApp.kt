@@ -676,7 +676,7 @@ fun LandsOfJailAssistantApp(
                             }
                         }
                     )
-                    AssistantTab.HISTORIQUE -> HistoryScreen(analyses)
+                    AssistantTab.HISTORIQUE -> HistoryScreen(analyses, onClearHistory = { analyses = emptyList() })
                 }
             }
         }
@@ -1568,15 +1568,51 @@ private fun AdviceScreen(
 }
 
 @Composable
-private fun HistoryScreen(analyses: List<ScreenshotAnalysis>) {
+private fun HistoryScreen(
+    analyses: List<ScreenshotAnalysis>,
+    onClearHistory: () -> Unit
+) {
+    var showClearConfirmation by remember { mutableStateOf(false) }
+
+    if (showClearConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showClearConfirmation = false },
+            title = { Text("Effacer l’historique ?") },
+            text = { Text("Toutes les analyses enregistrées dans l’historique seront supprimées. Cette action est irréversible.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    onClearHistory()
+                    showClearConfirmation = false
+                }) { Text("Effacer") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showClearConfirmation = false }) { Text("Annuler") }
+            }
+        )
+    }
+
     if (analyses.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text("Historique vide. Appuyez sur « Analyser l’écran » pour enregistrer votre première capture.")
         }
         return
     }
-    LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        items(analyses) { item ->
+    Column(modifier = Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.End
+        ) {
+            TextButton(onClick = { showClearConfirmation = true }) {
+                Icon(Icons.Outlined.DeleteSweep, contentDescription = null)
+                Spacer(Modifier.width(6.dp))
+                Text("Effacer l’historique")
+            }
+        }
+        LazyColumn(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            items(analyses) { item ->
             Card(modifier = Modifier.fillMaxWidth()) {
                 Row(
                     Modifier.padding(12.dp),
