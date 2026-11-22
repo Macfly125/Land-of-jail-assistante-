@@ -1052,12 +1052,17 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
           .filter((skill) => !skill.incertain && Boolean(skill.description?.trim()))
           .map((skill) => {
             const effect = skill.description!.toLocaleLowerCase();
-            const directDamage = /damage|dmg|deal[s]? damage|inflict[s]? damage|dégâts?|inflige|наносит урон|урон|伤害|hasar|schaden/i.test(effect);
-            const damageBoost = /attack increase|damage increase|increase[s]? damage|bonus damage|dégâts? augment|attaque augment|увелич.*урон|урон.*увелич|伤害.*提高|攻击.*提高|hasar.*art|schaden.*erhöh/i.test(effect);
+            // Do not treat the bare word "damage" as an offensive signal:
+            // "reduces damage taken" is defensive, while "deals damage" is offensive.
+            const incomingDamageReduction = /damage reduction|reduce[s]? damage taken|reduce[s]? incoming damage|less damage taken|réduction des dégâts reçus|réduit les dégâts reçus|diminue les dégâts subis|уменьш.*получаем.*урон|сниж.*получаем.*урон|受到的伤害降低|降低受到的伤害|alınan hasarı azalt|erlitten schaden.*reduzier|erlittenen schaden.*senk/i.test(effect);
+            const directDamage = /(?:deal|deals|dealing|inflict|inflicts|cause|causes)\s+(?:\w+\s+){0,2}(?:damage|dmg)|(?:damage|dmg)\s+(?:to|against)\s+(?:the\s+)?(?:enemy|enemies|opponent)|inflige(?:r|s|nt)?\s+(?:des?\s+)?dégâts?|наносит урон|причиняет урон|造成伤害|对敌人造成伤害|hasar verir|hasar uygular|verursacht schaden|fügt.*schaden zu/i.test(effect);
+            const enemyDamageTaken = /enemy.{0,35}(?:take|takes|receive|receives).{0,20}(?:more|increased|additional).{0,20}damage|damage taken by (?:the )?enemy|augmente les dégâts subis par (?:l'ennemi|les ennemis)|dégâts subis par l'ennemi.*augment|увелич.*получаем.*урон.*враг|敌人受到的伤害.*提高|hasar alımını artır.*düşman/i.test(effect);
+            const damageBoost = /attack increase|increase[s]? (?:allied |troop )?damage(?: dealt)?|damage increase|bonus damage|augmente.*dégâts infligés|bonus de dégâts|dégâts? infligés.*augment|увелич.*урон|урон.*увелич|伤害.*提高|攻击.*提高|hasar.*art|schaden.*erhöh/i.test(effect);
             const defenseBreak = /defen[cs]e reduc|armor reduc|降低防御|防御降低|défense.*réduit|réduit.*défense|уменьш.*защит|сниж.*защит|savunma.*azal|verteidig.*senk/i.test(effect);
-            const purelyDefensive = /heal|healing|shield|damage reduction|reduce damage taken|soin|soigne|bouclier|réduction des dégâts reçus|лечени|щит|лечение|护盾|治疗|iyileştir|kalkan|heilung|schild/i.test(effect)
-              && !directDamage && !damageBoost && !defenseBreak;
-            const category = directDamage ? 0 : damageBoost ? 1 : defenseBreak ? 2 : -1;
+            const hasOffensiveSignal = directDamage || enemyDamageTaken || damageBoost || defenseBreak;
+            const purelyDefensive = (incomingDamageReduction || /heal|healing|shield|soin|soigne|bouclier|лечени|щит|лечение|护盾|治疗|iyileştir|kalkan|heilung|schild/i.test(effect))
+              && !hasOffensiveSignal;
+            const category = directDamage ? 0 : enemyDamageTaken || damageBoost ? 1 : defenseBreak ? 2 : -1;
             return { hero: hero.nom, skill: skill.nom, category, purelyDefensive };
           });
       }).filter((signal) => signal.category >= 0 && !signal.purelyDefensive)
@@ -1073,7 +1078,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
       };
       const cageAssessment = mode === 'trial_cage'
         ? (cageSkillSignals.length
-            ? ` ${cageAssessmentText[targetLang]} ${cageSkillSignals.map((s) => `${s.hero} — ${s.skill} [${['direct damage', 'damage buff', 'defense debuff'][s.category]}]`).join('; ')}.`
+            ? ` ${cageAssessmentText[targetLang]} ${cageSkillSignals.map((s) => `${s.hero} — ${s.skill} [${['direct damage', 'damage taken / damage buff', 'defense debuff'][s.category]}]`).join('; ')}.`
             : (targetLang === 'fr'
                 ? ' Aucune compétence ne peut être classée de façon fiable : descriptions absentes, incertaines ou sans effet offensif explicite. Classement indisponible.'
                 : ' No skill can be classified reliably: descriptions are missing, uncertain, or contain no explicit offensive effect. Ranking unavailable.'))
