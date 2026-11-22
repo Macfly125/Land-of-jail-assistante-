@@ -680,6 +680,7 @@ fun LandsOfJailAssistantApp(
                                     language = currentLang,
                                     playerRole = playerRole,
                                     heroes = heroes,
+                                    robots = robots,
                                     powerText = currentPower?.puissanceTotaleTexte
                                 ).onSuccess { adviceResult = it }
                                     .onFailure { errorMessage = it.message }
