@@ -369,13 +369,23 @@ Retourne une ligne par compteur réellement visible. N'invente jamais une valeur
         }
       }
 
-      // Deuxième passe ciblée uniquement si l'écran est une fiche/liste de héros
-      // et que moins de cinq héros ont été restitués. Cela évite de valider trop
-      // vite une lecture partielle de la rangée de portraits.
+      // Deuxième passe ciblée si la liste semble incomplète OU si des champs
+      // personnels/compétences restent incertains, même lorsque cinq héros ont
+      // déjà été détectés. Une seconde lecture ne doit jamais inventer les champs.
+      const heroPortraitUncertain = Array.isArray(parsed.champsIncertains) &&
+        parsed.champsIncertains.some((item: Record<string, unknown>) =>
+          /portrait|héros|heros|hero/i.test(`${String(item.champ || '')} ${String(item.raison || '')}`)
+        );
+      const heroDataUncertain = Array.isArray(parsed.heros) && parsed.heros.some((hero: Record<string, unknown>) =>
+        hero.incertain === true ||
+        (Array.isArray(hero.champsIncertains) && hero.champsIncertains.length > 0) ||
+        (Array.isArray(hero.competences) && hero.competences.some((skill: Record<string, unknown>) => skill.incertain === true))
+      );
+      const heroRetryNeeded = Array.isArray(parsed.heros) &&
+        (parsed.heros.length < 5 || heroPortraitUncertain || heroDataUncertain);
       if (
         (parsed.typeCapture === 'heros' || /héros|heros|heroes/i.test(String(note || ''))) &&
-        Array.isArray(parsed.heros) &&
-        parsed.heros.length < 5
+        heroRetryNeeded
       ) {
         try {
           const retry = await ai.models.generateContent({
