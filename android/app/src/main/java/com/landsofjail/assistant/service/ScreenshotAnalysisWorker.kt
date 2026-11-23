@@ -62,7 +62,7 @@ class ScreenshotAnalysisWorker(
                     applicationContext,
                     uri,
                     role,
-                    "Analyse en arrière-plan (${index + 1}/${uris.size}). OCR local : ${ocrText.take(350)}"
+                    "Contrôle héros obligatoire en arrière-plan (${index + 1}/${uris.size}) : inspecte chaque portrait et identifie chaque héros si un écran héros est présent. OCR local : ${ocrText.take(350)}"
                 )
                 val result = remote.fold(
                     onSuccess = { vision ->
