@@ -396,9 +396,23 @@ fun LandsOfJailAssistantApp(
     }
 
     fun mergeResourceRecords(existing: List<ResourceRecord>, incoming: List<ResourceRecord>): List<ResourceRecord> {
-        val merged = existing.associateBy { normalizedKey(it.nom) }.toMutableMap()
+        fun resourceKey(name: String): String {
+            val key = normalizedKey(name.replace(Regex("""\\s*\\([^)]*\\)"""), ""))
+            return when (key) {
+                "food", "vivres" -> "nourriture"
+                "wood", "lumber" -> "bois"
+                "steel", "iron", "fer" -> "acier"
+                "gasoline", "fuel", "petrole", "pétrole" -> "essence"
+                "cash" -> "argent liquide"
+                "gold card" -> "carte en or"
+                "stamina" -> "endurance"
+                "experience" -> "exp"
+                else -> key
+            }
+        }
+        val merged = existing.associateBy { resourceKey(it.nom) }.toMutableMap()
         incoming.forEach { fresh ->
-            val key = normalizedKey(fresh.nom)
+            val key = resourceKey(fresh.nom)
             if (key.isNotBlank()) {
                 val previous = merged[key]
                 merged[key] = if (previous == null) fresh else fresh.copy(
@@ -450,11 +464,12 @@ fun LandsOfJailAssistantApp(
                 } else {
                     remoteAnalysis.heros
                 }
-                val mergedResources = if (remoteAnalysis.ressources.isEmpty()) {
+                // Les valeurs locales du tableau « Ressources totales » priment
+                // sur les valeurs distantes si les deux lectures trouvent la même ressource.
+                val mergedResources = mergeResourceRecords(
+                    remoteAnalysis.ressources,
                     localExtraction.resources
-                } else {
-                    remoteAnalysis.ressources
-                }
+                )
                 val localPowerSummary = if (
                     remoteAnalysis.puissance == null &&
                     localExtraction.power?.puissanceTotaleTexte?.isNotBlank() == true
