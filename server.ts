@@ -25,16 +25,16 @@ function getGeminiQuotaError(error: unknown): { message: string; retryAfterSecon
     return null;
   }
 
-  const retryMatch =
-    raw.match(/retry(?:Delay| after| in)[^0-9]{0,20}(\d+(?:\.\d+)?)\s*s/i) ||
-    raw.match(/retry in\s+(\d+)\s*hours?\s*(\d+)\s*minutes?/i);
   let retryAfterSeconds: number | undefined;
-  if (retryMatch) {
-    if (retryMatch[2]) {
-      retryAfterSeconds = Number(retryMatch[1]) * 3600 + Number(retryMatch[2]) * 60;
-    } else {
-      retryAfterSeconds = Math.ceil(Number(retryMatch[1]));
-    }
+  const retryDelay = raw.match(/retryDelay["':=\\s]+["']?((?:\\d+h)?(?:\\d+m)?(?:\\d+(?:\\.\\d+)?s))/i)?.[1];
+  if (retryDelay) {
+    const hours = Number(retryDelay.match(/(\\d+)h/i)?.[1] || 0);
+    const minutes = Number(retryDelay.match(/(\\d+)m/i)?.[1] || 0);
+    const seconds = Number(retryDelay.match(/(\\d+(?:\\.\\d+)?)s/i)?.[1] || 0);
+    retryAfterSeconds = Math.ceil(hours * 3600 + minutes * 60 + seconds);
+  } else {
+    const retrySeconds = raw.match(/retry(?: after| in)[^0-9]{0,20}(\\d+(?:\\.\\d+)?)\\s*s/i)?.[1];
+    if (retrySeconds) retryAfterSeconds = Math.ceil(Number(retrySeconds));
   }
 
   return {
