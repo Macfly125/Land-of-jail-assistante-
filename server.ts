@@ -581,7 +581,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
         .filter((robot: unknown): robot is Record<string, unknown> =>
           robot !== null && typeof robot === 'object' && !Array.isArray(robot)
         )
-        .map((robot) => ({
+        .map((robot: Record<string, unknown>) => ({
           ...robot,
           nom: String(robot.nom || 'Robot non identifié'),
           incertain: Boolean(robot.incertain ?? true),
