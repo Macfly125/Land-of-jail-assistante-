@@ -269,6 +269,15 @@ data class ScreenshotAnalysis(
 )
 
 @Serializable
+data class LocalGameProfileSnapshot(
+    val allianceWorkspace: AllianceWorkspace = AllianceWorkspace(),
+    val analyses: List<ScreenshotAnalysis> = emptyList(),
+    val heroes: List<HeroRecord> = emptyList(),
+    val resources: List<ResourceRecord> = emptyList(),
+    val currentPower: PowerMetric? = null
+)
+
+@Serializable
 data class GroundedWebSource(
     val title: String,
     val url: String,
