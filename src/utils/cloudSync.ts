@@ -95,7 +95,7 @@ async function refreshSession(): Promise<AuthSession> {
     saveSession(next);
     return next;
   } catch (error) {
-    clearSession();
+    // Keep the cached session for local/offline access; the next online request can retry.
     throw error;
   }
 }
