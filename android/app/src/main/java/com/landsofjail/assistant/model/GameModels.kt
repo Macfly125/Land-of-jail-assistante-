@@ -240,6 +240,31 @@ data class ResourceRecord(
 )
 
 @Serializable
+data class RobotRecord(
+    val id: String = "",
+    val nom: String,
+    val niveau: String = "",
+    val rarete: String = "",
+    val bonus: String = "",
+    val competences: String = "",
+    val puissance: String = "",
+    val incertain: Boolean = false,
+    val source: String = "saisie_manuel",
+    val updatedAtIso: String = ""
+)
+
+@Serializable
+data class EventProgressRecord(
+    val id: String = "",
+    val eventId: String,
+    val eventName: String,
+    val date: String = "",
+    val score: String = "",
+    val notes: String = "",
+    val updatedAtIso: String = ""
+)
+
+@Serializable
 data class PowerMetric(
     val puissanceTotaleTexte: String,
     val puissanceTotaleNumerique: Long? = null,
@@ -274,6 +299,8 @@ data class LocalGameProfileSnapshot(
     val analyses: List<ScreenshotAnalysis> = emptyList(),
     val heroes: List<HeroRecord> = emptyList(),
     val resources: List<ResourceRecord> = emptyList(),
+    val robots: List<RobotRecord> = emptyList(),
+    val eventRecords: List<EventProgressRecord> = emptyList(),
     val currentPower: PowerMetric? = null,
     val adviceMode: String = "TRIAL_CAGE",
     val adviceResult: TacticalAdviceResult? = null,
