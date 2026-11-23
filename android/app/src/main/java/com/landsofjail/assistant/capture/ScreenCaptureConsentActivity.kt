@@ -37,6 +37,9 @@ class ScreenCaptureConsentActivity : ComponentActivity() {
             _pendingCapture.value = payload
         }
 
+        const val EXTRA_AUTO_CAPTURE = "extra_auto_capture"
+        const val EXTRA_INTERVAL_MILLIS = "extra_auto_capture_interval_millis"
+
         private const val PREFS_CAPTURE = "loj_capture_state"
         private const val KEY_PENDING_URI = "pending_capture_uri"
         private const val KEY_PENDING_AT = "pending_capture_at"
@@ -61,32 +64,49 @@ class ScreenCaptureConsentActivity : ComponentActivity() {
         }
 
         fun consumeCapture(context: Context) {
+            val consumed = _pendingCapture.value
             _pendingCapture.value = null
+            consumed?.bitmap?.let { bitmap -> if (!bitmap.isRecycled) bitmap.recycle() }
             context.getSharedPreferences(PREFS_CAPTURE, Context.MODE_PRIVATE)
                 .edit()
                 .remove(KEY_PENDING_URI)
                 .remove(KEY_PENDING_AT)
                 .apply()
+            GameForegroundMonitorService.notifyAutoCaptureConsumed(context)
         }
     }
 
     private lateinit var projectionManager: MediaProjectionManager
+    private var autoCaptureRequested: Boolean = false
+    private var autoCaptureIntervalMillis: Long = 10_000L
 
     private val projectionLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK && result.data != null) {
-            GameForegroundMonitorService.runSingleCapture(
-                context = applicationContext,
-                resultCode = result.resultCode,
-                resultData = result.data!!
-            )
+            if (autoCaptureRequested) {
+                GameForegroundMonitorService.startAutoCapture(
+                    context = applicationContext,
+                    resultCode = result.resultCode,
+                    resultData = result.data!!,
+                    intervalMillis = autoCaptureIntervalMillis
+                )
+            } else {
+                GameForegroundMonitorService.runSingleCapture(
+                    context = applicationContext,
+                    resultCode = result.resultCode,
+                    resultData = result.data!!
+                )
+            }
         }
         finish()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        autoCaptureRequested = intent.getBooleanExtra(EXTRA_AUTO_CAPTURE, false)
+        autoCaptureIntervalMillis = intent.getLongExtra(EXTRA_INTERVAL_MILLIS, 10_000L)
+            .coerceIn(10_000L, 60_000L)
         projectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
         projectionLauncher.launch(projectionManager.createScreenCaptureIntent())
     }
