@@ -423,16 +423,28 @@ fun LandsOfJailAssistantApp(
                 else -> key
             }
         }
+        // La lecture distante vision est prioritaire pour les stocks actuels.
+        // L'OCR local peut confondre les colonnes "Total des objets" et "Ressources totales" :
+        // il ne doit donc jamais écraser une quantité déjà lue à distance.
         val merged = existing.associateBy { resourceKey(it.nom) }.toMutableMap()
         incoming.forEach { fresh ->
             val key = resourceKey(fresh.nom)
             if (key.isNotBlank()) {
                 val previous = merged[key]
-                merged[key] = if (previous == null) fresh else fresh.copy(
-                    quantiteNumerique = fresh.quantiteNumerique ?: previous.quantiteNumerique,
-                    quantiteTexte = fresh.quantiteTexte.ifBlank { previous.quantiteTexte },
-                    raisonIncertitude = fresh.raisonIncertitude ?: previous.raisonIncertitude
-                )
+                if (previous == null) {
+                    merged[key] = fresh.copy(
+                        incertain = true,
+                        raisonIncertitude = fresh.raisonIncertitude
+                            ?: "Valeur OCR locale à confirmer ; colonne statistique possible"
+                    )
+                } else if (previous.quantiteTexte.isBlank() && fresh.quantiteTexte.isNotBlank()) {
+                    merged[key] = previous.copy(
+                        quantiteTexte = fresh.quantiteTexte,
+                        quantiteNumerique = previous.quantiteNumerique ?: fresh.quantiteNumerique,
+                        incertain = true,
+                        raisonIncertitude = "Valeur complétée par OCR local ; à confirmer"
+                    )
+                }
             }
         }
         return merged.values.toList()
