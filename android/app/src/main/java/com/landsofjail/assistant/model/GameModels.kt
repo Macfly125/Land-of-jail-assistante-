@@ -426,7 +426,7 @@ object HeroCatalog {
         HeroCatalogEntry("Worrell", "SSR", "S6", "Bomber", "Solo · ATK +16% au niveau de compétence 5", "Observé en jeu", portraitUrl = "https://img.lojwiki.com/half/53c7fc8236643682.webp"),
         HeroCatalogEntry("Wukong", "SSR", "S6", "Bomber", "Rally · Létalité +16% au niveau de compétence 5", "Observé en jeu", portraitUrl = "https://img.lojwiki.com/half/7a9085421bb7bc95.webp"),
         HeroCatalogEntry("Boogie", "SSR", "S7", "Bomber", "Défense · ATK +16% au niveau de compétence 5", "Observé en jeu", portraitUrl = "https://img.lojwiki.com/half/c01591f22aa4f540.webp"),
-        HeroCatalogEntry("Fran & Pike", "SSR", "S7", "Shieldbearer", "Défense · HP +16% au niveau de compétence 5", "Observé en jeu"),
+        HeroCatalogEntry("Fran & Pike", "SSR", "S7", "Shieldbearer", "Défense · HP +16% au niveau de compétence 5", "Observé en jeu", portraitUrl = "https://img.lojwiki.com/half/7d74a030adb8f3e8.webp"),
         HeroCatalogEntry("Rex", "SSR", "S7", "Shooter", "Solo · Létalité +16% au niveau de compétence 5", "Observé en jeu", portraitUrl = "https://img.lojwiki.com/half/8fd765d6b7b4acd1.webp"),
         HeroCatalogEntry("Rin", "SSR", "S7", "Shooter", "Rally · ATK +16% au niveau de compétence 5", "Observé en jeu", portraitUrl = "https://img.lojwiki.com/half/68aecf36998f0d92.webp"),
         HeroCatalogEntry("Mai Shiranui", "SSR", "KOF Legend", "Shooter"),
