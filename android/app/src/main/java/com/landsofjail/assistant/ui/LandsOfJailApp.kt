@@ -3599,6 +3599,17 @@ private fun SupabaseAccountCard() {
     var busy by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
     var isError by remember { mutableStateOf(false) }
+    val savedAllianceAtStart = remember {
+        runCatching {
+            profileJson.decodeFromString<AllianceWorkspace>(
+                profilePrefs.getString("alliance_workspace", "{}") ?: "{}"
+            )
+        }.getOrDefault(AllianceWorkspace())
+    }
+    var signupPlayerName by remember { mutableStateOf(savedAllianceAtStart.ownProfile.playerName) }
+    var signupServer by remember { mutableStateOf(savedAllianceAtStart.server) }
+    var signupAllianceTag by remember { mutableStateOf(savedAllianceAtStart.allianceName) }
+    var signupRank by remember { mutableStateOf(savedAllianceAtStart.ownProfile.rank) }
 
     Card(
         colors = CardDefaults.cardColors(containerColor = Color(0xFF151C27)),
@@ -3667,6 +3678,47 @@ private fun SupabaseAccountCard() {
                     visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
                     modifier = Modifier.fillMaxWidth()
                 )
+                if (createAccount) {
+                    HorizontalDivider(color = Color(0xFF334155))
+                    Text("Profil joueur et alliance", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                    Text("Ces informations sont enregistrées pendant la création du compte. Tu n'auras pas à refaire une inscription dans l'espace Alliance.", style = MaterialTheme.typography.bodySmall, color = Color(0xFFB8C3D1))
+                    OutlinedTextField(
+                        value = signupPlayerName,
+                        onValueChange = { signupPlayerName = it.take(40) },
+                        label = { Text("Pseudo dans Land of Jail") },
+                        singleLine = true,
+                        enabled = !busy,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = signupServer,
+                        onValueChange = { signupServer = it.filter(Char::isDigit).take(6) },
+                        label = { Text("Serveur (ex. 311)") },
+                        singleLine = true,
+                        enabled = !busy,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = signupAllianceTag,
+                        onValueChange = { signupAllianceTag = it.take(12) },
+                        label = { Text("Tag de l'alliance") },
+                        singleLine = true,
+                        enabled = !busy,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Text("Ton rang actuel", style = MaterialTheme.typography.labelLarge)
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                        items(AllianceRank.entries.filter { it != AllianceRank.R5 }) { rank ->
+                            FilterChip(
+                                selected = signupRank == rank,
+                                onClick = { signupRank = rank },
+                                enabled = !busy,
+                                label = { Text(rank.name) }
+                            )
+                        }
+                    }
+                    Text("Le rang R5 ne peut pas être choisi à l'inscription : il est attribué par le responsable de l'alliance ou lors de la création d'une nouvelle alliance.", style = MaterialTheme.typography.bodySmall, color = Color(0xFFFBBF24))
+                }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     TextButton(onClick = { createAccount = !createAccount; message = null }, enabled = !busy) {
                         Text(if (createAccount) "J'ai déjà un compte" else "Créer un compte")
@@ -3677,6 +3729,24 @@ private fun SupabaseAccountCard() {
                             scope.launch {
                                 busy = true
                                 message = null
+                                if (createAccount) {
+                                    val player = savedAllianceAtStart.ownProfile.copy(
+                                        id = savedAllianceAtStart.ownProfile.id.ifBlank { UUID.randomUUID().toString() },
+                                        playerName = signupPlayerName.trim(),
+                                        server = signupServer.trim(),
+                                        allianceName = signupAllianceTag.trim(),
+                                        rank = signupRank,
+                                        updatedAtIso = Instant.now().toString()
+                                    )
+                                    val signupWorkspace = savedAllianceAtStart.copy(
+                                        server = signupServer.trim(),
+                                        allianceName = signupAllianceTag.trim(),
+                                        ownProfile = player
+                                    )
+                                    profilePrefs.edit()
+                                        .putString("alliance_workspace", profileJson.encodeToString(signupWorkspace))
+                                        .apply()
+                                }
                                 val result = if (createAccount) auth.signUp(email, password) else auth.signIn(email, password)
                                 result.onSuccess { outcome ->
                                     session = outcome.session ?: auth.currentSession()
@@ -3724,7 +3794,8 @@ private fun SupabaseAccountCard() {
                                 busy = false
                             }
                         },
-                        enabled = !busy && email.isNotBlank() && password.length >= 8
+                        enabled = !busy && email.isNotBlank() && password.length >= 8 &&
+                            (!createAccount || (signupPlayerName.isNotBlank() && signupServer.isNotBlank() && signupAllianceTag.isNotBlank()))
                     ) {
                         if (busy) {
                             CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
