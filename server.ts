@@ -1385,7 +1385,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
               return signal ? [signal] : [];
             });
             const joiners = [...joinerCandidates]
-              .sort((a, b) => b.skillLevel - a.skillLevel || a.hero.localeCompare(b.hero))
+              .sort((a, b) => b.skillLevel - a.skillLevel)
               .slice(0, 4)
               .map((signal) => ({
                 titre: `Participant — ${signal.hero}`,
@@ -1489,6 +1489,9 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
         trial_cage: [
           { title: 'GuideLOJ — Trial Cage : chefs, troupes et participants', url: 'https://www.guideloj.com/fr/events/alliance/trial-cage-rally' },
           { title: 'LOJ XLab — Cage : leaders, joiners et compétences', url: 'https://lojxlab.com/blog/lands-of-jail-cage-advanced-guide/' },
+          { title: 'LOJ XLab — HEROpedia : classes, compétences War et équipement exclusif', url: 'https://lojxlab.com/heropedia/' },
+          { title: 'LOJ XLab — Cage Lab : règles de sélection des compétences de participants', url: 'https://lojxlab.com/' },
+          { title: 'LOJ Wiki — données des héros, compétences et règles du jeu', url: 'https://lojwiki.com/' },
           { title: 'YouTube — Best Rally Heroes for the Cage Event (S1–S6)', url: 'https://www.youtube.com/watch?v=PX7taSphjn8' },
           { title: 'YouTube — Ultimate Trial Cage Rally Opener Guide 2026', url: 'https://www.youtube.com/watch?v=Z52PtxzLTOs' },
           { title: 'Discord officiel — Lands of Jail : guides et communauté', url: 'https://discord.com/invite/lands-of-jail' },
