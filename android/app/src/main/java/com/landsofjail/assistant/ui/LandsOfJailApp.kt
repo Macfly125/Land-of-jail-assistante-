@@ -57,7 +57,7 @@ import java.time.Instant
 import java.util.UUID
 
 private enum class AssistantTab {
-    TABLEAU, HEROS, RESSOURCES, CONSEILS, ALLIANCE, HISTORIQUE;
+    TABLEAU, HEROS, RESSOURCES, CONSEILS, ALLIANCE, HISTORIQUE, AMELIORATIONS;
 
     fun titleFor(lang: AppLanguage): String = when (this) {
         TABLEAU -> when (lang) {
