@@ -108,6 +108,14 @@ private enum class AssistantTab {
             AppLanguage.DE -> "Verlauf"
             AppLanguage.EN -> "History"
         }
+        AMELIORATIONS -> when (lang) {
+            AppLanguage.FR -> "Idées"
+            AppLanguage.TR -> "Fikirler"
+            AppLanguage.RU -> "Идеи"
+            AppLanguage.ZH -> "建议"
+            AppLanguage.DE -> "Ideen"
+            AppLanguage.EN -> "Ideas"
+        }
     }
 }
 
@@ -1397,6 +1405,7 @@ fun LandsOfJailAssistantApp(
                             AssistantTab.CONSEILS -> Icons.Outlined.MilitaryTech
                             AssistantTab.ALLIANCE -> Icons.Outlined.Groups
                             AssistantTab.HISTORIQUE -> Icons.Outlined.History
+                            AssistantTab.AMELIORATIONS -> Icons.Outlined.Lightbulb
                         }
                         NavigationBarItem(
                             selected = currentTab == tab,
@@ -1621,6 +1630,7 @@ fun LandsOfJailAssistantApp(
                         currentPowerText = currentPower?.puissanceTotaleTexte.orEmpty(),
                         onSaveWorkspace = { allianceWorkspace = it }
                     )
+                    AssistantTab.AMELIORATIONS -> ImprovementRequestsScreen(auth = profileAuth)
                     AssistantTab.HISTORIQUE -> HistoryScreen(analyses, onClearHistory = {
                             analyses.forEach { analysis ->
                                 if (analysis.imageUriString.startsWith("file:")) {
@@ -4661,6 +4671,239 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
             },
             dismissButton = {
                 TextButton(onClick = { selectedR4 = null }, enabled = !transferBusy) { Text("Annuler") }
+            }
+        )
+    }
+}
+
+@Composable
+private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
+    val scope = rememberCoroutineScope()
+    val session = auth.currentSession()
+    var isDeveloper by remember { mutableStateOf(false) }
+    var requests by remember { mutableStateOf<List<SupabaseAuthRepository.ImprovementRequest>>(emptyList()) }
+    var loading by remember { mutableStateOf(false) }
+    var sending by remember { mutableStateOf(false) }
+    var title by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
+    var category by remember { mutableStateOf("idea") }
+    var message by remember { mutableStateOf<String?>(null) }
+    var isError by remember { mutableStateOf(false) }
+    var selected by remember { mutableStateOf<SupabaseAuthRepository.ImprovementRequest?>(null) }
+    var reply by remember { mutableStateOf("") }
+    var reviewBusy by remember { mutableStateOf(false) }
+
+    fun refresh() {
+        scope.launch {
+            loading = true
+            auth.isAppDeveloper().onSuccess { isDeveloper = it }
+            auth.fetchAppImprovementRequests().onSuccess { requests = it }
+                .onFailure { message = it.message ?: "Chargement des propositions impossible."; isError = true }
+            loading = false
+        }
+    }
+
+    LaunchedEffect(session?.user_id) {
+        if (session != null) refresh()
+    }
+
+    val categoryLabels = mapOf(
+        "bug" to "Bug / problème",
+        "idea" to "Nouvelle idée",
+        "game_data" to "Données du jeu",
+        "interface" to "Interface",
+        "performance" to "Performance",
+        "other" to "Autre"
+    )
+    val statusLabels = mapOf(
+        "pending" to "En attente",
+        "accepted" to "Acceptée",
+        "rejected" to "Refusée",
+        "needs_info" to "Précisions demandées",
+        "in_progress" to "En développement",
+        "implemented" to "Installée dans l'application"
+    )
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(14.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        item {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF151C27)),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Proposer une amélioration", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    Text(
+                        "Partage une idée, signale un bug ou propose une amélioration. Tu pourras suivre la réponse du développeur ici.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFFB8C3D1)
+                    )
+                    if (session == null) {
+                        Text("Connecte-toi à ton compte pour envoyer une proposition.", color = Color(0xFFFBBF24))
+                    } else {
+                        OutlinedTextField(
+                            value = title, onValueChange = { title = it.take(120) },
+                            label = { Text("Titre de la proposition") },
+                            supportingText = { Text("${title.length}/120") },
+                            singleLine = true, modifier = Modifier.fillMaxWidth()
+                        )
+                        var expanded by remember { mutableStateOf(false) }
+                        Box {
+                            OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) {
+                                Text(categoryLabels[category] ?: "Catégorie")
+                            }
+                            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                                categoryLabels.forEach { (key, label) ->
+                                    DropdownMenuItem(text = { Text(label) }, onClick = { category = key; expanded = false })
+                                }
+                            }
+                        }
+                        OutlinedTextField(
+                            value = description, onValueChange = { description = it.take(4000) },
+                            label = { Text("Décris ton idée ou le problème") },
+                            supportingText = { Text("${description.length}/4000 — ajoute des exemples si possible.") },
+                            minLines = 4, modifier = Modifier.fillMaxWidth()
+                        )
+                        Button(
+                            onClick = {
+                                scope.launch {
+                                    sending = true
+                                    message = null
+                                    auth.submitAppImprovement(
+                                        title, description, category,
+                                        aiSummary = "",
+                                        aiCategory = category,
+                                        aiQuestions = emptyList()
+                                    ).onSuccess {
+                                        title = ""
+                                        description = ""
+                                        message = "Proposition envoyée. Tu recevras la réponse dans cette rubrique."
+                                        isError = false
+                                        refresh()
+                                    }.onFailure {
+                                        message = it.message ?: "Envoi impossible."
+                                        isError = true
+                                    }
+                                    sending = false
+                                }
+                            },
+                            enabled = !sending && title.trim().length >= 5 && description.trim().length >= 15,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            if (sending) CircularProgressIndicator(modifier = Modifier.size(17.dp), strokeWidth = 2.dp)
+                            else Text("Envoyer ma proposition")
+                        }
+                    }
+                    message?.let { Text(it, color = if (isError) Color(0xFFFCA5A5) else Color(0xFF86EFAC), style = MaterialTheme.typography.bodySmall) }
+                }
+            }
+        }
+
+        item {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(if (isDeveloper) "Toutes les propositions · Développeur" else "Mes propositions", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                TextButton(onClick = { refresh() }, enabled = !loading) {
+                    if (loading) CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp) else Text("Actualiser")
+                }
+            }
+        }
+
+        if (session != null && requests.isEmpty() && !loading) {
+            item { Text("Aucune proposition pour le moment.", color = MaterialTheme.colorScheme.onSurfaceVariant) }
+        }
+
+        items(requests, key = { it.id }) { item ->
+            Card(
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF151C27)),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(item.title, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                        Text(statusLabels[item.status] ?: item.status, color = when (item.status) {
+                            "accepted", "implemented" -> Color(0xFF86EFAC)
+                            "rejected" -> Color(0xFFFCA5A5)
+                            "needs_info" -> Color(0xFFFBBF24)
+                            else -> Color(0xFFB8C3D1)
+                        }, style = MaterialTheme.typography.labelSmall)
+                    }
+                    Text(categoryLabels[item.category] ?: item.category, style = MaterialTheme.typography.labelSmall, color = Color(0xFFFFC18A))
+                    Text(item.description, style = MaterialTheme.typography.bodySmall)
+                    if (isDeveloper) {
+                        Text("Compte joueur : ${item.userId.take(8)}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        if (item.aiSummary.isNotBlank()) {
+                            Text("Pré-analyse IA : ${item.aiSummary}", style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                    if (item.developerReply.isNotBlank()) {
+                        Text("Réponse du développeur", fontWeight = FontWeight.SemiBold, color = Color(0xFFFFC18A))
+                        Text(item.developerReply, style = MaterialTheme.typography.bodySmall)
+                    }
+                    if (isDeveloper) {
+                        OutlinedButton(
+                            onClick = { selected = item; reply = item.developerReply },
+                            modifier = Modifier.fillMaxWidth()
+                        ) { Text("Traiter cette proposition") }
+                    }
+                }
+            }
+        }
+    }
+
+    selected?.let { item ->
+        var status by remember(item.id) { mutableStateOf(item.status.takeIf { it != "pending" } ?: "accepted") }
+        AlertDialog(
+            onDismissRequest = { if (!reviewBusy) selected = null },
+            title = { Text("Répondre à la proposition") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(item.title, fontWeight = FontWeight.Bold)
+                    Text(item.description, style = MaterialTheme.typography.bodySmall)
+                    var expanded by remember { mutableStateOf(false) }
+                    Box {
+                        OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) {
+                            Text(statusLabels[status] ?: status)
+                        }
+                        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                            listOf("accepted", "rejected", "needs_info", "in_progress", "implemented").forEach { key ->
+                                DropdownMenuItem(text = { Text(statusLabels[key] ?: key) }, onClick = { status = key; expanded = false })
+                            }
+                        }
+                    }
+                    OutlinedTextField(
+                        value = reply, onValueChange = { reply = it.take(3000) },
+                        label = { Text("Ta réponse au joueur") },
+                        minLines = 3, modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        scope.launch {
+                            reviewBusy = true
+                            auth.reviewAppImprovement(item.id, status, reply)
+                                .onSuccess {
+                                    message = "Réponse enregistrée et visible par le joueur."
+                                    isError = false
+                                    selected = null
+                                    refresh()
+                                }
+                                .onFailure {
+                                    message = it.message ?: "Enregistrement impossible."
+                                    isError = true
+                                }
+                            reviewBusy = false
+                        }
+                    },
+                    enabled = !reviewBusy
+                ) { Text(if (reviewBusy) "Enregistrement…" else "Envoyer la réponse") }
+            },
+            dismissButton = {
+                TextButton(onClick = { selected = null }, enabled = !reviewBusy) { Text("Annuler") }
             }
         )
     }
