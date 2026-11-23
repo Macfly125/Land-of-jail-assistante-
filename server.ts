@@ -1052,8 +1052,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
           name.toLocaleLowerCase() === hero.nom.trim().toLocaleLowerCase()
         );
         if (!match) return [];
-        const role = mode === 'trial_cage' ? match[1].cage
-          : mode === 'crystal_clash' ? match[1].crystal : '';
+        const role = mode === 'trial_cage' ? match[1].cage : '';
         return role ? [`${hero.nom}: ${role} (rôle de référence; progression personnelle à considérer séparément)`] : [];
       });
       const eventRoleContextLabel: Record<TargetLang, string> = {
