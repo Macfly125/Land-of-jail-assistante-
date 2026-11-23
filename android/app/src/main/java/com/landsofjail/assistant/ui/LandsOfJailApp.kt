@@ -103,7 +103,7 @@ private enum class AssistantTab {
 }
 
 private enum class ResourceSubTab {
-    INVENTAIRE, BATIMENTS, HEROS_OBJETS, ROUTINE;
+    INVENTAIRE, ROBOTS, EVENEMENTS, BATIMENTS, HEROS_OBJETS, ROUTINE;
 
     fun labelFor(lang: AppLanguage): String = when (this) {
         INVENTAIRE -> when (lang) {
@@ -137,6 +137,22 @@ private enum class ResourceSubTab {
             AppLanguage.ZH -> "离线循环"
             AppLanguage.DE -> "Offline-Routine"
             AppLanguage.EN -> "Offline Routine"
+        }
+        ROBOTS -> when (lang) {
+            AppLanguage.FR -> "Robots"
+            AppLanguage.TR -> "Robotlar"
+            AppLanguage.RU -> "Роботы"
+            AppLanguage.ZH -> "机器人"
+            AppLanguage.DE -> "Roboter"
+            AppLanguage.EN -> "Robots"
+        }
+        EVENEMENTS -> when (lang) {
+            AppLanguage.FR -> "Suivi événements"
+            AppLanguage.TR -> "Etkinlik takibi"
+            AppLanguage.RU -> "События"
+            AppLanguage.ZH -> "活动记录"
+            AppLanguage.DE -> "Eventverlauf"
+            AppLanguage.EN -> "Event tracking"
         }
     }
 }
@@ -263,6 +279,8 @@ fun LandsOfJailAssistantApp(
             )
         }.getOrDefault(emptyList()))
     }
+    var robots by remember { mutableStateOf(emptyList<RobotRecord>()) }
+    var eventRecords by remember { mutableStateOf(emptyList<EventProgressRecord>()) }
     var currentPower by remember {
         mutableStateOf(runCatching {
             accountJson.decodeFromString<PowerMetric?>(
@@ -334,6 +352,8 @@ fun LandsOfJailAssistantApp(
         analyses = analyses.take(50),
         heroes = heroes,
         resources = resources,
+        robots = robots,
+        eventRecords = eventRecords,
         currentPower = currentPower,
         adviceMode = selectedAdviceMode.name,
         adviceResult = adviceResult,
@@ -380,6 +400,8 @@ fun LandsOfJailAssistantApp(
                 analyses = snapshot.analyses
                 heroes = snapshot.heroes
                 resources = snapshot.resources
+                robots = snapshot.robots
+                eventRecords = snapshot.eventRecords
                 currentPower = snapshot.currentPower
                 selectedAdviceMode = runCatching { AdviceMode.valueOf(snapshot.adviceMode) }.getOrDefault(AdviceMode.TRIAL_CAGE)
                 adviceResult = snapshot.adviceResult
@@ -819,6 +841,8 @@ fun LandsOfJailAssistantApp(
                                             analyses = snapshot.analyses
                                             heroes = snapshot.heroes
                                             resources = snapshot.resources
+                robots = snapshot.robots
+                eventRecords = snapshot.eventRecords
                                             currentPower = snapshot.currentPower
                                             selectedAdviceMode = runCatching { AdviceMode.valueOf(snapshot.adviceMode) }.getOrDefault(AdviceMode.TRIAL_CAGE)
                                             adviceResult = snapshot.adviceResult
@@ -858,6 +882,8 @@ fun LandsOfJailAssistantApp(
                             analyses = emptyList()
                             heroes = emptyList()
                             resources = emptyList()
+                            robots = emptyList()
+                            eventRecords = emptyList()
                             currentPower = null
                             selectedAdviceMode = AdviceMode.TRIAL_CAGE
                             adviceResult = null
@@ -940,6 +966,8 @@ fun LandsOfJailAssistantApp(
                                             analyses = snapshot.analyses
                                             heroes = snapshot.heroes
                                             resources = snapshot.resources
+                robots = snapshot.robots
+                eventRecords = snapshot.eventRecords
                                             currentPower = snapshot.currentPower
                                             selectedAdviceMode = runCatching { AdviceMode.valueOf(snapshot.adviceMode) }.getOrDefault(AdviceMode.TRIAL_CAGE)
                                             adviceResult = snapshot.adviceResult
@@ -1004,6 +1032,8 @@ fun LandsOfJailAssistantApp(
                                 analyses = snapshot.analyses
                                 heroes = snapshot.heroes
                                 resources = snapshot.resources
+                robots = snapshot.robots
+                eventRecords = snapshot.eventRecords
                                 currentPower = snapshot.currentPower
                                 selectedAdviceMode = runCatching { AdviceMode.valueOf(snapshot.adviceMode) }.getOrDefault(AdviceMode.TRIAL_CAGE)
                                 adviceResult = snapshot.adviceResult
@@ -1255,6 +1285,10 @@ fun LandsOfJailAssistantApp(
                     )
                     AssistantTab.RESSOURCES -> ResourcesScreen(
                         currentLang, currentPower, resources, activeProfileId,
+                        robots = robots,
+                        eventRecords = eventRecords,
+                        onSaveRobots = { robots = it },
+                        onSaveEventRecords = { eventRecords = it },
                         migrateLegacyRoutine = localProfiles.firstOrNull()?.id == activeProfileId
                     )
                     AssistantTab.CONSEILS -> AdviceScreen(
