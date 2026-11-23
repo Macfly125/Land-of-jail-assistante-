@@ -189,6 +189,14 @@ data class AllianceWorkspace(
 )
 
 @Serializable
+data class LocalGameAccountProfile(
+    val id: String,
+    val name: String,
+    val stateJson: String,
+    val updatedAtIso: String = ""
+)
+
+@Serializable
 data class HeroSkill(
     val nom: String,
     val niveau: String,
