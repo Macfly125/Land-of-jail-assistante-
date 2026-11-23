@@ -27,6 +27,23 @@ object LandsOfJailOcrParser {
         .map { it.nom }
         .distinctBy { it.lowercase() }
 
+    // Variantes de traduction et erreurs OCR fréquentes observées sur les captures FR/EN.
+    private val HERO_ALIASES = mapOf(
+        "Beary" to listOf("Berry"),
+        "Durga" to listOf("Duraga"),
+        "Iwakado" to listOf("Iwado", "Iwakad0"),
+        "Caesar" to listOf("César", "Ces ar"),
+        "Phoenix" to listOf("Phénix", "Phenix"),
+        "Whisper" to listOf("Chuchotement"),
+        "Veronica" to listOf("Véronique", "Veronique"),
+        "Minyeon & Taehun" to listOf("Minyeon et Taehun", "Flameborne"),
+        "Ryuichi Ito" to listOf("Ryuichi"),
+        "Fran & Pike" to listOf("Fran et Pike"),
+        "Mai Shiranui" to listOf("Mai"),
+        "Omega Rugal" to listOf("Rugal"),
+        "Terry Bogard" to listOf("Terry")
+    )
+
     suspend fun recognizeBitmap(bitmap: Bitmap): String = suspendCancellableCoroutine { cont ->
         val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
         val image = InputImage.fromBitmap(bitmap, 0)
@@ -113,8 +130,7 @@ object LandsOfJailOcrParser {
 
             // Héros connus du jeu détectés dans la ligne
             for (heroName in KNOWN_HEROES) {
-                val heroToken = Regex("(?<![\\p{L}])${Regex.escape(heroName)}(?![\\p{L}])", RegexOption.IGNORE_CASE)
-                if (heroToken.containsMatchIn(line) && !seenHeroKeys.contains(heroName.lowercase())) {
+                if (matchesHeroName(heroName, line) && !seenHeroKeys.contains(heroName.lowercase())) {
                     // Ne jamais emprunter les étoiles, la rareté ou le niveau du héros suivant.
                     // Les captures OCR présentent souvent plusieurs cartes de héros à la suite.
                     val isAnotherHeroLine: (String) -> Boolean = { candidateLine ->
@@ -290,6 +306,58 @@ object LandsOfJailOcrParser {
             heroes = heroes,
             uncertainItems = uncertain
         )
+    }
+
+    private fun normalizeHeroText(value: String): String =
+        java.text.Normalizer.normalize(value.lowercase(), java.text.Normalizer.Form.NFD)
+            .replace(Regex("\\p{Mn}+"), "")
+            .replace(Regex("[^a-z0-9]+"), " ")
+            .trim()
+
+    private fun matchesHeroName(canonicalName: String, line: String): Boolean {
+        val candidates = listOf(canonicalName) + HERO_ALIASES[canonicalName].orEmpty()
+        val normalizedLine = " ${normalizeHeroText(line)} "
+        val words = normalizedLine.trim().split(Regex("\\s+")).filter { it.isNotBlank() }
+        return candidates.any { candidate ->
+            val normalizedCandidate = normalizeHeroText(candidate)
+            if (normalizedCandidate.isBlank()) return@any false
+            if (normalizedLine.contains(" $normalizedCandidate ")) return@any true
+            val targetWords = normalizedCandidate.split(Regex("\\s+"))
+            if (targetWords.size > 1) {
+                targetWords.all { target ->
+                    words.any { word -> target.length >= 5 && editDistance(word, target) <= 1 }
+                }
+            } else {
+                val target = targetWords.first()
+                if (target.length < 5) false
+                else words.any { word ->
+                    val maxDistance = if (target.length >= 9) 2 else 1
+                    kotlin.math.abs(word.length - target.length) <= maxDistance &&
+                        editDistance(word, target) <= maxDistance
+                }
+            }
+        }
+    }
+
+    private fun editDistance(left: String, right: String): Int {
+        if (left == right) return 0
+        if (left.isEmpty()) return right.length
+        if (right.isEmpty()) return left.length
+        var previous = IntArray(right.length + 1) { it }
+        for (i in left.indices) {
+            val current = IntArray(right.length + 1)
+            current[0] = i + 1
+            for (j in right.indices) {
+                val cost = if (left[i] == right[j]) 0 else 1
+                current[j + 1] = minOf(
+                    current[j] + 1,
+                    previous[j + 1] + 1,
+                    previous[j] + cost
+                )
+            }
+            previous = current
+        }
+        return previous[right.length]
     }
 
     private fun parseCompactNumeric(text: String): Double? {
