@@ -66,6 +66,20 @@ class SupabaseAuthRepository(context: Context) {
         val createdAt: String
     )
 
+    data class ImprovementRequest(
+        val id: String,
+        val userId: String,
+        val title: String,
+        val description: String,
+        val category: String,
+        val status: String,
+        val developerReply: String,
+        val aiSummary: String,
+        val aiCategory: String,
+        val aiQuestions: List<String>,
+        val createdAt: String
+    )
+
     suspend fun signUp(email: String, password: String): Result<AuthOutcome> =
         authenticate("/auth/v1/signup", email, password, "Inscription envoyée. Vérifie ta boîte mail si la confirmation est activée.")
 
@@ -385,10 +399,67 @@ class SupabaseAuthRepository(context: Context) {
             put("p_new_r5_user_id", newR5UserId)
         }).map { Unit }
 
+    suspend fun isAppDeveloper(): Result<Boolean> = callAllianceRpc("is_app_developer", buildJsonObject {}).map { it == "true" }
+
+    suspend fun submitAppImprovement(
+        title: String,
+        description: String,
+        category: String,
+        aiSummary: String,
+        aiCategory: String,
+        aiQuestions: List<String>
+    ): Result<String> = callAllianceRpc("submit_app_improvement", buildJsonObject {
+        put("p_title", title.trim())
+        put("p_description", description.trim())
+        put("p_category", category)
+        put("p_ai_summary", aiSummary.take(1200))
+        put("p_ai_category", aiCategory)
+        put("p_ai_questions", kotlinx.serialization.json.JsonArray(aiQuestions.take(5).map { kotlinx.serialization.json.JsonPrimitive(it.take(240)) })
+        )
+    })
+
+    suspend fun fetchAppImprovementRequests(): Result<List<ImprovementRequest>> = withContext(Dispatchers.IO) {
+        runCatching {
+            val active = refreshSession().getOrThrow()
+            val request = Request.Builder()
+                .url("$BASE_URL/rest/v1/app_improvement_requests?select=id,user_id,title,description,category,status,developer_reply,ai_summary,ai_category,ai_questions,created_at&order=created_at.desc&limit=100")
+                .header("apikey", PUBLISHABLE_KEY)
+                .header("Authorization", "Bearer ${active.access_token}")
+                .get().build()
+            client.newCall(request).execute().use { response ->
+                val body = response.body?.string().orEmpty()
+                if (!response.isSuccessful) error(extractApiError(body, response.code))
+                json.parseToJsonElement(body).jsonArray.map { row ->
+                    val obj = row.jsonObject
+                    ImprovementRequest(
+                        id = obj["id"]?.jsonPrimitive?.contentOrNull.orEmpty(),
+                        userId = obj["user_id"]?.jsonPrimitive?.contentOrNull.orEmpty(),
+                        title = obj["title"]?.jsonPrimitive?.contentOrNull.orEmpty(),
+                        description = obj["description"]?.jsonPrimitive?.contentOrNull.orEmpty(),
+                        category = obj["category"]?.jsonPrimitive?.contentOrNull ?: "other",
+                        status = obj["status"]?.jsonPrimitive?.contentOrNull ?: "pending",
+                        developerReply = obj["developer_reply"]?.jsonPrimitive?.contentOrNull.orEmpty(),
+                        aiSummary = obj["ai_summary"]?.jsonPrimitive?.contentOrNull.orEmpty(),
+                        aiCategory = obj["ai_category"]?.jsonPrimitive?.contentOrNull ?: "other",
+                        aiQuestions = obj["ai_questions"]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull }.orEmpty(),
+                        createdAt = obj["created_at"]?.jsonPrimitive?.contentOrNull.orEmpty()
+                    )
+                }
+            }
+        }
+    }
+
+    suspend fun reviewAppImprovement(requestId: String, status: String, reply: String): Result<Unit> =
+        callAllianceRpc("review_app_improvement", buildJsonObject {
+            put("p_request_id", requestId)
+            put("p_status", status)
+            put("p_developer_reply", reply.take(3000))
+        }).map { Unit }
+
     private suspend fun callAllianceRpc(functionName: String, payload: kotlinx.serialization.json.JsonObject): Result<String> =
         withContext(Dispatchers.IO) {
             runCatching {
-                require(functionName in setOf("create_alliance_as_r5", "transfer_alliance_r5", "create_alliance_invite", "accept_alliance_invite", "submit_alliance_join_request", "review_alliance_join_request")) {
+                require(functionName in setOf("is_app_developer", "submit_app_improvement", "review_app_improvement", "create_alliance_as_r5", "transfer_alliance_r5", "create_alliance_invite", "accept_alliance_invite", "submit_alliance_join_request", "review_alliance_join_request")) {
                     "Action d'alliance non autorisée."
                 }
                 require(payload.toString().length <= 4096) { "Données d'invitation trop longues." }
