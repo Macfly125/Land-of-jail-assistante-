@@ -509,9 +509,9 @@ fun LandsOfJailAssistantApp(
 
     fun mergeNewAnalysis(result: ScreenshotAnalysis) {
         analyses = (listOf(result) + analyses).take(50)
-        result.puissance?.takeIf { it.puissanceTotaleTexte.isNotBlank() }?.let {
-            currentPower = it
-            it.niveauVip?.takeIf { vip -> vip.isNotBlank() }?.let { detectedVip ->
+        result.puissance?.let { metric ->
+            metric.takeIf { it.puissanceTotaleTexte.isNotBlank() }?.let { currentPower = it }
+            metric.niveauVip?.takeIf { it.isNotBlank() }?.let { detectedVip ->
                 vipLevel = detectedVip.filter(Char::isDigit).take(2)
             }
         }
