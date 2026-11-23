@@ -337,6 +337,19 @@ fun LandsOfJailAssistantApp(
         gameIntelLoading = false
     }
 
+    LaunchedEffect(Unit) {
+        val linkedAllianceId = accountPrefs.getString("cloud_alliance_id", "").orEmpty()
+        if (profileAuth.currentSession() != null && linkedAllianceId.isNotBlank()) {
+            profileAuth.fetchPendingAllianceJoinRequests(linkedAllianceId).onSuccess { pending ->
+                val previousIds = accountPrefs.getStringSet("notified_join_request_ids", emptySet()).orEmpty().toSet()
+                val currentIds = pending.map { it.id }.toSet()
+                val newCount = (currentIds - previousIds).size
+                if (newCount > 0) notifyAllianceJoinRequests(context, newCount)
+                accountPrefs.edit().putStringSet("notified_join_request_ids", previousIds + currentIds).apply()
+            }
+        }
+    }
+
     val refreshGameIntel: () -> Unit = {
         scope.launch {
             gameIntelLoading = true
