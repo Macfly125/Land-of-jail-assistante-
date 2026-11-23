@@ -1,6 +1,10 @@
 package com.landsofjail.assistant.ocr
 
 import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
+import android.graphics.Paint
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
@@ -27,7 +31,18 @@ object LandsOfJailOcrParser {
         "Victor", "Molly", "Clara", "Hector", "Rico", "Vesper"
     )
 
-    suspend fun recognizeBitmap(bitmap: Bitmap): String = suspendCancellableCoroutine { cont ->
+    suspend fun recognizeBitmap(bitmap: Bitmap): String {
+        val originalText = runCatching { recognizeOnce(bitmap) }.getOrDefault("")
+        // Les imports peuvent être des photos d'un autre téléphone : agrandissement,
+        // niveaux de gris et contraste améliorent la lecture des petits chiffres flous.
+        val enhanced = runCatching { enhanceForOcr(bitmap) }.getOrNull()
+        val enhancedText = if (enhanced != null) {
+            runCatching { recognizeOnce(enhanced) }.getOrDefault("")
+        } else ""
+        return if (ocrQualityScore(enhancedText) > ocrQualityScore(originalText)) enhancedText else originalText
+    }
+
+    private suspend fun recognizeOnce(bitmap: Bitmap): String = suspendCancellableCoroutine { cont ->
         val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
         val image = InputImage.fromBitmap(bitmap, 0)
         cont.invokeOnCancellation { recognizer.close() }
@@ -40,6 +55,52 @@ object LandsOfJailOcrParser {
                 recognizer.close()
                 if (cont.isActive) cont.resumeWithException(err)
             }
+    }
+
+    private fun enhanceForOcr(source: Bitmap): Bitmap {
+        val scale = 2
+        val output = Bitmap.createBitmap(
+            source.width * scale,
+            source.height * scale,
+            Bitmap.Config.ARGB_8888
+        )
+        val canvas = Canvas(output)
+        val matrix = ColorMatrix().apply { setSaturation(0f) }
+        val contrast = 1.35f
+        val translate = -0.5f * 255f * (contrast - 1f)
+        val contrastMatrix = ColorMatrix(
+            floatArrayOf(
+                contrast, 0f, 0f, 0f, translate,
+                0f, contrast, 0f, 0f, translate,
+                0f, 0f, contrast, 0f, translate,
+                0f, 0f, 0f, 1f, 0f
+            )
+        )
+        matrix.postConcat(contrastMatrix)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
+            colorFilter = ColorMatrixColorFilter(matrix)
+        }
+        canvas.drawBitmap(
+            source,
+            null,
+            android.graphics.Rect(0, 0, output.width, output.height),
+            paint
+        )
+        return output
+    }
+
+    private fun ocrQualityScore(text: String): Int {
+        if (text.isBlank()) return 0
+        val labels = listOf(
+            "nourriture", "bois", "acier", "essence", "argent liquide",
+            "carte en or", "endurance", "ressources totales", "total des objets"
+        )
+        val labelScore = labels.sumOf { label ->
+            if (text.contains(label, ignoreCase = true)) 120 else 0
+        }
+        val numberScore = Regex("""\\d+(?:[., ]\\d+)?\\s*[KMB]?""", RegexOption.IGNORE_CASE)
+            .findAll(text).count() * 20
+        return text.length + labelScore + numberScore
     }
 
     /**
