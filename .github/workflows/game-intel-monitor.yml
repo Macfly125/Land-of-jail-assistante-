@@ -1,0 +1,64 @@
+name: Veille automatique Land of Jail
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Vérification quotidienne, indépendante de l'ouverture de l'application.
+    - cron: '17 6 * * *'
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: land-of-jail-game-intel
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Interroger la veille du jeu
+        id: scan
+        env:
+          GAME_INTEL_URL: ${{ vars.GAME_INTEL_URL || 'https://land-of-jail-assistant-api.onrender.com/api/game-intel' }}
+        run: |
+          set -euo pipefail
+          mkdir -p reports
+          echo "Interrogation de la veille Land of Jail..."
+          curl --fail --silent --show-error \
+            --retry 2 --retry-delay 10 --max-time 90 \
+            "${GAME_INTEL_URL}?refresh=1" \
+            -H 'Accept: application/json' \
+            -o reports/game-intel.json
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const data = JSON.parse(fs.readFileSync('reports/game-intel.json', 'utf8'));
+          const items = Array.isArray(data.items) ? data.items : [];
+          const sources = Array.isArray(data.sources) ? data.sources : [];
+          const lines = [
+            '# Veille Land of Jail',
+            '',
+            `- Vérification : ${data.checkedAt ?? new Date().toISOString()}`,
+            `- Version détectée : ${data.gameVersion ?? 'non communiquée par les sources'}`,
+            `- État : ${data.status ?? 'inconnu'}`,
+            `- Sources disponibles : ${sources.filter(s => s.available).length}/${sources.length}`,
+            `- Changements proposés : ${items.length}`,
+            '',
+            data.message ?? 'Aucun résumé fourni.'
+          ];
+          for (const item of items) {
+            lines.push('', `## ${item.title}`, `- Catégorie : ${item.category}`, `- Statut : ${item.status}`, `- Confiance : ${Math.round((item.confidence ?? 0) * 100)}%`, `- Source : ${item.sourceUrl}`, '', item.summary ?? '');
+          }
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join('\n') + '\n');
+          console.log(JSON.stringify({status:data.status, gameVersion:data.gameVersion, changes:items.length, sources:sources.length}));
+          NODE
+
+      - name: Archiver le rapport de veille
+        if: always() && hashFiles('reports/game-intel.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: land-of-jail-intel-${{ github.run_number }}
+          path: reports/game-intel.json
+          retention-days: 30
