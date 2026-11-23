@@ -23,9 +23,10 @@ data class CapturedScreenPayload(
 )
 
 /**
- * Activité lancée UNIQUEMENT lorsque l'utilisateur appuie sur « Analyser l’écran ».
- * Affiche la demande d'autorisation système visible MediaProjection, puis délègue
- * la capture unique au service au premier plan conforme Android 14/15.
+ * Activité lancée après une action explicite de l'utilisateur : capture unique
+ * ou analyse automatique. Affiche l'autorisation système MediaProjection puis
+ * délègue la session au service au premier plan; l'arrêt reste accessible dans l'app
+ * et dans la notification persistante.
  */
 class ScreenCaptureConsentActivity : ComponentActivity() {
 
