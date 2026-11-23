@@ -1,21 +1,34 @@
-name: Validate coach app
+name: Valider le backend de l'application mobile
 
 on:
   push:
     branches:
       - main
       - audit/ameliorations-android
+    paths:
+      - 'server.ts'
+      - 'game-intel.ts'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.json'
+      - '.github/workflows/validate-coach.yml'
   pull_request:
     branches:
       - main
       - audit/ameliorations-android
+    paths:
+      - 'server.ts'
+      - 'game-intel.ts'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.json'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  validate:
+  validate-backend:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -33,6 +46,3 @@ jobs:
 
       - name: TypeScript validation
         run: npm run lint
-
-      - name: Production frontend build
-        run: npm run build
