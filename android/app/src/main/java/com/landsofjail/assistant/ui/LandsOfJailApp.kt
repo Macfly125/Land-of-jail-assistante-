@@ -277,9 +277,8 @@ fun LandsOfJailAssistantApp(
         }.getOrDefault(AllianceWorkspace()))
     }
 
-    var showAllianceOnboarding by remember {
-        mutableStateOf(!accountPrefs.getBoolean("alliance_onboarding_completed_v1", false))
-    }
+    // Player identity and alliance details are now collected directly in account signup.
+    var showAllianceOnboarding by remember { mutableStateOf(false) }
     var onboardingPlayerName by remember { mutableStateOf(allianceWorkspace.ownProfile.playerName) }
     var onboardingServer by remember { mutableStateOf(allianceWorkspace.server) }
     var onboardingAllianceTag by remember { mutableStateOf(allianceWorkspace.allianceName) }
