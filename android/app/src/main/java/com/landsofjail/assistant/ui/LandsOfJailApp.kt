@@ -773,7 +773,8 @@ fun LandsOfJailAssistantApp(
                     language = currentLang,
                     playerRole = playerRole,
                     heroes = heroes,
-                    powerText = currentPower?.puissanceTotaleTexte
+                    powerText = currentPower?.puissanceTotaleTexte,
+                    robots = robots
                 ).onSuccess { adviceResult = it }
                 isFetchingAdvice = false
             } catch (e: Throwable) {
@@ -1323,7 +1324,8 @@ fun LandsOfJailAssistantApp(
                                     language = currentLang,
                                     playerRole = playerRole,
                                     heroes = heroes,
-                                    powerText = currentPower?.puissanceTotaleTexte
+                                    powerText = currentPower?.puissanceTotaleTexte,
+                    robots = robots
                                 ).onSuccess { adviceResult = it }
                                     .onFailure { errorMessage = it.message }
                                 isFetchingAdvice = false
