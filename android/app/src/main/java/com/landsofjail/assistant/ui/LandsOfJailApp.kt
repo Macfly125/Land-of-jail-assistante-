@@ -907,7 +907,9 @@ fun LandsOfJailAssistantApp(
                         onClick = {
                             saveActiveProfile()
                             val id = UUID.randomUUID().toString()
-                            val number = localProfiles.size + 1
+                            val number = generateSequence(1) { it + 1 }.first { candidate ->
+                                localProfiles.none { profile -> profile.name.equals("Profil $candidate", ignoreCase = true) }
+                            }
                             val fresh = LocalGameAccountProfile(
                                 id = id,
                                 name = "Profil $number",

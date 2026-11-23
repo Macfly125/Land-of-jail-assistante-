@@ -31,13 +31,22 @@ jobs:
           java-version: '17'
 
       - name: Configurer Android SDK et licences
+        timeout-minutes: 8
         run: |
           SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
           echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
-          SDKMANAGER=$(find "$SDK_ROOT" -name "sdkmanager" -type f 2>/dev/null | head -n 1)
-          if [ -n "$SDKMANAGER" ]; then
-            yes | "$SDKMANAGER" --licenses >/dev/null 2>&1 || true
-            "$SDKMANAGER" "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          if [ -f "$SDK_ROOT/platforms/android-35/android.jar" ] && [ -x "$SDK_ROOT/build-tools/35.0.0/aapt" ]; then
+            echo "Android SDK 35 déjà disponible sur le runner."
+          else
+            SDKMANAGER=$(find "$SDK_ROOT" -name "sdkmanager" -type f 2>/dev/null | head -n 1)
+            if [ -n "$SDKMANAGER" ]; then
+              timeout 120s bash -c 'yes | "$1" --licenses >/dev/null 2>&1' _ "$SDKMANAGER" || true
+              timeout 300s "$SDKMANAGER" "platform-tools" "platforms;android-35" "build-tools;35.0.0" || {
+                echo "::warning::Installation SDK incomplète après 5 minutes ; le build tentera d'utiliser les composants déjà présents."
+              }
+            else
+              echo "::warning::sdkmanager introuvable ; utilisation des composants Android préinstallés."
+            fi
           fi
 
       - name: Mettre en cache Gradle
