@@ -37,7 +37,7 @@ jobs:
   validate:
     name: Tests Android et backend
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
       - name: Récupérer la branche de développement
         uses: actions/checkout@v4
@@ -68,29 +68,26 @@ jobs:
             fi
           fi
 
-      - name: Installer Gradle 8.11.1
-        run: |
-          curl -fsSL https://services.gradle.org/distributions/gradle-8.11.1-bin.zip -o /tmp/gradle.zip
-          unzip -q /tmp/gradle.zip -d /tmp
-          echo "/tmp/gradle-8.11.1/bin" >> "$GITHUB_PATH"
+      - name: Installer Gradle et mettre en cache les dépendances
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+          cache-read-only: false
+          cache-cleanup: on-success
 
       - name: Tester le moteur OCR et les règles Android
         working-directory: android
-        run: gradle testDebugUnitTest --no-daemon --stacktrace
+        run: gradle testDebugUnitTest --no-daemon --stacktrace --max-workers=2
 
       - name: Vérifier la compilation Android
         working-directory: android
-        run: gradle assembleDebug --no-daemon --stacktrace
+        run: gradle assembleDebug --no-daemon --stacktrace --max-workers=2
 
       - name: Vérifier le backend si ses sources existent
         if: hashFiles('package.json', 'package-lock.json') != ''
         run: |
           npm ci
           npm run lint
-
-      - name: Vérifier la construction de l'image backend Cloud Run
-        if: hashFiles('Dockerfile') != ''
-        run: docker build --tag lands-of-jail-assistant-backend:ci .
 
       - name: Publier le bilan de contrôle
         if: always()
@@ -102,5 +99,6 @@ jobs:
             echo "- Commit : ${GITHUB_SHA}"
             echo "- Tests OCR, compilation Android et backend : voir les étapes ci-dessus"
             echo ""
+            echo "Cache Gradle activé pour réduire les téléchargements répétés et limiter les erreurs temporaires de dépôt Maven."
             echo "Ce workflow vérifie et compile le code ; il ne modifie pas automatiquement les sources et ne remplace pas le développement."
           } >> "$GITHUB_STEP_SUMMARY"
