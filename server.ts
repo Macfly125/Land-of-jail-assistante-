@@ -804,7 +804,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
 
   app.post('/api/advice', async (req, res) => {
     try {
-      const { mode, language, playerRole, playerRoleLabel, heroes, extraQuestion } = req.body as {
+      const { mode, language, playerRole, playerRoleLabel, heroes, robots, extraQuestion } = req.body as {
         mode?: AdviceEventMode;
         language?: TargetLang;
         playerRole?: string;
