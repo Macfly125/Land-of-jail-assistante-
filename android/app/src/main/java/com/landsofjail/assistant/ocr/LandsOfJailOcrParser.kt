@@ -21,11 +21,11 @@ data class LocalOcrExtraction(
 
 object LandsOfJailOcrParser {
 
-    private val KNOWN_HEROES = listOf(
-        "Tyronn", "Phoenix", "Rin", "Rex", "Boogie", "Edwin", "Ada", "Otto",
-        "Marcus", "Gerd", "Lee", "Jasser", "Patrick", "Mia", "Kate", "Darius",
-        "Victor", "Molly", "Clara", "Hector", "Rico", "Vesper"
-    )
+    // Le scanner local doit suivre le catalogue complet : une liste codée en dur
+    // de quelques héros faisait classer les autres captures comme « autre ».
+    private val KNOWN_HEROES = HeroCatalog.entries
+        .map { it.nom }
+        .distinctBy { it.lowercase() }
 
     suspend fun recognizeBitmap(bitmap: Bitmap): String = suspendCancellableCoroutine { cont ->
         val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
@@ -131,6 +131,9 @@ object LandsOfJailOcrParser {
                     val rarity = Regex("""\b(legendary|mythic|epic|rare|common|légendaire|épique)\b""", RegexOption.IGNORE_CASE)
                         .find(contextText)?.value
                     seenHeroKeys.add(heroName.lowercase())
+                    val catalogEntry = HeroCatalog.entries.firstOrNull {
+                        it.nom.equals(heroName, ignoreCase = true)
+                    }
                     heroes.add(
                         HeroRecord(
                             nom = heroName,
@@ -138,6 +141,11 @@ object LandsOfJailOcrParser {
                             niveauTexte = if (lvl != null) "Niv. $lvl" else "Niveau non lu",
                             rarete = rarity,
                             etoiles = stars,
+                            roleHero = catalogEntry?.usageWarObserve,
+                            typeTroupe = catalogEntry?.typeTroupe,
+                            categorie = catalogEntry?.rarete,
+                            saison = catalogEntry?.saison,
+                            wikiUrl = catalogEntry?.sourceUrl,
                             incertain = lvl == null || stars == null || rarity == null,
                             raisonIncertitude = listOfNotNull(
                                 if (lvl == null) "Niveau non lu" else null,
