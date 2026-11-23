@@ -1306,6 +1306,8 @@ fun LandsOfJailAssistantApp(
                         isMonitoringRunning = isMonitoringRunning,
                         isGameForeground = isGameForeground,
                         isAutoCapturing = isAutoCapturing,
+                        isAnalyzing = isAnalyzing,
+                        isProfileSyncing = isProfileSyncing,
                         autoCaptureIntervalSeconds = autoCaptureIntervalSeconds,
                         onChangeAutoCaptureInterval = { autoCaptureIntervalSeconds = it },
                         onStartAutoCapture = {
@@ -1432,6 +1434,8 @@ private fun DashboardScreen(
     isMonitoringRunning: Boolean,
     isGameForeground: Boolean,
     isAutoCapturing: Boolean,
+    isAnalyzing: Boolean,
+    isProfileSyncing: Boolean,
     autoCaptureIntervalSeconds: Int,
     onChangeAutoCaptureInterval: (Int) -> Unit,
     onStartAutoCapture: () -> Unit,
@@ -1609,7 +1613,7 @@ private fun DashboardScreen(
                     }
 
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FilledTonalButton(onClick = onAnalyzeScreenNow) {
+                        FilledTonalButton(onClick = onAnalyzeScreenNow, enabled = !isAnalyzing && !isAutoCapturing) {
                             Text(
                                 when (currentLang) {
                                     AppLanguage.FR -> "Analyser l’écran"
@@ -1621,7 +1625,7 @@ private fun DashboardScreen(
                                 }
                             )
                         }
-                        TextButton(onClick = onPickImage) {
+                        TextButton(enabled = !isAnalyzing && !isAutoCapturing, onClick = onPickImage) {
                             Text(
                                 when (currentLang) {
                                     AppLanguage.FR -> "Importer image"
@@ -1681,7 +1685,7 @@ private fun DashboardScreen(
                             Box {
                                 OutlinedButton(
                                     onClick = { showAutoIntervalMenu = true },
-                                    enabled = isMonitoringRunning && hasUsagePermission
+                                    enabled = isMonitoringRunning && hasUsagePermission && !isAnalyzing && !isProfileSyncing && !isAnalyzing && !isProfileSyncing
                                 ) {
                                     Text("${autoCaptureIntervalSeconds}s")
                                 }
