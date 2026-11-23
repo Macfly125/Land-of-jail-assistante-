@@ -8,12 +8,14 @@ import { OfflineRoutineView } from './OfflineRoutineView';
 interface ResourcesPowerViewProps {
   state: AccountState;
   onVerifyResource: (resourceId: string, newQuantityText: string) => void;
+  onUpdateVipLevel: (vipLevel: string) => void;
   onOpenShareModal: () => void;
 }
 
 export const ResourcesPowerView: React.FC<ResourcesPowerViewProps> = ({
   state,
   onVerifyResource,
+  onUpdateVipLevel,
   onOpenShareModal,
 }) => {
   const [subTab, setSubTab] = useState<'inventory' | 'calculator' | 'routine'>('inventory');
@@ -109,10 +111,19 @@ export const ResourcesPowerView: React.FC<ResourcesPowerViewProps> = ({
               </div>
             </div>
             <div>
-              <div className="text-slate-400">Niveau VIP</div>
-              <div className="mt-1 text-sm font-mono-tabular text-slate-100">
-                {state.currentPower?.niveauVip || '—'}
-              </div>
+              <label htmlFor="player-vip-level" className="text-slate-400">Niveau VIP</label>
+              <input
+                id="player-vip-level"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={2}
+                value={state.currentPower?.niveauVip || ''}
+                onChange={(event) => onUpdateVipLevel(event.target.value.replace(/\\D/g, '').slice(0, 2))}
+                placeholder="À renseigner"
+                aria-label="Niveau VIP du compte"
+                className="mt-1 w-full max-w-28 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono-tabular text-slate-100 placeholder:text-slate-500 focus:border-amber-400 focus:outline-none"
+              />
+              <p className="mt-1 text-[10px] text-slate-500">Détecté sur capture ou modifiable ici</p>
             </div>
           </div>
 
