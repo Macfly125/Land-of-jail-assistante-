@@ -1222,6 +1222,53 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
           })()
         : [];
 
+      const battleRoleHeroRecommendations = mode === 'svs' || mode === 'sandsea_conquest'
+        ? (() => {
+            const rolePatterns = mode === 'svs'
+              ? [
+                  { role: 'Ralliement', category: 0, pattern: /rally|rallies|rassemblement|ralliement|集结/i },
+                  { role: 'Défense / garnison', category: 1, pattern: /defend|defense|defence|garrison|défense|garnison|守城|驻防/i },
+                  { role: 'Attaque solo', category: 2, pattern: /solo attack|attack alone|attacking alone|attaque solo|attaque seul|独自攻击/i },
+                  { role: 'Renfort', category: 3, pattern: /reinforce|reinforcement|reinforcements|renfort|增援/i },
+                ]
+              : [
+                  { role: 'Attaque de cible', category: 0, pattern: /rally|rallies|solo attack|attack alone|rassemblement|attaque solo|集结|独自攻击/i },
+                  { role: 'Défense de station', category: 1, pattern: /defend|defense|defence|garrison|défense|garnison|守城|驻防/i },
+                  { role: 'Renfort', category: 2, pattern: /reinforce|reinforcement|reinforcements|renfort|增援/i },
+                ];
+            const bestByRole = new Map<number, { hero: string; skill: string; level: number; description: string; role: string; category: number }>();
+            for (const hero of heroes ?? []) {
+              for (const skill of hero.competences || []) {
+                if (skill.type?.toLowerCase() !== 'war' || skill.incertain || !skill.description?.trim()) continue;
+                for (const candidate of rolePatterns) {
+                  if (!candidate.pattern.test(skill.description)) continue;
+                  const level = Number(String(skill.niveau || '').match(/\d+/)?.[0] || 0);
+                  const previous = bestByRole.get(candidate.category);
+                  if (!previous || level > previous.level) {
+                    bestByRole.set(candidate.category, {
+                      hero: hero.nom,
+                      skill: skill.nom,
+                      level,
+                      description: skill.description.trim().slice(0, 140),
+                      role: candidate.role,
+                      category: candidate.category,
+                    });
+                  }
+                }
+              }
+            }
+            return [...bestByRole.values()].sort((a, b) => a.category - b.category).map((candidate) => ({
+              titre: `${candidate.role} — ${candidate.hero}`,
+              detail: `${candidate.skill} (niv. ${candidate.level || 'à confirmer'}) : ${candidate.description}`,
+              herosCibles: [candidate.hero],
+              incertain: true,
+              raisonIncertitude: targetLang === 'fr'
+                ? 'Correspondance fondée sur une condition de bataille War explicitement visible; le résultat réel dépend du rôle, des troupes et de la cible.'
+                : 'Matched from an explicitly visible War battle condition; actual results depend on role, troops and target.',
+            }));
+          })()
+        : [];
+
       const heroRecommendations = mode === 'trial_cage'
         ? (() => {
             // Leaders use the complete War kit of three heroes, one per troop class.
@@ -1268,7 +1315,8 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
             }));
             return [...leaders, ...joiners].slice(0, 10);
           })()
-        : mode === 'gold_hunter' ? goldHunterHeroRecommendations : [];
+        : mode === 'gold_hunter' ? goldHunterHeroRecommendations
+        : (mode === 'svs' || mode === 'sandsea_conquest') ? battleRoleHeroRecommendations : [];
 
       const cageSignalLabelsByLang: Record<TargetLang, string[]> = {
         fr: ['dégâts subis par l’ennemi', 'dégâts infligés aux troupes alliées', 'ATQ des troupes alliées', 'réduction de DEF ennemie', 'dégâts directs'],
@@ -1413,6 +1461,11 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
           })),
           informationsIncertaines: [
             ...(heroNames.length === 0 ? [compTextByLang[targetLang]] : []),
+            ...((mode === 'svs' || mode === 'sandsea_conquest') && heroNames.length > 0 && heroRecommendations.length === 0
+              ? [targetLang === 'fr'
+                  ? 'Aucune compétence War avec une condition explicite de ralliement, défense, attaque solo ou renfort n’a été reconnue. Sans condition lisible, l’application ne classe pas les héros.'
+                  : 'No War skill with an explicit rally, defense, solo attack or reinforcement condition was found. Without a readable condition, the app does not rank heroes.']
+              : []),
             ...(mode === 'gold_hunter' && heroNames.length > 0 && heroRecommendations.length === 0
               ? [targetLang === 'fr'
                   ? 'Chasseur d’or : aucune compétence fiable de vitesse, dégâts contre ennemis neutres ou collecte n’a été reconnue dans ce profil. Complète les descriptions visibles avant de choisir les héros.'
