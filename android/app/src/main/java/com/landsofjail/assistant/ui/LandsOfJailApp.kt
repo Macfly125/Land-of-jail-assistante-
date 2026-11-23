@@ -1325,7 +1325,7 @@ fun LandsOfJailAssistantApp(
                                     playerRole = playerRole,
                                     heroes = heroes,
                                     powerText = currentPower?.puissanceTotaleTexte,
-                    robots = robots
+                                    robots = robots
                                 ).onSuccess { adviceResult = it }
                                     .onFailure { errorMessage = it.message }
                                 isFetchingAdvice = false
