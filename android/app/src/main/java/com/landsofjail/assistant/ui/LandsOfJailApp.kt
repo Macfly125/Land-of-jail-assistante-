@@ -400,8 +400,8 @@ fun LandsOfJailAssistantApp(
                 analyses = snapshot.analyses
                 heroes = snapshot.heroes
                 resources = snapshot.resources
-                robots = snapshot.robots
-                eventRecords = snapshot.eventRecords
+                                             robots = snapshot.robots
+                                             eventRecords = snapshot.eventRecords
                 currentPower = snapshot.currentPower
                 selectedAdviceMode = runCatching { AdviceMode.valueOf(snapshot.adviceMode) }.getOrDefault(AdviceMode.TRIAL_CAGE)
                 adviceResult = snapshot.adviceResult
@@ -841,8 +841,8 @@ fun LandsOfJailAssistantApp(
                                             analyses = snapshot.analyses
                                             heroes = snapshot.heroes
                                             resources = snapshot.resources
-                robots = snapshot.robots
-                eventRecords = snapshot.eventRecords
+                                             robots = snapshot.robots
+                                             eventRecords = snapshot.eventRecords
                                             currentPower = snapshot.currentPower
                                             selectedAdviceMode = runCatching { AdviceMode.valueOf(snapshot.adviceMode) }.getOrDefault(AdviceMode.TRIAL_CAGE)
                                             adviceResult = snapshot.adviceResult
@@ -971,8 +971,8 @@ fun LandsOfJailAssistantApp(
                                             analyses = snapshot.analyses
                                             heroes = snapshot.heroes
                                             resources = snapshot.resources
-                robots = snapshot.robots
-                eventRecords = snapshot.eventRecords
+                                             robots = snapshot.robots
+                                             eventRecords = snapshot.eventRecords
                                             currentPower = snapshot.currentPower
                                             selectedAdviceMode = runCatching { AdviceMode.valueOf(snapshot.adviceMode) }.getOrDefault(AdviceMode.TRIAL_CAGE)
                                             adviceResult = snapshot.adviceResult
@@ -1008,7 +1008,7 @@ fun LandsOfJailAssistantApp(
             },
             confirmButton = {
                 TextButton(onClick = {
-                    val name = profileNameInput.trim()
+                    val name = profileNameInput.trim().take(32)
                     if (name.isNotEmpty()) {
                         localProfiles = localProfiles.map { profile ->
                             if (profile.id == editingProfileId) profile.copy(name = name, updatedAtIso = Instant.now().toString()) else profile
@@ -1037,8 +1037,8 @@ fun LandsOfJailAssistantApp(
                                 analyses = snapshot.analyses
                                 heroes = snapshot.heroes
                                 resources = snapshot.resources
-                robots = snapshot.robots
-                eventRecords = snapshot.eventRecords
+                                             robots = snapshot.robots
+                                             eventRecords = snapshot.eventRecords
                                 currentPower = snapshot.currentPower
                                 selectedAdviceMode = runCatching { AdviceMode.valueOf(snapshot.adviceMode) }.getOrDefault(AdviceMode.TRIAL_CAGE)
                                 adviceResult = snapshot.adviceResult
@@ -1903,12 +1903,12 @@ private fun ResourcesScreen(
         }
     }
     var subTab by remember(profileId) { mutableStateOf(ResourceSubTab.INVENTAIRE) }
-    var targetBuildingLvl by remember { mutableIntStateOf(16) }
-    var starFrom by remember { mutableIntStateOf(0) }
-    var starTo by remember { mutableIntStateOf(4) }
-    var ownedShardsText by remember { mutableStateOf("0") }
-    var tomeFrom by remember { mutableIntStateOf(0) }
-    var tomeTo by remember { mutableIntStateOf(5) }
+    var targetBuildingLvl by remember(profileId) { mutableIntStateOf(16) }
+    var starFrom by remember(profileId) { mutableIntStateOf(0) }
+    var starTo by remember(profileId) { mutableIntStateOf(4) }
+    var ownedShardsText by remember(profileId) { mutableStateOf("0") }
+    var tomeFrom by remember(profileId) { mutableIntStateOf(0) }
+    var tomeTo by remember(profileId) { mutableIntStateOf(5) }
     var robotName by remember(profileId) { mutableStateOf("") }
     var robotLevel by remember(profileId) { mutableStateOf("") }
     var robotRarity by remember(profileId) { mutableStateOf("") }
