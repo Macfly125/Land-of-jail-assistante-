@@ -1,4 +1,5 @@
 import express from 'express';
+import { createHash } from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -11,6 +12,42 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const PORT = Number(process.env.PORT) || 3000;
+
+const ANALYSIS_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
+const ANALYSIS_CACHE_MAX_ENTRIES = 100;
+const screenshotAnalysisCache = new Map<string, { analysis: unknown; analyzedAt: string; expiresAt: number }>();
+
+function getScreenshotCacheKey(input: {
+  imageBase64: string;
+  mimeType: string;
+  playerRole?: string;
+  note?: string;
+  language?: string;
+}): string {
+  return createHash('sha256')
+    .update(input.imageBase64)
+    .update('|')
+    .update(input.mimeType)
+    .update('|')
+    .update(input.playerRole || '')
+    .update('|')
+    .update(input.note || '')
+    .update('|')
+    .update(input.language || 'fr')
+    .digest('hex');
+}
+
+function pruneScreenshotAnalysisCache(now = Date.now()) {
+  for (const [key, entry] of screenshotAnalysisCache) {
+    if (entry.expiresAt <= now) screenshotAnalysisCache.delete(key);
+  }
+  while (screenshotAnalysisCache.size > ANALYSIS_CACHE_MAX_ENTRIES) {
+    const oldestKey = screenshotAnalysisCache.keys().next().value;
+    if (!oldestKey) break;
+    screenshotAnalysisCache.delete(oldestKey);
+  }
+}
+
 
 
 function getGeminiQuotaError(error: unknown): { message: string; retryAfterSeconds?: number } | null {
@@ -167,6 +204,15 @@ export async function createApp(serveFrontend = true) {
 
       if (!imageBase64 || !mimeType) {
         res.status(400).json({ error: 'Image manquante pour lancer l’analyse.' });
+        return;
+      }
+
+      const cacheKey = getScreenshotCacheKey({ imageBase64, mimeType, playerRole, note, language });
+      pruneScreenshotAnalysisCache();
+      const cached = screenshotAnalysisCache.get(cacheKey);
+      if (cached && cached.expiresAt > Date.now()) {
+        res.setHeader('X-Analysis-Cache', 'HIT');
+        res.json({ analysis: cached.analysis, analyzedAt: cached.analyzedAt, cached: true });
         return;
       }
 
@@ -426,9 +472,18 @@ Règles strictes :
         );
       }
 
+      const analyzedAt = new Date().toISOString();
+      screenshotAnalysisCache.set(cacheKey, {
+        analysis: parsed,
+        analyzedAt,
+        expiresAt: Date.now() + ANALYSIS_CACHE_TTL_MS,
+      });
+      pruneScreenshotAnalysisCache();
+      res.setHeader('X-Analysis-Cache', 'MISS');
       res.json({
         analysis: parsed,
-        analyzedAt: new Date().toISOString(),
+        analyzedAt,
+        cached: false,
       });
     } catch (err: unknown) {
       const quota = getGeminiQuotaError(err);
