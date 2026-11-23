@@ -32,6 +32,7 @@ export interface PlayerProfile {
   id: string;
   name: string;
   state: AccountState;
+  updatedAt?: string;
 }
 
 export interface ProfileCollection {
