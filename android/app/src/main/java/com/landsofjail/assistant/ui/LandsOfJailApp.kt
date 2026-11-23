@@ -2349,15 +2349,38 @@ private fun HeroesScreen(
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(entry.nom, fontWeight = FontWeight.SemiBold)
-                        Text(
-                            if (hero != null) "Profil détecté" else "Catalogue",
-                            color = if (hero != null) Color(0xFF34D399) else MaterialTheme.colorScheme.onSurfaceVariant,
-                            style = MaterialTheme.typography.labelSmall
-                        )
+                        if (!entry.portraitUrl.isNullOrBlank()) {
+                            AsyncImage(
+                                model = entry.portraitUrl,
+                                contentDescription = "Portrait de ${entry.nom}",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.size(58.dp).clip(RoundedCornerShape(10.dp))
+                            )
+                        } else {
+                            val classIcon = when (entry.typeTroupe) {
+                                "Shieldbearer" -> "🛡️"
+                                "Shooter" -> "🎯"
+                                "Bomber" -> "💥"
+                                else -> "⭐"
+                            }
+                            Box(
+                                modifier = Modifier.size(58.dp).clip(RoundedCornerShape(10.dp)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(classIcon, fontSize = 28.sp)
+                            }
+                        }
+                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(entry.nom, fontWeight = FontWeight.SemiBold)
+                            Text(
+                                if (hero != null) "Profil détecté" else "Catalogue",
+                                color = if (hero != null) Color(0xFF34D399) else MaterialTheme.colorScheme.onSurfaceVariant,
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                        }
                     }
                     Text(
                         "${entry.rarete} · ${entry.saison} · ${entry.typeTroupe}",
