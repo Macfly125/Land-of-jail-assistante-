@@ -159,7 +159,7 @@ export default function App() {
           imageBase64: payload.imageBase64,
           mimeType: payload.mimeType,
           playerRole: state.playerRole,
-          note: payload.note,
+          note: [payload.note, 'Capture importée : vérifie aussi les icônes et les compteurs de ressources visibles.'].filter(Boolean).join(' '),
         }),
       });
 
