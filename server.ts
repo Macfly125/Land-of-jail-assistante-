@@ -578,8 +578,10 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
 
       const detectedRobots = Array.isArray(parsed.robots) ? parsed.robots : [];
       parsed.robots = detectedRobots
-        .filter((robot: unknown) => robot && typeof robot === 'object')
-        .map((robot: Record<string, unknown>) => ({
+        .filter((robot: unknown): robot is Record<string, unknown> =>
+          robot !== null && typeof robot === 'object' && !Array.isArray(robot)
+        )
+        .map((robot) => ({
           ...robot,
           nom: String(robot.nom || 'Robot non identifié'),
           incertain: Boolean(robot.incertain ?? true),
