@@ -422,6 +422,85 @@ class SupabaseAuthRepository(context: Context) {
         }
     }
 
+
+    /** A cloud save belongs to one game profile, not to the whole login account. */
+    data class GameAccountProfileCloud(
+        val profileId: String,
+        val profileName: String,
+        val stateJson: String,
+        val updatedAt: String
+    )
+
+    /**
+     * Reads only the signed-in user's game profiles. The legacy player_profiles row
+     * is deliberately not touched by these methods.
+     */
+    suspend fun fetchGameAccountProfiles(): Result<List<GameAccountProfileCloud>> =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val active = refreshSession().getOrThrow()
+                require(active.user_id.isNotBlank()) { "Identifiant du compte absent." }
+                val request = Request.Builder()
+                    .url("$BASE_URL/rest/v1/game_account_profiles?select=profile_id,profile_name,state,updated_at&user_id=eq.${active.user_id}&order=updated_at.desc")
+                    .header("apikey", PUBLISHABLE_KEY)
+                    .header("Authorization", "Bearer ${active.access_token}")
+                    .get()
+                    .build()
+                client.newCall(request).execute().use { response ->
+                    val body = response.body?.string().orEmpty()
+                    if (!response.isSuccessful) error(extractApiError(body, response.code))
+                    json.parseToJsonElement(body).jsonArray.map { row ->
+                        val obj = row.jsonObject
+                        GameAccountProfileCloud(
+                            profileId = obj["profile_id"]?.jsonPrimitive?.contentOrNull.orEmpty(),
+                            profileName = obj["profile_name"]?.jsonPrimitive?.contentOrNull.orEmpty(),
+                            stateJson = obj["state"]?.toString() ?: "{}",
+                            updatedAt = obj["updated_at"]?.jsonPrimitive?.contentOrNull.orEmpty()
+                        )
+                    }
+                }
+            }
+        }
+
+    /**
+     * Saves one stable profile ID. Callers must first persist a local backup;
+     * no remote profile is deleted and no legacy player_profiles row is changed.
+     */
+    suspend fun syncGameAccountProfile(
+        profileId: String,
+        profileName: String,
+        stateJson: String
+    ): Result<Unit> = withContext(Dispatchers.IO) {
+        runCatching {
+            require(profileId.matches(Regex("[A-Za-z0-9_-]{8,80}"))) { "Identifiant de profil invalide." }
+            require(profileName.trim().length in 1..32) { "Le nom du profil doit contenir de 1 à 32 caractères." }
+            require(stateJson.toByteArray(Charsets.UTF_8).size <= 750_000) { "Sauvegarde trop volumineuse pour une synchronisation fiable." }
+            val state = json.parseToJsonElement(stateJson)
+            require(state is kotlinx.serialization.json.JsonObject) { "Format de sauvegarde invalide." }
+            val active = refreshSession().getOrThrow()
+            require(active.user_id.isNotBlank()) { "Identifiant du compte absent. Reconnecte-toi." }
+            val payload = buildJsonObject {
+                put("user_id", active.user_id)
+                put("profile_id", profileId)
+                put("profile_name", profileName.trim())
+                put("state", state)
+                put("updated_at", Instant.now().toString())
+            }
+            val request = Request.Builder()
+                .url("$BASE_URL/rest/v1/game_account_profiles?on_conflict=user_id,profile_id")
+                .header("apikey", PUBLISHABLE_KEY)
+                .header("Authorization", "Bearer ${active.access_token}")
+                .header("Content-Type", "application/json")
+                .header("Prefer", "resolution=merge-duplicates,return=minimal")
+                .post(payload.toString().toRequestBody("application/json".toMediaType()))
+                .build()
+            client.newCall(request).execute().use { response ->
+                val body = response.body?.string().orEmpty()
+                if (!response.isSuccessful) error(extractApiError(body, response.code))
+            }
+        }
+    }
+
     fun currentSession(): Session? = readSession()
 
     suspend fun signOut(): Result<Unit> = withContext(Dispatchers.IO) {
