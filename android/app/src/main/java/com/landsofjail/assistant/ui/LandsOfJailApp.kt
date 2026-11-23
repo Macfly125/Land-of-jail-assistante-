@@ -768,7 +768,7 @@ fun LandsOfJailAssistantApp(
         }
         // Pas d'URI ni de copie de l'image après extraction : seules les données
         // reconnues sont fusionnées et conservées dans le profil local du joueur.
-        ScreenshotAnalysis(
+        return ScreenshotAnalysis(
             id = UUID.randomUUID().toString(),
             analyzedAtIso = timestamp,
             imageUriString = "",
