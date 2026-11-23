@@ -486,8 +486,13 @@ fun LandsOfJailAssistantApp(
                 merged[key] = fresh
             } else {
                 val skills = (previous.competences + fresh.competences)
-                    .associateBy { normalizedKey(it.nom) }
-                    .values.toList()
+                    .groupBy { normalizedKey(it.nom) }
+                    .values
+                    .map { entries ->
+                        val latest = entries.last()
+                        val knownType = entries.firstOrNull { it.type.lowercase() in setOf("war", "arrest", "equipment") }?.type
+                        latest.copy(type = latest.type.takeIf { it.lowercase() in setOf("war", "arrest", "equipment") } ?: knownType ?: "inconnu")
+                    }
                 merged[key] = previous.copy(
                     niveau = fresh.niveau ?: previous.niveau,
                     niveauTexte = fresh.niveauTexte.takeIf {
@@ -1787,7 +1792,7 @@ private fun HeroesScreen(
                         }
                         hero.competences.forEach { skill ->
                             Text(
-                                "• ${skill.nom} (${skill.niveau})${if (skill.incertain) " · Incertain" else ""}",
+                                "• ${when (skill.type.lowercase()) { "war" -> "War"; "arrest" -> "Arrest"; "equipment" -> "Équipement"; else -> "Type à confirmer" }} — ${skill.nom} (${skill.niveau})${if (skill.incertain) " · Incertain" else ""}",
                                 style = MaterialTheme.typography.bodySmall
                             )
                             if (!skill.description.isNullOrBlank()) {
@@ -1887,6 +1892,7 @@ private fun HeroEditDialog(
                                 nom = skillName,
                                 niveau = parts.getOrNull(1)?.trim()?.takeIf { it.isNotBlank() } ?: previous?.niveau.orEmpty(),
                                 description = parts.getOrNull(2)?.trim()?.takeIf { it.isNotBlank() } ?: previous?.description,
+                                type = previous?.type ?: "inconnu",
                                 incertain = false
                             )
                         }

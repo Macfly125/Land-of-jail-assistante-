@@ -201,6 +201,7 @@ data class HeroSkill(
     val nom: String,
     val niveau: String,
     val description: String? = null,
+    val type: String = "inconnu",
     val iconUrl: String? = null,
     val incertain: Boolean = false,
     val raisonIncertitude: String? = null

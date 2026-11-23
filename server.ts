@@ -152,6 +152,7 @@ CONSIGNE PRIORITAIRE — ÉCRAN DES HÉROS :
 - Si l'écran montre une équipe ou une liste de 5 héros, tu DOIS examiner les 5 emplacements séparément, de gauche à droite puis de haut en bas. Ne t'arrête jamais au premier ou au deuxième héros.
 - Retourne une entrée distincte dans "heros" pour CHAQUE héros dont le portrait ou le nom est visiblement identifiable. Le nombre attendu est 5 lorsque cinq portraits sont présents.
 - Pour chaque emplacement, inspecte indépendamment le portrait, le nom sous/près du portrait, le niveau, le nombre d'étoiles/éclats, la rareté, la puissance individuelle si affichée et chaque icône/ligne de compétence avec son niveau.
+- Pour chaque compétence, renseigne aussi le type uniquement si l'écran le montre clairement : "war" (compétence de guerre), "arrest" (compétence d'arrestation), "equipment" (équipement exclusif) ou "inconnu". Utilise les onglets/titres visibles; ne déduis jamais le type depuis le nom ou l'effet.
 - Le niveau peut être affiché dans un badge séparé du nom : examine toute la zone autour du portrait, pas uniquement la ligne de texte qui contient le nom.
 - Ne confonds jamais la puissance maximale théorique du wiki avec la puissance réelle du héros sur le compte.
 - Si un portrait est visible mais son identité est illisible, ne devine pas son nom : ajoute une entrée dans "champsIncertains" décrivant précisément l'emplacement non identifié. N'invente pas un sixième héros.
@@ -251,11 +252,12 @@ RÈGLES GÉNÉRALES :
                         properties: {
                           nom: { type: Type.STRING },
                           niveau: { type: Type.STRING },
+                          type: { type: Type.STRING, description: 'war, arrest, equipment ou inconnu; uniquement selon l’onglet/titre visible.' },
                           description: { type: Type.STRING },
                           incertain: { type: Type.BOOLEAN },
                           raisonIncertitude: { type: Type.STRING },
                         },
-                        required: ['nom', 'niveau', 'incertain'],
+                        required: ['nom', 'niveau', 'type', 'incertain'],
                       },
                     },
                   },
@@ -379,7 +381,7 @@ Retourne une ligne par compteur réellement visible. N'invente jamais une valeur
       const heroDataUncertain = Array.isArray(parsed.heros) && parsed.heros.some((hero: Record<string, unknown>) =>
         hero.incertain === true ||
         (Array.isArray(hero.champsIncertains) && hero.champsIncertains.length > 0) ||
-        (Array.isArray(hero.competences) && hero.competences.some((skill: Record<string, unknown>) => skill.incertain === true))
+        (Array.isArray(hero.competences) && hero.competences.some((skill: Record<string, unknown>) => skill.incertain === true || !['war', 'arrest', 'equipment'].includes(String(skill.type || '').toLowerCase())))
       );
       const heroRetryNeeded = Array.isArray(parsed.heros) &&
         (parsed.heros.length < 5 || heroPortraitUncertain || heroDataUncertain);
@@ -396,7 +398,8 @@ Retourne une ligne par compteur réellement visible. N'invente jamais une valeur
                 {
                   text: `SECONDE PASSE DE CONTRÔLE VISUEL — l'analyse précédente n'a détecté que ${parsed.heros.length} héros.
 Recommence l'inspection de l'image entière en te concentrant exclusivement sur l'écran des héros.
-Compte les portraits visibles un par un, de gauche à droite et de haut en bas. Si cinq portraits sont visibles, cherche à identifier les cinq, pas seulement les noms les plus faciles à lire.
+Compte les portraits visibles un par un, de gauche à droite et de haut en bas.
+Pour chaque compétence, classe le type comme war, arrest, equipment ou inconnu seulement si l'onglet/titre visible le confirme; ne le déduis pas de l'effet. Si cinq portraits sont visibles, cherche à identifier les cinq, pas seulement les noms les plus faciles à lire.
 Pour chaque portrait identifiable, relis séparément le nom, le niveau, la puissance individuelle, la rareté, les étoiles et les niveaux de compétences visibles.
 Inspecte les badges de niveau même s'ils sont éloignés du nom. Ne transforme pas les valeurs du wiki en valeurs du joueur.
 N'invente aucun nom ni niveau. Si un portrait reste illisible, signale son emplacement dans champsIncertains.
@@ -430,11 +433,12 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
                             properties: {
                               nom: { type: Type.STRING },
                               niveau: { type: Type.STRING },
+                              type: { type: Type.STRING, description: 'war, arrest, equipment ou inconnu; uniquement selon l’onglet/titre visible.' },
                               description: { type: Type.STRING },
                               incertain: { type: Type.BOOLEAN },
                               raisonIncertitude: { type: Type.STRING },
                             },
-                            required: ['nom', 'niveau', 'incertain'],
+                            required: ['nom', 'niveau', 'type', 'incertain'],
                           },
                         },
                       },
@@ -874,6 +878,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
             nom: string;
             niveau: string;
             description?: string;
+            type?: string;
             incertain?: boolean;
             raisonIncertitude?: string;
           }>;
@@ -1141,7 +1146,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
         const uncertainFields = new Set(hero.champsIncertains || []);
         if (uncertainFields.has('etoiles') || uncertainFields.has('niveau')) return [];
         return (hero.competences || [])
-          .filter((skill) => !skill.incertain && Boolean(skill.description?.trim()))
+          .filter((skill) => skill.type?.toLowerCase() === 'war' && !skill.incertain && Boolean(skill.description?.trim()))
           .map((skill) => {
             const effect = skill.description!.toLocaleLowerCase();
             // Do not treat the bare word "damage" as an offensive signal:
