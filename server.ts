@@ -1215,20 +1215,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
             }));
             return [...leaders, ...joiners].slice(0, 10);
           })()
-        : mode === 'crystal_clash'
-          ? eventRoleContext.slice(0, 6).map((entry) => {
-              const [hero, ...roleParts] = entry.split(':');
-              return {
-                titre: hero.trim(),
-                detail: roleParts.join(':').trim(),
-                herosCibles: [hero.trim()],
-                incertain: true,
-                raisonIncertitude: targetLang === 'fr'
-                  ? 'Repère de rôle issu du catalogue communautaire; à confirmer avec la version actuelle du jeu et ton roster.'
-                  : 'Role hint from the community catalogue; verify against the current game version and your roster.',
-              };
-            })
-          : [];
+        : [];
 
       const cageSignalLabelsByLang: Record<TargetLang, string[]> = {
         fr: ['dégâts subis par l’ennemi', 'dégâts infligés aux troupes alliées', 'ATQ des troupes alliées', 'réduction de DEF ennemie', 'dégâts directs'],
@@ -1275,7 +1262,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
       };
       const sandseaContext = mode === 'sandsea_conquest' ? sandseaContextByLang[targetLang] : '';
       const crystalContextByLang: Record<TargetLang, string> = {
-        fr: ' Repères Crystal Clash (guides communautaires actualisés en octobre/novembre 2026) : choisissez la classe du jeu selon votre mission — Commander pour mener les ralliements, Warrior pour rejoindre/renforcer, Engineer pour collecter les cristaux. Priorisez le contrôle durable des objectifs plutôt que les frags isolés : prison centrale, forteresses, prisons de cristal, puis bâtiments utilitaires selon leur effet réel affiché. Le Refinement Center aide la collecte et la prise de contrôle; Pillbox soutient les troupes; Bomber Command affaiblit une défense; Energy Hub réduit le délai du téléport fixe. Vérifiez les valeurs dans l’onglet Règles du jeu : les scores rapportés par des communautés ne sont pas toujours identiques. Aucun ratio universel ni trio de héros n’est inventé sans connaître la mission et les défenses.',
+        fr: ' Repères Crystal Clash (guides communautaires actualisés en octobre/novembre 2026) : le rôle de l’événement est distinct de la classe de héros. Commander mène les ralliements (capacité +200 000, vitesse de ralliement +100 %, bonus ATQ/DEF +10 % pendant 60 s toutes les 5 min); Warrior rejoint les ralliements (+200 % vitesse de marche en renfort, +10 % létalité et PV par participation jusqu’à 5 cumuls, soin de 50 % des blessés toutes les 30 min); Engineer collecte (+100 % vitesse de dépôt, +20 % points des cristaux dispersés, réinitialisation du téléport gratuit toutes les 10 min). Priorisez le contrôle durable des objectifs plutôt que les frags isolés : prison centrale, forteresses, prisons de cristal, puis bâtiments utilitaires selon leur effet réel affiché. Le Refinement Center aide la collecte et la prise de contrôle; Pillbox soutient les troupes; Bomber Command affaiblit une défense; Energy Hub réduit le délai du téléport fixe. Vérifiez les valeurs dans l’onglet Règles du jeu : les scores rapportés par des communautés ne sont pas toujours identiques. Aucun trio de héros universel n’est inventé sans connaître la mission, le rôle et les défenses.',
         tr: ' Crystal Clash referansı (Ekim/Kasım 2026 topluluk rehberleri): oyun sınıfını göreve göre seçin — Commander ralli başlatır, Warrior rallilere katılır/takviye eder, Engineer kristal toplar. Tekil öldürmeler yerine hedefleri uzun süre kontrol etmeye öncelik verin: merkez hapishane, kaleler, kristal hapishaneleri, ardından gerçek etkisine göre yardımcı binalar. Refinement Center toplama ve ele geçirme süresine yardım eder; Pillbox birlikleri güçlendirir; Bomber Command savunmayı zayıflatır; Energy Hub sabit ışınlanma bekleme süresini azaltır. Toplulukların bildirdiği puanlar farklı olabileceğinden oyun içi Kurallar sekmesini kontrol edin. Görev ve savunmalar bilinmeden evrensel birlik oranı veya kahraman üçlüsü uydurulmaz.',
         ru: ' Ориентиры Crystal Clash (руководства сообщества за октябрь/ноябрь 2026): выбирайте игровой класс по задаче — Commander ведет рейды, Warrior вступает в рейды и усиливает оборону, Engineer собирает кристаллы. Приоритет — длительный контроль целей, а не отдельные убийства: центральная тюрьма, крепости, кристальные тюрьмы, затем вспомогательные здания по их фактическому эффекту. Refinement Center помогает сбору и захвату; Pillbox усиливает войска; Bomber Command ослабляет защиту; Energy Hub сокращает перезарядку фиксированного телепорта. Проверяйте значения во вкладке правил игры: данные сообществ могут различаться. Универсальное соотношение войск или трио героев не выдумывается без знания задачи и обороны.',
         zh: ' Crystal Clash 参考（2026 年 10/11 月社区指南）：根据任务选择游戏职业 — Commander 负责发起集结，Warrior 加入集结/增援，Engineer 负责采集水晶。优先持续控制目标，而不是单纯追求击杀：中央监狱、堡垒、水晶监狱，然后根据实际效果选择功能建筑。Refinement Center 可帮助采集和缩短占领时间；Pillbox 为部队提供战斗支援；Bomber Command 削弱敌方据点防御；Energy Hub 缩短固定传送冷却。社区报告的分数可能不同，请以游戏内规则页为准。未了解任务和防守情况前，不臆造通用兵种比例或英雄组合。',
@@ -1370,6 +1357,11 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
           })),
           informationsIncertaines: [
             ...(heroNames.length === 0 ? [compTextByLang[targetLang]] : []),
+            ...(mode === 'crystal_clash' && heroNames.length > 0
+              ? [targetLang === 'fr'
+                  ? 'Crystal Clash : le choix principal est le rôle Commander / Warrior / Engineer et l’objectif assigné. Aucun classement de héros automatique n’est fiable sans connaître le rôle, la mission, les troupes et la défense adverse.'
+                  : 'Crystal Clash: the main choice is Commander / Warrior / Engineer and the assigned objective. An automatic hero ranking is not reliable without the role, mission, troops and enemy defense.']
+              : []),
             ...(mode === 'trial_cage' && heroNames.length > 0 && heroRecommendations.length === 0
               ? [targetLang === 'fr'
                   ? 'Aucune recommandation de héros Trial Cage : aucune compétence offensive fiable et lisible dans ce profil. Complète les descriptions/compétences sans deviner.'
