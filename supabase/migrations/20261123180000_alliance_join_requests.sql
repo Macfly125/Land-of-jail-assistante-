@@ -98,5 +98,9 @@ as $$ select private.review_alliance_join_request(p_request_id,p_approve,p_appro
 
 revoke all on function private.submit_alliance_join_request(text,text,text,text) from public, anon, authenticated;
 revoke all on function private.review_alliance_join_request(uuid,boolean,text) from public, anon, authenticated;
+-- Private schema is not exposed through PostgREST; authenticated execution is
+-- required because the public SQL wrappers run with invoker privileges.
+grant execute on function private.submit_alliance_join_request(text,text,text,text) to authenticated;
+grant execute on function private.review_alliance_join_request(uuid,boolean,text) to authenticated;
 grant execute on function public.submit_alliance_join_request(text,text,text,text) to authenticated;
 grant execute on function public.review_alliance_join_request(uuid,boolean,text) to authenticated;
