@@ -78,7 +78,7 @@ class LandsOfJailOcrParserTest {
     fun recognizesLocalizedAndSlightlyMisreadHeroNames() {
         val result = LandsOfJailOcrParser.parseLocalOcrText("Phénix\nCésar\nDuraga\nTyronn")
 
-        assertEquals(4, result.heroes.size)
+        assertEquals("Héros détectés : ${result.heroes.joinToString { it.nom }}", 4, result.heroes.size)
         assertTrue(result.heroes.any { it.nom == "Phoenix" })
         assertTrue(result.heroes.any { it.nom == "Caesar" })
         assertTrue(result.heroes.any { it.nom == "Durga" })
