@@ -55,6 +55,17 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun doesNotAssignTheNextHeroStarsToThePreviousHero() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText("Ada\nEdwin\n3 stars")
+
+        val ada = result.heroes.first { it.nom == "Ada" }
+        val edwin = result.heroes.first { it.nom == "Edwin" }
+        assertNull(ada.etoiles)
+        assertEquals("3/5", edwin.etoiles)
+        assertTrue(ada.incertain)
+    }
+
+    @Test
     fun identifiesRobotScreensWithoutInventingRobotStats() {
         val result = LandsOfJailOcrParser.parseLocalOcrText("Robot\nUpgrade level")
 
