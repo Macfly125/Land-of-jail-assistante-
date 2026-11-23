@@ -424,6 +424,9 @@ class SupabaseAuthRepository(context: Context) {
 
     fun currentSession(): Session? = readSession()
 
+    /** Efface le jeton local pour imposer une nouvelle connexion au prochain démarrage. */
+    fun clearLocalSession() = clearSession()
+
     suspend fun signOut(): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
             val session = readSession()
