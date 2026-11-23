@@ -10,6 +10,15 @@ import org.junit.Test
 class LandsOfJailOcrParserTest {
 
     @Test
+    fun heroCatalogHasUniqueNamesAndSeasonSevenPortrait() {
+        val entries = com.landsofjail.assistant.model.HeroCatalog.entries
+        assertEquals(50, entries.size)
+        assertEquals(entries.size, entries.map { it.nom.lowercase() }.distinct().size)
+        val franAndPike = entries.first { it.nom == "Fran & Pike" }
+        assertTrue(franAndPike.portraitUrl?.contains("7d74a030adb8f3e8.webp") == true)
+    }
+
+    @Test
     fun parsesGroupedPowerWithoutTreatingThousandsAsDecimals() {
         val result = LandsOfJailOcrParser.parseLocalOcrText("Puissance : 8,450,120")
 
