@@ -9,6 +9,7 @@ import com.landsofjail.assistant.model.AppLanguage
 import com.landsofjail.assistant.model.GroundedWebSource
 import com.landsofjail.assistant.model.HeroRecord
 import com.landsofjail.assistant.model.PlayerRole
+import com.landsofjail.assistant.model.RobotRecord
 import com.landsofjail.assistant.model.ScreenshotAnalysis
 import com.landsofjail.assistant.model.TacticalAdviceResult
 import kotlinx.coroutines.Dispatchers
@@ -98,7 +99,8 @@ class GeminiAssistantRepository(
         language: AppLanguage,
         playerRole: PlayerRole,
         heroes: List<HeroRecord>,
-        powerText: String?
+        powerText: String?,
+        robots: List<RobotRecord> = emptyList()
     ): Result<TacticalAdviceResult> = withContext(Dispatchers.IO) {
         runCatching {
             val apiLang = when (language) {
@@ -112,7 +114,8 @@ class GeminiAssistantRepository(
                     playerRole = playerRole.name.lowercase(),
                     playerRoleLabel = playerRole.labelFr,
                     heroes = heroes,
-                    powerText = powerText
+                    powerText = powerText,
+                    robots = robots
                 )
                 val request = Request.Builder()
                     .url("$backendBaseUrl/api/advice")
@@ -134,7 +137,8 @@ class GeminiAssistantRepository(
                     mode = mode,
                     language = language,
                     playerRole = playerRole,
-                    heroes = heroes
+                    heroes = heroes,
+                    robots = robots
                 )
             }
         }
@@ -152,7 +156,8 @@ class GeminiAssistantRepository(
         mode: AdviceMode,
         language: AppLanguage,
         playerRole: PlayerRole,
-        heroes: List<HeroRecord>
+        heroes: List<HeroRecord>,
+        robots: List<RobotRecord>
     ): TacticalAdviceResult {
         val collected = mutableListOf<DirectPost>()
         val seenLinks = mutableSetOf<String>()
@@ -404,6 +409,16 @@ class GeminiAssistantRepository(
                     }
                 )
                 if (heroNames.isEmpty()) add(noHeroesWarning(language))
+                if (robots.isNotEmpty()) add(
+                    when (language) {
+                        AppLanguage.FR -> "Mode de secours : les robots du profil sont enregistrés, mais leurs bonus ne peuvent pas être classés de façon fiable sans analyse des règles de l’événement. Aucune recommandation robot personnalisée n’est inventée."
+                        AppLanguage.TR -> "Yedek mod: profil robotları kaydedildi, ancak etkinlik kuralları analiz edilmeden güvenilir biçimde sıralanamaz."
+                        AppLanguage.RU -> "Резервный режим: роботы профиля сохранены, но без анализа правил события их нельзя надежно ранжировать."
+                        AppLanguage.ZH -> "备用模式：已保存档案中的机器人，但未分析活动规则前无法可靠排序。"
+                        AppLanguage.DE -> "Ersatzmodus: Profil-Roboter sind gespeichert, können ohne Analyse der Eventregeln aber nicht zuverlässig bewertet werden."
+                        AppLanguage.EN -> "Fallback mode: profile robots are saved, but cannot be reliably ranked without analyzing the event rules."
+                    }
+                )
             },
             sources = sources,
             geminiWarning = null
@@ -504,6 +519,7 @@ class GeminiAssistantRepository(
         val playerRole: String,
         val playerRoleLabel: String,
         val heroes: List<HeroRecord>,
-        val powerText: String? = null
+        val powerText: String? = null,
+        val robots: List<RobotRecord> = emptyList()
     )
 }
