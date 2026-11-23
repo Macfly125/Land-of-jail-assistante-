@@ -249,6 +249,7 @@ data class RobotRecord(
     val competences: String = "",
     val puissance: String = "",
     val incertain: Boolean = false,
+    val raisonIncertitude: String? = null,
     val source: String = "saisie_manuel",
     val updatedAtIso: String = ""
 )
@@ -290,6 +291,7 @@ data class ScreenshotAnalysis(
     val puissance: PowerMetric? = null,
     val ressources: List<ResourceRecord> = emptyList(),
     val heros: List<HeroRecord> = emptyList(),
+    val robots: List<RobotRecord> = emptyList(),
     val champsIncertains: List<UncertainItem> = emptyList()
 )
 
