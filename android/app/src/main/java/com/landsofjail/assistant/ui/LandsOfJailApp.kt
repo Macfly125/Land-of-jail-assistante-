@@ -4216,6 +4216,13 @@ private fun AllianceScreen(
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
+                    rankChangeMessage?.let {
+                        Text(
+                            it,
+                            color = if (rankChangeError) Color(0xFFFCA5A5) else Color(0xFF86EFAC),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
                 }
             }
         }
