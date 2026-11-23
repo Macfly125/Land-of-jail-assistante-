@@ -323,10 +323,10 @@ fun LandsOfJailAssistantApp(
         }.toMap()
     }
 
-    fun restoreRoutineState(profileId: String, state: Map<String, String>) {
-        // An empty snapshot can come from an older app version that did not yet
-        // serialize timers. Never clear locally persisted timers in that case.
-        if (state.isEmpty()) return
+    fun restoreRoutineState(profileId: String, state: Map<String, String>, clearWhenEmpty: Boolean = false) {
+        // Older snapshots did not contain routine data: preserve local timers for those.
+        // Versioned snapshots may intentionally contain no timers and must clear stale state.
+        if (state.isEmpty() && !clearWhenEmpty) return
         val prefs = context.getSharedPreferences("offline_routine_" + profileId, Context.MODE_PRIVATE)
         val editor = prefs.edit().clear()
         state.forEach { (key, encoded) ->
@@ -358,7 +358,8 @@ fun LandsOfJailAssistantApp(
         adviceMode = selectedAdviceMode.name,
         adviceResult = adviceResult,
         playerRole = playerRole.name,
-        routineState = if (activeProfileId.isNotBlank()) readRoutineState(activeProfileId) else emptyMap()
+        routineState = if (activeProfileId.isNotBlank()) readRoutineState(activeProfileId) else emptyMap(),
+        schemaVersion = 2
     )
 
     fun saveActiveProfile() {
@@ -406,7 +407,7 @@ fun LandsOfJailAssistantApp(
                 selectedAdviceMode = runCatching { AdviceMode.valueOf(snapshot.adviceMode) }.getOrDefault(AdviceMode.TRIAL_CAGE)
                 adviceResult = snapshot.adviceResult
                 playerRole = runCatching { PlayerRole.valueOf(snapshot.playerRole) }.getOrDefault(PlayerRole.POLYVALENT_F2P)
-                restoreRoutineState(selected.id, snapshot.routineState)
+                restoreRoutineState(selected.id, snapshot.routineState, clearWhenEmpty = snapshot.schemaVersion != null && snapshot.schemaVersion >= 2)
             }
             accountPrefs.edit().putString("active_game_profile_v1", selected.id).commit()
         }
@@ -977,7 +978,7 @@ fun LandsOfJailAssistantApp(
                                             selectedAdviceMode = runCatching { AdviceMode.valueOf(snapshot.adviceMode) }.getOrDefault(AdviceMode.TRIAL_CAGE)
                                             adviceResult = snapshot.adviceResult
                                             playerRole = runCatching { PlayerRole.valueOf(snapshot.playerRole) }.getOrDefault(PlayerRole.POLYVALENT_F2P)
-                                            restoreRoutineState(active.id, snapshot.routineState)
+                                            restoreRoutineState(active.id, snapshot.routineState, clearWhenEmpty = snapshot.schemaVersion != null && snapshot.schemaVersion >= 2)
                                         }
                                         snackbarHostState.showSnackbar("Synchronisation terminée. Aucune sauvegarde distante n’a été supprimée.")
                                     } catch (error: Exception) {
@@ -1043,7 +1044,7 @@ fun LandsOfJailAssistantApp(
                                 selectedAdviceMode = runCatching { AdviceMode.valueOf(snapshot.adviceMode) }.getOrDefault(AdviceMode.TRIAL_CAGE)
                                 adviceResult = snapshot.adviceResult
                                 playerRole = runCatching { PlayerRole.valueOf(snapshot.playerRole) }.getOrDefault(PlayerRole.POLYVALENT_F2P)
-                                restoreRoutineState(next.id, snapshot.routineState)
+                                restoreRoutineState(next.id, snapshot.routineState, clearWhenEmpty = snapshot.schemaVersion != null && snapshot.schemaVersion >= 2)
                                 activeProfileId = next.id
                                 accountPrefs.edit().putString("active_game_profile_v1", next.id).commit()
                                 localProfiles = localProfiles.filterNot { it.id == target.id }
