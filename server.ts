@@ -1503,10 +1503,14 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
         crystal_clash: [
           { title: 'GuideLOJ — Crystal Clash : objectifs et rôles', url: 'https://www.guideloj.com/fr/events/alliance/crystal-clash' },
           { title: 'LOJ XLab — Crystal Clash : points et classes', url: 'https://lojxlab.com/blog/crystal-clash-points-776k-to-64k/' },
+          { title: 'YouTube — Crystal Clash : IDN contre WAF, analyse de bataille', url: 'https://www.youtube.com/watch?v=aVd8S45MXag' },
+          { title: 'LOJ XLab — Bibliothèque de vidéos communautaires', url: 'https://lojxlab.com/library/' },
 
           { title: 'LOJ364 — Bibliothèque de tutoriels communautaires', url: 'https://www.loj364.online/tutorials.html' },        ],
         sandsea_conquest: [
           { title: 'LOJ Wiki — Conquête des sables : règles et phases', url: 'https://lojwiki.com/fr/events/sandsea-conquest/' },
+          { title: 'GuideLOJ — Sandsea Conquest : routes, carburant, tacticien et S100', url: 'https://www.guideloj.com/en/events/alliance/sandsea-conquest' },
+          { title: 'LOJ XLab — Sandsea : guide complet du jour de combat 2026', url: 'https://lojxlab.com/blog/sandsea-conquest-full-guide-2026-hidden-mechanics-best-strategy-tactician-system-winning-tips/' },
           { title: 'Discord officiel — Lands of Jail : guide maître de Sandsea', url: 'https://discord.com/invite/lands-of-jail' },
 
           { title: 'LOJ364 — Bibliothèque de tutoriels communautaires', url: 'https://www.loj364.online/tutorials.html' },        ],
@@ -1523,6 +1527,8 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
         gold_hunter: [
           { title: 'LOJ Wiki — Chasseur d’or : trésors et équipement', url: 'https://lojwiki.com/guides/gold-hunter/' },
           { title: 'LOJ XLab — Gold Hunter : troves et règle des 20/10 minutes', url: 'https://lojxlab.com/blog/lands-of-jail-gold-hunter-guide/' },
+          { title: 'YouTube — Gold Hunter : gameplay et stratégie de classement', url: 'https://www.youtube.com/watch?v=_YSEVu5j4SY' },
+          { title: 'YouTube — Retour sur Gold Hunter : équipement Jungle et téléportations', url: 'https://www.youtube.com/watch?v=cD0b4wVffMA' },
           { title: 'LOJ364 — Bibliothèque de tutoriels communautaires', url: 'https://www.loj364.online/tutorials.html' },
         ],
       };
