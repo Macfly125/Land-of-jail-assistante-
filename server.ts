@@ -168,7 +168,7 @@ CONSIGNE PRIORITAIRE — ÉCRAN DES ROBOTS :
 - Si un champ n'apparaît pas sur la capture, ne l'invente pas : laisse-le vide et signale-le dans "champsIncertains" uniquement si cette capture devait permettre de le lire.
 - Si la capture montre un robot mais que son identité est illisible, retourne une entrée avec nom="Robot non identifié" et incertain=true plutôt que d'inventer son nom.
 RÈGLES GÉNÉRALES :
-1. Identifie le type d'écran : "profil", "heros", "robots", "ressources", "trial_cage", "crystal_clash", ou "autre".
+1. Identifie le type d'écran : profil, heros, robots, ressources, trial_cage, crystal_clash, sandsea_conquest, svs, turmoil_surge, gold_hunter ou autre.
 2. Extrais la puissance du compte, niveau QG/Prison et VIP uniquement s'ils sont visibles.
 3. Extrais les ressources visibles avec leur quantité exacte.
 4. Pour chaque héros visible, renseigne nom, niveau exact, rareté, étoiles, rôle affiché/identifiable, puissance individuelle et toutes les compétences dont le niveau est réellement visible.
@@ -197,7 +197,7 @@ RÈGLES GÉNÉRALES :
               typeCapture: {
                 type: Type.STRING,
                 description:
-                  'Un parmi: profil, heros, robots, ressources, trial_cage, crystal_clash, autre',
+                  'Un parmi: profil, heros, robots, ressources, trial_cage, crystal_clash, sandsea_conquest, svs, turmoil_surge, gold_hunter, autre',
               },
               resumeCapture: {
                 type: Type.STRING,
