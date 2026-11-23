@@ -189,6 +189,17 @@ export default function App() {
             etoiles?: string;
             roleHero?: string;
             puissanceHero?: string;
+            champsIncertains?: string[];
+            imageUrl?: string;
+            avatarUrl?: string;
+            titre?: string;
+            typeTroupe?: string;
+            categorie?: string;
+            saison?: string;
+            puissanceMax5Etoiles?: string;
+            resumeBio?: string;
+            idealPour?: string;
+            wikiUrl?: string;
             incertain: boolean;
             raisonIncertitude?: string;
             competences?: Array<{
@@ -272,6 +283,17 @@ export default function App() {
           etoiles: h.etoiles || undefined,
           roleHero: h.roleHero || undefined,
           puissanceHero: h.puissanceHero || undefined,
+          champsIncertains: h.champsIncertains || [],
+          imageUrl: h.imageUrl || undefined,
+          avatarUrl: h.avatarUrl || undefined,
+          titre: h.titre || undefined,
+          typeTroupe: h.typeTroupe || undefined,
+          categorie: h.categorie || undefined,
+          saison: h.saison || undefined,
+          puissanceMax5Etoiles: h.puissanceMax5Etoiles || undefined,
+          resumeBio: h.resumeBio || undefined,
+          idealPour: h.idealPour || undefined,
+          wikiUrl: h.wikiUrl || undefined,
           incertain: Boolean(h.incertain),
           raisonIncertitude: h.raisonIncertitude || undefined,
           derniereMaj: analyzedAt,
