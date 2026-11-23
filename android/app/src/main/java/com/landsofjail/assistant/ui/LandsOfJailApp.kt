@@ -493,6 +493,23 @@ fun LandsOfJailAssistantApp(
             if (event == Lifecycle.Event.ON_RESUME) {
                 hasUsagePermission = UsageStatsDetector.hasUsageStatsPermission(context)
                 hasOverlayPermission = Settings.canDrawOverlays(context)
+
+                // Recheck the game intelligence after six hours when the app returns to foreground.
+                val lastCheckedAt = gameIntel?.checkedAt?.let {
+                    runCatching { Instant.parse(it).toEpochMilli() }.getOrNull()
+                } ?: 0L
+                if (gameIntel != null && !gameIntelLoading &&
+                    System.currentTimeMillis() - lastCheckedAt >= 6 * 60 * 60 * 1000L
+                ) {
+                    scope.launch {
+                        gameIntelLoading = true
+                        gameIntelError = null
+                        repository.fetchGameIntel()
+                            .onSuccess { gameIntel = it }
+                            .onFailure { gameIntelError = it.message ?: "Veille indisponible." }
+                        gameIntelLoading = false
+                    }
+                }
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
