@@ -270,6 +270,88 @@ fun LandsOfJailAssistantApp(
         }.getOrNull())
     }
 
+    var localProfiles by remember {
+        mutableStateOf(runCatching {
+            accountJson.decodeFromString<List<LocalGameAccountProfile>>(
+                accountPrefs.getString("local_game_profiles_v1", "[]") ?: "[]"
+            )
+        }.getOrDefault(emptyList()))
+    }
+    var activeProfileId by remember {
+        mutableStateOf(accountPrefs.getString("active_game_profile_v1", null).orEmpty())
+    }
+    var showProfileDialog by remember { mutableStateOf(false) }
+
+    fun currentProfileSnapshot() = LocalGameProfileSnapshot(
+        allianceWorkspace = allianceWorkspace,
+        analyses = analyses.take(50),
+        heroes = heroes,
+        resources = resources,
+        currentPower = currentPower
+    )
+
+    fun saveActiveProfile() {
+        if (activeProfileId.isBlank()) return
+        val snapshotJson = accountJson.encodeToString(currentProfileSnapshot())
+        localProfiles = localProfiles.map { profile ->
+            if (profile.id == activeProfileId) profile.copy(
+                stateJson = snapshotJson,
+                updatedAtIso = Instant.now().toString()
+            ) else profile
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        if (localProfiles.isEmpty()) {
+            // One-time, additive migration: copy the existing account data into profile 1.
+            // Legacy keys remain untouched as a recovery copy.
+            val id = UUID.randomUUID().toString()
+            val first = LocalGameAccountProfile(
+                id = id,
+                name = "Profil 1",
+                stateJson = accountJson.encodeToString(currentProfileSnapshot()),
+                updatedAtIso = Instant.now().toString()
+            )
+            localProfiles = listOf(first)
+            activeProfileId = id
+            accountPrefs.edit()
+                .putString("local_game_profiles_v1", accountJson.encodeToString(listOf(first)))
+                .putString("active_game_profile_v1", id)
+                .putBoolean("local_game_profiles_migrated_v1", true)
+                .commit()
+        } else {
+            val selected = localProfiles.firstOrNull { it.id == activeProfileId }
+                ?: localProfiles.first()
+            activeProfileId = selected.id
+            runCatching {
+                val snapshot = accountJson.decodeFromString<LocalGameProfileSnapshot>(selected.stateJson)
+                allianceWorkspace = snapshot.allianceWorkspace
+                analyses = snapshot.analyses
+                heroes = snapshot.heroes
+                resources = snapshot.resources
+                currentPower = snapshot.currentPower
+            }
+            accountPrefs.edit().putString("active_game_profile_v1", selected.id).commit()
+        }
+        accountDataLoaded = true
+    }
+
+    LaunchedEffect(allianceWorkspace, analyses, heroes, resources, currentPower, activeProfileId, accountDataLoaded) {
+        if (accountDataLoaded && activeProfileId.isNotBlank()) {
+            val snapshotJson = accountJson.encodeToString(currentProfileSnapshot())
+            localProfiles = localProfiles.map { profile ->
+                if (profile.id == activeProfileId && profile.stateJson != snapshotJson) profile.copy(
+                    stateJson = snapshotJson,
+                    updatedAtIso = Instant.now().toString()
+                ) else profile
+            }
+            accountPrefs.edit()
+                .putString("local_game_profiles_v1", accountJson.encodeToString(localProfiles))
+                .putString("active_game_profile_v1", activeProfileId)
+                .commit()
+        }
+    }
+
     LaunchedEffect(allianceWorkspace) {
         accountPrefs.edit()
             .putString("alliance_workspace", accountJson.encodeToString(allianceWorkspace))
@@ -650,7 +732,71 @@ fun LandsOfJailAssistantApp(
             large = RoundedCornerShape(4.dp)
         )
     ) {
-        Scaffold(
+        if (showProfileDialog) {
+        AlertDialog(
+            onDismissRequest = { showProfileDialog = false },
+            title = { Text("Profils Land of Jail") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Chaque profil conserve ses propres héros, ressources, puissance et historique.")
+                    localProfiles.forEach { profile ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                profile.name,
+                                modifier = Modifier.weight(1f),
+                                fontWeight = if (profile.id == activeProfileId) FontWeight.Bold else FontWeight.Normal
+                            )
+                            TextButton(onClick = {
+                                if (profile.id != activeProfileId) {
+                                    saveActiveProfile()
+                                    runCatching {
+                                        val snapshot = accountJson.decodeFromString<LocalGameProfileSnapshot>(profile.stateJson)
+                                        allianceWorkspace = snapshot.allianceWorkspace
+                                        analyses = snapshot.analyses
+                                        heroes = snapshot.heroes
+                                        resources = snapshot.resources
+                                        currentPower = snapshot.currentPower
+                                        activeProfileId = profile.id
+                                        accountPrefs.edit().putString("active_game_profile_v1", profile.id).commit()
+                                    }.onFailure { errorMessage = "Impossible d'ouvrir ce profil : ${it.message}" }
+                                }
+                                showProfileDialog = false
+                            }) { Text(if (profile.id == activeProfileId) "Actif" else "Ouvrir") }
+                        }
+                    }
+                    TextButton(
+                        onClick = {
+                            saveActiveProfile()
+                            val id = UUID.randomUUID().toString()
+                            val number = localProfiles.size + 1
+                            val fresh = LocalGameAccountProfile(
+                                id = id,
+                                name = "Profil $number",
+                                stateJson = accountJson.encodeToString(LocalGameProfileSnapshot()),
+                                updatedAtIso = Instant.now().toString()
+                            )
+                            localProfiles = localProfiles + fresh
+                            activeProfileId = id
+                            allianceWorkspace = AllianceWorkspace()
+                            analyses = emptyList()
+                            heroes = emptyList()
+                            resources = emptyList()
+                            currentPower = null
+                            accountPrefs.edit().putString("active_game_profile_v1", id).commit()
+                            showProfileDialog = false
+                        }
+                    ) { Text("+ Ajouter un profil") }
+                }
+            },
+            confirmButton = { TextButton(onClick = { showProfileDialog = false }) { Text("Fermer") } }
+        )
+    }
+
+    Scaffold(
             containerColor = Color(0xFF080A0F),
             snackbarHost = { SnackbarHost(snackbarHostState) },
             topBar = {
@@ -679,6 +825,14 @@ fun LandsOfJailAssistantApp(
                         }
                     },
                     actions = {
+                        TextButton(onClick = { showProfileDialog = true }) {
+                            Text(
+                                localProfiles.firstOrNull { it.id == activeProfileId }?.name ?: "Profil",
+                                maxLines = 1,
+                                fontSize = 11.sp,
+                                color = Color(0xFFFFC18A)
+                            )
+                        }
                         FilledTonalButton(
                             onClick = {
                                 context.startActivity(
