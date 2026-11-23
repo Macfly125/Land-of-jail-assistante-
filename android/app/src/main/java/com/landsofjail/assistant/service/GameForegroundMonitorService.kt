@@ -119,9 +119,14 @@ class GameForegroundMonitorService : Service() {
 
         fun notifyAutoCaptureConsumed(context: Context) {
             if (!_isAutoCapturing.value) return
-            context.startService(Intent(context, GameForegroundMonitorService::class.java).apply {
+            val intent = Intent(context, GameForegroundMonitorService::class.java).apply {
                 action = ACTION_AUTO_CAPTURE_CONSUMED
-            })
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(intent)
+            } else {
+                context.startService(intent)
+            }
         }
 
         fun runSingleCapture(context: Context, resultCode: Int, resultData: Intent) {
@@ -495,12 +500,12 @@ class GameForegroundMonitorService : Service() {
     }
 
     private fun hasMeaningfulScreenChange(bitmap: Bitmap): Boolean {
-        val samples = IntArray(64)
+        val samples = IntArray(144)
         var index = 0
-        for (row in 0 until 8) {
-            for (column in 0 until 8) {
-                val x = (column * bitmap.width / 8).coerceIn(0, bitmap.width - 1)
-                val y = (row * bitmap.height / 8).coerceIn(0, bitmap.height - 1)
+        for (row in 0 until 12) {
+            for (column in 0 until 12) {
+                val x = (column * bitmap.width / 12).coerceIn(0, bitmap.width - 1)
+                val y = (row * bitmap.height / 12).coerceIn(0, bitmap.height - 1)
                 val pixel = bitmap.getPixel(x, y)
                 val red = (pixel shr 16) and 0xFF
                 val green = (pixel shr 8) and 0xFF
@@ -515,7 +520,7 @@ class GameForegroundMonitorService : Service() {
         for (i in samples.indices) {
             if (kotlin.math.abs(samples[i] - previous[i]) >= 22) changed++
         }
-        return changed >= 3
+        return changed >= 4
     }
 
     private fun handleAutoProjectionStopped() {
