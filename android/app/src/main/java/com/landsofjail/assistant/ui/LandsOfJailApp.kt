@@ -872,10 +872,6 @@ fun LandsOfJailAssistantApp(
                                 scope.launch {
                                     isProfileSyncing = true
                                     try {
-                                        // Keep a recoverable local copy before any cloud merge.
-                                        accountPrefs.edit()
-                                            .putString("local_game_profiles_backup_v1", accountJson.encodeToString(localProfiles))
-                                            .commit()
                                         val localWithRoutine = localProfiles.map { profile ->
                                             val snapshot = runCatching {
                                                 accountJson.decodeFromString<LocalGameProfileSnapshot>(profile.stateJson)
@@ -892,6 +888,10 @@ fun LandsOfJailAssistantApp(
                                                     ?: profile.updatedAtIso
                                             )
                                         }
+                                        // Keep a recoverable local copy, including each profile's current routine timers.
+                                        accountPrefs.edit()
+                                            .putString("local_game_profiles_backup_v1", accountJson.encodeToString(localWithRoutine))
+                                            .commit()
                                         val remote = profileAuth.fetchGameAccountProfiles().getOrThrow()
                                         val remoteById = remote.associateBy { it.profileId }
                                         val merged = localWithRoutine.toMutableList()
