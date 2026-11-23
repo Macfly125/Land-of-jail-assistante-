@@ -289,6 +289,43 @@ fun LandsOfJailAssistantApp(
     var selectedAdviceMode by remember { mutableStateOf(AdviceMode.TRIAL_CAGE) }
     var adviceResult by remember { mutableStateOf<TacticalAdviceResult?>(null) }
 
+    fun readRoutineState(profileId: String): Map<String, String> {
+        val prefs = context.getSharedPreferences("offline_routine_" + profileId, Context.MODE_PRIVATE)
+        return prefs.all.mapNotNull { (key, value) ->
+            val encoded = when (value) {
+                is String -> "S|" + value
+                is Int -> "I|" + value
+                is Long -> "L|" + value
+                is Boolean -> "B|" + value
+                is Float -> "F|" + value
+                is Set<*> -> "SS|" + value.filterIsInstance<String>().joinToString("\u001F")
+                else -> null
+            }
+            encoded?.let { key to it }
+        }.toMap()
+    }
+
+    fun restoreRoutineState(profileId: String, state: Map<String, String>) {
+        val prefs = context.getSharedPreferences("offline_routine_" + profileId, Context.MODE_PRIVATE)
+        val editor = prefs.edit().clear()
+        state.forEach { (key, encoded) ->
+            val separator = encoded.indexOf('|')
+            if (separator > 0) {
+                val type = encoded.substring(0, separator)
+                val value = encoded.substring(separator + 1)
+                when (type) {
+                    "S" -> editor.putString(key, value)
+                    "I" -> value.toIntOrNull()?.let { editor.putInt(key, it) }
+                    "L" -> value.toLongOrNull()?.let { editor.putLong(key, it) }
+                    "B" -> editor.putBoolean(key, value.toBoolean())
+                    "F" -> value.toFloatOrNull()?.let { editor.putFloat(key, it) }
+                    "SS" -> editor.putStringSet(key, value.split("\u001F").filter { it.isNotEmpty() }.toSet())
+                }
+            }
+        }
+        editor.commit()
+    }
+
     fun currentProfileSnapshot() = LocalGameProfileSnapshot(
         allianceWorkspace = allianceWorkspace,
         analyses = analyses.take(50),
@@ -297,7 +334,8 @@ fun LandsOfJailAssistantApp(
         currentPower = currentPower,
         adviceMode = selectedAdviceMode.name,
         adviceResult = adviceResult,
-        playerRole = playerRole.name
+        playerRole = playerRole.name,
+        routineState = if (activeProfileId.isNotBlank()) readRoutineState(activeProfileId) else emptyMap()
     )
 
     fun saveActiveProfile() {
@@ -343,6 +381,7 @@ fun LandsOfJailAssistantApp(
                 selectedAdviceMode = runCatching { AdviceMode.valueOf(snapshot.adviceMode) }.getOrDefault(AdviceMode.TRIAL_CAGE)
                 adviceResult = snapshot.adviceResult
                 playerRole = runCatching { PlayerRole.valueOf(snapshot.playerRole) }.getOrDefault(PlayerRole.POLYVALENT_F2P)
+                restoreRoutineState(selected.id, snapshot.routineState)
             }
             accountPrefs.edit().putString("active_game_profile_v1", selected.id).commit()
         }
@@ -780,6 +819,8 @@ fun LandsOfJailAssistantApp(
                                             currentPower = snapshot.currentPower
                                             selectedAdviceMode = runCatching { AdviceMode.valueOf(snapshot.adviceMode) }.getOrDefault(AdviceMode.TRIAL_CAGE)
                                             adviceResult = snapshot.adviceResult
+                                            playerRole = runCatching { PlayerRole.valueOf(snapshot.playerRole) }.getOrDefault(PlayerRole.POLYVALENT_F2P)
+                                            restoreRoutineState(profile.id, snapshot.routineState)
                                             activeProfileId = profile.id
                                             accountPrefs.edit().putString("active_game_profile_v1", profile.id).commit()
                                         }.onFailure { errorMessage = "Impossible d'ouvrir ce profil : ${it.message}" }
@@ -835,9 +876,19 @@ fun LandsOfJailAssistantApp(
                                         accountPrefs.edit()
                                             .putString("local_game_profiles_backup_v1", accountJson.encodeToString(localProfiles))
                                             .commit()
+                                        val localWithRoutine = localProfiles.map { profile ->
+                                            val snapshot = runCatching {
+                                                accountJson.decodeFromString<LocalGameProfileSnapshot>(profile.stateJson)
+                                            }.getOrDefault(LocalGameProfileSnapshot())
+                                            profile.copy(
+                                                stateJson = accountJson.encodeToString(
+                                                    snapshot.copy(routineState = readRoutineState(profile.id))
+                                                )
+                                            )
+                                        }
                                         val remote = profileAuth.fetchGameAccountProfiles().getOrThrow()
                                         val remoteById = remote.associateBy { it.profileId }
-                                        val merged = localProfiles.toMutableList()
+                                        val merged = localWithRoutine.toMutableList()
                                         remote.forEach { cloud ->
                                             val index = merged.indexOfFirst { it.id == cloud.profileId }
                                             if (index < 0) {
@@ -884,6 +935,7 @@ fun LandsOfJailAssistantApp(
                                             selectedAdviceMode = runCatching { AdviceMode.valueOf(snapshot.adviceMode) }.getOrDefault(AdviceMode.TRIAL_CAGE)
                                             adviceResult = snapshot.adviceResult
                                             playerRole = runCatching { PlayerRole.valueOf(snapshot.playerRole) }.getOrDefault(PlayerRole.POLYVALENT_F2P)
+                                            restoreRoutineState(active.id, snapshot.routineState)
                                         }
                                         snackbarHostState.showSnackbar("Synchronisation terminée. Aucune sauvegarde distante n’a été supprimée.")
                                     } catch (error: Exception) {
@@ -947,6 +999,7 @@ fun LandsOfJailAssistantApp(
                                 selectedAdviceMode = runCatching { AdviceMode.valueOf(snapshot.adviceMode) }.getOrDefault(AdviceMode.TRIAL_CAGE)
                                 adviceResult = snapshot.adviceResult
                                 playerRole = runCatching { PlayerRole.valueOf(snapshot.playerRole) }.getOrDefault(PlayerRole.POLYVALENT_F2P)
+                                restoreRoutineState(next.id, snapshot.routineState)
                                 activeProfileId = next.id
                                 accountPrefs.edit().putString("active_game_profile_v1", next.id).commit()
                                 localProfiles = localProfiles.filterNot { it.id == target.id }
