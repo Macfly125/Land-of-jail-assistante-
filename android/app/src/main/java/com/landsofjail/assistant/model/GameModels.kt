@@ -295,6 +295,7 @@ data class ScreenshotAnalysis(
 
 @Serializable
 data class LocalGameProfileSnapshot(
+    val schemaVersion: Int? = null,
     val allianceWorkspace: AllianceWorkspace = AllianceWorkspace(),
     val analyses: List<ScreenshotAnalysis> = emptyList(),
     val heroes: List<HeroRecord> = emptyList(),
