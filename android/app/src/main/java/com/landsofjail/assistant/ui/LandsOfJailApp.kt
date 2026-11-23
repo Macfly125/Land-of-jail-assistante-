@@ -4482,6 +4482,13 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
                     color = Color(0xFFFBBF24), style = MaterialTheme.typography.bodySmall)
             } else {
                 if (allianceId.isBlank()) {
+                    OutlinedButton(
+                        onClick = {
+                            allianceId = prefs.getString("cloud_alliance_id", "").orEmpty()
+                        },
+                        enabled = !busy,
+                        modifier = Modifier.fillMaxWidth()
+                    ) { Text("Actualiser le lien cloud après connexion") }
                     Button(
                         onClick = {
                             scope.launch {
@@ -4517,6 +4524,24 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                        OutlinedButton(
+                            onClick = {
+                                scope.launch {
+                                    transferBusy = true
+                                    auth.fetchAllianceRoster(allianceId).onSuccess { roster ->
+                                        r4Members = roster.filter { it.rank == AllianceRank.R4 }
+                                        transferMessage = "Liste des R4 actualisée."
+                                        transferError = false
+                                    }.onFailure {
+                                        transferMessage = it.message ?: "Chargement des R4 impossible."
+                                        transferError = true
+                                    }
+                                    transferBusy = false
+                                }
+                            },
+                            enabled = !transferBusy,
+                            modifier = Modifier.fillMaxWidth()
+                        ) { Text("Actualiser la liste des R4") }
                         if (r4Members.isEmpty()) {
                             Text("Aucun membre R4 disponible dans la liste cloud.", style = MaterialTheme.typography.bodySmall)
                         } else {
