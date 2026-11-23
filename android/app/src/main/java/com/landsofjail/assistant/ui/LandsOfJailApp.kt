@@ -1701,7 +1701,7 @@ private fun DashboardScreen(
                         )
                     }
                     Text(
-                        "Contrôle automatique toutes les 6 h côté serveur. Les données personnelles du compte ne sont jamais remplacées.",
+                        "Résultats mis en cache pendant 6 h. Une nouvelle vérification démarre à l'ouverture après expiration ou avec « Actualiser ». Les données personnelles du compte ne sont jamais remplacées.",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
