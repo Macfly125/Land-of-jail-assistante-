@@ -3,6 +3,7 @@ package com.landsofjail.assistant.ui
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
+import android.util.Base64
 import android.net.Uri
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -43,6 +44,12 @@ import com.landsofjail.assistant.ocr.LandsOfJailOcrParser
 import com.landsofjail.assistant.service.GameForegroundMonitorService
 import com.landsofjail.assistant.service.UsageStatsDetector
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import androidx.work.Data
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import com.landsofjail.assistant.service.ScreenshotAnalysisWorker
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -626,161 +633,54 @@ fun LandsOfJailAssistantApp(
 
     fun enqueueUrisSequentially(uris: List<Uri>) {
         if (uris.isEmpty()) return
-        val baseIndex = analysisQueue.size
-        val added = uris.mapIndexed { idx, uri ->
-            AndroidQueuedUri(
-                id = "${System.currentTimeMillis()}-${baseIndex + idx}",
-                uri = uri,
-                label = uri.lastPathSegment ?: "Capture #${baseIndex + idx + 1}",
-                progress = 0,
-                status = "waiting"
-            )
-        }
-        analysisQueue = analysisQueue + added
-        if (isQueueRunning) return
-
+        errorMessage = null
         scope.launch {
-            isQueueRunning = true
-            isAnalyzing = true
-            errorMessage = null
-            try {
-                while (true) {
-                    val nextItem = analysisQueue.firstOrNull { it.status == "waiting" } ?: break
-                    analysisQueue = analysisQueue.map {
-                        if (it.id == nextItem.id) it.copy(status = "analyzing", progress = 15) else it
-                    }
-                    val result = runCatching {
-                        analyzeSingleUriInternal(nextItem.uri) { pct ->
-                            analysisQueue = analysisQueue.map {
-                                if (it.id == nextItem.id) it.copy(progress = pct) else it
-                            }
-                        }
-                    }
-                    result.onSuccess { analysis ->
-                        mergeNewAnalysis(analysis)
-                        analysisQueue = analysisQueue.map {
-                            if (it.id == nextItem.id) {
-                                it.copy(
-                                    status = "done",
-                                    progress = 100,
-                                    summary = analysis.resumeCapture
-                                )
-                            } else {
-                                it
-                            }
-                        }
-                    }.onFailure { err ->
-                        analysisQueue = analysisQueue.map {
-                            if (it.id == nextItem.id) {
-                                it.copy(
-                                    status = "error",
-                                    progress = 0,
-                                    summary = err.message ?: "Erreur"
-                                )
-                            } else {
-                                it
-                            }
-                        }
-                    }
+            val savedUris = withContext(Dispatchers.IO) {
+                uris.mapNotNull { sourceUri ->
+                    runCatching {
+                        val folder = java.io.File(context.filesDir, "background-captures").apply { mkdirs() }
+                        val destination = java.io.File(folder, "capture-${UUID.randomUUID()}.jpg")
+                        context.contentResolver.openInputStream(sourceUri)?.use { input ->
+                            destination.outputStream().use { output -> input.copyTo(output) }
+                        } ?: error("Impossible de lire la capture")
+                        Uri.fromFile(destination).toString()
+                    }.getOrNull()
                 }
-                val doneCount = analysisQueue.count { it.status == "done" }
-                if (doneCount > 0) {
-                    currentTab = AssistantTab.TABLEAU
-                    snackbarHostState.showSnackbar("File terminée (100 %) : $doneCount capture(s) analysée(s)")
-                }
-            } finally {
-                isQueueRunning = false
-                isAnalyzing = false
             }
+            if (savedUris.isEmpty()) {
+                snackbarHostState.showSnackbar("Aucune capture n'a pu être importée.")
+                return@launch
+            }
+            val input = Data.Builder()
+                .putStringArray(ScreenshotAnalysisWorker.KEY_URIS, savedUris.toTypedArray())
+                .putString(ScreenshotAnalysisWorker.KEY_PLAYER_ROLE, playerRole.name)
+                .build()
+            val request = OneTimeWorkRequestBuilder<ScreenshotAnalysisWorker>()
+                .setInputData(input)
+                .build()
+            WorkManager.getInstance(context).enqueue(request)
+            snackbarHostState.showSnackbar(
+                "${savedUris.size} capture(s) envoyée(s) en arrière-plan. Tu recevras une notification à la fin."
+            )
         }
     }
 
     LaunchedEffect(capturedScreenPayload) {
-        if (capturedScreenPayload != null) {
-            isAnalyzing = true
-            singleAnalysisPercent = 20
-            errorMessage = null
-            try {
-                val ocrRaw = runCatching {
-                    LandsOfJailOcrParser.recognizeBitmap(capturedScreenPayload.bitmap)
-                }.getOrDefault("")
-                singleAnalysisPercent = 50
-                val localExtraction = LandsOfJailOcrParser.parseLocalOcrText(ocrRaw)
-                updateProgressFromCapture(ocrRaw)
-                val localImageUri = capturedScreenPayload.imageFileUri
-
-                val result = runCatching {
-                    repository.analyzeBase64Screenshot(
-                        imageBase64 = capturedScreenPayload.base64Jpeg,
-                        mimeType = "image/jpeg",
-                        imageLabel = localImageUri.ifBlank { "capture-ecran-autorisee.jpg" },
-                        playerRole = playerRole,
-                        note = "OCR local : ${ocrRaw.take(400)}"
-                    ).let { remote ->
-                        remote.copy(
-                            puissance = remote.puissance?.takeIf { it.puissanceTotaleTexte.isNotBlank() }
-                                ?: localExtraction.power,
-                            ressources = mergeResourceRecords(remote.ressources, localExtraction.resources),
-                            heros = mergeHeroRecords(remote.heros, localExtraction.heroes),
-                            champsIncertains = (remote.champsIncertains + localExtraction.uncertainItems)
-                                .distinctBy { normalizedKey(it.champ) + normalizedKey(it.valeurObservee) }
-                        )
-                    }
-                }.getOrElse {
-                    val foundParts = buildList {
-                        localExtraction.power?.let { add("Puissance : ${it.puissanceTotaleTexte}") }
-                        if (localExtraction.heroes.isNotEmpty()) {
-                            add("${localExtraction.heroes.size} héros (${localExtraction.heroes.take(3).joinToString { it.nom }})")
-                        }
-                        if (localExtraction.resources.isNotEmpty()) {
-                            add("${localExtraction.resources.size} ressource(s)")
-                        }
-                    }
-                    val summaryLine = if (foundParts.isNotEmpty()) {
-                        "${foundParts.joinToString(" · ")} — ${localExtraction.ocrSnippet}"
-                    } else {
-                        "Capture enregistrée · OCR : ${localExtraction.ocrSnippet}"
-                    }
-                    ScreenshotAnalysis(
-                        id = UUID.randomUUID().toString(),
-                        analyzedAtIso = Instant.now().toString(),
-                        imageUriString = localImageUri,
-                        typeCapture = localExtraction.detectedCategory,
-                        resumeCapture = summaryLine,
-                        puissance = localExtraction.power,
-                        ressources = localExtraction.resources,
-                        heros = localExtraction.heroes,
-                        champsIncertains = localExtraction.uncertainItems
-                    )
+        val payload = capturedScreenPayload
+        if (payload != null) {
+            val uri = withContext(Dispatchers.IO) {
+                val existing = payload.imageFileUri.takeIf { it.isNotBlank() }?.let(Uri::parse)
+                if (existing != null) {
+                    existing
+                } else {
+                    val folder = java.io.File(context.filesDir, "background-captures").apply { mkdirs() }
+                    val file = java.io.File(folder, "capture-${UUID.randomUUID()}.jpg")
+                    file.writeBytes(Base64.decode(payload.base64Jpeg, Base64.DEFAULT))
+                    Uri.fromFile(file)
                 }
-
-                singleAnalysisPercent = 100
-                mergeNewAnalysis(result)
-                AdviceMode.entries.firstOrNull { it.apiId == result.typeCapture }?.let {
-                    selectedAdviceMode = it
-                }
-
-                currentTab = AssistantTab.TABLEAU
-                snackbarHostState.showSnackbar(
-                    "Capture analysée 100 % (${result.heros.size} héros, ${result.ressources.size} ressource(s))"
-                )
-
-                isFetchingAdvice = true
-                repository.fetchTacticalAdvice(
-                    mode = selectedAdviceMode,
-                    language = currentLang,
-                    playerRole = playerRole,
-                    heroes = heroes,
-                    powerText = currentPower?.puissanceTotaleTexte
-                ).onSuccess { adviceResult = it }
-                isFetchingAdvice = false
-            } catch (e: Throwable) {
-                errorMessage = e.message ?: "Erreur pendant l'analyse OCR."
-            } finally {
-                onConsumeCapturedScreen()
-                isAnalyzing = false
-                singleAnalysisPercent = 0
             }
+            enqueueUrisSequentially(listOf(uri))
+            onConsumeCapturedScreen()
         }
     }
 
