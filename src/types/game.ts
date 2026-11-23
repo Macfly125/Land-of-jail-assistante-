@@ -204,6 +204,21 @@ export interface ResourceRecord {
   derniereMaj: string;
 }
 
+export interface RobotRecord {
+  id: string;
+  nom: string;
+  niveau?: string;
+  rarete?: string;
+  bonus?: string;
+  competences?: string;
+  puissance?: string;
+  champsIncertains?: string[];
+  incertain: boolean;
+  raisonIncertitude?: string;
+  source?: string;
+  derniereMaj: string;
+}
+
 export interface PowerMetric {
   puissanceTotaleTexte: string;
   puissanceTotaleNumerique: number | null;
@@ -229,6 +244,7 @@ export interface ScreenshotAnalysis {
   puissance: PowerMetric | null;
   ressources: ResourceRecord[];
   heros: HeroRecord[];
+  robots: RobotRecord[];
   champsIncertains: UncertainItem[];
   noteUtilisateur?: string;
 }
@@ -291,6 +307,7 @@ export interface AccountState {
   }>;
   heroes: HeroRecord[];
   resources: ResourceRecord[];
+  robots: RobotRecord[];
   analyses: ScreenshotAnalysis[];
   adviceByMode: Partial<Record<AdviceMode, TacticalAdviceResult>>;
 }

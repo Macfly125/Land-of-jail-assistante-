@@ -313,6 +313,74 @@ RÈGLES GÉNÉRALES :
       const rawText = (response.text ?? '{}').trim();
       const parsed = JSON.parse(rawText);
 
+      // Filet de sécurité : une capture classée "autre" mérite une seconde lecture.
+      // Un seul appel transversal, uniquement si la classification ou l'extraction
+      // initiale est insuffisante, pour préserver la rapidité des captures normales.
+      const fallbackNeeded = parsed.typeCapture === 'autre' ||
+        (parsed.typeCapture === 'ressources' && !parsed.ressources?.length) ||
+        (parsed.typeCapture === 'heros' && !parsed.heros?.length) ||
+        (parsed.typeCapture === 'robots' && !parsed.robots?.length);
+      if (fallbackNeeded) {
+        try {
+          const fallback = await ai.models.generateContent({
+            model: 'gemini-4-hydrogen',
+            contents: { parts: [
+              { inlineData: { mimeType, data: imageBase64 } },
+              { text: `SECONDE LECTURE DE RATTRAPAGE. Ignore la première classification et inspecte toute l'image.
+Détecte les fiches/listes de héros et lis chaque portrait séparément; détecte les robots, leur niveau, rareté, puissance, bonus et compétences; détecte les compteurs de ressources représentés par texte ou icônes.
+Identifie aussi les événements trial_cage, crystal_clash, sandsea_conquest, svs, turmoil_surge et gold_hunter. Autres catégories possibles : profil, heros, robots, ressources, autre.
+N'invente aucune valeur. Laisse vide ce qui est illisible et signale l'incertitude. Ne confonds pas stocks, coûts et récompenses.
+Retourne un JSON avec typeCapture, resumeCapture, heros, robots et ressources.` }
+            ] },
+            config: {
+              responseMimeType: 'application/json',
+              responseSchema: {
+                type: Type.OBJECT,
+                properties: {
+                  typeCapture: { type: Type.STRING }, resumeCapture: { type: Type.STRING },
+                  ressources: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: {
+                    nom: { type: Type.STRING }, quantiteTexte: { type: Type.STRING }, quantiteNumerique: { type: Type.NUMBER },
+                    unite: { type: Type.STRING }, incertain: { type: Type.BOOLEAN }, raisonIncertitude: { type: Type.STRING }
+                  }, required: ['nom', 'quantiteTexte', 'incertain'] } },
+                  heros: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: {
+                    nom: { type: Type.STRING }, niveau: { type: Type.NUMBER }, niveauTexte: { type: Type.STRING },
+                    rarete: { type: Type.STRING }, etoiles: { type: Type.STRING }, roleHero: { type: Type.STRING },
+                    puissanceHero: { type: Type.STRING }, champsIncertains: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    incertain: { type: Type.BOOLEAN }, raisonIncertitude: { type: Type.STRING },
+                    competences: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: {
+                      nom: { type: Type.STRING }, niveau: { type: Type.STRING }, type: { type: Type.STRING },
+                      description: { type: Type.STRING }, incertain: { type: Type.BOOLEAN }, raisonIncertitude: { type: Type.STRING }
+                    }, required: ['nom', 'niveau', 'incertain'] } }
+                  }, required: ['nom', 'niveauTexte', 'incertain', 'competences'] } },
+                  robots: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: {
+                    nom: { type: Type.STRING }, niveau: { type: Type.STRING }, rarete: { type: Type.STRING },
+                    bonus: { type: Type.STRING }, competences: { type: Type.STRING }, puissance: { type: Type.STRING },
+                    champsIncertains: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    incertain: { type: Type.BOOLEAN }, raisonIncertitude: { type: Type.STRING }
+                  }, required: ['nom', 'incertain'] } }
+                },
+                required: ['typeCapture', 'ressources', 'heros', 'robots']
+              }
+            }
+          });
+          const recovered = JSON.parse((fallback.text ?? '{}').trim());
+          for (const key of ['ressources', 'heros', 'robots']) {
+            if (Array.isArray(recovered[key]) && recovered[key].length) parsed[key] = recovered[key];
+          }
+          const recoveredType = String(recovered.typeCapture || '');
+          const allowed = ['profil', 'heros', 'robots', 'ressources', 'trial_cage', 'crystal_clash', 'sandsea_conquest', 'svs', 'turmoil_surge', 'gold_hunter'];
+          if (parsed.typeCapture === 'autre') {
+            if (parsed.robots?.length) parsed.typeCapture = 'robots';
+            else if (parsed.heros?.length) parsed.typeCapture = 'heros';
+            else if (parsed.ressources?.length) parsed.typeCapture = 'ressources';
+            else if (allowed.includes(recoveredType)) parsed.typeCapture = recoveredType;
+          }
+          if (recovered.resumeCapture) parsed.resumeCapture = [String(parsed.resumeCapture || ''), String(recovered.resumeCapture)].filter(Boolean).join(' ');
+        } catch (fallbackError) {
+          console.warn('Seconde lecture de rattrapage ignorée :', fallbackError);
+        }
+      }
+
       // Deuxième passe dédiée aux ressources : la première analyse peut reconnaître
       // l'écran sans extraire les compteurs. On relit alors l'image originale avec
       // un schéma isolé pour éviter que les héros/profil prennent la priorité.

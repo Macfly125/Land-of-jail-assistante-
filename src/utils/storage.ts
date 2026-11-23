@@ -4,6 +4,7 @@ import {
   HeroRecord,
   PlayerRole,
   ResourceRecord,
+  RobotRecord,
   ScreenshotAnalysis,
   TacticalAdviceResult,
   AdviceMode,
@@ -18,6 +19,7 @@ export const DEFAULT_ACCOUNT_STATE: AccountState = {
   powerHistory: [],
   heroes: [],
   resources: [],
+  robots: [],
   analyses: [],
   adviceByMode: {},
 };
@@ -34,6 +36,7 @@ export function loadAccountState(): AccountState {
       powerHistory: Array.isArray(parsed.powerHistory) ? parsed.powerHistory : [],
       heroes: Array.isArray(parsed.heroes) ? parsed.heroes : [],
       resources: Array.isArray(parsed.resources) ? parsed.resources : [],
+      robots: Array.isArray(parsed.robots) ? parsed.robots : [],
       analyses: Array.isArray(parsed.analyses) ? parsed.analyses : [],
       adviceByMode: parsed.adviceByMode ?? {},
     };
@@ -132,7 +135,29 @@ export function mergeAnalysisIntoState(
     });
   }
 
-  // 3. Merge heroes & skills by normalized name
+  // 3. Merge robots by normalized name. Partial/uncertain OCR cannot erase
+  // previously captured values.
+  const robotMap = new Map<string, RobotRecord>();
+  for (const robot of prev.robots || []) robotMap.set(normalizeKey(robot.nom), robot);
+  for (const incoming of analysis.robots || []) {
+    const key = normalizeKey(incoming.nom);
+    if (!key) continue;
+    const existing = robotMap.get(key);
+    if (!existing) { robotMap.set(key, incoming); continue; }
+    const uncertain = new Set(incoming.champsIncertains || []);
+    const merged = { ...existing };
+    for (const field of ['niveau', 'rarete', 'bonus', 'competences', 'puissance'] as const) {
+      const value = incoming[field];
+      if (value !== undefined && value !== '' && (!incoming.incertain || !uncertain.has(field))) merged[field] = value;
+    }
+    merged.champsIncertains = incoming.champsIncertains || existing.champsIncertains;
+    merged.incertain = incoming.incertain;
+    merged.raisonIncertitude = incoming.raisonIncertitude;
+    merged.derniereMaj = analysis.analyzedAt;
+    robotMap.set(key, merged);
+  }
+
+  // 4. Merge heroes & skills by normalized name
   const heroMap = new Map<string, HeroRecord>();
   for (const h of prev.heroes) {
     heroMap.set(normalizeKey(h.nom), h);
@@ -230,6 +255,7 @@ export function mergeAnalysisIntoState(
     powerHistory: nextPowerHistory.slice(-30),
     resources: Array.from(resourceMap.values()),
     heroes: Array.from(heroMap.values()),
+    robots: Array.from(robotMap.values()),
     analyses: [analysis, ...prev.analyses].slice(0, 50),
   };
 }

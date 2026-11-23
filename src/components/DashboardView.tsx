@@ -421,6 +421,28 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </section>
 
+      {state.robots.length > 0 && (
+        <section className="p-6 rounded-2xl bg-[#121826] border border-slate-800/90 space-y-3">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-base font-semibold text-slate-100">Robots détectés</h2>
+            <span className="text-xs text-slate-400">{state.robots.length} enregistré(s)</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {state.robots.map((robot) => (
+              <div key={robot.id} className="p-3 rounded-xl bg-slate-900/70 border border-slate-800">
+                <div className="text-sm font-semibold text-slate-100">{robot.nom}</div>
+                <div className="mt-1 text-xs text-slate-400">
+                  {[robot.niveau && `Niv. ${robot.niveau}`, robot.rarete, robot.puissance && `Puissance ${robot.puissance}`].filter(Boolean).join(' · ') || 'Données partielles'}
+                </div>
+                {robot.bonus && <p className="mt-2 text-xs text-slate-300">{robot.bonus}</p>}
+                {robot.competences && <p className="mt-1 text-xs text-slate-400">{robot.competences}</p>}
+                {robot.incertain && <div className="mt-2 text-[11px] text-amber-300">Certaines données restent à vérifier</div>}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Alerte champs incertains */}
       {totalUncertainCount > 0 && (
         <section className="p-5 rounded-2xl bg-amber-500/5 border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">

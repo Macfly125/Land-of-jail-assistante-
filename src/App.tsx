@@ -181,6 +181,11 @@ export default function App() {
             incertain: boolean;
             raisonIncertitude?: string;
           }>;
+          robots?: Array<{
+            nom: string; niveau?: string; rarete?: string; bonus?: string;
+            competences?: string; puissance?: string; champsIncertains?: string[];
+            incertain: boolean; raisonIncertitude?: string; source?: string;
+          }>;
           heros?: Array<{
             nom: string;
             niveau?: number;
@@ -302,9 +307,24 @@ export default function App() {
             nom: s.nom,
             niveau: s.niveau || 'Inconnu',
             description: s.description || undefined,
+            type: s.type || undefined,
             incertain: Boolean(s.incertain),
             raisonIncertitude: s.raisonIncertitude || undefined,
           })),
+        })),
+        robots: (raw.robots ?? []).map((robot, idx) => ({
+          id: `robot-${Date.now()}-${idx}`,
+          nom: robot.nom || 'Robot non identifié',
+          niveau: robot.niveau || undefined,
+          rarete: robot.rarete || undefined,
+          bonus: robot.bonus || undefined,
+          competences: robot.competences || undefined,
+          puissance: robot.puissance || undefined,
+          champsIncertains: robot.champsIncertains || [],
+          incertain: Boolean(robot.incertain),
+          raisonIncertitude: robot.raisonIncertitude || undefined,
+          source: robot.source || 'capture_ia',
+          derniereMaj: analyzedAt,
         })),
         champsIncertains: raw.champsIncertains ?? [],
         noteUtilisateur: payload.note,
