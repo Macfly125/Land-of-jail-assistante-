@@ -1,6 +1,11 @@
 name: Veille automatique Land of Jail
 
 on:
+  push:
+    branches:
+      - audit/ameliorations-android
+    paths:
+      - '.github/workflows/game-intel-monitor.yml'
   workflow_dispatch:
   schedule:
     # Vérification quotidienne, indépendante de l'ouverture de l'application.
