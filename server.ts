@@ -106,6 +106,17 @@ async function startServer() {
 
   app.use(express.json({ limit: '15mb' }));
 
+  // Health endpoints for Cloud Run startup/liveness checks and external diagnostics.
+  // Never expose credentials or API keys in the response.
+  app.get(['/healthz', '/api/health'], (_req, res) => {
+    res.status(200).json({
+      ok: true,
+      service: 'land-of-jail-assistant-api',
+      geminiConfigured: Boolean(process.env.GEMINI_API_KEY),
+      timestamp: new Date().toISOString(),
+    });
+  });
+
   app.get('/api/shared-capture/:token', (req, res) => {
     cleanupRelay();
     const entry = sharedCaptureRelay.get(req.params.token);
