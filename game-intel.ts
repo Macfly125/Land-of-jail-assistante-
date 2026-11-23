@@ -79,7 +79,7 @@ async function collectSources(): Promise<{ sources: IntelSource[]; gameVersion: 
     (async () => {
       const html = await fetchText('https://play.google.com/store/apps/details?id=com.justgame.jails&hl=en_US');
       const text = cleanText(html, 6500);
-      const versionMatch = html.match(/(?:Current Version|Version)[:\\s<]+([0-9]+\\.[0-9]+(?:\\.[0-9]+)?)/i);
+      const versionMatch = html.match(/(?:Current Version|Version)[:\s<]+([0-9]+\.[0-9]+(?:\.[0-9]+)?)/i);
       sources.push({
         name: 'Google Play — fiche officielle Android',
         url: 'https://play.google.com/store/apps/details?id=com.justgame.jails',
@@ -165,7 +165,7 @@ Les items restent des propositions et nécessitent toujours validation avant mod
     });
     const parsed = JSON.parse((response.text || '{"items":[]}').trim()) as { items?: Array<Record<string, unknown>> };
     const validCategories: IntelCategory[] = ['hero', 'robot', 'skill', 'event', 'building', 'equipment', 'balance', 'mechanic', 'other'];
-    items = (parsed.items || []).flatMap((raw, index) => {
+    items = (parsed.items || []).flatMap((raw) => {
       const sourceUrl = String(raw.sourceUrl || '');
       const source = available.find(candidate => candidate.url === sourceUrl);
       if (!source || !String(raw.title || '').trim()) return [];
