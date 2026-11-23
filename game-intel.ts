@@ -18,7 +18,7 @@ type IntelItem = {
   requiresReview: true;
 };
 type IntelSnapshot = {
-  status: 'up_to_date' | 'updates_found' | 'sources_unavailable';
+  status: 'up_to_date' | 'updates_found' | 'sources_unavailable' | 'analysis_unavailable';
   checkedAt: string;
   gameVersion: string | null;
   items: IntelItem[];
@@ -188,14 +188,16 @@ Les items restent des propositions et nécessitent toujours validation avant mod
   }
 
   return {
-    status: items.length ? 'updates_found' : 'up_to_date',
+    status: !apiKey ? 'analysis_unavailable' : items.length ? 'updates_found' : 'up_to_date',
     checkedAt,
     gameVersion,
     items,
     sources: sources.map(source => ({ name: source.name, url: source.url, authority: source.authority, checkedAt: source.checkedAt, available: source.content.length > 80 })),
-    message: items.length
-      ? items.length + ' nouveauté(s) ou changement(s) potentiel(s) détecté(s). Aucun catalogue personnel n’a été modifié automatiquement.'
-      : 'Aucun changement exploitable détecté dans les sources consultées. Les données de l’application restent inchangées.',
+    message: !apiKey
+      ? 'Sources récupérées, mais analyse IA indisponible : la clé GEMINI_API_KEY manque côté serveur. Aucun changement ne peut être confirmé et le catalogue reste inchangé.'
+      : items.length
+        ? items.length + ' nouveauté(s) ou changement(s) potentiel(s) détecté(s). Aucun catalogue personnel n’a été modifié automatiquement.'
+        : 'Analyse IA terminée : aucun changement exploitable détecté dans les sources consultées. Les données de l’application restent inchangées.',
   };
 }
 
