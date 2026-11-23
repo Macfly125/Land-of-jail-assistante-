@@ -1,6 +1,7 @@
 const SUPABASE_URL = 'https://cegtwxvidiiqgyfqzdix.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_bf7lfL-PK1g5Ct9eWfwrxQ_av8OC4hH';
 const SESSION_KEY = 'loj_supabase_session_v1';
+const USER_KEY = 'loj_supabase_user_v1';
 
 export interface CloudUser {
   id: string;
@@ -47,6 +48,20 @@ function saveSession(session: AuthSession): void {
 
 function clearSession(): void {
   localStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem(USER_KEY);
+}
+
+function saveUser(user: CloudUser): void {
+  localStorage.setItem(USER_KEY, JSON.stringify(user));
+}
+
+function readCachedUser(): CloudUser | null {
+  try {
+    const raw = localStorage.getItem(USER_KEY);
+    return raw ? (JSON.parse(raw) as CloudUser) : null;
+  } catch {
+    return null;
+  }
 }
 
 async function parseResponse<T>(response: Response): Promise<T> {
@@ -106,6 +121,7 @@ export async function signUpWithEmail(email: string, password: string): Promise<
 export async function signInWithEmail(email: string, password: string): Promise<CloudUser> {
   const data = await authRequest<AuthSession & { user: CloudUser }>('token?grant_type=password', { email, password });
   saveSession(data);
+  saveUser(data.user);
   return data.user;
 }
 
@@ -121,13 +137,15 @@ export async function getSignedInUser(): Promise<CloudUser | null> {
       },
     });
     if (!response.ok) {
-      clearSession();
-      return null;
+      if (response.status === 401) clearSession();
+      return readCachedUser();
     }
-    return (await response.json()) as CloudUser;
+    const user = (await response.json()) as CloudUser;
+    saveUser(user);
+    return user;
   } catch {
-    clearSession();
-    return null;
+    // Keep the last authenticated identity so the app remains usable offline.
+    return readCachedUser();
   }
 }
 
