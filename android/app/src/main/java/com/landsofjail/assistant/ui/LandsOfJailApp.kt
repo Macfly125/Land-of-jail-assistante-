@@ -1981,6 +1981,23 @@ private fun HeroesScreen(
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }
+                        if (hero.champsIncertains.isNotEmpty()) {
+                            val fieldLabels = hero.champsIncertains.map { field ->
+                                when (field.lowercase()) {
+                                    "niveau" -> "niveau"
+                                    "rarete" -> "rareté"
+                                    "etoiles" -> "étoiles"
+                                    "rolehero" -> "rôle"
+                                    "puissancehero" -> "puissance"
+                                    else -> field
+                                }
+                            }
+                            Text(
+                                "Champs précis à vérifier : ${fieldLabels.joinToString(" · ")}",
+                                color = Color(0xFFFBBF24),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
                         hero.competences.forEach { skill ->
                             Text(
                                 "• ${when (skill.type.lowercase()) { "war" -> "War"; "arrest" -> "Arrest"; "equipment" -> "Équipement"; else -> "Type à confirmer" }} — ${skill.nom} (${skill.niveau})${if (skill.incertain) " · Incertain" else ""}",
