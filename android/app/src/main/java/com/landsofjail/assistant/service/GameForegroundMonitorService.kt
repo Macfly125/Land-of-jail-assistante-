@@ -21,6 +21,7 @@ import android.media.projection.MediaProjectionManager
 import android.net.Uri
 import android.os.Build
 import android.os.Handler
+import android.os.HandlerThread
 import android.os.IBinder
 import android.os.Looper
 import android.provider.Settings
@@ -149,9 +150,10 @@ class GameForegroundMonitorService : Service() {
     private var alwaysShowFloating: Boolean = true
     private var lastKnownForegroundPkg: String? = null
     private var isCapturingNow: Boolean = false
-    private var autoCaptureIntervalMillis: Long = 10_000L
-    private var autoCaptureAwaitingAnalysis: Boolean = false
-    private var nextAutoCaptureAtMillis: Long = 0L
+    @Volatile private var autoCaptureIntervalMillis: Long = 10_000L
+    @Volatile private var autoCaptureAwaitingAnalysis: Boolean = false
+    @Volatile private var nextAutoCaptureAtMillis: Long = 0L
+    private var autoCaptureHandlerThread: HandlerThread? = null
     private var autoCaptureOwnsMonitor: Boolean = false
     private var lastAutoFrameSamples: IntArray? = null
 
@@ -443,6 +445,8 @@ class GameForegroundMonitorService : Service() {
             return
         }
 
+        val captureThread = HandlerThread("LojAutoCaptureFrames").apply { start() }
+        autoCaptureHandlerThread = captureThread
         reader.setOnImageAvailableListener({ imageReader ->
             val image = imageReader.acquireLatestImage() ?: return@setOnImageAvailableListener
             try {
@@ -496,7 +500,7 @@ class GameForegroundMonitorService : Service() {
             } finally {
                 image.close()
             }
-        }, mainHandler)
+        }, Handler(captureThread.looper))
     }
 
     private fun hasMeaningfulScreenChange(bitmap: Bitmap): Boolean {
@@ -599,21 +603,28 @@ class GameForegroundMonitorService : Service() {
 
     private fun releaseProjection() {
         val projectionToStop = mediaProjection
+        val displayToRelease = virtualDisplay
+        val readerToClose = imageReader
         mediaProjection = null
+        virtualDisplay = null
+        imageReader = null
         try {
-            virtualDisplay?.release()
+            displayToRelease?.release()
         } catch (_: Throwable) {
         }
         try {
-            imageReader?.close()
+            readerToClose?.close()
         } catch (_: Throwable) {
         }
+        try {
+            autoCaptureHandlerThread?.quitSafely()
+        } catch (_: Throwable) {
+        }
+        autoCaptureHandlerThread = null
         try {
             projectionToStop?.stop()
         } catch (_: Throwable) {
         }
-        virtualDisplay = null
-        imageReader = null
     }
 
     private fun startPollingUsageStats() {
