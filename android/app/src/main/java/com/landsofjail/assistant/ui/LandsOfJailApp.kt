@@ -4491,20 +4491,26 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
     val signedIn = auth.currentSession() != null
 
     LaunchedEffect(allianceId, signedIn) {
-        if (signedIn) {
-            auth.isAppDeveloper().onSuccess { isAppDeveloper = it }
+        val developer = if (signedIn) {
+            auth.isAppDeveloper().getOrDefault(false)
         } else {
-            isAppDeveloper = false
+            false
         }
+        isAppDeveloper = developer
         if (signedIn && allianceId.isNotBlank()) {
             auth.fetchMyAllianceRank(allianceId).onSuccess { currentRank ->
                 myCloudRank = currentRank.orEmpty()
-                if (currentRank == "R5" || (isAppDeveloper && currentRank == "R4")) {
+                if (currentRank == "R5" || (developer && currentRank == "R4")) {
                     auth.fetchAllianceRoster(allianceId).onSuccess { roster ->
                         r4Members = roster.filter { it.rank == AllianceRank.R4 }
                     }
+                } else {
+                    r4Members = emptyList()
                 }
             }
+        } else {
+            myCloudRank = ""
+            r4Members = emptyList()
         }
     }
 
