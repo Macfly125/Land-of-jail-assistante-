@@ -2072,21 +2072,27 @@ private fun ResourcesScreen(
                                 enabled = robotName.isNotBlank(),
                                 onClick = {
                                     val now = Instant.now().toString()
-                                    onSaveRobots(robots + RobotRecord(
-                                        id = UUID.randomUUID().toString(),
-                                        nom = robotName.trim(),
+                                    val normalizedName = robotName.trim()
+                                    val previous = robots.firstOrNull { it.nom.equals(normalizedName, ignoreCase = true) }
+                                    val updatedRobot = RobotRecord(
+                                        id = previous?.id ?: UUID.randomUUID().toString(),
+                                        nom = normalizedName,
                                         niveau = robotLevel.trim(),
                                         rarete = robotRarity.trim(),
                                         bonus = robotBonus.trim(),
                                         competences = robotSkills.trim(),
                                         puissance = robotPower.trim(),
+                                        incertain = false,
+                                        raisonIncertitude = null,
+                                        source = "saisie_manuel",
                                         updatedAtIso = now
-                                    ))
+                                    )
+                                    onSaveRobots(robots.filterNot { it.nom.equals(normalizedName, ignoreCase = true) } + updatedRobot)
                                     robotName = ""; robotLevel = ""; robotRarity = ""
                                     robotPower = ""; robotBonus = ""; robotSkills = ""
                                 },
                                 modifier = Modifier.fillMaxWidth()
-                            ) { Text("Ajouter le robot à ce profil") }
+                            ) { Text("Ajouter / mettre à jour le robot") }
                         }
                     }
                 }
