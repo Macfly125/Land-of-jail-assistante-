@@ -985,8 +985,17 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
       const modeName = modeNamesByLang[targetLang][mode];
       const robotRecommendations = (robots ?? []).flatMap((robot) => {
         const robotName = String(robot.nom || '').trim();
-        const effects = [robot.bonus, robot.competences].filter(Boolean).join(' ').trim();
-        if (!robotName || !effects) return [];
+        const uncertainFields = new Set(
+          (robot.champsIncertains ?? []).map((field: unknown) => String(field).trim().toLowerCase())
+        );
+        const legacyGlobalUncertainty = Boolean(robot.incertain) && uncertainFields.size === 0;
+        const effects = [
+          !uncertainFields.has('bonus') ? robot.bonus : '',
+          !uncertainFields.has('competences') ? robot.competences : '',
+        ].filter(Boolean).join(' ').trim();
+        const robotEffectsUncertain = legacyGlobalUncertainty ||
+          uncertainFields.has('bonus') || uncertainFields.has('competences');
+        if (!robotName || robotName.toLowerCase() === 'robot non identifié' || !effects) return [];
         const normalized = effects.toLocaleLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
         const cagePureDefense = /damage reduction|reduce.{0,20}damage taken|incoming damage|degats recus|degats subis|defense increase|increase.{0,15}defense|hp increase|health increase|soin|healing|shield|bouclier/.test(normalized);
         const cageOffense = /direct damage|deal.{0,15}damage|damage dealt|damage increase|increase.{0,20}damage|attack increase|increase.{0,15}attack|lethality|letalite|degats infliges|enemy defense reduction|reduce.{0,20}enemy.{0,10}defense|reduce.{0,20}defense|armor break/.test(normalized);
@@ -1000,7 +1009,11 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
         };
         const matches = eventSignals[mode].test(normalized) && !(mode === 'trial_cage' && cagePureDefense && !cageOffense);
         if (!matches) return [];
-        const progression = [robot.niveau ? 'niveau ' + robot.niveau : '', robot.rarete || '', robot.puissance ? 'puissance ' + robot.puissance : ''].filter(Boolean).join(' · ');
+        const progression = [
+          !uncertainFields.has('niveau') && robot.niveau ? 'niveau ' + robot.niveau : '',
+          !uncertainFields.has('rarete') ? robot.rarete || '' : '',
+          !uncertainFields.has('puissance') && robot.puissance ? 'puissance ' + robot.puissance : '',
+        ].filter(Boolean).join(' · ');
         const caution = mode === 'trial_cage'
           ? 'Signal offensif relevé pour la Cage; les bonus uniquement défensifs ne sont pas prioritaires pour le score de dégâts.'
           : 'Signal textuel pertinent pour cet événement; son effet réel dépend des règles et du mode de combat.';
@@ -1009,8 +1022,8 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
           detail: [progression, 'Bonus/compétences saisis : ' + effects, caution].filter(Boolean).join(' — '),
           herosCibles: [],
           incertain: true,
-          raisonIncertitude: robot.incertain
-            ? (robot.raisonIncertitude || 'La fiche du robot contient des champs signalés incertains; vérifie-les en jeu.')
+          raisonIncertitude: robotEffectsUncertain
+            ? (robot.raisonIncertitude || 'Les champs bonus/compétences du robot restent à vérifier; la recommandation est provisoire.')
             : 'Correspondance par mots-clés uniquement : ce n’est pas un classement de puissance ni une simulation de combat.',
           imageUrl: null,
         }];
