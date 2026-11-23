@@ -261,12 +261,24 @@ fun LandsOfJailAssistantApp(
     val lifecycleOwner = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    // Demande une authentification à chaque nouvelle ouverture de l’application.
-    // On efface uniquement le jeton local précédent afin que l’écran de connexion soit toujours présenté.
-    val authRepository = remember(context) {
-        SupabaseAuthRepository(context).also { it.clearLocalSession() }
+    // La session chiffrée est conservée sur l'appareil. Le refresh token Supabase
+    // renouvelle automatiquement le jeton d'accès (environ 1 h) sans redemander le mot de passe.
+    val authRepository = remember(context) { SupabaseAuthRepository(context) }
+    var authSession by remember { mutableStateOf(authRepository.currentSession()) }
+
+    LaunchedEffect(Unit) {
+        val savedSession = authRepository.currentSession()
+        if (savedSession != null) {
+            authSession = savedSession
+            authRepository.refreshSession()
+                .onSuccess { refreshed -> authSession = refreshed }
+                .onFailure {
+                    // Une panne réseau temporaire ne doit pas déconnecter l'utilisateur.
+                    // Un jeton révoqué/invalide est déjà effacé par refreshSession().
+                    if (authRepository.currentSession() == null) authSession = null
+                }
+        }
     }
-    var authSession by remember { mutableStateOf<SupabaseAuthRepository.Session?>(null) }
 
     var currentLang by remember { mutableStateOf(AppLanguage.FR) }
     var currentTab by remember { mutableStateOf(AssistantTab.TABLEAU) }
@@ -550,11 +562,9 @@ fun LandsOfJailAssistantApp(
                 // L'OCR local complète toujours l'analyse distante : le profil joueur
                 // affiche la puissance près de l'icône du poing, sans libellé textuel.
                 val mergedPower = remoteAnalysis.puissance ?: localExtraction.power
-                val mergedHeroes = if (remoteAnalysis.heros.isEmpty()) {
-                    localExtraction.heroes
-                } else {
-                    remoteAnalysis.heros
-                }
+                // Fusionner les deux lectures : la vision distante peut oublier un héros
+                // (ex. Ryuichi) que l'OCR local a pourtant reconnu sur la capture.
+                val mergedHeroes = mergeHeroRecords(remoteAnalysis.heros, localExtraction.heroes)
                 // Les valeurs locales du tableau « Ressources totales » priment
                 // sur les valeurs distantes si les deux lectures trouvent la même ressource.
                 val mergedResources = mergeResourceRecords(
