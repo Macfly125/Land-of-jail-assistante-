@@ -113,6 +113,7 @@ export async function signUpWithEmail(email: string, password: string): Promise<
   const data = await authRequest<AuthSession & { user?: CloudUser }>('signup', { email, password });
   if (data.access_token && data.refresh_token) {
     saveSession(data);
+    if (data.user) saveUser(data.user);
     return { session: data };
   }
   return { session: null };
