@@ -264,18 +264,22 @@ object LandsOfJailOcrParser {
             power = power?.copy(niveauPrisonOuQG = wardenLevel)
         }
 
+        val screenRecognition = ScreenRecognitionEngine.analyze(rawText)
         val detectedCategory = when {
-            lowerFull.contains("trial cage") || lowerFull.contains("cage") -> "trial_cage"
-            lowerFull.contains("crystal clash") || lowerFull.contains("ironhold") -> "crystal_clash"
-            lowerFull.contains("sandsea") || lowerFull.contains("conquête de sable") -> "sandsea_conquest"
-            lowerFull.contains("supreme honor") || lowerFull.contains("svs") -> "svs"
-            lowerFull.contains("turmoil") -> "turmoil_surge"
-            lowerFull.contains("gold hunter") -> "gold_hunter"
-            lowerFull.contains("robot") || lowerFull.contains("droid") -> "robots"
-            heroes.isNotEmpty() || lowerFull.contains("hero") || lowerFull.contains("héros") -> "heros"
-            resources.isNotEmpty() || lowerFull.contains("warehouse") || lowerFull.contains("entrepôt") -> "ressources"
+            screenRecognition.category != "ocr_local" -> screenRecognition.category
+            heroes.isNotEmpty() -> "heros"
+            resources.isNotEmpty() -> "ressources"
             power != null -> "profil"
             else -> "ocr_local"
+        }
+        if (screenRecognition.needsVisualConfirmation && screenRecognition.category != "ocr_local") {
+            uncertain.add(
+                UncertainItem(
+                    champ = "Type de capture",
+                    valeurObservee = detectedCategory,
+                    raison = "Classification OCR de confiance \${screenRecognition.confidence}; vérification visuelle recommandée."
+                )
+            )
         }
 
         if (lines.isEmpty()) {
