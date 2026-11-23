@@ -902,9 +902,13 @@ fun LandsOfJailAssistantApp(
                                     isProfileSyncing = true
                                     try {
                                         val localWithRoutine = localProfiles.map { profile ->
-                                            val snapshot = runCatching {
-                                                accountJson.decodeFromString<LocalGameProfileSnapshot>(profile.stateJson)
-                                            }.getOrDefault(LocalGameProfileSnapshot())
+                                            val snapshot = if (profile.id == activeProfileId) {
+                                                currentProfileSnapshot()
+                                            } else {
+                                                runCatching {
+                                                    accountJson.decodeFromString<LocalGameProfileSnapshot>(profile.stateJson)
+                                                }.getOrDefault(LocalGameProfileSnapshot())
+                                            }
                                             val routineState = readRoutineState(profile.id)
                                             val profileTime = runCatching { Instant.parse(profile.updatedAtIso) }.getOrNull()
                                             val routineTime = routineState["updated_at"]?.substringAfter("|")
@@ -913,8 +917,9 @@ fun LandsOfJailAssistantApp(
                                                 stateJson = accountJson.encodeToString(
                                                     snapshot.copy(routineState = routineState)
                                                 ),
-                                                updatedAtIso = listOfNotNull(profileTime, routineTime).maxOrNull()?.toString()
-                                                    ?: profile.updatedAtIso
+                                                updatedAtIso = if (profile.id == activeProfileId) Instant.now().toString()
+                                                    else listOfNotNull(profileTime, routineTime).maxOrNull()?.toString()
+                                                        ?: profile.updatedAtIso
                                             )
                                         }
                                         // Keep a recoverable local copy, including each profile's current routine timers.
