@@ -487,6 +487,36 @@ fun LandsOfJailAssistantApp(
             if (previous == null) {
                 merged[key] = fresh
             } else {
+                val freshUncertainFields = fresh.champsIncertains.map { it.trim().lowercase() }.toSet()
+                val previousUncertainFields = previous.champsIncertains.map { it.trim().lowercase() }.toSet()
+                fun isFieldUncertain(hero: HeroRecord, uncertainFields: Set<String>, field: String): Boolean =
+                    field in uncertainFields || (hero.incertain && uncertainFields.isEmpty())
+                fun isFieldAvailable(hero: HeroRecord, field: String): Boolean = when (field) {
+                    "niveau" -> hero.niveau != null || hero.niveauTexte.isNotBlank()
+                    "rarete" -> !hero.rarete.isNullOrBlank()
+                    "etoiles" -> !hero.etoiles.isNullOrBlank()
+                    "rolehero" -> !hero.roleHero.isNullOrBlank()
+                    "puissancehero" -> !hero.puissanceHero.isNullOrBlank()
+                    else -> false
+                }
+                fun freshFieldReliable(field: String): Boolean =
+                    !isFieldUncertain(fresh, freshUncertainFields, field)
+                fun previousFieldReliable(field: String): Boolean =
+                    !isFieldUncertain(previous, previousUncertainFields, field)
+                fun chooseTextField(field: String, oldValue: String?, newValue: String?): String? = when {
+                    freshFieldReliable(field) && !newValue.isNullOrBlank() -> newValue
+                    !oldValue.isNullOrBlank() -> oldValue
+                    else -> newValue
+                }
+                val unresolvedFields = (previous.champsIncertains + fresh.champsIncertains)
+                    .map { it.trim() }
+                    .filter { it.isNotBlank() }
+                    .distinct()
+                    .filter { field ->
+                        val normalizedField = field.lowercase()
+                        !(isFieldAvailable(previous, normalizedField) && previousFieldReliable(normalizedField)) &&
+                            !(isFieldAvailable(fresh, normalizedField) && freshFieldReliable(normalizedField))
+                    }
                 val skills = (previous.competences + fresh.competences)
                     .filter { it.nom.isNotBlank() }
                     .groupBy { normalizedKey(it.nom) }
@@ -508,36 +538,37 @@ fun LandsOfJailAssistantApp(
                             } ?: knownType ?: "inconnu",
                             iconUrl = selected.iconUrl ?: entries.mapNotNull { entry -> entry.iconUrl }.lastOrNull(),
                             incertain = trusted == null,
-                            raisonIncertitude = if (trusted == null) {
-                                selected.raisonIncertitude
-                            } else null
+                            raisonIncertitude = if (trusted == null) selected.raisonIncertitude else null
                         )
                     }
-                val useFreshValues = !fresh.incertain
+                val freshHeroUncertainWithoutFieldList = fresh.incertain && freshUncertainFields.isEmpty()
+                val previousHeroUncertainWithoutFieldList = previous.incertain && previousUncertainFields.isEmpty()
                 merged[key] = previous.copy(
-                    niveau = if (useFreshValues || previous.niveau == null) fresh.niveau ?: previous.niveau else previous.niveau,
-                    niveauTexte = if (useFreshValues || previous.niveauTexte.isBlank()) {
+                    niveau = if (freshFieldReliable("niveau")) fresh.niveau ?: previous.niveau else previous.niveau ?: fresh.niveau,
+                    niveauTexte = if (freshFieldReliable("niveau")) {
                         fresh.niveauTexte.takeIf {
                             it.isNotBlank() && !it.contains("non lu", true) && !it.contains("inconnu", true)
                         } ?: previous.niveauTexte
-                    } else previous.niveauTexte,
-                    rarete = if (useFreshValues || previous.rarete.isNullOrBlank()) fresh.rarete ?: previous.rarete else previous.rarete,
-                    etoiles = if (useFreshValues || previous.etoiles.isNullOrBlank()) fresh.etoiles ?: previous.etoiles else previous.etoiles,
-                    roleHero = if (useFreshValues || previous.roleHero.isNullOrBlank()) fresh.roleHero ?: previous.roleHero else previous.roleHero,
-                    puissanceHero = if (useFreshValues || previous.puissanceHero.isNullOrBlank()) fresh.puissanceHero ?: previous.puissanceHero else previous.puissanceHero,
+                    } else previous.niveauTexte.ifBlank { fresh.niveauTexte },
+                    rarete = chooseTextField("rarete", previous.rarete, fresh.rarete),
+                    etoiles = chooseTextField("etoiles", previous.etoiles, fresh.etoiles),
+                    roleHero = chooseTextField("rolehero", previous.roleHero, fresh.roleHero),
+                    puissanceHero = chooseTextField("puissancehero", previous.puissanceHero, fresh.puissanceHero),
                     imageUrl = fresh.imageUrl ?: previous.imageUrl,
                     avatarUrl = fresh.avatarUrl ?: previous.avatarUrl,
-                    titre = if (useFreshValues || previous.titre.isNullOrBlank()) fresh.titre ?: previous.titre else previous.titre,
-                    typeTroupe = if (useFreshValues || previous.typeTroupe.isNullOrBlank()) fresh.typeTroupe ?: previous.typeTroupe else previous.typeTroupe,
-                    categorie = if (useFreshValues || previous.categorie.isNullOrBlank()) fresh.categorie ?: previous.categorie else previous.categorie,
-                    saison = if (useFreshValues || previous.saison.isNullOrBlank()) fresh.saison ?: previous.saison else previous.saison,
+                    titre = fresh.titre ?: previous.titre,
+                    typeTroupe = fresh.typeTroupe ?: previous.typeTroupe,
+                    categorie = fresh.categorie ?: previous.categorie,
+                    saison = fresh.saison ?: previous.saison,
                     puissanceMax5Etoiles = fresh.puissanceMax5Etoiles ?: previous.puissanceMax5Etoiles,
                     resumeBio = fresh.resumeBio ?: previous.resumeBio,
                     idealPour = fresh.idealPour ?: previous.idealPour,
                     wikiUrl = fresh.wikiUrl ?: previous.wikiUrl,
+                    champsIncertains = unresolvedFields,
                     competences = skills,
-                    incertain = fresh.incertain && previous.incertain,
-                    raisonIncertitude = if (fresh.incertain && previous.incertain) {
+                    incertain = unresolvedFields.isNotEmpty() ||
+                        (freshHeroUncertainWithoutFieldList && previousHeroUncertainWithoutFieldList),
+                    raisonIncertitude = if (unresolvedFields.isNotEmpty()) {
                         fresh.raisonIncertitude ?: previous.raisonIncertitude
                     } else null
                 )
@@ -2069,8 +2100,35 @@ private fun HeroEditDialog(
                             etoiles = stars.trim().ifBlank { null },
                             puissanceHero = power.trim().ifBlank { null },
                             competences = correctedSkills,
-                            incertain = false,
-                            raisonIncertitude = null
+                            champsIncertains = hero.champsIncertains.filterNot { field ->
+                                when (field.lowercase()) {
+                                    "niveau" -> level.isNotBlank()
+                                    "rarete" -> rarity.isNotBlank()
+                                    "etoiles" -> stars.isNotBlank()
+                                    "puissancehero" -> power.isNotBlank()
+                                    else -> false
+                                }
+                            },
+                            incertain = hero.champsIncertains.any { field ->
+                                when (field.lowercase()) {
+                                    "niveau" -> level.isBlank()
+                                    "rarete" -> rarity.isBlank()
+                                    "etoiles" -> stars.isBlank()
+                                    "puissancehero" -> power.isBlank()
+                                    else -> true
+                                }
+                            },
+                            raisonIncertitude = hero.raisonIncertitude.takeIf {
+                                hero.champsIncertains.any { field ->
+                                    when (field.lowercase()) {
+                                        "niveau" -> level.isBlank()
+                                        "rarete" -> rarity.isBlank()
+                                        "etoiles" -> stars.isBlank()
+                                        "puissancehero" -> power.isBlank()
+                                        else -> true
+                                    }
+                                }
+                            }
                         )
                     )
                 },

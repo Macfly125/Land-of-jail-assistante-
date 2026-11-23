@@ -216,6 +216,7 @@ data class HeroRecord(
     val etoiles: String? = null,
     val roleHero: String? = null,
     val puissanceHero: String? = null,
+    val champsIncertains: List<String> = emptyList(),
     val imageUrl: String? = null,
     val avatarUrl: String? = null,
     val titre: String? = null,
