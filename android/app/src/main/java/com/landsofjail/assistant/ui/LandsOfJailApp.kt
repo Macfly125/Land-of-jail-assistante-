@@ -4487,13 +4487,19 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
     var transferBusy by remember { mutableStateOf(false) }
     var transferMessage by remember { mutableStateOf<String?>(null) }
     var transferError by remember { mutableStateOf(false) }
+    var isAppDeveloper by remember { mutableStateOf(false) }
     val signedIn = auth.currentSession() != null
 
     LaunchedEffect(allianceId, signedIn) {
+        if (signedIn) {
+            auth.isAppDeveloper().onSuccess { isAppDeveloper = it }
+        } else {
+            isAppDeveloper = false
+        }
         if (signedIn && allianceId.isNotBlank()) {
             auth.fetchMyAllianceRank(allianceId).onSuccess { currentRank ->
                 myCloudRank = currentRank.orEmpty()
-                if (currentRank == "R5") {
+                if (currentRank == "R5" || (isAppDeveloper && currentRank == "R4")) {
                     auth.fetchAllianceRoster(allianceId).onSuccess { roster ->
                         r4Members = roster.filter { it.rank == AllianceRank.R4 }
                     }
@@ -4555,11 +4561,22 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
                     if (myCloudRank.isNotBlank()) {
                         Text("Ton rang confirmé dans le cloud : $myCloudRank", color = Color(0xFF86EFAC), style = MaterialTheme.typography.bodySmall)
                     }
-                    if (myCloudRank == "R5") {
+                    if (myCloudRank == "R5" || (isAppDeveloper && myCloudRank == "R4")) {
                         Divider()
-                        Text("Transférer le poste de R5", fontWeight = FontWeight.SemiBold)
                         Text(
-                            "Choisis un membre déjà R4. Après confirmation, il deviendra R5 et ton compte passera R4.",
+                            if (isAppDeveloper && myCloudRank == "R4") {
+                                "Privilèges développeur · Gestion R5"
+                            } else {
+                                "Transférer le poste de R5"
+                            },
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            if (isAppDeveloper && myCloudRank == "R4") {
+                                "Ton rang d'alliance reste R4. En tant que développeur unique de l'application, tu peux aussi gérer les fonctions R5. Choisis un membre R4 pour lui transférer le poste R5."
+                            } else {
+                                "Choisis un membre déjà R4. Après confirmation, il deviendra R5 et ton compte passera R4."
+                            },
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
