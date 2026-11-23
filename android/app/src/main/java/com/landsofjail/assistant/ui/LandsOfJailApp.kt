@@ -692,92 +692,112 @@ fun LandsOfJailAssistantApp(
     }.getOrNull()
 
     suspend fun analyzeSingleUriInternal(uri: Uri, onProgress: (Int) -> Unit): ScreenshotAnalysis {
-        onProgress(10)
+        onProgress(5)
         val timestamp = Instant.now().toString()
+
+        // Deux lectures complémentaires : OCR local ML Kit et vision Gemini en ligne.
+        // L'analyse distante est tentée même si le décodage local échoue.
         val localImage = runCatching {
             context.contentResolver.openInputStream(uri)?.use { stream ->
                 BitmapFactory.decodeStream(stream)
             }
         }.getOrNull()
 
-        if (localImage == null) {
-            val retainedUri = keepImportedImageForReview(uri).orEmpty()
-            return ScreenshotAnalysis(
-                id = UUID.randomUUID().toString(),
-                analyzedAtIso = timestamp,
-                imageUriString = retainedUri,
-                typeCapture = "lecture_a_verifier",
-                resumeCapture = if (retainedUri.isNotBlank()) "Image conservée localement : impossible de décoder le fichier importé. Réessaie avec une capture nette au format PNG ou JPG." else "Impossible de décoder le fichier importé et de conserver une copie. Réessaie avec une capture nette au format PNG ou JPG.",
-                champsIncertains = listOf(
-                    UncertainItem("Image", "Décodage impossible", "Le fichier est illisible ou son accès a expiré.")
-                )
-            )
-        }
-
-        val ocrRaw = try {
-            onProgress(30)
-            LandsOfJailOcrParser.recognizeBitmap(localImage)
-        } catch (error: Throwable) {
-            val retainedUri = keepImportedImageForReview(uri).orEmpty()
-            return ScreenshotAnalysis(
-                id = UUID.randomUUID().toString(),
-                analyzedAtIso = timestamp,
-                imageUriString = retainedUri,
-                typeCapture = "lecture_a_verifier",
-                resumeCapture = "Image conservée pour vérification : échec de lecture OCR locale (${error.message ?: "erreur inconnue"}).",
-                champsIncertains = listOf(
-                    UncertainItem("OCR local", "Lecture impossible", error.message ?: "Erreur du moteur OCR.")
-                )
-            )
-        } finally {
-            localImage.recycle()
-        }
-
-        onProgress(65)
-        val extracted = LandsOfJailOcrParser.parseLocalOcrText(ocrRaw)
-        val hasUsableData = extracted.power != null ||
-            extracted.heroes.isNotEmpty() ||
-            extracted.resources.isNotEmpty()
-
-        if (!hasUsableData) {
-            val retainedUri = keepImportedImageForReview(uri).orEmpty()
-            val reason = if (ocrRaw.isBlank()) {
-                "Aucun texte lisible détecté."
-            } else {
-                "Texte reconnu, mais aucune donnée de compte exploitable n'a été identifiée."
+        val ocrRaw = if (localImage != null) {
+            try {
+                onProgress(20)
+                LandsOfJailOcrParser.recognizeBitmap(localImage)
+            } catch (_: Throwable) {
+                ""
+            } finally {
+                localImage.recycle()
             }
+        } else ""
+
+        val localExtraction = LandsOfJailOcrParser.parseLocalOcrText(ocrRaw)
+        onProgress(45)
+
+        val remoteResult = runCatching {
+            repository.analyzeSharedScreenshot(
+                context = context,
+                imageUri = uri,
+                playerRole = playerRole,
+                note = buildString {
+                    append("Analyse d'une capture partagée depuis le jeu. ")
+                    append("OCR local complémentaire : ")
+                    append(ocrRaw.take(1200).ifBlank { "indisponible" })
+                    append(". Vérifie visuellement les données et distingue les faits lisibles des incertitudes.")
+                }
+            ).getOrThrow()
+        }.getOrNull()
+
+        onProgress(85)
+        if (remoteResult != null) {
+            // La vision en ligne est prioritaire pour les valeurs lues sur l'image.
+            // L'OCR local complète les éléments que le modèle distant aurait manqués.
+            val combined = remoteResult.copy(
+                id = UUID.randomUUID().toString(),
+                analyzedAtIso = timestamp,
+                imageUriString = "",
+                puissance = remoteResult.puissance?.takeIf { it.puissanceTotaleTexte.isNotBlank() }
+                    ?: localExtraction.power,
+                ressources = mergeResourceRecords(localExtraction.resources, remoteResult.ressources),
+                heros = mergeHeroRecords(remoteResult.heros, localExtraction.heroes),
+                champsIncertains = (remoteResult.champsIncertains + localExtraction.uncertainItems)
+                    .distinctBy { normalizedKey(it.champ) + normalizedKey(it.valeurObservee) }
+            )
+            onProgress(100)
+            return combined
+        }
+
+        // Si Internet ou Gemini est indisponible, ne pas perdre le résultat local.
+        val hasLocalData = localExtraction.power != null ||
+            localExtraction.heroes.isNotEmpty() ||
+            localExtraction.resources.isNotEmpty()
+
+        if (hasLocalData) {
+            onProgress(100)
             return ScreenshotAnalysis(
                 id = UUID.randomUUID().toString(),
                 analyzedAtIso = timestamp,
-                imageUriString = retainedUri,
-                typeCapture = "lecture_a_verifier",
-                resumeCapture = "$reason " + (if (retainedUri.isNotBlank()) "L'image est conservée localement pour correction ou nouvelle lecture. " else "La copie locale de l'image n'a pas pu être conservée. ") + extracted.ocrSnippet,
-                champsIncertains = extracted.uncertainItems + UncertainItem(
-                    "Données importées",
-                    "Aucune donnée structurée",
-                    reason
+                imageUriString = "",
+                typeCapture = localExtraction.detectedCategory,
+                resumeCapture = "Analyse locale de secours (serveur en ligne indisponible) · " +
+                    buildList {
+                        localExtraction.power?.let { add("Puissance : ${it.puissanceTotaleTexte}") }
+                        if (localExtraction.heroes.isNotEmpty()) add("${localExtraction.heroes.size} héros")
+                        if (localExtraction.resources.isNotEmpty()) add("${localExtraction.resources.size} ressource(s)")
+                    }.joinToString(" · "),
+                puissance = localExtraction.power,
+                ressources = localExtraction.resources,
+                heros = localExtraction.heroes,
+                champsIncertains = localExtraction.uncertainItems + UncertainItem(
+                    "Analyse en ligne",
+                    "Indisponible",
+                    "La capture a été lue localement, mais l'analyse visuelle en ligne n'a pas répondu. Certaines données peuvent manquer."
                 )
             )
         }
 
-        onProgress(90)
-        val detectedParts = buildList {
-            extracted.power?.let { add("Puissance : ${it.puissanceTotaleTexte}") }
-            if (extracted.heroes.isNotEmpty()) add("${extracted.heroes.size} héros")
-            if (extracted.resources.isNotEmpty()) add("${extracted.resources.size} ressource(s)")
+        // Aucun résultat exploitable : conserver une copie privée pour permettre une vérification.
+        val retainedUri = keepImportedImageForReview(uri).orEmpty()
+        val reason = when {
+            localImage == null -> "Le décodage local a échoué"
+            ocrRaw.isBlank() -> "Aucun texte lisible détecté"
+            else -> "Aucune donnée structurée exploitable détectée"
         }
-        // Pas d'URI ni de copie de l'image après extraction : seules les données
-        // reconnues sont fusionnées et conservées dans le profil local du joueur.
         return ScreenshotAnalysis(
             id = UUID.randomUUID().toString(),
             analyzedAtIso = timestamp,
-            imageUriString = "",
-            typeCapture = extracted.detectedCategory,
-            resumeCapture = "Lecture locale réussie · ${detectedParts.joinToString(" · ")}",
-            puissance = extracted.power,
-            ressources = extracted.resources,
-            heros = extracted.heroes,
-            champsIncertains = extracted.uncertainItems
+            imageUriString = retainedUri,
+            typeCapture = "lecture_a_verifier",
+            resumeCapture = "$reason. L'analyse en ligne n'a pas abouti. " +
+                if (retainedUri.isNotBlank()) "Image conservée localement pour vérification." else "La copie locale n'a pas pu être conservée.",
+            champsIncertains = localExtraction.uncertainItems + UncertainItem(
+                "Analyse de capture",
+                "Lecture incomplète",
+                "$reason ; le service en ligne est également indisponible."
+            )
         ).also { onProgress(100) }
     }
 
