@@ -1474,6 +1474,8 @@ fun LandsOfJailAssistantApp(
                         routineRevision = routineRevision
                     )
                     AssistantTab.CONSEILS -> AdviceScreen(
+                        heroes = heroes,
+                        robots = robots,
                         currentLang = currentLang,
                         onChangeLang = { currentLang = it },
                         selectedMode = selectedAdviceMode,
@@ -2818,6 +2820,8 @@ private fun formatCompactFr(value: Long): String = when {
 
 @Composable
 private fun AdviceScreen(
+    heroes: List<HeroRecord>,
+    robots: List<RobotRecord>,
     currentLang: AppLanguage,
     onChangeLang: (AppLanguage) -> Unit,
     selectedMode: AdviceMode,
@@ -2861,6 +2865,48 @@ private fun AdviceScreen(
             }
             Spacer(Modifier.height(6.dp))
             Text("Rôle : ${playerRole.labelFr}", style = MaterialTheme.typography.bodySmall)
+            Spacer(Modifier.height(6.dp))
+            val heroesWithWarSkills = heroes.count { hero ->
+                hero.competences.any { skill ->
+                    skill.type.contains("war", ignoreCase = true) ||
+                        skill.type.contains("guerre", ignoreCase = true)
+                }
+            }
+            val heroesWithUncertainSkills = heroes.count { hero ->
+                hero.competences.isEmpty() || hero.competences.any { it.incertain }
+            }
+            val robotsWithDetails = robots.count { robot ->
+                robot.bonus.isNotBlank() || robot.competences.isNotBlank()
+            }
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            ) {
+                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                    Text("Contrôle des données avant recommandation", fontWeight = FontWeight.SemiBold)
+                    Text(
+                        "Profil : ${heroes.size} héros · ${heroesWithWarSkills} avec compétence War identifiée · ${robots.size} robots · ${robotsWithDetails} avec bonus ou compétence renseigné.",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Text(
+                        when {
+                            heroes.isEmpty() -> "Données insuffisantes : scanne tes héros pour obtenir des propositions personnalisées. Les conseils affichés resteront génériques."
+                            heroesWithWarSkills == 0 -> "Compétences War non identifiées : aucune composition de héros ne sera présentée comme optimale."
+                            heroesWithUncertainSkills > 0 -> "Certaines compétences sont absentes ou incertaines : les correspondances seront à confirmer dans le jeu."
+                            else -> "Compétences War détectées. Cela permet des correspondances, mais pas de prouver un classement optimal sans tests de combat."
+                        },
+                        color = Color(0xFFFBBF24),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    if (robots.isNotEmpty() && robotsWithDetails < robots.size) {
+                        Text(
+                            "Robots incomplets : renseigne leurs bonus et compétences avant de les comparer.",
+                            color = Color(0xFFFBBF24),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+            }
             Spacer(Modifier.height(6.dp))
             Button(onClick = onGenerateAdvice, enabled = !isLoading) {
                 Text(
@@ -2968,6 +3014,13 @@ private fun AdviceScreen(
                             res.troopRatioProfiles.forEach { ratio ->
                                 Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
                                     Text(ratio.label, fontWeight = FontWeight.Medium)
+                                    val ratioTotal = ratio.shieldbearer + ratio.bomber + ratio.shooter
+                                    Text(
+                                        if (ratioTotal == 100) "Total : 100 % · ratio de référence"
+                                        else "Total calculé : ${ratioTotal} % · ratio incomplet à vérifier",
+                                        color = if (ratioTotal == 100) Color(0xFF86EFAC) else Color(0xFFFBBF24),
+                                        style = MaterialTheme.typography.labelSmall
+                                    )
                                     Text(
                                         "${ratio.shieldbearer}% Shieldbearers · ${ratio.bomber}% Bombers · ${ratio.shooter}% Shooters",
                                         color = Color(0xFFFBBF24),
