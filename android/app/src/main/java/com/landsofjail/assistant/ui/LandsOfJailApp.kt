@@ -306,6 +306,9 @@ fun LandsOfJailAssistantApp(
     }
 
     fun restoreRoutineState(profileId: String, state: Map<String, String>) {
+        // An empty snapshot can come from an older app version that did not yet
+        // serialize timers. Never clear locally persisted timers in that case.
+        if (state.isEmpty()) return
         val prefs = context.getSharedPreferences("offline_routine_" + profileId, Context.MODE_PRIVATE)
         val editor = prefs.edit().clear()
         state.forEach { (key, encoded) ->
