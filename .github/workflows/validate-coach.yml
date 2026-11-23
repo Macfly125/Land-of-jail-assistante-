@@ -28,5 +28,22 @@ jobs:
         run: npm ci
       - name: TypeScript check
         run: npm run lint
-      - name: Production web build
+      - name: Production web and API build
         run: npm run build
+      - name: Cloud Run API startup smoke test
+        env:
+          NODE_ENV: production
+          PORT: 8080
+        run: |
+          node server.js > /tmp/loja-api.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:8080/healthz; then
+              echo
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/loja-api.log
+          exit 1
