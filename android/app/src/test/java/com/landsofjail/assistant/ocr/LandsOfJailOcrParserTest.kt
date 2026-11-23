@@ -3,6 +3,7 @@ package com.landsofjail.assistant.ocr
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -41,10 +42,32 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun detectsCatalogHeroesWithoutInventingPersonalLevelsOrStars() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText("Ada\nEdwin")
+
+        assertEquals(2, result.heroes.size)
+        val ada = result.heroes.first { it.nom == "Ada" }
+        assertEquals("S5", ada.saison)
+        assertEquals("Shooter", ada.typeTroupe)
+        assertNull(ada.niveau)
+        assertNull(ada.etoiles)
+        assertTrue(ada.incertain)
+    }
+
+    @Test
+    fun identifiesRobotScreensWithoutInventingRobotStats() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText("Robot\nUpgrade level")
+
+        assertEquals("robots", result.detectedCategory)
+        assertTrue(result.heroes.isEmpty())
+        assertTrue(result.resources.isEmpty())
+    }
+
+    @Test
     fun emptyOcrDoesNotInventPlayerData() {
         val result = LandsOfJailOcrParser.parseLocalOcrText("   \n ")
 
-        assertEquals(null, result.power)
+        assertNull(result.power)
         assertTrue(result.heroes.isEmpty())
         assertTrue(result.resources.isEmpty())
         assertEquals("ocr_local", result.detectedCategory)
