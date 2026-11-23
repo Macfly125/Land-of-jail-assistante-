@@ -157,6 +157,7 @@ export interface HeroSkill {
   id: string;
   nom: string;
   niveau: string;
+  type?: string;
   description?: string;
   iconUrl?: string;
   incertain: boolean;
