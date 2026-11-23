@@ -397,7 +397,7 @@ fun LandsOfJailAssistantApp(
 
     fun mergeResourceRecords(existing: List<ResourceRecord>, incoming: List<ResourceRecord>): List<ResourceRecord> {
         fun resourceKey(name: String): String {
-            val key = normalizedKey(name.replace(Regex("""\\s*\\([^)]*\\)"""), ""))
+            val key = normalizedKey(name.replace(Regex("""\s*\([^)]*\)"""), ""))
             return when (key) {
                 "food", "vivres" -> "nourriture"
                 "wood", "lumber" -> "bois"
