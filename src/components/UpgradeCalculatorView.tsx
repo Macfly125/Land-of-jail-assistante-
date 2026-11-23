@@ -16,7 +16,7 @@ interface UpgradeCalculatorViewProps {
   state: AccountState;
 }
 
-type CalcSection = 'buildings' | 'forticlad' | 'heroes';
+type CalcSection = 'buildings' | 'forticlad' | 'priorities' | 'heroes';
 
 function findScannedResourceAmount(state: AccountState, keywords: string[]): number | null {
   for (const res of state.resources) {
@@ -115,16 +115,19 @@ export const UpgradeCalculatorView: React.FC<UpgradeCalculatorViewProps> = ({ st
   // --- Calculateur Forticlad (FC 1 → FC 5) ---
   const [fcStart, setFcStart] = useState<number>(0);
   const [fcTarget, setFcTarget] = useState<number>(1);
-  const [fcBuildingCount, setFcBuildingCount] = useState<number>(1);
+  const [fcSelectedBuildingIds, setFcSelectedBuildingIds] = useState<string[]>(['warden_office']);
+  const [priorityGoal, setPriorityGoal] = useState<'hq' | 'trial_cage' | 'pvp' | 'f2p'>('hq');
+  const selectedForticladBuildings = BUILDINGS_CATALOG.filter((building) => fcSelectedBuildingIds.includes(building.id));
 
   const forticladCalculation = useMemo(() => {
     const start = Math.max(0, Math.min(4, fcStart));
     const end = Math.max(start + 1, Math.min(5, fcTarget));
     const stages = FORTICLAD_STAGES.filter((s) => s.fcLevel > start && s.fcLevel <= end);
-    const totalFc = stages.reduce((s, item) => s + item.forticladCores, 0) * fcBuildingCount;
-    const totalAfc = stages.reduce((s, item) => s + item.advancedForticladCores, 0) * fcBuildingCount;
-    return { start, end, stages, totalFc, totalAfc };
-  }, [fcStart, fcTarget, fcBuildingCount]);
+    const buildingCount = fcSelectedBuildingIds.length;
+    const totalFc = stages.reduce((s, item) => s + item.forticladCores, 0) * buildingCount;
+    const totalAfc = stages.reduce((s, item) => s + item.advancedForticladCores, 0) * buildingCount;
+    return { start, end, stages, totalFc, totalAfc, buildingCount };
+  }, [fcStart, fcTarget, fcSelectedBuildingIds]);
 
   // --- Calculateur Héros & Tomes ---
   const [selectedHeroName, setSelectedHeroName] = useState<string>(
@@ -204,6 +207,16 @@ export const UpgradeCalculatorView: React.FC<UpgradeCalculatorViewProps> = ({ st
         >
           <Sparkles className="w-4 h-4" />
           <span>Forticlad (FC 1–5)</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setSection('priorities')}
+          className={`min-h-[40px] px-4 py-2 rounded-lg text-xs font-semibold transition-colors inline-flex items-center gap-2 whitespace-nowrap ${
+            section === 'priorities' ? 'bg-amber-500 text-slate-950' : 'text-slate-300 hover:text-slate-100'
+          }`}
+        >
+          <CheckCircle2 className="w-4 h-4" />
+          <span>Priorités d’évolution</span>
         </button>
         <button
           type="button"
@@ -509,24 +522,25 @@ export const UpgradeCalculatorView: React.FC<UpgradeCalculatorViewProps> = ({ st
                 </select>
               </div>
 
-              <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">
-                  Nombre de bâtiments (ex. Bureau + Comms + Casernes)
+              <div className="md:col-span-3">
+                <label className="block text-xs font-medium text-slate-400 mb-2">
+                  Sélectionnez les bâtiments qui passent au Forticlad
                 </label>
-                <input
-                  type="number"
-                  min={1}
-                  max={6}
-                  value={fcBuildingCount}
-                  onChange={(e) => setFcBuildingCount(Math.max(1, Math.min(6, Number(e.target.value) || 1)))}
-                  className="w-full min-h-[44px] rounded-xl bg-slate-900 border border-slate-800 px-3.5 py-2 text-sm font-mono-tabular text-slate-100"
-                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                  {BUILDINGS_CATALOG.map((building) => (
+                    <label key={building.id} className="flex items-center gap-2 p-2.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-200">
+                      <input type="checkbox" checked={fcSelectedBuildingIds.includes(building.id)} onChange={(event) => setFcSelectedBuildingIds((current) => event.target.checked ? [...current, building.id] : current.filter((id) => id !== building.id))} className="accent-amber-500" />
+                      <span>{building.nomFr}</span>
+                    </label>
+                  ))}
+                </div>
+                <p className="text-[11px] text-slate-500 mt-2">{selectedForticladBuildings.length} bâtiment(s) sélectionné(s). Les coûts FC/AFC ci-dessous sont des estimations communes par bâtiment ; vérifiez les coûts affichés en jeu avant de dépenser.</p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
               <div className="p-5 rounded-xl bg-slate-900/70 border border-slate-800">
-                <div className="text-xs text-slate-400">Forticlad Cores (FC) nécessaires</div>
+                <div className="text-xs text-slate-400">Forticlad Cores (FC) nécessaires · {forticladCalculation.buildingCount} bâtiment(s)</div>
                 <div className="text-2xl font-semibold font-mono-tabular text-amber-400 mt-1">
                   {formatCompactNumber(forticladCalculation.totalFc)}
                 </div>
@@ -539,6 +553,77 @@ export const UpgradeCalculatorView: React.FC<UpgradeCalculatorViewProps> = ({ st
               </div>
             </div>
           </section>
+        </div>
+      )}
+
+
+      {/* SECTION : PRIORITÉS D’ÉVOLUTION */}
+      {section === 'priorities' && (
+        <div className="space-y-5">
+          <section className="p-6 rounded-2xl bg-[#121826] border border-slate-800/90 space-y-4">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-50">Planifier les prochaines évolutions</h2>
+              <p className="text-xs text-slate-400 mt-1">Choisissez votre objectif : le coach affiche un ordre de progression et explique pourquoi chaque investissement passe avant le suivant.</p>
+            </div>
+            <label className="block text-xs text-slate-400">Votre objectif prioritaire
+              <select value={priorityGoal} onChange={(event) => setPriorityGoal(event.target.value as typeof priorityGoal)} className="mt-1.5 w-full md:max-w-md min-h-[44px] rounded-xl bg-slate-900 border border-slate-700 px-3 text-sm text-slate-100">
+                <option value="hq">Développer rapidement le QG / Bureau du directeur</option>
+                <option value="trial_cage">Maximiser les dégâts en Trial Cage</option>
+                <option value="pvp">Renforcer l’équipe PvP / Crystal Clash / SvS</option>
+                <option value="f2p">Progression économique / F2P</option>
+              </select>
+            </label>
+          </section>
+          {(() => {
+            const plans = {
+              hq: [
+                ['1. Centre de communications', 'Le maintenir au niveau requis (N-1) avant chaque montée du Bureau du directeur.'],
+                ['2. Bureau du directeur', 'C’est le bâtiment pivot : ses niveaux ouvrent les paliers de progression et les nouveaux contenus.'],
+                ['3. Bâtiment prérequis affiché en jeu', 'Montez la caserne ou le laboratoire demandé par le prochain palier ; ne dépensez pas à l’aveugle sur les bâtiments secondaires.'],
+                ['4. Laboratoire', 'Investissez dans les recherches de construction et de combat qui correspondent à votre objectif.'],
+                ['5. Entrepôt et autres bâtiments', 'À améliorer selon les prérequis, les protections utiles et vos stocks, sans détourner les ressources du QG.'],
+              ],
+              trial_cage: [
+                ['1. Caserne Shooters', 'Priorité aux niveaux qui augmentent votre capacité et l’accès aux tireurs adaptés à votre marche.'],
+                ['2. Laboratoire – recherches offensives', 'Privilégiez attaque, dégâts infligés et statistiques offensives réellement actives dans Trial Cage.'],
+                ['3. Héros et compétences offensifs', 'Investissez dans les bonus de dégâts de groupe, réduction de DEF ennemie et dégâts directs.'],
+                ['4. Casernes Bombers / Shieldbearers', 'À monter selon les héros et les ratios de votre compte ; évitez de surinvestir dans la défense si elle ne sert pas au score.'],
+                ['5. Bureau du directeur / Comms', 'Continuez la progression quand les prérequis sont accessibles et que les ressources ne bloquent pas votre spécialisation.'],
+              ],
+              pvp: [
+                ['1. Caserne Shieldbearers', 'Renforcez la première ligne pour tenir les combats et les points.'],
+                ['2. Caserne Shooters', 'Développez les dégâts arrière pour éliminer les défenseurs et soutenir les attaques.'],
+                ['3. Laboratoire – recherches de combat', 'Équilibrez attaque, défense, PV et capacité de marche selon votre rôle.'],
+                ['4. Héros et compétences PvP', 'Améliorez une équipe principale cohérente avant de disperser les ressources sur plusieurs équipes.'],
+                ['5. Bureau du directeur / Comms', 'Gardez une progression régulière pour débloquer les niveaux et les capacités supérieures.'],
+              ],
+              f2p: [
+                ['1. Centre de communications + Bureau du directeur', 'Évitez les bâtiments hors prérequis et concentrez les ressources sur le prochain palier utile.'],
+                ['2. Laboratoire', 'Les recherches permanentes de construction, collecte et combat offrent des gains durables.'],
+                ['3. Une caserne principale', 'Choisissez la classe de troupes de votre meilleure équipe ; ne répartissez pas les ressources sur les trois casernes trop tôt.'],
+                ['4. Héros principaux jusqu’aux seuils utiles', 'Privilégiez quelques héros clés et les paliers de compétences réellement débloqués.'],
+                ['5. Bâtiments secondaires', 'Améliorez-les quand ils deviennent nécessaires ou quand vos ressources excèdent votre budget de progression.'],
+              ],
+            };
+            const plan = plans[priorityGoal];
+            return (
+              <section className="p-5 md:p-6 rounded-2xl bg-[#121826] border border-slate-800/90 space-y-4">
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="font-semibold text-slate-100">Ordre conseillé</h3>
+                  <span className="text-xs text-amber-300">QG détecté : Niv. {parsedQgLevel}</span>
+                </div>
+                <ol className="space-y-3">
+                  {plan.map(([title, reason], index) => (
+                    <li key={title} className="flex gap-3 p-3 rounded-xl bg-slate-900/70 border border-slate-800">
+                      <span className="shrink-0 w-7 h-7 rounded-full bg-amber-500/15 text-amber-300 flex items-center justify-center text-xs font-bold">{index + 1}</span>
+                      <div><div className="text-sm font-semibold text-slate-100">{title}</div><p className="text-xs text-slate-400 mt-1 leading-relaxed">{reason}</p></div>
+                    </li>
+                  ))}
+                </ol>
+                <p className="text-[11px] text-slate-500">Cet ordre est un conseil stratégique général. Les prérequis exacts, coûts et bonus dépendent du niveau et de la version du jeu : confirmez toujours l’écran d’amélioration avant de lancer.</p>
+              </section>
+            );
+          })()}
         </div>
       )}
 
