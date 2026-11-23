@@ -830,6 +830,16 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
           }>;
         }>;
         powerText?: string;
+        robots?: Array<{
+          nom: string;
+          niveau?: string;
+          rarete?: string;
+          bonus?: string;
+          competences?: string;
+          puissance?: string;
+          incertain?: boolean;
+          source?: string;
+        }>;
         extraQuestion?: string;
       };
 
@@ -902,6 +912,38 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
       };
 
       const modeName = modeNamesByLang[targetLang][mode];
+      const robotRecommendations = (robots ?? []).flatMap((robot) => {
+        const robotName = String(robot.nom || '').trim();
+        const effects = [robot.bonus, robot.competences].filter(Boolean).join(' ').trim();
+        if (!robotName || !effects) return [];
+        const normalized = effects.toLocaleLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');
+        const cagePureDefense = /damage reduction|reduce.{0,20}damage taken|incoming damage|degats recus|degats subis|defense increase|increase.{0,15}defense|hp increase|health increase|soin|healing|shield|bouclier/.test(normalized);
+        const cageOffense = /direct damage|deal.{0,15}damage|damage dealt|damage increase|increase.{0,20}damage|attack increase|increase.{0,15}attack|lethality|letalite|degats infliges|enemy defense reduction|reduce.{0,20}enemy.{0,10}defense|reduce.{0,20}defense|armor break/.test(normalized);
+        const eventSignals: Record<AdviceEventMode, RegExp> = {
+          trial_cage: /direct damage|deal.{0,15}damage|damage dealt|damage increase|increase.{0,20}damage|attack increase|increase.{0,15}attack|lethality|letalite|degats infliges|enemy defense reduction|reduce.{0,20}enemy.{0,10}defense|reduce.{0,20}defense|armor break/,
+          crystal_clash: /attack|atk|damage|degat|lethality|letalite|hp|health|defense|march speed|vitesse de marche|gather|collect/,
+          sandsea_conquest: /attack|atk|damage|degat|lethality|letalite|hp|health|defense|march speed|vitesse de marche/,
+          svs: /attack|atk|damage|degat|lethality|letalite|hp|health|defense|construction|research|training|gather|collect/,
+          turmoil_surge: /attack|atk|damage|degat|defense|hp|health|reinforce|reinforcement|renfort|garrison|garnison/,
+          gold_hunter: /march speed|vitesse de marche|neutral|monster|mine|gather|collect|resource|ressource|damage|degat/
+        };
+        const matches = eventSignals[mode].test(normalized) && !(mode === 'trial_cage' && cagePureDefense && !cageOffense);
+        if (!matches) return [];
+        const progression = [robot.niveau ? 'niveau ' + robot.niveau : '', robot.rarete || '', robot.puissance ? 'puissance ' + robot.puissance : ''].filter(Boolean).join(' · ');
+        const caution = mode === 'trial_cage'
+          ? 'Signal offensif relevé pour la Cage; les bonus uniquement défensifs ne sont pas prioritaires pour le score de dégâts.'
+          : 'Signal textuel pertinent pour cet événement; son effet réel dépend des règles et du mode de combat.';
+        return [{
+          titre: robotName,
+          detail: [progression, 'Bonus/compétences saisis : ' + effects, caution].filter(Boolean).join(' — '),
+          herosCibles: [],
+          incertain: true,
+          raisonIncertitude: robot.incertain
+            ? 'La fiche du robot contient des champs signalés incertains; vérifie-les en jeu.'
+            : 'Correspondance par mots-clés uniquement : ce n’est pas un classement de puissance ni une simulation de combat.',
+          imageUrl: null,
+        }];
+      }).slice(0, 5);
       const heroNames = (heroes ?? []).map((h) => h.nom).filter(Boolean);
       // Pass only account-observed data to the tactical context. Wiki maximums
       // are intentionally excluded because they are not the player's progression.
@@ -1197,6 +1239,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
           synthese: `${synthPrefix[targetLang]}${leadSummary}`,
           compositionRecommandee: `${compTextByLang[targetLang]}${groundedProfileContext}${eventRoleContextText}${cageAssessment}${cageRallyContext}${sandseaContext}${crystalContext}${turmoilContext}${goldHunterContext}${svsContext}`,
           ...(troopRatioProfiles.length ? { troopRatioTitle: ratioLabels[targetLang].title, troopRatioProfiles } : {}),
+          robotRecommendations,
           recommandations: liveGuides.slice(0, 4).map((g) => ({
             titre: g.title,
             detail: g.excerpt || g.title,
@@ -1207,6 +1250,8 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
           informationsIncertaines: [
             ...(heroNames.length === 0 ? [compTextByLang[targetLang]] : []),
             ...(liveGuides.length === 0 ? [liveGuideUnavailableByLang[targetLang]] : []),
+            ...((robots ?? []).length === 0 ? [targetLang === 'fr' ? 'Aucun robot enregistré dans ce profil : recommandations robots personnalisées indisponibles.' : 'No robots recorded in this profile; personalized robot advice is unavailable.'] : []),
+            ...((robots ?? []).length > 0 && robotRecommendations.length === 0 ? [targetLang === 'fr' ? 'Aucun bonus robot saisi ne correspond explicitement aux critères textuels de cet événement. Aucune recommandation robot n’est inventée.' : 'No entered robot bonus explicitly matches this event’s text signals; no robot recommendation was invented.'] : []),
           ],
           sources: [
             ...liveGuides.map((g) => ({
