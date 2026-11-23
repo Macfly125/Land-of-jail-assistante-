@@ -242,9 +242,13 @@ export default function App() {
         typeCapture,
         resumeCapture: raw.resumeCapture || 'Capture analysée.',
         puissance:
-          raw.puissance && raw.puissance.presente && raw.puissance.puissanceTotaleTexte
+          raw.puissance && (
+            raw.puissance.puissanceTotaleTexte?.trim() ||
+            raw.puissance.niveauPrisonOuQG?.trim() ||
+            raw.puissance.niveauVip?.trim()
+          )
             ? {
-                puissanceTotaleTexte: raw.puissance.puissanceTotaleTexte,
+                puissanceTotaleTexte: raw.puissance.puissanceTotaleTexte || '',
                 puissanceTotaleNumerique:
                   typeof raw.puissance.puissanceTotaleNumerique === 'number'
                     ? raw.puissance.puissanceTotaleNumerique
@@ -564,6 +568,19 @@ export default function App() {
           <ResourcesPowerView
             state={state}
             onVerifyResource={handleVerifyResource}
+            onUpdateVipLevel={(vipLevel) =>
+              setState((prev) => ({
+                ...prev,
+                currentPower: {
+                  puissanceTotaleTexte: prev.currentPower?.puissanceTotaleTexte || '',
+                  puissanceTotaleNumerique: prev.currentPower?.puissanceTotaleNumerique ?? null,
+                  niveauPrisonOuQG: prev.currentPower?.niveauPrisonOuQG,
+                  niveauVip: vipLevel,
+                  incertain: prev.currentPower?.incertain ?? false,
+                  raisonIncertitude: prev.currentPower?.raisonIncertitude,
+                },
+              }))
+            }
             onOpenShareModal={() => {
               setAnalyzeError(null);
               setIsShareModalOpen(true);
