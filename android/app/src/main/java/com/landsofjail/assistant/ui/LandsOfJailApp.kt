@@ -261,8 +261,12 @@ fun LandsOfJailAssistantApp(
     val lifecycleOwner = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    val authRepository = remember(context) { SupabaseAuthRepository(context) }
-    var authSession by remember { mutableStateOf(authRepository.currentSession()) }
+    // Demande une authentification à chaque nouvelle ouverture de l’application.
+    // On efface uniquement le jeton local précédent afin que l’écran de connexion soit toujours présenté.
+    val authRepository = remember(context) {
+        SupabaseAuthRepository(context).also { it.clearLocalSession() }
+    }
+    var authSession by remember { mutableStateOf<SupabaseAuthRepository.Session?>(null) }
 
     var currentLang by remember { mutableStateOf(AppLanguage.FR) }
     var currentTab by remember { mutableStateOf(AssistantTab.TABLEAU) }
@@ -317,7 +321,10 @@ fun LandsOfJailAssistantApp(
         }.getOrNull())
     }
     var progressionGoal by remember {
-        mutableStateOf(accountPrefs.getString("progression_goal", "QG / progression") ?: "QG / progression")
+        mutableStateOf(
+            accountPrefs.getString("progression_goal", "Bâtiments")
+                ?.takeIf { it in setOf("Bâtiments", "Héros", "Robot") } ?: "Bâtiments"
+        )
     }
 
     LaunchedEffect(allianceWorkspace) {
@@ -1304,7 +1311,7 @@ private fun DashboardScreen(
                     }
                     Text("Objectif de progression", fontWeight = FontWeight.SemiBold)
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        listOf("QG / progression", "Trial Cage", "PvP / Crystal Clash / SvS", "Économie / F2P").forEach { goal ->
+                        listOf("Bâtiments", "Héros", "Robot").forEach { goal ->
                             Row(
                                 Modifier.fillMaxWidth().clickable { onProgressionGoalChange(goal) },
                                 verticalAlignment = Alignment.CenterVertically
@@ -1314,32 +1321,6 @@ private fun DashboardScreen(
                             }
                         }
                     }
-                }
-            }
-        }
-
-        // Ancien résumé synthétique
-        item {
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(
-                        "Puissance : ${currentPower?.puissanceTotaleTexte ?: "Non mesurée"}",
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    if (!currentPower?.niveauPrisonOuQG.isNullOrBlank()) {
-                        Text(
-                            "Prison / QG : ${currentPower?.niveauPrisonOuQG}",
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                    if (currentPower?.incertain == true) {
-                        Text(
-                            "Incertain : ${currentPower.raisonIncertitude ?: "lecture partielle"}",
-                            color = Color(0xFFFBBF24),
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                    Text("Héros suivis : $heroesCount · Ressources : $resourcesCount")
                 }
             }
         }
