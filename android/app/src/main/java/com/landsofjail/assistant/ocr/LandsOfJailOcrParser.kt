@@ -316,26 +316,35 @@ object LandsOfJailOcrParser {
             .trim()
 
     private fun matchesHeroName(canonicalName: String, line: String): Boolean {
-        val candidates = listOf(canonicalName) + HERO_ALIASES[canonicalName].orEmpty()
         val normalizedLine = " ${normalizeHeroText(line)} "
         val words = normalizedLine.trim().split(Regex("\\s+")).filter { it.isNotBlank() }
-        return candidates.any { candidate ->
-            val normalizedCandidate = normalizeHeroText(candidate)
-            if (normalizedCandidate.isBlank()) return@any false
-            if (normalizedLine.contains(" $normalizedCandidate ")) return@any true
-            val targetWords = normalizedCandidate.split(Regex("\\s+"))
-            if (targetWords.size > 1) {
-                targetWords.all { target ->
-                    words.any { word -> target.length >= 5 && editDistance(word, target) <= 1 }
+
+        // Les alias/traductions doivent correspondre exactement : les comparer
+        // de façon approximative crée des collisions (ex. « Berry » / « Terry »).
+        val exactNames = listOf(canonicalName) + HERO_ALIASES[canonicalName].orEmpty()
+        if (exactNames.any { candidate ->
+                val normalized = normalizeHeroText(candidate)
+                normalized.isNotBlank() && normalizedLine.contains(" $normalized ")
+            }) return true
+
+        // La tolérance OCR ne s'applique qu'au nom canonique, jamais aux alias.
+        val target = normalizeHeroText(canonicalName)
+        val targetWords = target.split(Regex("\\s+")).filter { it.isNotBlank() }
+        return if (targetWords.size > 1) {
+            targetWords.all { expected ->
+                words.any { actual ->
+                    expected.length >= 6 &&
+                        kotlin.math.abs(actual.length - expected.length) <= 1 &&
+                        editDistance(actual, expected) <= 1
                 }
-            } else {
-                val target = targetWords.first()
-                if (target.length < 5) false
-                else words.any { word ->
-                    val maxDistance = if (target.length >= 9) 2 else 1
-                    kotlin.math.abs(word.length - target.length) <= maxDistance &&
-                        editDistance(word, target) <= maxDistance
-                }
+            }
+        } else {
+            val expected = targetWords.firstOrNull() ?: return false
+            if (expected.length < 5) false
+            else words.any { actual ->
+                val maxDistance = if (expected.length >= 9) 2 else 1
+                kotlin.math.abs(actual.length - expected.length) <= maxDistance &&
+                    editDistance(actual, expected) <= maxDistance
             }
         }
     }
