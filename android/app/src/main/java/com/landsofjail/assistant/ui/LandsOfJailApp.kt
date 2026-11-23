@@ -385,7 +385,7 @@ fun LandsOfJailAssistantApp(
         if (detectedBuildings.isNotEmpty()) {
             val existing = buildingProgress.lines().filter { it.isNotBlank() }
             buildingProgress = (existing + detectedBuildings)
-                .distinctBy { normalizedKey(it) }
+                .distinctBy { it.lowercase().trim().replace(Regex("\\s+"), " ") }
                 .takeLast(40)
                 .joinToString("\n")
         }
@@ -396,7 +396,7 @@ fun LandsOfJailAssistantApp(
         }
         if (robotLines.isNotEmpty()) {
             robotProgress = (robotProgress.lines().filter { it.isNotBlank() } + robotLines)
-                .distinctBy { normalizedKey(it) }
+                .distinctBy { it.lowercase().trim().replace(Regex("\\s+"), " ") }
                 .takeLast(10)
                 .joinToString("\n")
         }
