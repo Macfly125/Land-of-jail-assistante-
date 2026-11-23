@@ -1718,12 +1718,12 @@ private fun DashboardScreen(
                     }
                     Text(
                         when (currentLang) {
-                            AppLanguage.FR -> if (isAutoCapturing) "Actif : une analyse à la fois; les écrans quasi identiques sont ignorés. Arrête quand tu as terminé." else "Intervalle conseillé : 10 à 30 s. Chaque analyse utilise le réseau et le quota IA."
+                            AppLanguage.FR -> if (isAutoCapturing) "Actif : une analyse à la fois; les écrans quasi identiques sont ignorés. Arrête quand tu as terminé." else "Intervalle cible : 10 à 60 s. Une seule analyse à la fois; si elle dure plus longtemps, la suivante attend sa fin. Chaque analyse utilise le réseau et le quota IA."
                             AppLanguage.TR -> if (isAutoCapturing) "Etkin: aynı anda tek analiz; benzer ekranlar atlanır." else "Önerilen aralık: 10–30 sn. Her analiz internet ve yapay zekâ kotası kullanır."
                             AppLanguage.RU -> if (isAutoCapturing) "Активно: по одному анализу; почти одинаковые экраны пропускаются." else "Рекомендуемый интервал: 10–30 с. Анализ расходует интернет и лимит ИИ."
                             AppLanguage.ZH -> if (isAutoCapturing) "已启用：一次只运行一个分析；相似画面会跳过。" else "建议间隔：10–30 秒。每次分析都会使用网络和 AI 配额。"
                             AppLanguage.DE -> if (isAutoCapturing) "Aktiv: immer nur eine Analyse; nahezu identische Bildschirme werden übersprungen." else "Empfohlenes Intervall: 10–30 s. Jede Analyse nutzt Netzwerk und KI-Kontingent."
-                            AppLanguage.EN -> if (isAutoCapturing) "Active: one analysis at a time; near-identical screens are skipped." else "Suggested interval: 10–30 s. Each analysis uses network and AI quota."
+                            AppLanguage.EN -> if (isAutoCapturing) "Active: one analysis at a time; near-identical screens are skipped." else "Target interval: 10–60 s. Only one analysis runs at a time; if it takes longer, the next waits. Each analysis uses network and AI quota."
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant

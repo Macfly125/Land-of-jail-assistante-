@@ -197,7 +197,6 @@ class GameForegroundMonitorService : Service() {
             ACTION_AUTO_CAPTURE_CONSUMED -> {
                 if (_isAutoCapturing.value) {
                     autoCaptureAwaitingAnalysis = false
-                    nextAutoCaptureAtMillis = System.currentTimeMillis() + autoCaptureIntervalMillis
                 }
                 return START_STICKY
             }
@@ -483,6 +482,7 @@ class GameForegroundMonitorService : Service() {
                 val base64 = Base64.encodeToString(jpegBytes, Base64.NO_WRAP)
                 val savedUri = saveCaptureToInternalFile(jpegBytes)
                 autoCaptureAwaitingAnalysis = true
+                nextAutoCaptureAtMillis = now + autoCaptureIntervalMillis
                 ScreenCaptureConsentActivity.publishCapture(
                     CapturedScreenPayload(
                         bitmap = cropped,
@@ -818,7 +818,7 @@ class GameForegroundMonitorService : Service() {
         if (_isAutoCapturing.value) {
             builder
                 .setContentTitle("Analyse automatique active")
-                .setContentText("Capture toutes les ${autoCaptureIntervalMillis / 1000}s lorsque le jeu est au premier plan.")
+                .setContentText("Intervalle cible ${autoCaptureIntervalMillis / 1000}s; une analyse à la fois, uniquement en jeu.")
                 .addAction(0, "Arrêter l’analyse auto", buildStopAutoCapturePendingIntent())
                 .addAction(0, "Arrêter la détection", buildStopPendingIntent())
         } else {
