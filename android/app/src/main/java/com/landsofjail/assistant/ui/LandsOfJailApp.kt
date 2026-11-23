@@ -707,7 +707,7 @@ fun LandsOfJailAssistantApp(
                 analyzedAtIso = timestamp,
                 imageUriString = retainedUri,
                 typeCapture = "lecture_a_verifier",
-                resumeCapture = "Image conservée : impossible de décoder le fichier importé. Réessaie avec une capture nette au format PNG ou JPG.",
+                resumeCapture = if (retainedUri.isNotBlank()) "Image conservée localement : impossible de décoder le fichier importé. Réessaie avec une capture nette au format PNG ou JPG." else "Impossible de décoder le fichier importé et de conserver une copie. Réessaie avec une capture nette au format PNG ou JPG.",
                 champsIncertains = listOf(
                     UncertainItem("Image", "Décodage impossible", "Le fichier est illisible ou son accès a expiré.")
                 )
@@ -751,7 +751,7 @@ fun LandsOfJailAssistantApp(
                 analyzedAtIso = timestamp,
                 imageUriString = retainedUri,
                 typeCapture = "lecture_a_verifier",
-                resumeCapture = "$reason L'image est conservée localement pour correction ou nouvelle lecture. ${extracted.ocrSnippet}",
+                resumeCapture = "$reason " + (if (retainedUri.isNotBlank()) "L'image est conservée localement pour correction ou nouvelle lecture. " else "La copie locale de l'image n'a pas pu être conservée. ") + extracted.ocrSnippet,
                 champsIncertains = extracted.uncertainItems + UncertainItem(
                     "Données importées",
                     "Aucune donnée structurée",
