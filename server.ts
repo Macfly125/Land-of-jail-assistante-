@@ -12,6 +12,35 @@ const __dirname = path.dirname(__filename);
 
 const PORT = Number(process.env.PORT) || 3000;
 
+
+function getGeminiQuotaError(error: unknown): { message: string; retryAfterSeconds?: number } | null {
+  const raw = error instanceof Error ? error.message : String(error ?? '');
+  const normalized = raw.toLowerCase();
+  if (
+    !normalized.includes('resource_exhausted') &&
+    !normalized.includes('quota exceeded') &&
+    !normalized.includes('generate_content_free_tier_requests') &&
+    !/\\b429\\b/.test(normalized)
+  ) return null;
+
+  let retryAfterSeconds: number | undefined;
+  const retryDelay = raw.match(/retryDelay["':=\\s]+["']?((?:\\d+h)?(?:\\d+m)?(?:\\d+(?:\\.\\d+)?s))/i)?.[1];
+  if (retryDelay) {
+    const hours = Number(retryDelay.match(/(\\d+)h/i)?.[1] || 0);
+    const minutes = Number(retryDelay.match(/(\\d+)m/i)?.[1] || 0);
+    const seconds = Number(retryDelay.match(/(\\d+(?:\\.\\d+)?)s/i)?.[1] || 0);
+    retryAfterSeconds = Math.ceil(hours * 3600 + minutes * 60 + seconds);
+  } else {
+    const retrySeconds = raw.match(/retry(?: after| in)[^0-9]{0,20}(\\d+(?:\\.\\d+)?)\\s*s/i)?.[1];
+    if (retrySeconds) retryAfterSeconds = Math.ceil(Number(retrySeconds));
+  }
+
+  return {
+    message: 'Le quota gratuit de Gemini est atteint. La capture n’a pas pu être analysée. Réessaie lorsque le quota sera réinitialisé.',
+    ...(retryAfterSeconds && Number.isFinite(retryAfterSeconds) ? { retryAfterSeconds } : {}),
+  };
+}
+
 function getAiClient(): GoogleGenAI {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
@@ -402,8 +431,13 @@ Règles strictes :
         analyzedAt: new Date().toISOString(),
       });
     } catch (err: unknown) {
+      const quota = getGeminiQuotaError(err);
+      console.error('Erreur /api/analyze-screenshot:', quota ? 'Quota Gemini atteint.' : err);
+      if (quota) {
+        res.status(429).json({ code: 'GEMINI_QUOTA_EXCEEDED', error: quota.message, ...quota });
+        return;
+      }
       const message = err instanceof Error ? err.message : 'Erreur inconnue lors de l’analyse.';
-      console.error('Erreur /api/analyze-screenshot:', err);
       res.status(500).json({
         error: `Impossible d'analyser la capture d'écran : ${message}`,
       });
@@ -1018,9 +1052,14 @@ Consignes :
         },
       });
     } catch (err: unknown) {
+      const quota = getGeminiQuotaError(err);
+      console.error('Erreur /api/advice:', quota ? 'Quota Gemini atteint.' : err);
+      if (quota) {
+        res.status(429).json({ code: 'GEMINI_QUOTA_EXCEEDED', error: quota.message, ...quota });
+        return;
+      }
       const message =
         err instanceof Error ? err.message : 'Erreur inconnue lors de la recherche de conseils.';
-      console.error('Erreur /api/advice:', err);
       res.status(500).json({
         error: `Impossible de récupérer les conseils pour ce mode : ${message}`,
       });
