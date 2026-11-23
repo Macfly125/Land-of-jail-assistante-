@@ -8,6 +8,7 @@ import {
   Camera,
   History,
   LayoutDashboard,
+  Network,
   Package,
   PowerOff,
   Shield,
@@ -40,12 +41,13 @@ import { HeroesView } from './components/HeroesView';
 import { ResourcesPowerView } from './components/ResourcesPowerView';
 import { AdviceView } from './components/AdviceView';
 import { HistoryView } from './components/HistoryView';
+import { AllianceSimulationView } from './components/AllianceSimulationView';
 import { ShareCaptureModal } from './components/ShareCaptureModal';
 import { ScreenCaptureConsentModal } from './components/ScreenCaptureConsentModal';
 import { AndroidKotlinModal } from './components/AndroidKotlinModal';
 import { MobileInstallGuideModal } from './components/MobileInstallGuideModal';
 
-type NavTab = 'tableau' | 'heros' | 'ressources' | 'conseils' | 'historique';
+type NavTab = 'tableau' | 'heros' | 'ressources' | 'conseils' | 'simulation' | 'historique';
 
 /**
  * Récupère le niveau uniquement lorsqu'il est explicitement lisible.
@@ -69,6 +71,7 @@ const NAV_ICONS: Array<{ id: NavTab; icon: React.ComponentType<{ className?: str
   { id: 'heros', icon: Users },
   { id: 'ressources', icon: Package },
   { id: 'conseils', icon: Swords },
+  { id: 'simulation', icon: Network },
   { id: 'historique', icon: History },
 ];
 
@@ -585,6 +588,8 @@ export default function App() {
           />
         )}
 
+        {activeTab === 'simulation' && <AllianceSimulationView />}
+
         {activeTab === 'historique' && (
           <HistoryView
             analyses={state.analyses}
@@ -603,7 +608,7 @@ export default function App() {
         className="mobile-nav md:hidden fixed bottom-0 left-0 right-0 z-40 backdrop-blur-xl border-t border-slate-800/80 pb-safe"
         aria-label="Navigation mobile"
       >
-        <div className="grid grid-cols-5 max-w-xl mx-auto h-[68px] items-center px-2">
+        <div className="grid grid-cols-6 max-w-2xl mx-auto h-[68px] items-center px-1">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = activeTab === item.id;
