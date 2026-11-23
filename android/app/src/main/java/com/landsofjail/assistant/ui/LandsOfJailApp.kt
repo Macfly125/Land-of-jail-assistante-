@@ -742,7 +742,7 @@ fun LandsOfJailAssistantApp(
                 puissance = remoteResult.puissance?.takeIf { it.puissanceTotaleTexte.isNotBlank() }
                     ?: localExtraction.power,
                 ressources = mergeResourceRecords(localExtraction.resources, remoteResult.ressources),
-                heros = mergeHeroRecords(remoteResult.heros, localExtraction.heroes),
+                heros = mergeHeroRecords(localExtraction.heroes, remoteResult.heros),
                 champsIncertains = (remoteResult.champsIncertains + localExtraction.uncertainItems)
                     .distinctBy { normalizedKey(it.champ) + normalizedKey(it.valeurObservee) }
             )
