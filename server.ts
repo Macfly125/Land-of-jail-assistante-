@@ -1303,6 +1303,8 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
         trial_cage: [
           { title: 'GuideLOJ — Trial Cage : chefs, troupes et participants', url: 'https://www.guideloj.com/fr/events/alliance/trial-cage-rally' },
           { title: 'LOJ XLab — Cage : leaders, joiners et compétences', url: 'https://lojxlab.com/blog/lands-of-jail-cage-advanced-guide/' },
+          { title: 'YouTube — Best Rally Heroes for the Cage Event (S1–S6)', url: 'https://www.youtube.com/watch?v=PX7taSphjn8' },
+          { title: 'YouTube — Ultimate Trial Cage Rally Opener Guide 2026', url: 'https://www.youtube.com/watch?v=Z52PtxzLTOs' },
         ],
         crystal_clash: [
           { title: 'GuideLOJ — Crystal Clash : objectifs et rôles', url: 'https://www.guideloj.com/fr/events/alliance/crystal-clash' },
