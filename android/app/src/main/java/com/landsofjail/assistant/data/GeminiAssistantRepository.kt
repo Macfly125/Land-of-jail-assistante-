@@ -1,8 +1,12 @@
 package com.landsofjail.assistant.data
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Base64
+import java.io.ByteArrayOutputStream
+import kotlin.math.roundToInt
 import com.landsofjail.assistant.model.AdviceMode
 import com.landsofjail.assistant.model.AdviceRecommendation
 import com.landsofjail.assistant.model.AppLanguage
@@ -55,9 +59,50 @@ class GeminiAssistantRepository(
             val mimeType = context.contentResolver.getType(imageUri) ?: "image/png"
             val bytes = context.contentResolver.openInputStream(imageUri)?.use { it.readBytes() }
                 ?: error("Impossible de lire la capture partagée.")
-            val base64 = Base64.encodeToString(bytes, Base64.NO_WRAP)
-            analyzeBase64Screenshot(base64, mimeType, imageUri.toString(), playerRole, note)
+            val (optimizedMimeType, optimizedBytes) = prepareImageForAi(bytes, mimeType)
+            val base64 = Base64.encodeToString(optimizedBytes, Base64.NO_WRAP)
+            analyzeBase64Screenshot(base64, optimizedMimeType, imageUri.toString(), playerRole, note)
         }
+    }
+
+    private fun prepareImageForAi(bytes: ByteArray, mimeType: String): Pair<String, ByteArray> {
+        return runCatching {
+            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+            val width = bounds.outWidth
+            val height = bounds.outHeight
+            if (width <= 0 || height <= 0) return@runCatching mimeType to bytes
+
+            val maxDimension = maxOf(width, height)
+            if (maxDimension <= 2560 && bytes.size <= 1_500_000) {
+                return@runCatching mimeType to bytes
+            }
+
+            var sampleSize = 1
+            while (maxOf(width / sampleSize, height / sampleSize) > 2560) {
+                sampleSize *= 2
+            }
+            val options = BitmapFactory.Options().apply { inSampleSize = sampleSize }
+            val decoded = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
+                ?: return@runCatching mimeType to bytes
+
+            val decodedMax = maxOf(decoded.width, decoded.height)
+            val scale = minOf(1f, 2560f / decodedMax.toFloat())
+            val outputBitmap = if (scale < 1f) {
+                Bitmap.createScaledBitmap(
+                    decoded,
+                    (decoded.width * scale).roundToInt().coerceAtLeast(1),
+                    (decoded.height * scale).roundToInt().coerceAtLeast(1),
+                    true
+                )
+            } else decoded
+
+            val output = ByteArrayOutputStream()
+            val compressed = outputBitmap.compress(Bitmap.CompressFormat.JPEG, 92, output)
+            if (outputBitmap !== decoded) decoded.recycle()
+            outputBitmap.recycle()
+            if (!compressed || output.size() == 0) mimeType to bytes else "image/jpeg" to output.toByteArray()
+        }.getOrDefault(mimeType to bytes)
     }
 
     suspend fun analyzeBase64Screenshot(
