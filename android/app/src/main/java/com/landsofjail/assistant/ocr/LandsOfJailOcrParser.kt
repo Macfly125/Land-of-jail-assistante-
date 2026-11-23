@@ -61,13 +61,23 @@ object LandsOfJailOcrParser {
         val levelRegex = Regex("""(?:niv\.?|lv\.?|level)\s*([0-9]+)""", RegexOption.IGNORE_CASE)
         val wardenRegex = Regex("""(?:warden\s*office|bureau\s*du\s*directeur|prison|qg|hq)\s*(?:niv\.?|lv\.?|level)?\s*([0-9]+)""", RegexOption.IGNORE_CASE)
 
-        val resourcePatterns = listOf(
-            "Nourriture (Food)" to Regex("""(?:nourriture|food|vivres)\s*[:\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)""", RegexOption.IGNORE_CASE),
-            "Bois (Wood)" to Regex("""(?:bois|wood|lumber)\s*[:\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)""", RegexOption.IGNORE_CASE),
-            "Acier (Steel)" to Regex("""(?:acier|steel|fer|iron)\s*[:\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)""", RegexOption.IGNORE_CASE),
-            "Essence (Gasoline)" to Regex("""(?:essence|gasoline|fuel|p[ée]trole)\s*[:\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)""", RegexOption.IGNORE_CASE),
-            "Diamants (Gems)" to Regex("""(?:diamants?|diamonds?|gemmes?|gems?)\s*[:\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)""", RegexOption.IGNORE_CASE),
-            "Cash / Or" to Regex("""(?:cash|gold|or)\s*[:\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)""", RegexOption.IGNORE_CASE)
+        val resourceLabels = listOf(
+            "Argent liquide" to Regex("""argent\\s+liquide|cash""", RegexOption.IGNORE_CASE),
+            "Nourriture" to Regex("""nourriture|food|vivres""", RegexOption.IGNORE_CASE),
+            "Bois" to Regex("""bois|wood|lumber""", RegexOption.IGNORE_CASE),
+            "Acier" to Regex("""acier|steel|fer|iron""", RegexOption.IGNORE_CASE),
+            "Essence" to Regex("""essence|gasoline|fuel|p[ée]trole""", RegexOption.IGNORE_CASE),
+            "Carte en or" to Regex("""carte\\s+en\\s+or|gold\\s+card""", RegexOption.IGNORE_CASE),
+            "Endurance" to Regex("""endurance|stamina""", RegexOption.IGNORE_CASE),
+            "EXP" to Regex("""(?<![\\p{L}])exp(?![\\p{L}])|experience""", RegexOption.IGNORE_CASE),
+            "Diamants" to Regex("""diamants?|diamonds?|gemmes?|gems?""", RegexOption.IGNORE_CASE)
+        )
+        val tableHasTotalColumns = Regex(
+            """total\\s+des\\s+objets|ressources\\s+totales|total\\s+items|total\\s+resources""",
+            RegexOption.IGNORE_CASE
+        ).containsMatchIn(rawText)
+        val numericTokens = Regex(
+            """(?<![\\p{L}])(?:\\d{1,3}(?:[ .]\\d{3})+|\\d+(?:[.,]\\d+)?)\\s*[kmbKMB]?"""
         )
 
         for ((index, line) in lines.withIndex()) {
@@ -92,20 +102,40 @@ object LandsOfJailOcrParser {
                 }
             }
 
-            // Ressources nommées
-            for ((resLabel, regex) in resourcePatterns) {
-                if (seenResKeys.contains(resLabel)) continue
-                val match = regex.find(line)
-                if (match != null) {
-                    val qtyText = match.groupValues[1].trim()
+            // Ressources : dans la fenêtre Statistiques, la bonne valeur est la
+            // dernière colonne ("Ressources totales"), pas "Total des objets".
+            for ((resLabel, labelRegex) in resourceLabels) {
+                if (seenResKeys.contains(resLabel) || !labelRegex.containsMatchIn(line)) continue
+                val rowText = buildString {
+                    append(line)
+                    for (offset in 1..2) {
+                        val nextLine = lines.getOrNull(index + offset) ?: break
+                        if (resourceLabels.any { (otherName, otherRegex) ->
+                                otherName != resLabel && otherRegex.containsMatchIn(nextLine)
+                            }) break
+                        append(" ")
+                        append(nextLine)
+                    }
+                }
+                val labelMatch = labelRegex.find(rowText) ?: continue
+                val values = numericTokens.findAll(rowText.substring(labelMatch.range.last + 1))
+                    .map { it.value.trim() }
+                    .filter { parseCompactNumeric(it) != null }
+                    .toList()
+                val qtyText = if (values.isEmpty()) null else {
+                    if (tableHasTotalColumns) values.last() else values.first()
+                }
+                if (qtyText != null) {
                     seenResKeys.add(resLabel)
                     resources.add(
                         ResourceRecord(
                             nom = resLabel,
                             quantiteTexte = qtyText,
                             quantiteNumerique = parseCompactNumeric(qtyText),
-                            incertain = qtyText.contains("k", true) || qtyText.contains("m", true),
-                            raisonIncertitude = "Valeur OCR locale abrégée"
+                            incertain = qtyText.contains("k", true) || qtyText.contains("m", true) || qtyText.contains("b", true),
+                            raisonIncertitude = if (tableHasTotalColumns)
+                                "Colonne Ressources totales du tableau de statistiques"
+                            else "Valeur lue par OCR local ; à confirmer"
                         )
                     )
                 }
