@@ -1178,6 +1178,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
               const warSkills = (hero.competences || []).filter((skill) => skill.type?.toLowerCase() === 'war' && !skill.incertain && Boolean(skill.description?.trim()));
               if (warSkills.length < 3 || !hero.typeTroupe?.trim()) continue;
               const signals = cageSkillSignals.filter((signal) => signal.hero === hero.nom);
+              if (signals.length === 0) continue;
               const key = hero.typeTroupe.trim().toLowerCase();
               const previous = leaderByClass.get(key);
               const candidate = { hero: hero.nom, heroClass: hero.typeTroupe, skills: warSkills.slice(0, 3).map((skill) => skill.nom), signalCount: signals.length };
