@@ -261,6 +261,8 @@ fun LandsOfJailAssistantApp(
     val lifecycleOwner = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val authRepository = remember(context) { SupabaseAuthRepository(context) }
+    var authSession by remember { mutableStateOf(authRepository.currentSession()) }
 
     var currentLang by remember { mutableStateOf(AppLanguage.FR) }
     var currentTab by remember { mutableStateOf(AssistantTab.TABLEAU) }
@@ -695,6 +697,9 @@ fun LandsOfJailAssistantApp(
             large = RoundedCornerShape(4.dp)
         )
     ) {
+        if (authSession == null) {
+            AuthGateScreen(onSessionChanged = { authSession = it })
+        } else {
         Scaffold(
             containerColor = Color(0xFF080A0F),
             snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -953,6 +958,7 @@ fun LandsOfJailAssistantApp(
                     AssistantTab.HISTORIQUE -> HistoryScreen(analyses, onClearHistory = { analyses = emptyList() })
                 }
             }
+        }
         }
     }
 }
@@ -2276,7 +2282,28 @@ private fun HistoryScreen(
 
 
 @Composable
-private fun SupabaseAccountCard() {
+private fun AuthGateScreen(onSessionChanged: (SupabaseAuthRepository.Session?) -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(22.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("LANDS OF JAIL", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.ExtraBold, letterSpacing = 1.5.sp)
+        Text("ASSISTANT TACTIQUE", color = Color(0xFFFF9A55), style = MaterialTheme.typography.labelLarge)
+        Spacer(Modifier.height(12.dp))
+        Text(
+            "Connecte-toi ou crée ton compte pour retrouver ton profil joueur, ta puissance, tes ressources et tes objectifs.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(Modifier.height(14.dp))
+        SupabaseAccountCard(onSessionChanged = onSessionChanged)
+        Text("Tes données de jeu locales seront conservées sur cet appareil.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+@Composable
+private fun SupabaseAccountCard(onSessionChanged: (SupabaseAuthRepository.Session?) -> Unit = {}) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val auth = remember(context) { SupabaseAuthRepository(context) }
@@ -2328,7 +2355,7 @@ private fun SupabaseAccountCard() {
                             scope.launch {
                                 busy = true
                                 auth.signOut()
-                                    .onSuccess { session = null; message = "Déconnexion effectuée."; isError = false }
+                                    .onSuccess { session = null; onSessionChanged(null); message = "Déconnexion effectuée."; isError = false }
                                     .onFailure { message = it.message ?: "Déconnexion impossible."; isError = true }
                                 busy = false
                             }
@@ -2368,6 +2395,7 @@ private fun SupabaseAccountCard() {
                                 val result = if (createAccount) auth.signUp(email, password) else auth.signIn(email, password)
                                 result.onSuccess { outcome ->
                                     session = outcome.session ?: auth.currentSession()
+                                    onSessionChanged(session)
                                     message = outcome.message
                                     isError = false
                                 }.onFailure {
