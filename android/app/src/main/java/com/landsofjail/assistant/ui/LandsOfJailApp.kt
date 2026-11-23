@@ -337,19 +337,6 @@ fun LandsOfJailAssistantApp(
         gameIntelLoading = false
     }
 
-    LaunchedEffect(Unit) {
-        val linkedAllianceId = accountPrefs.getString("cloud_alliance_id", "").orEmpty()
-        if (profileAuth.currentSession() != null && linkedAllianceId.isNotBlank()) {
-            profileAuth.fetchPendingAllianceJoinRequests(linkedAllianceId).onSuccess { pending ->
-                val previousIds = accountPrefs.getStringSet("notified_join_request_ids", emptySet()).orEmpty().toSet()
-                val currentIds = pending.map { it.id }.toSet()
-                val newCount = (currentIds - previousIds).size
-                if (newCount > 0) notifyAllianceJoinRequests(context, newCount)
-                accountPrefs.edit().putStringSet("notified_join_request_ids", previousIds + currentIds).apply()
-            }
-        }
-    }
-
     val refreshGameIntel: () -> Unit = {
         scope.launch {
             gameIntelLoading = true
@@ -520,6 +507,20 @@ fun LandsOfJailAssistantApp(
             if (event == Lifecycle.Event.ON_RESUME) {
                 hasUsagePermission = UsageStatsDetector.hasUsageStatsPermission(context)
                 hasOverlayPermission = Settings.canDrawOverlays(context)
+
+                // Check pending alliance requests when the app starts or returns to foreground.
+                val linkedAllianceId = accountPrefs.getString("cloud_alliance_id", "").orEmpty()
+                if (profileAuth.currentSession() != null && linkedAllianceId.isNotBlank()) {
+                    scope.launch {
+                        profileAuth.fetchPendingAllianceJoinRequests(linkedAllianceId).onSuccess { pending ->
+                            val previousIds = accountPrefs.getStringSet("notified_join_request_ids", emptySet()).orEmpty().toSet()
+                            val currentIds = pending.map { it.id }.toSet()
+                            val newCount = (currentIds - previousIds).size
+                            if (newCount > 0) notifyAllianceJoinRequests(context, newCount)
+                            accountPrefs.edit().putStringSet("notified_join_request_ids", previousIds + currentIds).apply()
+                        }
+                    }
+                }
 
                 // Recheck the game intelligence after six hours when the app returns to foreground.
                 val lastCheckedAt = gameIntel?.checkedAt?.let {
