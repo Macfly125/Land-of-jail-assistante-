@@ -4413,6 +4413,35 @@ private fun AllianceScreen(
 
 private fun itTagNotUsed(used: Set<String>, tag: String): Boolean = tag !in used
 
+private fun notifyImprovementUpdate(context: Context, title: String, status: String) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+        ContextCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+    ) return
+    val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    val channelId = "app_improvement_updates"
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        manager.createNotificationChannel(
+            NotificationChannel(channelId, "Réponses aux propositions", NotificationManager.IMPORTANCE_DEFAULT)
+        )
+    }
+    val statusText = when (status) {
+        "accepted" -> "Ta proposition a été acceptée."
+        "rejected" -> "Ta proposition a été refusée."
+        "needs_info" -> "Le développeur demande des précisions."
+        "in_progress" -> "Ta proposition est en cours de développement."
+        "implemented" -> "L'amélioration est maintenant intégrée."
+        else -> "Le statut de ta proposition a changé."
+    }
+    val notification = NotificationCompat.Builder(context, channelId)
+        .setSmallIcon(android.R.drawable.ic_dialog_info)
+        .setContentTitle("Réponse à : $title")
+        .setContentText(statusText)
+        .setAutoCancel(true)
+        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+        .build()
+    manager.notify((title + status).hashCode(), notification)
+}
+
 private fun notifyAllianceJoinRequests(context: Context, count: Int) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
         ContextCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
@@ -4678,6 +4707,9 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
 
 @Composable
 private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val prefs = remember(context) { context.getSharedPreferences("lands_of_jail_account_v1", Context.MODE_PRIVATE) }
     val scope = rememberCoroutineScope()
     val session = auth.currentSession()
     var isDeveloper by remember { mutableStateOf(false) }
@@ -4697,10 +4729,29 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
         scope.launch {
             loading = true
             auth.isAppDeveloper().onSuccess { isDeveloper = it }
-            auth.fetchAppImprovementRequests().onSuccess { requests = it }
-                .onFailure { message = it.message ?: "Chargement des propositions impossible."; isError = true }
+            auth.fetchAppImprovementRequests().onSuccess { updated ->
+                if (!isDeveloper) {
+                    updated.forEach { request ->
+                        val key = "improvement_status_${request.id}"
+                        val previous = prefs.getString(key, null)
+                        if (previous != null && previous != request.status) {
+                            notifyImprovementUpdate(context, request.title, request.status)
+                        }
+                        prefs.edit().putString(key, request.status).apply()
+                    }
+                }
+                requests = updated
+            }.onFailure { message = it.message ?: "Chargement des propositions impossible."; isError = true }
             loading = false
         }
+    }
+
+    DisposableEffect(session?.user_id, lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME && session != null) refresh()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     LaunchedEffect(session?.user_id) {
