@@ -1831,7 +1831,6 @@ private fun DashboardScreen(
     gameIntel: GameIntelSnapshot?,
     gameIntelLoading: Boolean,
     gameIntelError: String?,
-    onRefreshGameIntel: () -> Unit,
     onOpenHistory: () -> Unit,
     onPickImage: () -> Unit
 ) {
