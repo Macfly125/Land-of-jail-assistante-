@@ -635,15 +635,14 @@ fun LandsOfJailAssistantApp(
                 } else previous.champsIncertains.map { it.trim().lowercase() }.toSet()
                 val keepManual = previous.source == "saisie_manuel"
                 fun choose(field: String, oldValue: String, newValue: String): String = when {
-                    keepManual && oldValue.isNotBlank() -> oldValue
+                    keepManual && field !in previousFields && oldValue.isNotBlank() -> oldValue
                     field in candidateFields && oldValue.isNotBlank() -> oldValue
                     newValue.isNotBlank() -> newValue
                     else -> oldValue
                 }
                 val allUncertainFields = (previousFields + candidateFields).intersect(robotFields)
                 val unresolvedFields = allUncertainFields.filter { field ->
-                    val oldReliable = valueFor(previous, field).isNotBlank() &&
-                        (keepManual || field !in previousFields)
+                    val oldReliable = valueFor(previous, field).isNotBlank() && field !in previousFields
                     val newReliable = valueFor(candidate, field).isNotBlank() && field !in candidateFields
                     !oldReliable && !newReliable
                 }
