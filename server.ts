@@ -79,6 +79,9 @@ function parseMultipartScreenshot(
 
 async function startServer() {
   const app = express();
+  app.get('/api/health', (_req, res) => {
+    res.status(200).json({ status: 'ok', service: 'lands-of-jail-assistant-backend', checkedAt: new Date().toISOString() });
+  });
   registerGameIntelRoutes(app);
 
   // Web Share Target endpoint for PWA Android Chrome sharing
