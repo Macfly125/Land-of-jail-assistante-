@@ -749,42 +749,42 @@ fun LandsOfJailAssistantApp(
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("Chaque profil conserve ses propres héros, ressources, puissance et historique.")
                     localProfiles.forEach { profile ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
+                        Column(modifier = Modifier.fillMaxWidth()) {
                             Text(
                                 profile.name,
-                                modifier = Modifier.weight(1f),
                                 fontWeight = if (profile.id == activeProfileId) FontWeight.Bold else FontWeight.Normal
                             )
-                            TextButton(onClick = {
-                                if (profile.id != activeProfileId) {
-                                    saveActiveProfile()
-                                    runCatching {
-                                        val snapshot = accountJson.decodeFromString<LocalGameProfileSnapshot>(profile.stateJson)
-                                        allianceWorkspace = snapshot.allianceWorkspace
-                                        analyses = snapshot.analyses
-                                        heroes = snapshot.heroes
-                                        resources = snapshot.resources
-                                        currentPower = snapshot.currentPower
-                                        selectedAdviceMode = runCatching { AdviceMode.valueOf(snapshot.adviceMode) }.getOrDefault(AdviceMode.TRIAL_CAGE)
-                                        adviceResult = snapshot.adviceResult
-                                        activeProfileId = profile.id
-                                        accountPrefs.edit().putString("active_game_profile_v1", profile.id).commit()
-                                    }.onFailure { errorMessage = "Impossible d'ouvrir ce profil : ${it.message}" }
-                                }
-                                showProfileDialog = false
-                            }) { Text(if (profile.id == activeProfileId) "Actif" else "Ouvrir") }
-                            TextButton(onClick = {
-                                editingProfileId = profile.id
-                                profileNameInput = profile.name
-                            }) { Text("Renommer") }
-                            TextButton(
-                                enabled = localProfiles.size > 1,
-                                onClick = { deletingProfileId = profile.id }
-                            ) { Text("Supprimer") }
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                TextButton(onClick = {
+                                    if (profile.id != activeProfileId) {
+                                        saveActiveProfile()
+                                        runCatching {
+                                            val snapshot = accountJson.decodeFromString<LocalGameProfileSnapshot>(profile.stateJson)
+                                            allianceWorkspace = snapshot.allianceWorkspace
+                                            analyses = snapshot.analyses
+                                            heroes = snapshot.heroes
+                                            resources = snapshot.resources
+                                            currentPower = snapshot.currentPower
+                                            selectedAdviceMode = runCatching { AdviceMode.valueOf(snapshot.adviceMode) }.getOrDefault(AdviceMode.TRIAL_CAGE)
+                                            adviceResult = snapshot.adviceResult
+                                            activeProfileId = profile.id
+                                            accountPrefs.edit().putString("active_game_profile_v1", profile.id).commit()
+                                        }.onFailure { errorMessage = "Impossible d'ouvrir ce profil : ${it.message}" }
+                                    }
+                                    showProfileDialog = false
+                                }) { Text(if (profile.id == activeProfileId) "Actif" else "Ouvrir") }
+                                TextButton(onClick = {
+                                    editingProfileId = profile.id
+                                    profileNameInput = profile.name
+                                }) { Text("Renommer") }
+                                TextButton(
+                                    enabled = localProfiles.size > 1,
+                                    onClick = { deletingProfileId = profile.id }
+                                ) { Text("Supprimer") }
+                            }
                         }
                     }
                     TextButton(
@@ -1178,7 +1178,10 @@ fun LandsOfJailAssistantApp(
                             heroes = heroes.map { if (it.nom == original.nom) updated else it }
                         }
                     )
-                    AssistantTab.RESSOURCES -> ResourcesScreen(currentLang, currentPower, resources, activeProfileId)
+                    AssistantTab.RESSOURCES -> ResourcesScreen(
+                        currentLang, currentPower, resources, activeProfileId,
+                        migrateLegacyRoutine = localProfiles.firstOrNull()?.id == activeProfileId
+                    )
                     AssistantTab.CONSEILS -> AdviceScreen(
                         currentLang = currentLang,
                         onChangeLang = { currentLang = it },
@@ -1755,11 +1758,31 @@ private fun ResourcesScreen(
     currentLang: AppLanguage,
     power: PowerMetric?,
     resources: List<ResourceRecord>,
-    profileId: String
+    profileId: String,
+    migrateLegacyRoutine: Boolean
 ) {
     val context = LocalContext.current
     val routinePrefs = remember(context, profileId) {
         context.getSharedPreferences("offline_routine_" + profileId, Context.MODE_PRIVATE)
+    }
+    LaunchedEffect(profileId, migrateLegacyRoutine) {
+        val migrationPrefs = context.getSharedPreferences("offline_routine_profile_migration_v1", Context.MODE_PRIVATE)
+        if (migrateLegacyRoutine && !migrationPrefs.getBoolean("done", false)) {
+            val legacy = context.getSharedPreferences("offline_routine", Context.MODE_PRIVATE)
+            val editor = routinePrefs.edit()
+            legacy.all.forEach { (key, value) ->
+                when (value) {
+                    is String -> editor.putString(key, value)
+                    is Int -> editor.putInt(key, value)
+                    is Long -> editor.putLong(key, value)
+                    is Boolean -> editor.putBoolean(key, value)
+                    is Float -> editor.putFloat(key, value)
+                    is Set<*> -> editor.putStringSet(key, value.filterIsInstance<String>().toSet())
+                }
+            }
+            editor.commit()
+            migrationPrefs.edit().putBoolean("done", true).commit()
+        }
     }
     var subTab by remember { mutableStateOf(ResourceSubTab.INVENTAIRE) }
     var targetBuildingLvl by remember { mutableIntStateOf(16) }
