@@ -22,7 +22,7 @@ jobs:
       - name: Interroger la veille du jeu
         id: scan
         env:
-          GAME_INTEL_URL: ${{ vars.GAME_INTEL_URL || 'https://land-of-jail-assistant-api.onrender.com/api/game-intel' }}
+          GAME_INTEL_URL: ${{ vars.GAME_INTEL_URL || 'https://ais-pre-5yvyv3v3pqwxalk2bhijpo-717617057104.europe-west2.run.app/api/game-intel' }}
         run: |
           set -euo pipefail
           mkdir -p reports
