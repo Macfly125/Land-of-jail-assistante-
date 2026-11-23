@@ -389,7 +389,11 @@ Retourne une entrée distincte pour CHAQUE ressource identifiable, même si son 
       if (
         (parsed.typeCapture === 'heros' || /héros|heros|heroes/i.test(String(note || ''))) &&
         Array.isArray(parsed.heros) &&
-        parsed.heros.length < 5
+        (
+          parsed.heros.length < 5 ||
+          (/contrôle héros/i.test(String(note || '')) &&
+            !parsed.heros.some((hero: Record<string, unknown>) => /ryuichi/i.test(String(hero?.nom || ''))))
+        )
       ) {
         try {
           const retry = await ai.models.generateContent({
