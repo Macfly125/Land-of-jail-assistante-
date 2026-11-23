@@ -316,6 +316,9 @@ fun LandsOfJailAssistantApp(
             )
         }.getOrNull())
     }
+    var progressionGoal by remember {
+        mutableStateOf(accountPrefs.getString("progression_goal", "QG / progression") ?: "QG / progression")
+    }
 
     LaunchedEffect(allianceWorkspace) {
         accountPrefs.edit()
@@ -330,6 +333,9 @@ fun LandsOfJailAssistantApp(
             .putString("resources", accountJson.encodeToString(resources))
             .putString("current_power", accountJson.encodeToString(currentPower))
             .apply()
+    }
+    LaunchedEffect(progressionGoal) {
+        accountPrefs.edit().putString("progression_goal", progressionGoal).apply()
     }
 
     var isAnalyzing by remember { mutableStateOf(false) }
@@ -941,6 +947,10 @@ fun LandsOfJailAssistantApp(
                         playerRole = playerRole,
                         onSelectRole = { playerRole = it },
                         currentPower = currentPower,
+                        playerName = allianceWorkspace.ownProfile.playerName,
+                        resources = resources,
+                        progressionGoal = progressionGoal,
+                        onProgressionGoalChange = { progressionGoal = it },
                         heroesCount = heroes.size,
                         resourcesCount = resources.size,
                         latestAnalysis = analyses.firstOrNull(),
@@ -1031,6 +1041,10 @@ private fun DashboardScreen(
     playerRole: PlayerRole,
     onSelectRole: (PlayerRole) -> Unit,
     currentPower: PowerMetric?,
+    playerName: String,
+    resources: List<ResourceRecord>,
+    progressionGoal: String,
+    onProgressionGoalChange: (String) -> Unit,
     heroesCount: Int,
     resourcesCount: Int,
     latestAnalysis: ScreenshotAnalysis?,
@@ -1264,7 +1278,47 @@ private fun DashboardScreen(
             }
         }
 
-        // Résumé du compte
+        // Profil joueur, puissance et ressources
+        item {
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Mon profil joueur", fontWeight = FontWeight.Bold)
+                    Text(playerName.ifBlank { "Pseudo non renseigné — complète ton profil dans l'espace Alliance." }, color = Color(0xFFFFB36B))
+                    Text("Puissance : ${currentPower?.puissanceTotaleTexte ?: "À analyser"}", fontWeight = FontWeight.SemiBold)
+                    Text("Prison / QG : ${currentPower?.niveauPrisonOuQG ?: "—"} · VIP : ${currentPower?.niveauVip ?: "—"}", style = MaterialTheme.typography.bodySmall)
+                    Text("Héros suivis : $heroesCount", style = MaterialTheme.typography.bodySmall)
+                    Text("Ressources détectées", fontWeight = FontWeight.SemiBold)
+                    if (resources.isEmpty()) {
+                        Text("Aucune ressource reconnue. Importe une capture de l'entrepôt ou de la barre de ressources.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    } else {
+                        resources.take(6).forEach { resource ->
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text(resource.nom, style = MaterialTheme.typography.bodySmall)
+                                Text(
+                                    resource.quantiteTexte.ifBlank { "À confirmer" } + if (resource.incertain) " · ?" else "",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = if (resource.incertain) Color(0xFFFBBF24) else MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+                    }
+                    Text("Objectif de progression", fontWeight = FontWeight.SemiBold)
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        listOf("QG / progression", "Trial Cage", "PvP / Crystal Clash / SvS", "Économie / F2P").forEach { goal ->
+                            Row(
+                                Modifier.fillMaxWidth().clickable { onProgressionGoalChange(goal) },
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                RadioButton(selected = progressionGoal == goal, onClick = { onProgressionGoalChange(goal) })
+                                Text(goal, style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Ancien résumé synthétique
         item {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
