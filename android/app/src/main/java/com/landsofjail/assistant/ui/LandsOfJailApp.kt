@@ -1857,7 +1857,7 @@ private fun HeroEditDialog(
     var stars by remember(hero) { mutableStateOf(hero.etoiles.orEmpty()) }
     var power by remember(hero) { mutableStateOf(hero.puissanceHero.orEmpty()) }
     var skills by remember(hero) {
-        mutableStateOf(hero.competences.joinToString("\n") { it.nom + " | " + it.niveau + " | " + it.description.orEmpty() })
+        mutableStateOf(hero.competences.joinToString("\n") { it.type + " | " + it.nom + " | " + it.niveau + " | " + it.description.orEmpty() })
     }
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -1872,7 +1872,7 @@ private fun HeroEditDialog(
                 OutlinedTextField(
                     skills,
                     { skills = it },
-                    label = { Text("Compétences : Nom | niveau | description (une ligne par compétence)") },
+                    label = { Text("Compétences : type | nom | niveau | description (war / arrest / equipment / inconnu)") },
                     minLines = 3,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -1884,15 +1884,20 @@ private fun HeroEditDialog(
                 onClick = {
                     val oldSkills = hero.competences.associateBy { it.nom.trim().lowercase() }
                     val correctedSkills = skills.lines().mapNotNull { line ->
-                        val parts = line.split("|", limit = 3)
-                        val skillName = parts.getOrNull(0)?.trim().orEmpty()
+                        val parts = line.split("|", limit = 4).map { it.trim() }
+                        val explicitType = parts.getOrNull(0)?.lowercase()?.takeIf {
+                            it in setOf("war", "arrest", "equipment", "inconnu")
+                        }
+                        val skillName = if (explicitType != null) parts.getOrNull(1).orEmpty() else parts.getOrNull(0).orEmpty()
+                        val levelIndex = if (explicitType != null) 2 else 1
+                        val descriptionIndex = if (explicitType != null) 3 else 2
                         if (skillName.isBlank()) null else {
                             val previous = oldSkills[skillName.lowercase()]
                             HeroSkill(
                                 nom = skillName,
-                                niveau = parts.getOrNull(1)?.trim()?.takeIf { it.isNotBlank() } ?: previous?.niveau.orEmpty(),
-                                description = parts.getOrNull(2)?.trim()?.takeIf { it.isNotBlank() } ?: previous?.description,
-                                type = previous?.type ?: "inconnu",
+                                niveau = parts.getOrNull(levelIndex)?.takeIf { it.isNotBlank() } ?: previous?.niveau.orEmpty(),
+                                description = parts.getOrNull(descriptionIndex)?.takeIf { it.isNotBlank() } ?: previous?.description,
+                                type = explicitType ?: previous?.type ?: "inconnu",
                                 incertain = false
                             )
                         }
