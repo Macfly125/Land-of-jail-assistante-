@@ -161,6 +161,8 @@ export async function signOutCloud(): Promise<void> {
         },
       });
     }
+  } catch {
+    // Local logout must also work without a network connection.
   } finally {
     clearSession();
   }
@@ -168,14 +170,15 @@ export async function signOutCloud(): Promise<void> {
 
 async function databaseRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
   const session = await getValidSession();
+  const headers = new Headers({
+    apikey: SUPABASE_PUBLISHABLE_KEY,
+    Authorization: `Bearer ${session.access_token}`,
+    'Content-Type': 'application/json',
+  });
+  new Headers(init.headers).forEach((value, key) => headers.set(key, value));
   const response = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
     ...init,
-    headers: {
-      apikey: SUPABASE_PUBLISHABLE_KEY,
-      Authorization: `Bearer ${session.access_token}`,
-      'Content-Type': 'application/json',
-      ...(init.headers ?? {}),
-    },
+    headers,
   });
   if (response.status === 204) return undefined as T;
   return parseResponse<T>(response);
