@@ -296,7 +296,8 @@ fun LandsOfJailAssistantApp(
         resources = resources,
         currentPower = currentPower,
         adviceMode = selectedAdviceMode.name,
-        adviceResult = adviceResult
+        adviceResult = adviceResult,
+        playerRole = playerRole.name
     )
 
     fun saveActiveProfile() {
@@ -341,13 +342,14 @@ fun LandsOfJailAssistantApp(
                 currentPower = snapshot.currentPower
                 selectedAdviceMode = runCatching { AdviceMode.valueOf(snapshot.adviceMode) }.getOrDefault(AdviceMode.TRIAL_CAGE)
                 adviceResult = snapshot.adviceResult
+                playerRole = runCatching { PlayerRole.valueOf(snapshot.playerRole) }.getOrDefault(PlayerRole.POLYVALENT_F2P)
             }
             accountPrefs.edit().putString("active_game_profile_v1", selected.id).commit()
         }
         accountDataLoaded = true
     }
 
-    LaunchedEffect(allianceWorkspace, analyses, heroes, resources, currentPower, selectedAdviceMode, adviceResult, activeProfileId, accountDataLoaded) {
+    LaunchedEffect(allianceWorkspace, analyses, heroes, resources, currentPower, selectedAdviceMode, adviceResult, playerRole, activeProfileId, accountDataLoaded) {
         if (accountDataLoaded && activeProfileId.isNotBlank()) {
             val snapshotJson = accountJson.encodeToString(currentProfileSnapshot())
             localProfiles = localProfiles.map { profile ->
@@ -815,6 +817,7 @@ fun LandsOfJailAssistantApp(
                             currentPower = null
                             selectedAdviceMode = AdviceMode.TRIAL_CAGE
                             adviceResult = null
+                            playerRole = PlayerRole.POLYVALENT_F2P
                             accountPrefs.edit().putString("active_game_profile_v1", id).commit()
                             showProfileDialog = false
                         }
@@ -880,6 +883,7 @@ fun LandsOfJailAssistantApp(
                                             currentPower = snapshot.currentPower
                                             selectedAdviceMode = runCatching { AdviceMode.valueOf(snapshot.adviceMode) }.getOrDefault(AdviceMode.TRIAL_CAGE)
                                             adviceResult = snapshot.adviceResult
+                                            playerRole = runCatching { PlayerRole.valueOf(snapshot.playerRole) }.getOrDefault(PlayerRole.POLYVALENT_F2P)
                                         }
                                         snackbarHostState.showSnackbar("Synchronisation terminée. Aucune sauvegarde distante n’a été supprimée.")
                                     } catch (error: Exception) {
@@ -942,6 +946,7 @@ fun LandsOfJailAssistantApp(
                                 currentPower = snapshot.currentPower
                                 selectedAdviceMode = runCatching { AdviceMode.valueOf(snapshot.adviceMode) }.getOrDefault(AdviceMode.TRIAL_CAGE)
                                 adviceResult = snapshot.adviceResult
+                                playerRole = runCatching { PlayerRole.valueOf(snapshot.playerRole) }.getOrDefault(PlayerRole.POLYVALENT_F2P)
                                 activeProfileId = next.id
                                 accountPrefs.edit().putString("active_game_profile_v1", next.id).commit()
                                 localProfiles = localProfiles.filterNot { it.id == target.id }
