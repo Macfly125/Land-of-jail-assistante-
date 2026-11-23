@@ -399,6 +399,16 @@ class SupabaseAuthRepository(context: Context) {
             put("p_new_r5_user_id", newR5UserId)
         }).map { Unit }
 
+    suspend fun setAllianceMemberRank(
+        allianceId: String,
+        targetUserId: String,
+        newRank: String
+    ): Result<Unit> = callAllianceRpc("set_alliance_member_rank", buildJsonObject {
+        put("p_alliance_id", allianceId)
+        put("p_target_user_id", targetUserId)
+        put("p_new_rank", newRank)
+    }).map { Unit }
+
     suspend fun isAppDeveloper(): Result<Boolean> = callAllianceRpc("is_app_developer", buildJsonObject {}).map { it == "true" }
 
     suspend fun submitAppImprovement(
