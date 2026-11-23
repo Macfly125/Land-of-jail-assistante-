@@ -1175,7 +1175,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
             // Leaders use the complete War kit of three heroes, one per troop class.
             const leaderByClass = new Map<string, { hero: string; heroClass: string; skills: string[]; signalCount: number }>();
             for (const hero of heroes ?? []) {
-              const warSkills = (hero.competences || []).filter((skill) => skill.type?.toLowerCase() === 'war');
+              const warSkills = (hero.competences || []).filter((skill) => skill.type?.toLowerCase() === 'war' && !skill.incertain && Boolean(skill.description?.trim()));
               if (warSkills.length < 3 || !hero.typeTroupe?.trim()) continue;
               const signals = cageSkillSignals.filter((signal) => signal.hero === hero.nom);
               const key = hero.typeTroupe.trim().toLowerCase();
