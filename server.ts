@@ -158,8 +158,15 @@ CONSIGNE PRIORITAIRE — ÉCRAN DES HÉROS :
 - Si un niveau, une puissance, une étoile ou un niveau de compétence n'est pas clairement lisible, laisse la valeur vide/null et marque le champ incertain. Ne remplace jamais une valeur illisible par une valeur estimée.
 - Pour chaque héros, renseigne aussi "champsIncertains" avec les noms exacts des champs personnels illisibles parmi : "niveau", "rarete", "etoiles", "roleHero", "puissanceHero". Un champ absent de cette liste doit être suffisamment lisible pour être mis à jour. N'ajoute jamais les champs wiki/catalogue à cette liste.
 - Si aucun niveau/puissance/compétence n'est affiché sur cette capture, indique-le clairement dans "resumeCapture" et "champsIncertains" plutôt que de prétendre que le héros est niveau 1 ou sans compétence.
+CONSIGNE PRIORITAIRE — ÉCRAN DES ROBOTS :
+- Si la capture montre l'inventaire, la fiche, les améliorations ou les compétences d'un robot, classe l'écran en "robots".
+- Examine chaque robot visible séparément. Lis uniquement les éléments réellement affichés : nom, niveau, rareté/étoiles, puissance, bonus actifs et compétences/effets.
+- Si plusieurs robots sont visibles, retourne une entrée distincte pour chacun. Ne confonds pas le niveau du robot avec le niveau d'un bâtiment ou d'un héros.
+- Recopie les effets tels qu'ils apparaissent, sans transformer un bonus défensif en bonus offensif et sans supposer une compétence à partir du nom du robot.
+- Si une valeur est floue ou masquée, laisse le champ vide et indique incertain=true avec une raison précise. Ne complète jamais avec une valeur de wiki ou une estimation.
+- Si la capture montre un robot mais que son identité est illisible, retourne une entrée avec nom="Robot non identifié" et incertain=true plutôt que d'inventer son nom.
 RÈGLES GÉNÉRALES :
-1. Identifie le type d'écran : "profil", "heros", "ressources", "trial_cage", "crystal_clash", ou "autre".
+1. Identifie le type d'écran : "profil", "heros", "robots", "ressources", "trial_cage", "crystal_clash", ou "autre".
 2. Extrais la puissance du compte, niveau QG/Prison et VIP uniquement s'ils sont visibles.
 3. Extrais les ressources visibles avec leur quantité exacte.
 4. Pour chaque héros visible, renseigne nom, niveau exact, rareté, étoiles, rôle affiché/identifiable, puissance individuelle et toutes les compétences dont le niveau est réellement visible.
@@ -188,7 +195,7 @@ RÈGLES GÉNÉRALES :
               typeCapture: {
                 type: Type.STRING,
                 description:
-                  'Un parmi: profil, heros, ressources, trial_cage, crystal_clash, autre',
+                  'Un parmi: profil, heros, robots, ressources, trial_cage, crystal_clash, autre',
               },
               resumeCapture: {
                 type: Type.STRING,
@@ -255,6 +262,25 @@ RÈGLES GÉNÉRALES :
                   required: ['nom', 'niveauTexte', 'incertain', 'competences'],
                 },
               },
+              robots: {
+                type: Type.ARRAY,
+                description: 'Robots visibles sur la capture et leurs seules données lisibles.',
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    nom: { type: Type.STRING },
+                    niveau: { type: Type.STRING },
+                    rarete: { type: Type.STRING },
+                    bonus: { type: Type.STRING },
+                    competences: { type: Type.STRING },
+                    puissance: { type: Type.STRING },
+                    incertain: { type: Type.BOOLEAN },
+                    raisonIncertitude: { type: Type.STRING },
+                    source: { type: Type.STRING },
+                  },
+                  required: ['nom', 'incertain'],
+                },
+              },
               champsIncertains: {
                 type: Type.ARRAY,
                 items: {
@@ -273,6 +299,7 @@ RÈGLES GÉNÉRALES :
               'resumeCapture',
               'ressources',
               'heros',
+              'robots',
               'champsIncertains',
             ],
           },
