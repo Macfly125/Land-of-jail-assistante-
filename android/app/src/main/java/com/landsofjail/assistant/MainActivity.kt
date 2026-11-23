@@ -42,7 +42,7 @@ class MainActivity : ComponentActivity() {
         }
 
         val repository = GeminiAssistantRepository(
-            backendBaseUrl = "https://ais-pre-5yvyv3v3pqwxalk2bhijpo-717617057104.europe-west2.run.app"
+            backendBaseUrl = "https://land-of-jail-assistant-api.onrender.com"
         )
 
         setContent {
