@@ -488,35 +488,58 @@ fun LandsOfJailAssistantApp(
                 merged[key] = fresh
             } else {
                 val skills = (previous.competences + fresh.competences)
+                    .filter { it.nom.isNotBlank() }
                     .groupBy { normalizedKey(it.nom) }
                     .values
                     .map { entries ->
-                        val latest = entries.last()
-                        val knownType = entries.firstOrNull { it.type.lowercase() in setOf("war", "arrest", "equipment") }?.type
-                        latest.copy(type = latest.type.takeIf { it.lowercase() in setOf("war", "arrest", "equipment") } ?: knownType ?: "inconnu")
+                        val trusted = entries.lastOrNull { !it.incertain }
+                        val selected = trusted ?: entries.last()
+                        val knownType = entries.lastOrNull {
+                            it.type.lowercase() in setOf("war", "arrest", "equipment")
+                        }?.type
+                        selected.copy(
+                            niveau = selected.niveau.ifBlank {
+                                entries.lastOrNull { it.niveau.isNotBlank() }?.niveau.orEmpty()
+                            },
+                            description = selected.description?.takeIf { it.isNotBlank() }
+                                ?: entries.lastNotNullOfOrNull { it.description?.takeIf(String::isNotBlank) },
+                            type = selected.type.takeIf {
+                                it.lowercase() in setOf("war", "arrest", "equipment")
+                            } ?: knownType ?: "inconnu",
+                            iconUrl = selected.iconUrl ?: entries.lastNotNullOfOrNull { it.iconUrl },
+                            incertain = trusted == null,
+                            raisonIncertitude = if (trusted == null) {
+                                selected.raisonIncertitude
+                            } else null
+                        )
                     }
+                val useFreshValues = !fresh.incertain
                 merged[key] = previous.copy(
-                    niveau = fresh.niveau ?: previous.niveau,
-                    niveauTexte = fresh.niveauTexte.takeIf {
-                        it.isNotBlank() && !it.contains("non lu", true) && !it.contains("inconnu", true)
-                    } ?: previous.niveauTexte,
-                    rarete = fresh.rarete ?: previous.rarete,
-                    etoiles = fresh.etoiles ?: previous.etoiles,
-                    roleHero = fresh.roleHero ?: previous.roleHero,
-                    puissanceHero = fresh.puissanceHero ?: previous.puissanceHero,
+                    niveau = if (useFreshValues || previous.niveau == null) fresh.niveau ?: previous.niveau else previous.niveau,
+                    niveauTexte = if (useFreshValues || previous.niveauTexte.isBlank()) {
+                        fresh.niveauTexte.takeIf {
+                            it.isNotBlank() && !it.contains("non lu", true) && !it.contains("inconnu", true)
+                        } ?: previous.niveauTexte
+                    } else previous.niveauTexte,
+                    rarete = if (useFreshValues || previous.rarete.isNullOrBlank()) fresh.rarete ?: previous.rarete else previous.rarete,
+                    etoiles = if (useFreshValues || previous.etoiles.isNullOrBlank()) fresh.etoiles ?: previous.etoiles else previous.etoiles,
+                    roleHero = if (useFreshValues || previous.roleHero.isNullOrBlank()) fresh.roleHero ?: previous.roleHero else previous.roleHero,
+                    puissanceHero = if (useFreshValues || previous.puissanceHero.isNullOrBlank()) fresh.puissanceHero ?: previous.puissanceHero else previous.puissanceHero,
                     imageUrl = fresh.imageUrl ?: previous.imageUrl,
                     avatarUrl = fresh.avatarUrl ?: previous.avatarUrl,
-                    titre = fresh.titre ?: previous.titre,
-                    typeTroupe = fresh.typeTroupe ?: previous.typeTroupe,
-                    categorie = fresh.categorie ?: previous.categorie,
-                    saison = fresh.saison ?: previous.saison,
+                    titre = if (useFreshValues || previous.titre.isNullOrBlank()) fresh.titre ?: previous.titre else previous.titre,
+                    typeTroupe = if (useFreshValues || previous.typeTroupe.isNullOrBlank()) fresh.typeTroupe ?: previous.typeTroupe else previous.typeTroupe,
+                    categorie = if (useFreshValues || previous.categorie.isNullOrBlank()) fresh.categorie ?: previous.categorie else previous.categorie,
+                    saison = if (useFreshValues || previous.saison.isNullOrBlank()) fresh.saison ?: previous.saison else previous.saison,
                     puissanceMax5Etoiles = fresh.puissanceMax5Etoiles ?: previous.puissanceMax5Etoiles,
                     resumeBio = fresh.resumeBio ?: previous.resumeBio,
                     idealPour = fresh.idealPour ?: previous.idealPour,
                     wikiUrl = fresh.wikiUrl ?: previous.wikiUrl,
                     competences = skills,
                     incertain = fresh.incertain && previous.incertain,
-                    raisonIncertitude = fresh.raisonIncertitude ?: previous.raisonIncertitude
+                    raisonIncertitude = if (fresh.incertain && previous.incertain) {
+                        fresh.raisonIncertitude ?: previous.raisonIncertitude
+                    } else null
                 )
             }
         }
