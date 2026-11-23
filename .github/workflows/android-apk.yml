@@ -47,25 +47,16 @@ jobs:
             fi
           fi
 
-      - name: Mettre en cache Gradle
-        uses: actions/cache@v4
+      - name: Installer Gradle et mettre en cache les dépendances
+        uses: gradle/actions/setup-gradle@v4
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: android-gradle-${{ runner.os }}-${{ hashFiles('android/**/*.gradle.kts', 'android/gradle.properties') }}
-          restore-keys: |
-            android-gradle-${{ runner.os }}-
-
-      - name: Installer Gradle 8.11.1
-        run: |
-          curl -fsSL https://services.gradle.org/distributions/gradle-8.11.1-bin.zip -o /tmp/gradle.zip
-          unzip -q /tmp/gradle.zip -d /tmp
-          echo "/tmp/gradle-8.11.1/bin" >> "$GITHUB_PATH"
+          gradle-version: '8.11.1'
+          cache-read-only: false
+          cache-cleanup: on-success
 
       - name: Exécuter les tests de régression OCR
         working-directory: android
-        run: gradle testDebugUnitTest --no-daemon --stacktrace
+        run: gradle testDebugUnitTest --no-daemon --stacktrace --max-workers=2
 
       - name: Préparer la signature Android stable
         id: signing
@@ -96,7 +87,7 @@ jobs:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: gradle assembleRelease --no-daemon --stacktrace -PVERSION_CODE=${{ github.run_number }} -PVERSION_NAME=1.1.${{ github.run_number }}
+        run: gradle assembleRelease --no-daemon --stacktrace --max-workers=2 -PVERSION_CODE=${{ github.run_number }} -PVERSION_NAME=1.1.${{ github.run_number }}
 
       - name: Vérifier le paquet APK généré
         shell: bash
@@ -130,7 +121,6 @@ jobs:
           path: android/app/build/outputs/apk/release/app-release.apk
           retention-days: 30
 
-
       - name: Publier un lien APK direct (sans archive ni Split APK Installer)
         if: steps.signing.outputs.available == 'true'
         uses: softprops/action-gh-release@v2
@@ -146,7 +136,7 @@ jobs:
       - name: Compiler APK debug (tests uniquement)
         if: steps.signing.outputs.available != 'true'
         working-directory: android
-        run: gradle assembleDebug --no-daemon --stacktrace -PVERSION_CODE=${{ github.run_number }} -PVERSION_NAME=1.1.${{ github.run_number }}
+        run: gradle assembleDebug --no-daemon --stacktrace --max-workers=2 -PVERSION_CODE=${{ github.run_number }} -PVERSION_NAME=1.1.${{ github.run_number }}
 
       - name: Publier APK debug (tests uniquement)
         if: steps.signing.outputs.available != 'true'
