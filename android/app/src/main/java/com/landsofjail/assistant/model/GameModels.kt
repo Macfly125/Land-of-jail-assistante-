@@ -274,7 +274,9 @@ data class LocalGameProfileSnapshot(
     val analyses: List<ScreenshotAnalysis> = emptyList(),
     val heroes: List<HeroRecord> = emptyList(),
     val resources: List<ResourceRecord> = emptyList(),
-    val currentPower: PowerMetric? = null
+    val currentPower: PowerMetric? = null,
+    val adviceMode: String = "TRIAL_CAGE",
+    val adviceResult: TacticalAdviceResult? = null
 )
 
 @Serializable
