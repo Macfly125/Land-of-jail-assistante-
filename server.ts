@@ -1202,7 +1202,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
                       skill: skill.nom,
                       level,
                       description: skill.description.trim().slice(0, 150),
-                      role: roleLabelsByLang[targetLang][candidate.category],
+                      role: candidate.role,
                       category: candidate.category,
                     });
                   }
@@ -1307,7 +1307,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
                       skill: skill.nom,
                       level,
                       description: skill.description.trim().slice(0, 160),
-                      role: candidate.role,
+                      role: roleLabelsByLang[targetLang][candidate.category],
                       category: candidate.category,
                     });
                   }
