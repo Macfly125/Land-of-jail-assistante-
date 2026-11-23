@@ -77,6 +77,17 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun recognizesFrenchWikiHeroAliasesWithoutCreatingDuplicates() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText("Berry\nChuchotement\nVéronique\nCésar")
+
+        assertEquals(4, result.heroes.size)
+        assertTrue(result.heroes.any { it.nom == "Beary" })
+        assertTrue(result.heroes.any { it.nom == "Whisper" })
+        assertTrue(result.heroes.any { it.nom == "Veronica" })
+        assertTrue(result.heroes.any { it.nom == "Caesar" })
+    }
+
+    @Test
     fun doesNotGuessShortHeroNamesFromSimilarWords() {
         val result = LandsOfJailOcrParser.parseLocalOcrText("Adda\nEddie")
 
