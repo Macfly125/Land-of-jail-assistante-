@@ -42,7 +42,7 @@ class MainActivity : ComponentActivity() {
         }
 
         val repository = GeminiAssistantRepository(
-            backendBaseUrl = "https://ais-pre-5yvyv3v3pqwxalk2bhijpo-717617057104.europe-west2.run.app"
+            backendBaseUrl = "" // Mode local-first : aucun serveur payant requis
         )
 
         setContent {
