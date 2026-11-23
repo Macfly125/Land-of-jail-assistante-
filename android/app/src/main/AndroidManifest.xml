@@ -9,7 +9,7 @@
         android:name="android.permission.PACKAGE_USAGE_STATS"
         tools:ignore="ProtectedPermissions" />
 
-    <!-- Service au premier plan pour la détection et la capture ponctuelle autorisée -->
+    <!-- Service au premier plan pour la détection et la capture consentie, ponctuelle ou automatique -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
@@ -21,10 +21,10 @@
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <!--
-      Aucun AccessibilityService ni injection d'entrées :
-      l'application n'effectue strictement aucune action dans le jeu.
-      Aucune capture d'écran n'est réalisée sans clic sur « Analyser l’écran »
-      et validation de la boîte de dialogue système MediaProjection.
+      Aucun AccessibilityService ni injection d'entrées : l'application n'effectue aucune action dans le jeu.
+      Toute capture exige une action explicite de l'utilisateur et l'autorisation système MediaProjection.
+      En mode automatique, la surface de capture est attachée uniquement lorsque Land of Jail est au premier plan;
+      l'utilisateur peut arrêter la session depuis l'application ou la notification persistante.
     -->
     <application
         android:allowBackup="true"
@@ -51,7 +51,7 @@
             </intent-filter>
         </activity>
 
-        <!-- Activité transparente déclenchée uniquement par l'appui sur « Analyser l’écran » -->
+        <!-- Activité transparente déclenchée par une demande de capture unique ou d'analyse automatique -->
         <activity
             android:name=".capture.ScreenCaptureConsentActivity"
             android:exported="false"
