@@ -1202,7 +1202,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
                       skill: skill.nom,
                       level,
                       description: skill.description.trim().slice(0, 150),
-                      role: candidate.role,
+                      role: roleLabelsByLang[targetLang][candidate.category],
                       category: candidate.category,
                     });
                   }
@@ -1270,19 +1270,24 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
 
       const crystalHeroRecommendations = mode === 'crystal_clash'
         ? (() => {
+            const roleLabelsByLang: Record<TargetLang, string[]> = {
+              fr: ['Commander — ralliement', 'Warrior — renfort', 'Engineer — cristaux'],
+              tr: ['Commander — ralliement', 'Warrior — takviye', 'Engineer — kristaller'],
+              ru: ['Commander — рейд', 'Warrior — подкрепление', 'Engineer — кристаллы'],
+              zh: ['Commander — 集结', 'Warrior — 增援', 'Engineer — 水晶'],
+              de: ['Commander — Rallye', 'Warrior — Verstärkung', 'Engineer — Kristalle'],
+              en: ['Commander — rally', 'Warrior — reinforcement', 'Engineer — crystals'],
+            };
             const rolePatterns = [
               {
-                role: 'Commander — ralliement',
                 category: 0,
                 pattern: /rally capacity|rally speed|rally attack|rally defense|rally command|rally bonus|vitesse de ralliement|capacité de ralliement|集结容量|集结速度/i,
               },
               {
-                role: 'Warrior — renfort',
                 category: 1,
-                pattern: /reinforce|reinforcement|join(?:ing)? a rally|rally member|march speed.{0,30}reinforc|reinforc.{0,30}march speed|lethality|troop hp|troop health|renfort|létalité|增援|集结成员/i,
+                pattern: /reinforce|reinforcement|join(?:ing)? a rally|rally member|march speed.{0,30}reinforc|reinforc.{0,30}march speed|renfort|增援|集结成员/i,
               },
               {
-                role: 'Engineer — cristaux',
                 category: 2,
                 pattern: /crystal collection|crystal gathering|deposit speed|collection speed|gathering speed|crystal points|points from (?:scattered )?crystals|vitesse de dépôt|vitesse de collecte|collecte de cristaux|points de cristal|水晶采集|水晶存放/i,
               },
@@ -1327,9 +1332,17 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
             const candidates = (heroes ?? [])
               .filter((hero) => felonNames.has(hero.nom.trim().toLowerCase()) && !hero.incertain)
               .sort((a, b) => (b.niveau ?? 0) - (a.niveau ?? 0) || a.nom.localeCompare(b.nom));
+            const labels: Record<TargetLang, { priority: string; level: string; note: string }> = {
+              fr: { priority: 'priorité', level: 'Niveau', note: 'Repère communautaire Afflux de Tumulte : choisir le meilleur niveau disponible parmi Scorpion, Spark, Cobra et Barbarian.' },
+              tr: { priority: 'öncelik', level: 'Seviye', note: 'Turmoil Surge topluluk rehberi: Scorpion, Spark, Cobra ve Barbarian arasından mevcut en yüksek seviyeyi seçin.' },
+              ru: { priority: 'приоритет', level: 'Уровень', note: 'Ориентир сообщества Turmoil Surge: выбирайте наивысший доступный уровень среди Scorpion, Spark, Cobra и Barbarian.' },
+              zh: { priority: '优先级', level: '等级', note: 'Turmoil Surge 社区参考：在 Scorpion、Spark、Cobra 和 Barbarian 中选择当前可用的最高等级。' },
+              de: { priority: 'Priorität', level: 'Stufe', note: 'Turmoil-Surge-Community-Hinweis: Wählen Sie die höchste verfügbare Stufe aus Scorpion, Spark, Cobra und Barbarian.' },
+              en: { priority: 'priority', level: 'Level', note: 'Turmoil Surge community reference: choose the highest available level among Scorpion, Spark, Cobra and Barbarian.' },
+            };
             return candidates.slice(0, 4).map((hero, index) => ({
-              titre: `Felons — priorité ${index + 1}: ${hero.nom}`,
-              detail: `Niveau ${(hero.niveau ?? hero.niveauTexte) || 'à confirmer'}. Repère communautaire Afflux de Tumulte : utiliser le meilleur niveau disponible parmi Scorpion, Spark, Cobra et Barbarian.`,
+              titre: `Felons — ${labels[targetLang].priority} ${index + 1}: ${hero.nom}`,
+              detail: `${labels[targetLang].level} ${(hero.niveau ?? hero.niveauTexte) || 'à confirmer'}. ${labels[targetLang].note}`,
               herosCibles: [hero.nom],
               incertain: true,
               raisonIncertitude: targetLang === 'fr'
@@ -1554,15 +1567,20 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
                   ? 'Chasseur d’or : aucune compétence fiable de vitesse, dégâts contre ennemis neutres ou collecte n’a été reconnue dans ce profil. Complète les descriptions visibles avant de choisir les héros.'
                   : 'Gold Hunter: no reliable march-speed, neutral-enemy damage or gathering skill was found in this profile. Complete visible skill descriptions before choosing heroes.']
               : []),
-            ...(mode === 'crystal_clash' && heroNames.length > 0 && heroRecommendations.length === 0
+            ...(mode === 'crystal_clash' && heroNames.length > 0 && heroRecommendations.length < 3
               ? [targetLang === 'fr'
-                  ? 'Crystal Clash : aucune compétence explicite de ralliement, renfort ou collecte de cristaux n’a été reconnue. Vérifie les descriptions et ton rôle Commander / Warrior / Engineer; aucun trio universel n’est inventé.'
-                  : 'Crystal Clash: no explicit rally, reinforcement or crystal-collection skill was recognized. Check skill descriptions and your Commander / Warrior / Engineer role; no universal trio is invented.']
+                  ? `Crystal Clash : ${heroRecommendations.length}/3 rôles disposent d’un candidat fondé sur une compétence explicite. Vérifie les descriptions et ton rôle Commander / Warrior / Engineer; aucun trio universel n’est inventé.`
+                  : `Crystal Clash: only ${heroRecommendations.length}/3 roles have a candidate from explicit skill text. Check descriptions and your Commander / Warrior / Engineer assignment; no universal trio is invented.`]
               : []),
             ...(mode === 'turmoil_surge' && heroNames.length > 0 && heroRecommendations.length === 0
               ? [targetLang === 'fr'
                   ? 'Afflux de Tumulte : aucun des héros de référence Scorpion, Spark, Cobra ou Barbarian n’est enregistré dans ce profil. Vérifie aussi leur état MIA dans le jeu.'
                   : 'Turmoil Surge: none of the reference heroes Scorpion, Spark, Cobra or Barbarian is recorded in this profile. Also verify MIA status in-game.']
+              : []),
+            ...(mode === 'turmoil_surge' && heroRecommendations.length > 0 && heroRecommendations.length < 4
+              ? [targetLang === 'fr'
+                  ? `Afflux de Tumulte : seulement ${heroRecommendations.length}/4 héros de référence sont enregistrés. La liste ne peut pas comparer les héros absents du profil.`
+                  : `Turmoil Surge: only ${heroRecommendations.length}/4 reference heroes are recorded. The app cannot compare heroes missing from the profile.`]
               : []),
             ...(mode === 'trial_cage' && heroNames.length > 0 && heroRecommendations.filter((item) => item.titre.startsWith('Chef —')).length < 3
               ? [targetLang === 'fr'
