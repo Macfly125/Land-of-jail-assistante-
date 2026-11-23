@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Accès aux statistiques d'utilisation (accordé manuellement dans Paramètres > Accès aux données d'utilisation) -->
+    <uses-permission
+        android:name="android.permission.PACKAGE_USAGE_STATS"
+        tools:ignore="ProtectedPermissions" />
+
+    <!-- Service au premier plan pour la détection et la capture consentie, ponctuelle ou automatique -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+
+    <!-- Notification « Analyser l’écran » (Android 13+) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- Optionnel : bouton flottant au-dessus du jeu si l'utilisateur l'active -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
+    <!--
+      Aucun AccessibilityService ni injection d'entrées : l'application n'effectue aucune action dans le jeu.
+      Toute capture exige une action explicite de l'utilisateur et l'autorisation système MediaProjection.
+      En mode automatique, la surface de capture est attachée uniquement lorsque Land of Jail est au premier plan;
+      l'utilisateur peut arrêter la session depuis l'application ou la notification persistante.
+    -->
+    <application
+        android:allowBackup="true"
+        android:label="Lands of Jail Assistant"
+        android:icon="@drawable/ic_launcher"
+        android:roundIcon="@drawable/ic_launcher"
+        android:supportsRtl="true"
+        android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- Partage manuel d'une capture d'écran -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
+            </intent-filter>
+        </activity>
+
+        <!-- Activité transparente déclenchée par une demande de capture unique ou d'analyse automatique -->
+        <activity
+            android:name=".capture.ScreenCaptureConsentActivity"
+            android:exported="false"
+            android:launchMode="singleInstance"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+        <!-- Service de détection du passage au premier plan via UsageStatsManager -->
+        <service
+            android:name=".service.GameForegroundMonitorService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse|mediaProjection">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Détection volontaire du lancement de Lands of Jail pour proposer une analyse OCR à la demande." />
+        </service>
+    </application>
+</manifest>
