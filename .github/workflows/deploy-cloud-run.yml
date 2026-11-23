@@ -32,11 +32,11 @@ jobs:
           set -euo pipefail
           missing=()
           [ -n "$PROJECT_ID" ] || missing+=("variable GCP_PROJECT_ID")
-                    [ -n "$SERVICE" ] || missing+=("variable CLOUD_RUN_SERVICE")
+          [ -n "$SERVICE" ] || missing+=("variable CLOUD_RUN_SERVICE")
           [ -n "$WIF_PROVIDER" ] || missing+=("secret GCP_WORKLOAD_IDENTITY_PROVIDER")
           [ -n "$SERVICE_ACCOUNT" ] || missing+=("secret GCP_SERVICE_ACCOUNT")
           if [ "${#missing[@]}" -gt 0 ]; then
-            printf 'Configuration manquante : %s\n' "${missing[*]}"
+            printf 'Configuration manquante : %s\\n' "${missing[*]}"
             echo "::error::Configure les variables et secrets listés avant le déploiement. Aucun service n'a été modifié."
             exit 1
           fi
@@ -54,22 +54,22 @@ jobs:
       - name: Déployer l'application sur le service Cloud Run existant
         env:
           PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
-          REGION: ${{ vars.GCP_REGION }}
+          REGION: ${{ vars.GCP_REGION || 'europe-west2' }}
           SERVICE: ${{ vars.CLOUD_RUN_SERVICE }}
         run: |
           set -euo pipefail
           gcloud config set project "$PROJECT_ID"
-          gcloud run deploy "$SERVICE" \
-            --source . \
-            --project "$PROJECT_ID" \
-            --region "$REGION" \
-            --platform managed \
+          gcloud run deploy "$SERVICE" \\
+            --source . \\
+            --project "$PROJECT_ID" \\
+            --region "$REGION" \\
+            --platform managed \\
             --quiet
 
       - name: Vérifier le backend et la veille
         env:
           PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
-          REGION: ${{ vars.GCP_REGION }}
+          REGION: ${{ vars.GCP_REGION || 'europe-west2' }}
           SERVICE: ${{ vars.CLOUD_RUN_SERVICE }}
         run: |
           set -euo pipefail
