@@ -38,6 +38,44 @@ import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
+@Serializable
+data class GameIntelItem(
+    val id: String = "",
+    val title: String = "",
+    val category: String = "other",
+    val summary: String = "",
+    val details: String = "",
+    val sourceName: String = "",
+    val sourceUrl: String = "",
+    val sourceAuthority: String = "community",
+    val confidence: Double = 0.0,
+    val status: String = "to_verify",
+    val detectedAt: String = "",
+    val requiresReview: Boolean = true
+)
+
+@Serializable
+data class GameIntelSource(
+    val name: String = "",
+    val url: String = "",
+    val authority: String = "",
+    val checkedAt: String = "",
+    val available: Boolean = false
+)
+
+@Serializable
+data class GameIntelSnapshot(
+    val status: String = "sources_unavailable",
+    val checkedAt: String = "",
+    val gameVersion: String? = null,
+    val items: List<GameIntelItem> = emptyList(),
+    val sources: List<GameIntelSource> = emptyList(),
+    val message: String = "",
+    val cached: Boolean = false,
+    val refreshLimited: Boolean = false,
+    val warning: String? = null
+)
+
 class GeminiAssistantRepository(
     private val backendBaseUrl: String
 ) {
@@ -136,6 +174,23 @@ class GeminiAssistantRepository(
                 analyzedAtIso = wrapper.analyzedAt,
                 imageUriString = imageLabel
             )
+        }
+    }
+
+    suspend fun fetchGameIntel(forceRefresh: Boolean = false): Result<GameIntelSnapshot> = withContext(Dispatchers.IO) {
+        runCatching {
+            val suffix = if (forceRefresh) "?refresh=1" else ""
+            val request = Request.Builder()
+                .url("${backendBaseUrl.trimEnd('/')}/api/game-intel$suffix")
+                .get()
+                .build()
+            client.newCall(request).execute().use { response ->
+                val body = response.body?.string().orEmpty()
+                if (!response.isSuccessful || !body.trimStart().startsWith("{")) {
+                    error("Veille du jeu indisponible (HTTP ${response.code}).")
+                }
+                json.decodeFromString<GameIntelSnapshot>(body)
+            }
         }
     }
 
