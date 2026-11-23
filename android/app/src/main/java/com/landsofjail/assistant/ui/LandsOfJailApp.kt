@@ -502,11 +502,11 @@ fun LandsOfJailAssistantApp(
                                 entries.lastOrNull { it.niveau.isNotBlank() }?.niveau.orEmpty()
                             },
                             description = selected.description?.takeIf { it.isNotBlank() }
-                                ?: entries.lastNotNullOfOrNull { it.description?.takeIf(String::isNotBlank) },
+                                ?: entries.mapNotNull { entry -> entry.description?.takeIf { description -> description.isNotBlank() } }.lastOrNull(),
                             type = selected.type.takeIf {
                                 it.lowercase() in setOf("war", "arrest", "equipment")
                             } ?: knownType ?: "inconnu",
-                            iconUrl = selected.iconUrl ?: entries.lastNotNullOfOrNull { it.iconUrl },
+                            iconUrl = selected.iconUrl ?: entries.mapNotNull { entry -> entry.iconUrl }.lastOrNull(),
                             incertain = trusted == null,
                             raisonIncertitude = if (trusted == null) {
                                 selected.raisonIncertitude
