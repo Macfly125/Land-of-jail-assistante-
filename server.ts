@@ -607,7 +607,14 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
         .map((robot: Record<string, unknown>) => ({
           ...robot,
           nom: String(robot.nom || 'Robot non identifié'),
-          incertain: Boolean(robot.incertain ?? true),
+          champsIncertains: Array.isArray(robot.champsIncertains)
+            ? robot.champsIncertains
+                .filter((field: unknown): field is string =>
+                  typeof field === 'string' && ['niveau', 'rarete', 'bonus', 'competences', 'puissance'].includes(field.toLowerCase())
+                )
+                .map((field: string) => field.toLowerCase())
+            : [],
+          incertain: Boolean(robot.incertain ?? true) || (Array.isArray(robot.champsIncertains) && robot.champsIncertains.length > 0),
           source: 'capture_ia',
         }));
 
