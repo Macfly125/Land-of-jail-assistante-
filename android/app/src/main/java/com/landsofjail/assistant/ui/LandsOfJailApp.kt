@@ -1414,6 +1414,20 @@ fun LandsOfJailAssistantApp(
                     )
                     AssistantTab.HEROS -> HeroesScreen(
                         heroes = heroes,
+                        onAddHero = { entry ->
+                            val newHero = HeroRecord(
+                                nom = entry.nom,
+                                niveauTexte = "",
+                                rarete = entry.rarete,
+                                typeTroupe = entry.typeTroupe,
+                                saison = entry.saison,
+                                champsIncertains = listOf("niveau", "etoiles", "puissanceHero"),
+                                incertain = true,
+                                raisonIncertitude = "Niveau, étoiles et puissance à renseigner depuis le jeu."
+                            )
+                            heroes = heroes + newHero
+                            newHero
+                        },
                         onUpdateHero = { original, updated ->
                             heroes = heroes.map { if (it.nom == original.nom) updated else it }
                         }
@@ -1900,6 +1914,7 @@ private fun DashboardScreen(
 @Composable
 private fun HeroesScreen(
     heroes: List<HeroRecord>,
+    onAddHero: (HeroCatalogEntry) -> HeroRecord,
     onUpdateHero: (HeroRecord, HeroRecord) -> Unit
 ) {
     var editingHero by remember { mutableStateOf<HeroRecord?>(null) }
@@ -2014,7 +2029,10 @@ private fun HeroesScreen(
                             }
                         }
                     } else {
-                        Text("Niveau, étoiles et compétences personnels : à scanner depuis le jeu.", style = MaterialTheme.typography.bodySmall)
+                        Text("Niveau, étoiles et compétences personnels : à scanner ou saisir depuis le jeu.", style = MaterialTheme.typography.bodySmall)
+                        TextButton(onClick = { editingHero = onAddHero(entry) }) {
+                            Text("Ajouter à mon profil")
+                        }
                     }
                     entry.usageWarObserve?.let {
                         Text("War / équipement observé : $it", style = MaterialTheme.typography.bodySmall)
