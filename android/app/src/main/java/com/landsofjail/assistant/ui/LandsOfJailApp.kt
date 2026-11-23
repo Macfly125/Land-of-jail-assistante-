@@ -3837,7 +3837,29 @@ private fun AllianceScreen(
         if (cloudAuth.currentSession() != null && linkedAllianceId.isNotBlank()) {
             val developer = cloudAuth.isAppDeveloper().getOrDefault(false)
             val cloudRank = cloudAuth.fetchMyAllianceRank(linkedAllianceId).getOrNull()
-            cloudCanManageRanks = cloudRank == "R5" || (developer && cloudRank == "R4")
+            val canManage = cloudRank == "R5" || (developer && cloudRank == "R4")
+            cloudCanManageRanks = canManage
+            if (canManage) {
+                cloudAuth.fetchAllianceRoster(linkedAllianceId).onSuccess { cloudMembers ->
+                    cloudMemberIds = cloudMembers.map { it.id }.toSet()
+                    val cloudNames = cloudMembers.map { it.playerName.lowercase() }.toSet()
+                    val mergedMembers = cloudMembers.map { cloudMember ->
+                        val local = workspace.members.firstOrNull {
+                            it.playerName.equals(cloudMember.playerName, ignoreCase = true)
+                        }
+                        val resolved = if (cloudMember.playerName == "Profil non synchronisé" && local != null) {
+                            cloudMember.copy(
+                                playerName = local.playerName,
+                                powerText = local.powerText,
+                                heroSkillSummary = local.heroSkillSummary,
+                                robotSummary = local.robotSummary
+                            )
+                        } else cloudMember
+                        resolved.copy(server = server, allianceName = allianceName)
+                    } + workspace.members.filterNot { it.playerName.lowercase() in cloudNames }
+                    onSaveWorkspace(workspace.copy(members = mergedMembers))
+                }
+            }
         } else {
             cloudCanManageRanks = false
             cloudMemberIds = emptySet()
