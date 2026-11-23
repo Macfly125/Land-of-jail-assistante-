@@ -401,7 +401,7 @@ Retourne une entrée distincte pour CHAQUE ressource identifiable, même si son 
                   text: `SECONDE PASSE DE CONTRÔLE VISUEL — l'analyse précédente n'a détecté que ${parsed.heros.length} héros.
 Recommence l'inspection de l'image entière en te concentrant exclusivement sur l'écran des héros.
 Compte les portraits visibles un par un, de gauche à droite et de haut en bas. Si cinq portraits sont visibles, cherche à identifier les cinq, pas seulement les noms les plus faciles à lire.
-Pour chaque portrait identifiable, relis séparément le nom, le niveau, la puissance individuelle, la rareté, les étoiles et les niveaux de compétences visibles.
+Pour chaque portrait identifiable, relis séparément le nom, le niveau, la puissance individuelle, la rareté, les étoiles et les niveaux de compétences visibles. Vérifie explicitement les noms connus, notamment Ryuichi, et ne l'omets pas si son portrait ou son nom est visible.
 Inspecte les badges de niveau même s'ils sont éloignés du nom. Ne transforme pas les valeurs du wiki en valeurs du joueur.
 N'invente aucun nom ni niveau. Si un portrait reste illisible, signale son emplacement dans champsIncertains.
 Réponds en français et retourne uniquement le JSON conforme au schéma.`,
