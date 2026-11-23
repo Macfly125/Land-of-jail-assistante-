@@ -1665,6 +1665,7 @@ private fun DashboardScreen(
                                     "updates_found" -> "Nouveautés détectées"
                                     "up_to_date" -> "Sources vérifiées"
                                     "sources_unavailable" -> "Sources indisponibles"
+                                    "analysis_unavailable" -> "Analyse IA indisponible"
                                     else -> "Vérification des nouveautés"
                                 },
                                 style = MaterialTheme.typography.bodySmall,
