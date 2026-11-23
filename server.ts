@@ -1478,6 +1478,16 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
                   ? 'Crystal Clash : le choix principal est le rôle Commander / Warrior / Engineer et l’objectif assigné. Aucun classement de héros automatique n’est fiable sans connaître le rôle, la mission, les troupes et la défense adverse.'
                   : 'Crystal Clash: the main choice is Commander / Warrior / Engineer and the assigned objective. An automatic hero ranking is not reliable without the role, mission, troops and enemy defense.']
               : []),
+            ...(mode === 'trial_cage' && heroNames.length > 0 && heroRecommendations.filter((item) => item.titre.startsWith('Chef —')).length < 3
+              ? [targetLang === 'fr'
+                  ? `Chef de ralliement : seulement ${heroRecommendations.filter((item) => item.titre.startsWith('Chef —')).length}/3 classes ont un candidat avec trois compétences War fiables. Complète les classes et compétences manquantes.`
+                  : 'Rally leader: fewer than three troop classes have a candidate with three reliable War skills. Complete missing classes and skills.']
+              : []),
+            ...(mode === 'trial_cage' && heroNames.length > 0 && heroRecommendations.filter((item) => item.titre.startsWith('Participant —')).length < 4
+              ? [targetLang === 'fr'
+                  ? `Participants : ${heroRecommendations.filter((item) => item.titre.startsWith('Participant —')).length}/4 familles d’effets de première compétence War sont reconnues. N’invente pas les effets manquants.`
+                  : 'Joiners: fewer than four distinct first-War-skill effect families were recognized. Do not invent missing effects.']
+              : []),
             ...(mode === 'trial_cage' && heroNames.length > 0 && heroRecommendations.length === 0
               ? [targetLang === 'fr'
                   ? 'Aucune recommandation de héros Trial Cage : aucune compétence offensive fiable et lisible dans ce profil. Complète les descriptions/compétences sans deviner.'
