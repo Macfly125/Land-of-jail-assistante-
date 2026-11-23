@@ -24,7 +24,7 @@ jobs:
       - name: Vérifier la configuration Google Cloud
         env:
           PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
-          REGION: ${{ vars.GCP_REGION }}
+          REGION: ${{ vars.GCP_REGION || 'europe-west2' }}
           SERVICE: ${{ vars.CLOUD_RUN_SERVICE }}
           WIF_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
@@ -32,8 +32,7 @@ jobs:
           set -euo pipefail
           missing=()
           [ -n "$PROJECT_ID" ] || missing+=("variable GCP_PROJECT_ID")
-          [ -n "$REGION" ] || missing+=("variable GCP_REGION")
-          [ -n "$SERVICE" ] || missing+=("variable CLOUD_RUN_SERVICE")
+                    [ -n "$SERVICE" ] || missing+=("variable CLOUD_RUN_SERVICE")
           [ -n "$WIF_PROVIDER" ] || missing+=("secret GCP_WORKLOAD_IDENTITY_PROVIDER")
           [ -n "$SERVICE_ACCOUNT" ] || missing+=("secret GCP_SERVICE_ACCOUNT")
           if [ "${#missing[@]}" -gt 0 ]; then
