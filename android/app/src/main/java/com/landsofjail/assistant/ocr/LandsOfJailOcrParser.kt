@@ -95,8 +95,8 @@ object LandsOfJailOcrParser {
             "nourriture", "bois", "acier", "essence", "argent liquide",
             "carte en or", "endurance", "ressources totales", "total des objets"
         )
-        val labelScore = labels.sumOf { label ->
-            if (text.contains(label, ignoreCase = true)) 120 else 0
+        val labelScore = labels.fold(0) { score, label ->
+            score + if (text.contains(label, ignoreCase = true)) 120 else 0
         }
         val numberScore = Regex("""\d+(?:[., ]\d+)?\s*[KMB]?""", RegexOption.IGNORE_CASE)
             .findAll(text).count() * 20
