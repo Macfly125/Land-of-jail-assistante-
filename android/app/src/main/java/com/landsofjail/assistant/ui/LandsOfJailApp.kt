@@ -2288,6 +2288,7 @@ private fun AllianceScreen(
     var memberSkills by remember { mutableStateOf("") }
     var memberRobots by remember { mutableStateOf("") }
     var selectedEvent by remember { mutableStateOf(AdviceMode.TRIAL_CAGE) }
+    var selectedMemberIds by remember { mutableStateOf((listOf(workspace.ownProfile.id.ifBlank { "own-profile" }) + workspace.members.map { it.id }).filter { it.isNotBlank() }.toSet()) }
     var simulation by remember { mutableStateOf<List<String>>(emptyList()) }
     val isOfficer = rank == AllianceRank.R5 || rank == AllianceRank.R4
     val ownHeroSummary = remember(heroes) {
@@ -2461,11 +2462,21 @@ private fun AllianceScreen(
                         style = MaterialTheme.typography.bodySmall
                     )
                     if (workspace.ownProfile.playerName.isNotBlank()) {
-                        Text(
-                            "Toi : ${workspace.ownProfile.playerName} · ${workspace.ownProfile.rank.labelFr} · ${heroes.size} héros analysés",
-                            color = Color(0xFF34D399),
-                            style = MaterialTheme.typography.bodySmall
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Checkbox(
+                                checked = selectedMemberIds.contains(workspace.ownProfile.id.ifBlank { "own-profile" }),
+                                onCheckedChange = { checked ->
+                                    val id = workspace.ownProfile.id.ifBlank { "own-profile" }
+                                    selectedMemberIds = if (checked) selectedMemberIds + id else selectedMemberIds - id
+                                    simulation = emptyList()
+                                }
+                            )
+                            Text(
+                                "Inclure mon profil : ${workspace.ownProfile.playerName} · ${workspace.ownProfile.rank.labelFr} · ${heroes.size} héros",
+                                color = Color(0xFF34D399),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
                     }
                     if (isOfficer) {
                         Button(onClick = { showAddMember = true }, modifier = Modifier.fillMaxWidth()) {
@@ -2545,7 +2556,16 @@ private fun AllianceScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(member.playerName, fontWeight = FontWeight.SemiBold)
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                            Checkbox(
+                                checked = selectedMemberIds.contains(member.id),
+                                onCheckedChange = { checked ->
+                                    selectedMemberIds = if (checked) selectedMemberIds + member.id else selectedMemberIds - member.id
+                                    simulation = emptyList()
+                                }
+                            )
+                            Text(member.playerName, fontWeight = FontWeight.SemiBold)
+                        }
                         Text(member.rank.labelFr, color = Color(0xFFFFB36B), style = MaterialTheme.typography.labelSmall)
                     }
                     Text("Puissance : ${member.powerText.ifBlank { "non renseignée" }}", style = MaterialTheme.typography.bodySmall)
@@ -2565,10 +2585,29 @@ private fun AllianceScreen(
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
                     Text("Simulateur de performance", fontWeight = FontWeight.Bold)
                     Text(
-                        "Compare les profils disponibles et propose une répartition des rôles. Les données manquantes ne sont pas inventées.",
+                        "Sélectionne plusieurs joueurs dans le roster ci-dessus : seuls les profils cochés seront utilisés pour cette simulation.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = {
+                                selectedMemberIds = (listOf(workspace.ownProfile.id.ifBlank { "own-profile" }) + workspace.members.map { it.id }).filter { id ->
+                                    id == "own-profile" && workspace.ownProfile.playerName.isNotBlank() || workspace.members.any { it.id == id }
+                                }.toSet()
+                                simulation = emptyList()
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) { Text("Tout sélectionner") }
+                        OutlinedButton(
+                            onClick = { selectedMemberIds = emptySet(); simulation = emptyList() },
+                            modifier = Modifier.weight(1f)
+                        ) { Text("Tout désélectionner") }
+                    }
+                    Text("Sélection : ${selectedMemberIds.size} membre(s)", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         items(AdviceMode.entries) { event ->
                             FilterChip(
@@ -2580,9 +2619,10 @@ private fun AllianceScreen(
                     }
                     Button(
                         onClick = {
-                            val roster = buildList {
+                            val allRoster = buildList {
                                 if (workspace.ownProfile.playerName.isNotBlank()) {
                                     add(workspace.ownProfile.copy(
+                                        id = workspace.ownProfile.id.ifBlank { "own-profile" },
                                         server = workspace.server,
                                         allianceName = workspace.allianceName,
                                         powerText = currentPowerText.ifBlank { workspace.ownProfile.powerText },
@@ -2591,8 +2631,9 @@ private fun AllianceScreen(
                                 }
                                 addAll(workspace.members)
                             }
+                            val roster = allRoster.filter { selectedMemberIds.contains(it.id) }
                             if (roster.isEmpty()) {
-                                simulation = listOf("Aucun joueur enregistré. Inscris ton profil et ajoute les membres.")
+                                simulation = listOf(if (allRoster.isEmpty()) "Aucun joueur enregistré. Inscris ton profil et ajoute les membres." else "Aucun membre sélectionné. Coche au moins un joueur dans le roster.")
                             } else {
                                 val power = { p: AlliancePlayerProfile ->
                                     p.powerText.filter(Char::isDigit).toLongOrNull() ?: 0L
