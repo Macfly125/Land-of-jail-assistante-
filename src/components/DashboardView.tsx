@@ -31,6 +31,7 @@ interface DashboardViewProps {
   activeProfileId: string;
   onSwitchProfile: (profileId: string) => void;
   onCreateProfile: (name: string) => void;
+  cloudStatus: string;
   language: AppLanguage;
   onChangeLanguage: (lang: AppLanguage) => void;
   hasUsagePermission: boolean;
@@ -56,6 +57,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   activeProfileId,
   onSwitchProfile,
   onCreateProfile,
+  cloudStatus,
   language,
   onChangeLanguage,
   hasUsagePermission,
@@ -135,6 +137,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               + Ajouter
             </button>
           </div>
+          <p className="mt-2 text-[11px] text-slate-500">Synchronisation : {cloudStatus}</p>
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-slate-50">
             {copy.dashboardTitle}
           </h1>
