@@ -1952,7 +1952,17 @@ private fun HeroesScreen(
     var editingHero by remember { mutableStateOf<HeroRecord?>(null) }
     var search by remember { mutableStateOf("") }
     var selectedClass by remember { mutableStateOf("Tous") }
+    var expandedHeroName by remember { mutableStateOf<String?>(null) }
+    val uriHandler = LocalUriHandler.current
     val profileByName = remember(heroes) { heroes.associateBy { it.nom.trim().lowercase() } }
+    val verifiedHeroes = heroes.count { hero ->
+        !hero.niveauTexte.isBlank() && !hero.etoiles.isNullOrBlank() &&
+            !hero.puissanceHero.isNullOrBlank() && hero.competences.isNotEmpty()
+    }
+    val heroesToComplete = heroes.count { hero ->
+        hero.niveauTexte.isBlank() || hero.etoiles.isNullOrBlank() ||
+            hero.puissanceHero.isNullOrBlank() || hero.competences.isEmpty()
+    }
     val visibleHeroes = remember(search, selectedClass, heroes) {
         HeroCatalog.entries.filter { entry ->
             (search.isBlank() || entry.nom.contains(search.trim(), ignoreCase = true)) &&
@@ -1965,10 +1975,25 @@ private fun HeroesScreen(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Catalogue des héros", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                 Text(
-                    "${HeroCatalog.entries.size} héros référencés · ${heroes.size} héros détectés sur ton compte",
+                    "${HeroCatalog.entries.size} héros référencés · ${heroes.size} héros suivis sur ton compte",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text("Progression de ton profil héros", fontWeight = FontWeight.SemiBold)
+                        Text("$verifiedHeroes profil(s) suffisamment renseigné(s) · $heroesToComplete à compléter")
+                        LinearProgressIndicator(
+                            progress = { if (heroes.isEmpty()) 0f else verifiedHeroes.toFloat() / heroes.size.toFloat() },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Text(
+                            "Pour obtenir des conseils fiables, renseigne niveau, étoiles, puissance et compétences War / Arrest / Équipement. Les champs absents ne sont jamais devinés.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
                 OutlinedTextField(
                     value = search,
                     onValueChange = { search = it },
@@ -2021,8 +2046,13 @@ private fun HeroesScreen(
                             ).joinToString(" · "),
                             fontWeight = FontWeight.Medium
                         )
-                        TextButton(onClick = { editingHero = hero }) {
-                            Text("Modifier les données détectées")
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                            TextButton(onClick = { editingHero = hero }) {
+                                Text("Modifier mon héros")
+                            }
+                            TextButton(onClick = { expandedHeroName = if (expandedHeroName == entry.nom) null else entry.nom }) {
+                                Text(if (expandedHeroName == entry.nom) "Masquer la fiche" else "Fiche complète")
+                            }
                         }
                         if (!hero.rarete.isNullOrBlank() && !hero.rarete.equals(entry.rarete, true)) {
                             Text("Rareté lue sur capture : ${hero.rarete}", style = MaterialTheme.typography.bodySmall)
@@ -2064,6 +2094,38 @@ private fun HeroesScreen(
                         Text("Niveau, étoiles et compétences personnels : à scanner ou saisir depuis le jeu.", style = MaterialTheme.typography.bodySmall)
                         TextButton(onClick = { editingHero = onAddHero(entry) }) {
                             Text("Ajouter à mon profil")
+                        }
+                        TextButton(onClick = { expandedHeroName = if (expandedHeroName == entry.nom) null else entry.nom }) {
+                            Text(if (expandedHeroName == entry.nom) "Masquer la fiche" else "Voir la fiche complète")
+                        }
+                    }
+                    if (expandedHeroName == entry.nom) {
+                        HorizontalDivider()
+                        Text("Fiche de référence", fontWeight = FontWeight.SemiBold)
+                        Text("Rareté : ${entry.rarete} · Saison : ${entry.saison} · Classe : ${entry.typeTroupe}")
+                        Text("Source : ${entry.sourceNiveau}")
+                        entry.usageWarObserve?.let { Text("Spécialité observée : $it") }
+                        if (hero == null || hero.competences.isEmpty()) {
+                            Text(
+                                "Compétences personnelles non renseignées. Scanne les pages de compétences de ce héros pour obtenir ses effets et niveaux réels.",
+                                color = Color(0xFFFBBF24),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                        hero?.competences?.forEach { skill ->
+                            Card(modifier = Modifier.fillMaxWidth()) {
+                                Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                    Text(
+                                        "${skill.type.uppercase()} · ${skill.nom} · Niv. ${skill.niveau}",
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                    Text(skill.description ?: "Description non disponible", style = MaterialTheme.typography.bodySmall)
+                                    if (skill.incertain) Text("À vérifier", color = Color(0xFFFBBF24), style = MaterialTheme.typography.labelSmall)
+                                }
+                            }
+                        }
+                        TextButton(onClick = { uriHandler.openUri(entry.sourceUrl) }) {
+                            Text("Consulter la source du catalogue")
                         }
                     }
                     entry.usageWarObserve?.let {
