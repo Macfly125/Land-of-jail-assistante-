@@ -180,6 +180,31 @@ export const FORTICLAD_STAGES: ForticladStageCost[] = [
   { fcLevel: 5, forticladCores: 2_600, advancedForticladCores: 250, prerequisites: 'Bâtiment FC4 complet', verifiedWiki: false },
 ];
 
+// Coûts Forticlad par palier (un niveau FC = 5 paliers), différenciés par bâtiment.
+// Données LOJ XLab ; le poste médical FC9/FC10 et le laboratoire Forticlad restent non documentés.
+export interface ForticladStepCostByBuilding {
+  id: string;
+  nomFr: string;
+  stepCosts: Partial<Record<number, { cores: number; advanced: number }>>;
+}
+
+const makeFcCosts = (cores: number[], advanced: number[] = []) =>
+  Object.fromEntries(cores.map((value, index) => [
+    index + 1,
+    { cores: value, advanced: advanced[index] ?? 0 },
+  ])) as ForticladStepCostByBuilding['stepCosts'];
+
+export const FORTICLAD_BUILDING_COSTS: ForticladStepCostByBuilding[] = [
+  { id: 'warden_office', nomFr: 'Bureau du directeur', stepCosts: makeFcCosts([250, 320, 490, 600, 720, 360, 400, 460, 510, 630], [0, 0, 0, 0, 0, 24, 36, 48, 72, 168]) },
+  { id: 'shield_barracks', nomFr: 'Caserne Shieldbearers', stepCosts: makeFcCosts([130, 150, 230, 250, 300, 160, 180, 210, 230, 290], [0, 0, 0, 0, 0, 10, 15, 22, 32, 75]) },
+  { id: 'bomber_barracks', nomFr: 'Caserne Bombers', stepCosts: makeFcCosts([130, 150, 230, 250, 300, 160, 180, 210, 230, 290], [0, 0, 0, 0, 0, 10, 15, 22, 32, 75]) },
+  { id: 'shooter_barracks', nomFr: 'Caserne Shooters', stepCosts: makeFcCosts([130, 150, 230, 250, 300, 160, 180, 210, 230, 290], [0, 0, 0, 0, 0, 10, 15, 22, 32, 75]) },
+  { id: 'comms_center', nomFr: 'Centre de communications', stepCosts: makeFcCosts([50, 60, 80, 110, 130, 90, 100, 110, 130, 160], [0, 0, 0, 0, 0, 5, 8, 12, 17, 41]) },
+  { id: 'command_center', nomFr: 'Centre de commandement', stepCosts: makeFcCosts([50, 60, 80, 110, 130, 70, 80, 90, 100, 130], [0, 0, 0, 0, 0, 5, 8, 12, 14, 34]) },
+  { id: 'medical_station', nomFr: 'Poste médical', stepCosts: makeFcCosts([50, 60, 80, 110, 130, 70, 80, 90], [0, 0, 0, 0, 0, 5, 8, 12]) },
+  { id: 'forticlad_lab', nomFr: 'Laboratoire Forticlad', stepCosts: {} },
+];
+
 // Éclats de héros exacts vérifiés sur lojxlab.com (Total = 1 075 éclats de 0★ à 5★, + 10 au déblocage)
 export const HERO_SHARD_TIERS: HeroStarTier[] = [
   {
