@@ -4,6 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import { GoogleGenAI, Type } from '@google/genai';
+import { registerGameIntelRoutes } from './game-intel';
 
 dotenv.config();
 
@@ -78,6 +79,7 @@ function parseMultipartScreenshot(
 
 async function startServer() {
   const app = express();
+  registerGameIntelRoutes(app);
 
   // Web Share Target endpoint for PWA Android Chrome sharing
   app.post(
