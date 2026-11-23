@@ -532,6 +532,38 @@ fun LandsOfJailAssistantApp(
         return merged.values.toList()
     }
 
+    fun mergeRobotRecords(existing: List<RobotRecord>, incoming: List<RobotRecord>): List<RobotRecord> {
+        val merged = existing.toMutableList()
+        incoming.forEach { raw ->
+            val robotName = raw.nom.trim()
+            if (robotName.isBlank()) return@forEach
+            val existingIndex = merged.indexOfFirst { it.nom.equals(robotName, ignoreCase = true) }
+            val candidate = raw.copy(
+                id = raw.id.ifBlank { UUID.randomUUID().toString() },
+                source = if (raw.source == "saisie_manuel") "capture_ia" else raw.source,
+                updatedAtIso = raw.updatedAtIso.ifBlank { Instant.now().toString() }
+            )
+            if (existingIndex < 0) {
+                merged.add(candidate)
+            } else {
+                val previous = merged[existingIndex]
+                val keepManual = previous.source == "saisie_manuel"
+                val preserveExisting = candidate.incertain || keepManual
+                merged[existingIndex] = if (preserveExisting) {
+                    previous.copy(
+                        niveau = previous.niveau.ifBlank { candidate.niveau },
+                        rarete = previous.rarete.ifBlank { candidate.rarete },
+                        bonus = previous.bonus.ifBlank { candidate.bonus },
+                        competences = previous.competences.ifBlank { candidate.competences },
+                        puissance = previous.puissance.ifBlank { candidate.puissance },
+                        updatedAtIso = Instant.now().toString()
+                    )
+                } else candidate.copy(id = previous.id)
+            }
+        }
+        return merged.sortedBy { it.nom.lowercase() }
+    }
+
     fun mergeNewAnalysis(result: ScreenshotAnalysis) {
         analyses = (listOf(result) + analyses).take(50)
         result.puissance?.takeIf { it.puissanceTotaleTexte.isNotBlank() }?.let {
@@ -539,6 +571,7 @@ fun LandsOfJailAssistantApp(
         }
         heroes = mergeHeroRecords(heroes, result.heros)
         resources = mergeResourceRecords(resources, result.ressources)
+        robots = mergeRobotRecords(robots, result.robots)
     }
 
     suspend fun analyzeSingleUriInternal(uri: Uri, onProgress: (Int) -> Unit): ScreenshotAnalysis {
@@ -764,7 +797,7 @@ fun LandsOfJailAssistantApp(
 
                 currentTab = AssistantTab.TABLEAU
                 snackbarHostState.showSnackbar(
-                    "Capture analysée 100 % (${result.heros.size} héros, ${result.ressources.size} ressource(s))"
+                    "Capture analysée 100 % (${result.heros.size} héros, ${result.robots.size} robot(s), ${result.ressources.size} ressource(s))"
                 )
 
                 isFetchingAdvice = true
