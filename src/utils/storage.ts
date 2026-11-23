@@ -85,14 +85,46 @@ export function mergeAnalysisIntoState(
   let nextPower = prev.currentPower;
   const nextPowerHistory = [...prev.powerHistory];
 
-  const hasVerifiedProfilePower =
+  const hasProfileMetric =
     analysis.typeCapture === 'profil' &&
     analysis.puissance !== null &&
-    Boolean(analysis.puissance.puissanceTotaleTexte?.trim()) &&
-    analysis.puissance.incertain !== true;
+    Boolean(
+      analysis.puissance.puissanceTotaleTexte?.trim() ||
+      analysis.puissance.niveauPrisonOuQG?.trim() ||
+      analysis.puissance.niveauVip?.trim()
+    );
+
+  const hasVerifiedProfilePower =
+    hasProfileMetric &&
+    Boolean(analysis.puissance?.puissanceTotaleTexte?.trim()) &&
+    analysis.puissance?.incertain !== true;
+
+  if (hasProfileMetric && analysis.puissance) {
+    // Merge partial profile readings: a capture that only shows VIP or QG
+    // must not erase the other values already saved for this account.
+    nextPower = {
+      puissanceTotaleTexte: analysis.puissance.puissanceTotaleTexte?.trim()
+        ? analysis.puissance.puissanceTotaleTexte
+        : prev.currentPower?.puissanceTotaleTexte || '',
+      puissanceTotaleNumerique:
+        analysis.puissance.puissanceTotaleNumerique ??
+        prev.currentPower?.puissanceTotaleNumerique ??
+        null,
+      niveauPrisonOuQG:
+        analysis.puissance.niveauPrisonOuQG ||
+        prev.currentPower?.niveauPrisonOuQG,
+      niveauVip:
+        analysis.puissance.niveauVip ||
+        prev.currentPower?.niveauVip,
+      incertain: hasVerifiedProfilePower
+        ? false
+        : analysis.puissance.incertain || prev.currentPower?.incertain || false,
+      raisonIncertitude: analysis.puissance.raisonIncertitude ||
+        prev.currentPower?.raisonIncertitude,
+    };
+  }
 
   if (hasVerifiedProfilePower && analysis.puissance) {
-    nextPower = analysis.puissance;
     nextPowerHistory.push({
       analysisId: analysis.id,
       date: analysis.analyzedAt,
