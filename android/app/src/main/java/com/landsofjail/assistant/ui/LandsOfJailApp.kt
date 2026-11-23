@@ -880,10 +880,16 @@ fun LandsOfJailAssistantApp(
                                             val snapshot = runCatching {
                                                 accountJson.decodeFromString<LocalGameProfileSnapshot>(profile.stateJson)
                                             }.getOrDefault(LocalGameProfileSnapshot())
+                                            val routineState = readRoutineState(profile.id)
+                                            val profileTime = runCatching { Instant.parse(profile.updatedAtIso) }.getOrNull()
+                                            val routineTime = routineState["updated_at"]?.substringAfter("|")
+                                                ?.let { runCatching { Instant.parse(it) }.getOrNull() }
                                             profile.copy(
                                                 stateJson = accountJson.encodeToString(
-                                                    snapshot.copy(routineState = readRoutineState(profile.id))
-                                                )
+                                                    snapshot.copy(routineState = routineState)
+                                                ),
+                                                updatedAtIso = listOfNotNull(profileTime, routineTime).maxOrNull()?.toString()
+                                                    ?: profile.updatedAtIso
                                             )
                                         }
                                         val remote = profileAuth.fetchGameAccountProfiles().getOrThrow()
@@ -1883,6 +1889,7 @@ private fun ResourcesScreen(
     }
     LaunchedEffect(routineItems) {
         val editor = routinePrefs.edit()
+            .putString("updated_at", Instant.now().toString())
         routineItems.forEach { item ->
             editor.putInt("minutes_${item.id}", item.minutes)
             editor.putString("duration_${item.id}", item.durationInput)
