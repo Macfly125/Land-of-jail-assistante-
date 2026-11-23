@@ -511,6 +511,9 @@ fun LandsOfJailAssistantApp(
         analyses = (listOf(result) + analyses).take(50)
         result.puissance?.takeIf { it.puissanceTotaleTexte.isNotBlank() }?.let {
             currentPower = it
+            it.niveauVip?.takeIf { vip -> vip.isNotBlank() }?.let { detectedVip ->
+                vipLevel = detectedVip.filter(Char::isDigit).take(2)
+            }
         }
         heroes = mergeHeroRecords(heroes, result.heros)
         resources = mergeResourceRecords(resources, result.ressources)
