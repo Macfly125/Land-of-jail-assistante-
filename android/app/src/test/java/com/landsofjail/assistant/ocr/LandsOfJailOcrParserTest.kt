@@ -66,6 +66,24 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun recognizesLocalizedAndSlightlyMisreadHeroNames() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText("Phénix\nCésar\nDuraga\nTyronn")
+
+        assertEquals(4, result.heroes.size)
+        assertTrue(result.heroes.any { it.nom == "Phoenix" })
+        assertTrue(result.heroes.any { it.nom == "Caesar" })
+        assertTrue(result.heroes.any { it.nom == "Durga" })
+        assertTrue(result.heroes.any { it.nom == "Tyronn" })
+    }
+
+    @Test
+    fun doesNotGuessShortHeroNamesFromSimilarWords() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText("Adda\nEddie")
+
+        assertTrue(result.heroes.isEmpty())
+    }
+
+    @Test
     fun identifiesRobotScreensWithoutInventingRobotStats() {
         val result = LandsOfJailOcrParser.parseLocalOcrText("Robot\nUpgrade level")
 
