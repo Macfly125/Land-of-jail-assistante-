@@ -200,6 +200,7 @@ class GameForegroundMonitorService : Service() {
             ACTION_AUTO_CAPTURE_CONSUMED -> {
                 if (_isAutoCapturing.value) {
                     autoCaptureAwaitingAnalysis = false
+                    updateAutoCaptureSurface(_detectedGameForeground.value)
                 }
                 return START_STICKY
             }
@@ -437,11 +438,11 @@ class GameForegroundMonitorService : Service() {
                 height,
                 density,
                 DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
-                if (_detectedGameForeground.value) reader.surface else null,
+                null,
                 null,
                 mainHandler
             )
-            autoCaptureSurfaceAttached = _detectedGameForeground.value
+            autoCaptureSurfaceAttached = false
         } catch (_: Throwable) {
             handleAutoProjectionStopped()
             return
@@ -474,11 +475,13 @@ class GameForegroundMonitorService : Service() {
                 if (isBitmapMostlyBlank(cropped)) {
                     cropped.recycle()
                     nextAutoCaptureAtMillis = now + 1_000L
+                    Handler(Looper.getMainLooper()).post { updateAutoCaptureSurface(_detectedGameForeground.value) }
                     return@setOnImageAvailableListener
                 }
                 if (!hasMeaningfulScreenChange(cropped)) {
                     cropped.recycle()
                     nextAutoCaptureAtMillis = now + autoCaptureIntervalMillis
+                    Handler(Looper.getMainLooper()).post { updateAutoCaptureSurface(_detectedGameForeground.value) }
                     return@setOnImageAvailableListener
                 }
 
@@ -489,6 +492,7 @@ class GameForegroundMonitorService : Service() {
                 val savedUri = saveCaptureToInternalFile(jpegBytes)
                 autoCaptureAwaitingAnalysis = true
                 nextAutoCaptureAtMillis = now + autoCaptureIntervalMillis
+                Handler(Looper.getMainLooper()).post { updateAutoCaptureSurface(_detectedGameForeground.value) }
                 ScreenCaptureConsentActivity.publishCapture(
                     CapturedScreenPayload(
                         bitmap = cropped,
@@ -498,15 +502,19 @@ class GameForegroundMonitorService : Service() {
                     )
                 )
             } catch (_: Throwable) {
+                autoCaptureAwaitingAnalysis = false
                 nextAutoCaptureAtMillis = System.currentTimeMillis() + autoCaptureIntervalMillis
+                Handler(Looper.getMainLooper()).post { updateAutoCaptureSurface(_detectedGameForeground.value) }
             } finally {
                 image.close()
             }
         }, Handler(captureThread.looper))
+        mainHandler.postDelayed({ updateAutoCaptureSurface(_detectedGameForeground.value) }, 750L)
     }
 
     private fun updateAutoCaptureSurface(gameForeground: Boolean) {
-        val shouldAttach = _isAutoCapturing.value && gameForeground
+        val shouldAttach = _isAutoCapturing.value && gameForeground &&
+            !autoCaptureAwaitingAnalysis && System.currentTimeMillis() >= nextAutoCaptureAtMillis
         if (shouldAttach == autoCaptureSurfaceAttached) return
         try {
             virtualDisplay?.setSurface(if (shouldAttach) imageReader?.surface else null)
