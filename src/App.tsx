@@ -343,6 +343,10 @@ export default function App() {
       return;
     }
     try {
+      if (authUser && !cloudReady) {
+        showToast('Connexion cloud requise pour supprimer sans risque de réapparition du profil.');
+        return;
+      }
       if (authUser && cloudReady) await deleteCloudGameProfile(profileId);
       const remaining = profileData.profiles.filter((profile) => profile.id !== profileId);
       const nextActive = profileId === activeProfileId ? remaining[0] : remaining.find((p) => p.id === activeProfileId)!;
