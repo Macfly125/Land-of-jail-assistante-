@@ -286,8 +286,12 @@ RÈGLES GÉNÉRALES :
       // l'écran sans extraire les compteurs. On relit alors l'image originale avec
       // un schéma isolé pour éviter que les héros/profil prennent la priorité.
       const resourceContext = parsed.typeCapture === 'ressources' ||
-        /ressource|inventaire|entrep[oô]t|warehouse|stock/i.test(String(note || ''));
-      if (resourceContext && (!Array.isArray(parsed.ressources) || parsed.ressources.length === 0)) {
+        /ressource|inventaire|entrep[oô]t|warehouse|stock|compteurs/i.test(String(note || ''));
+      const firstPassResources = Array.isArray(parsed.ressources) ? parsed.ressources : [];
+      // Une capture importée peut contenir plusieurs compteurs visuels sans libellés.
+      // Relire l'image si l'écran est celui des ressources OU si la première passe
+      // n'a reconnu qu'une partie des compteurs attendus.
+      if (resourceContext || firstPassResources.length < 4) {
         try {
           const resourceRetry = await ai.models.generateContent({
             model: 'gemini-4-hydrogen',
@@ -331,8 +335,29 @@ Retourne une ligne par compteur réellement visible. N'invente jamais une valeur
           const retryText = (resourceRetry.text ?? '{}').trim();
           const retryParsed = JSON.parse(retryText);
           if (Array.isArray(retryParsed.ressources) && retryParsed.ressources.length > 0) {
-            parsed.ressources = retryParsed.ressources;
-            parsed.typeCapture = 'ressources';
+            const mergedResources = new Map<string, Record<string, unknown>>();
+            for (const resource of [...firstPassResources, ...retryParsed.ressources]) {
+              if (!resource || typeof resource.nom !== 'string' || !resource.nom.trim()) continue;
+              const key = resource.nom.normalize('NFD').replace(/[\\u0300-\\u036f]/g, '')
+                .toLowerCase().replace(/[^a-z0-9]/g, '');
+              if (!key) continue;
+              const previous = mergedResources.get(key);
+              if (!previous) {
+                mergedResources.set(key, resource);
+                continue;
+              }
+              const retryIsClearer = previous.incertain === true && resource.incertain === false;
+              mergedResources.set(key, {
+                ...previous,
+                ...Object.fromEntries(Object.entries(resource).filter(([field, value]) =>
+                  value !== undefined && value !== null && value !== '' &&
+                  (retryIsClearer || previous[field] === undefined || previous[field] === null || previous[field] === '')
+                )),
+                incertain: retryIsClearer ? false : previous.incertain,
+              });
+            }
+            parsed.ressources = Array.from(mergedResources.values());
+            if (resourceContext && parsed.typeCapture === 'autre') parsed.typeCapture = 'ressources';
             parsed.resumeCapture = [String(parsed.resumeCapture || ''), 'Compteurs relus lors du contrôle visuel ciblé.']
               .filter(Boolean)
               .join(' ');
