@@ -52,6 +52,84 @@ import { ScreenCaptureConsentModal } from './components/ScreenCaptureConsentModa
 
 type NavTab = 'tableau' | 'heros' | 'ressources' | 'conseils' | 'historique';
 
+type FailedCapture = {
+  id: string;
+  payload: {
+    imageBase64: string;
+    mimeType: string;
+    fileName: string;
+    thumbnailDataUrl: string;
+    note?: string;
+  };
+  source: 'share' | 'ocr_screen';
+  error: string;
+  createdAt: number;
+};
+
+const PENDING_CAPTURE_DB = 'loj-pending-captures';
+const PENDING_CAPTURE_STORE = 'captures';
+
+function openPendingCaptureDb(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(PENDING_CAPTURE_DB, 1);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(PENDING_CAPTURE_STORE)) {
+        db.createObjectStore(PENDING_CAPTURE_STORE, { keyPath: 'id' });
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function getPendingCaptures(): Promise<FailedCapture[]> {
+  const db = await openPendingCaptureDb();
+  return new Promise((resolve, reject) => {
+    const request = db.transaction(PENDING_CAPTURE_STORE, 'readonly')
+      .objectStore(PENDING_CAPTURE_STORE).getAll();
+    request.onsuccess = () => {
+      db.close();
+      resolve((request.result as FailedCapture[]).sort((a, b) => a.createdAt - b.createdAt));
+    };
+    request.onerror = () => {
+      db.close();
+      reject(request.error);
+    };
+  });
+}
+
+async function savePendingCapture(capture: FailedCapture): Promise<void> {
+  const db = await openPendingCaptureDb();
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(PENDING_CAPTURE_STORE, 'readwrite');
+    tx.objectStore(PENDING_CAPTURE_STORE).put(capture);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error);
+  });
+  db.close();
+
+  // Conserve au maximum cinq captures en attente pour éviter d'encombrer le stockage du téléphone.
+  const all = await getPendingCaptures();
+  for (const oldCapture of all.slice(0, Math.max(0, all.length - 5))) {
+    await removePendingCapture(oldCapture.id);
+  }
+}
+
+async function removePendingCapture(id: string): Promise<void> {
+  const db = await openPendingCaptureDb();
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(PENDING_CAPTURE_STORE, 'readwrite');
+    tx.objectStore(PENDING_CAPTURE_STORE).delete(id);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error);
+  });
+  db.close();
+}
+
+
 const NAV_ICONS: Array<{ id: NavTab; icon: React.ComponentType<{ className?: string }> }> = [
   { id: 'tableau', icon: LayoutDashboard },
   { id: 'heros', icon: Users },
@@ -90,6 +168,14 @@ export default function App() {
   const [crestFailed, setCrestFailed] = useState(false);
   const [pendingAnalysis, setPendingAnalysis] = useState<ScreenshotAnalysis | null>(null);
   const [pendingAnalysisSource, setPendingAnalysisSource] = useState<'share' | 'ocr_screen' | null>(null);
+  const [failedCaptures, setFailedCaptures] = useState<FailedCapture[]>([]);
+  const [retryingCaptureId, setRetryingCaptureId] = useState<string | null>(null);
+
+  useEffect(() => {
+    void getPendingCaptures().then(setFailedCaptures).catch(() => {
+      // Le stockage local peut être indisponible sur certains navigateurs : l'analyse reste utilisable.
+    });
+  }, []);
 
   useEffect(() => {
     saveAccountState(state);
@@ -177,6 +263,7 @@ export default function App() {
       note?: string;
     },
     source: 'share' | 'ocr_screen',
+    pendingId?: string,
   ): Promise<{ summary: string }> => {
     setIsAnalyzing(true);
     setAnalyzeError(null);
@@ -362,10 +449,37 @@ export default function App() {
 
       const summary = `${SCREEN_CATEGORY_LABELS[typeCapture]} · ${newAnalysis.heros.length} héros, ${newAnalysis.ressources.length} ressource(s)`;
       showToast('Analyse terminée : vérifie les héros avant de confirmer.');
+      if (pendingId) {
+        await removePendingCapture(pendingId).catch(() => undefined);
+        setFailedCaptures((current) => current.filter((item) => item.id !== pendingId));
+      }
       return { summary };
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Erreur lors de l’analyse.';
       setAnalyzeError(msg);
+      if (pendingId) {
+        const existing = failedCaptures.find((item) => item.id === pendingId);
+        if (existing) {
+          const updated = { ...existing, error: msg };
+          await savePendingCapture(updated).catch(() => undefined);
+          setFailedCaptures((current) => current.map((item) => item.id === pendingId ? updated : item));
+        }
+      } else {
+        const failed: FailedCapture = {
+          id: `capture-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          payload,
+          source,
+          error: msg,
+          createdAt: Date.now(),
+        };
+        try {
+          await savePendingCapture(failed);
+          setFailedCaptures(await getPendingCaptures());
+          showToast('Capture conservée sur cet appareil : tu pourras relancer son analyse.');
+        } catch {
+          showToast('Échec de l’analyse et sauvegarde locale indisponible. Garde la capture originale.');
+        }
+      }
       throw err;
     } finally {
       setIsAnalyzing(false);
@@ -594,6 +708,55 @@ export default function App() {
 
       {/* Contenu principal */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 md:px-6 py-6 pb-24 md:pb-12">
+        {failedCaptures.length > 0 && (
+          <section className="mb-5 rounded-2xl border border-amber-500/35 bg-amber-500/5 p-4 space-y-3" aria-label="Captures en attente">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h2 className="text-sm font-semibold text-amber-200">Captures à réanalyser ({failedCaptures.length}/5)</h2>
+                <p className="text-xs text-slate-400 mt-1">Elles sont conservées sur cet appareil, même après fermeture de l’application.</p>
+              </div>
+            </div>
+            {failedCaptures.map((item) => (
+              <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-t border-slate-700/60 pt-3">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-slate-200 truncate">{item.payload.fileName}</p>
+                  <p className="text-xs text-slate-400">{item.error}</p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    disabled={isAnalyzing || retryingCaptureId !== null}
+                    onClick={async () => {
+                      setRetryingCaptureId(item.id);
+                      setAnalyzeError(null);
+                      try {
+                        await runAnalysis(item.payload, item.source, item.id);
+                      } catch {
+                        // L'erreur est affichée dans la file et la capture reste disponible.
+                      } finally {
+                        setRetryingCaptureId(null);
+                      }
+                    }}
+                    className="min-h-[38px] px-3 py-2 rounded-lg bg-amber-500 text-slate-950 text-xs font-semibold disabled:opacity-50"
+                  >
+                    {retryingCaptureId === item.id ? 'Analyse…' : 'Réessayer'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      await removePendingCapture(item.id).catch(() => undefined);
+                      setFailedCaptures((current) => current.filter((capture) => capture.id !== item.id));
+                    }}
+                    className="min-h-[38px] px-3 py-2 rounded-lg bg-slate-800 text-slate-300 text-xs"
+                  >
+                    Supprimer
+                  </button>
+                </div>
+              </div>
+            ))}
+          </section>
+        )}
+
         {activeTab === 'tableau' && (
           <DashboardView
             state={state}
