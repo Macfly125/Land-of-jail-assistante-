@@ -1222,45 +1222,6 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
           })()
         : [];
 
-      const turmoilHeroRecommendations = mode === 'turmoil_surge'
-        ? (() => {
-            const offensive = [...cageSkillSignals]
-              .sort((a, b) => b.skillLevel - a.skillLevel)[0];
-            const defensiveCandidates = (heroes ?? []).flatMap((hero) =>
-              (hero.competences || [])
-                .filter((skill) => skill.type?.toLowerCase() === 'war' && !skill.incertain && Boolean(skill.description?.trim()))
-                .filter((skill) => /increase[s]?.{0,35}(?:allied |troop )?(?:defen[cs]e|def|hp|health)|(?:allied |troop )?(?:defen[cs]e|def|hp|health).{0,20}(?:increase|boost)|shield|heal|healing|damage reduction|reduce[s]? damage taken|réduit.*dégâts reçus|augmente.*défense|bouclier|soin|лечени|щит|护盾|治疗|防御.*提高|生命值.*提高/i.test(skill.description!))
-                .map((skill) => ({
-                  hero: hero.nom,
-                  skill: skill.nom,
-                  level: Number(String(skill.niveau || '').match(/\d+/)?.[0] || 0),
-                  description: skill.description!.trim().slice(0, 140),
-                }))
-            );
-            const bestDefense = defensiveCandidates.sort((a, b) => b.level - a.level)[0];
-            const results = [];
-            if (offensive) results.push({
-              titre: `Renfort offensif — ${offensive.hero}`,
-              detail: `${offensive.skill} — compétence War offensive détectée (niveau ${offensive.skillLevel || 'à confirmer'}).`,
-              herosCibles: [offensive.hero],
-              incertain: true,
-              raisonIncertitude: targetLang === 'fr'
-                ? 'Candidat pour les éliminations en renfort; les points réels dépendent du combat et les effets ne sont pas simulés.'
-                : 'Candidate for reinforcement kills; actual points depend on combat and effects are not simulated.',
-            });
-            if (bestDefense) results.push({
-              titre: `Défense des tourelles — ${bestDefense.hero}`,
-              detail: `${bestDefense.skill} (niveau ${bestDefense.level || 'à confirmer'}) : ${bestDefense.description}`,
-              herosCibles: [bestDefense.hero],
-              incertain: true,
-              raisonIncertitude: targetLang === 'fr'
-                ? 'Candidat défensif fondé sur le texte War visible; vérifie que l’effet s’applique bien à la défense de tourelle.'
-                : 'Defensive candidate based on visible War text; verify that the effect applies to turret defense.',
-            });
-            return results;
-          })()
-        : [];
-
       const heroRecommendations = mode === 'trial_cage'
         ? (() => {
             // Leaders use the complete War kit of three heroes, one per troop class.
@@ -1307,7 +1268,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
             }));
             return [...leaders, ...joiners].slice(0, 10);
           })()
-        : mode === 'gold_hunter' ? goldHunterHeroRecommendations\n        : mode === 'turmoil_surge' ? turmoilHeroRecommendations : [];
+        : mode === 'gold_hunter' ? goldHunterHeroRecommendations : [];
 
       const cageSignalLabelsByLang: Record<TargetLang, string[]> = {
         fr: ['dégâts subis par l’ennemi', 'dégâts infligés aux troupes alliées', 'ATQ des troupes alliées', 'réduction de DEF ennemie', 'dégâts directs'],
@@ -1364,7 +1325,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
       const crystalContext = mode === 'crystal_clash' ? crystalContextByLang[targetLang] : '';
 
       const turmoilContextByLang: Record<TargetLang, string> = {
-        fr: ' Repères Afflux de Tumulte (guide communautaire mis à jour le 31 octobre 2026) : préparez les deux Tourelles Sentinelles; les vagues 10 et 20 attaquent les deux tourelles. Les éliminations obtenues en renforçant une prison alliée rapportent des points personnels; une défense réussie de tourelle contribue aux points d’alliance, pas aux points personnels. Coordonnez les renforts avant d’activer « les troupes dans la prison ne défendent pas » : ne retirez pas vos défenseurs sans couverture alliée suffisante. R4/R5 règlent difficulté et heure; vérifiez les seuils de points dans l’événement. Les vagues spéciales visant les joueurs en ligne et les réglages peuvent varier : suivez le compte à rebours et les messages du jeu.',
+        fr: ' Repères Afflux de Tumulte (GuideLOJ, octobre 2026, et LOJ XLab, avril 2026) : préparez les deux Tourelles Sentinelles; les vagues 10 et 20 les attaquent, tandis que les vagues 7, 14 et 17 visent les joueurs en ligne selon le guide XLab. Les éliminations obtenues en renforçant une prison alliée rapportent des points personnels; les défenses de tourelle contribuent aux points d’alliance. Priorisez les bases 0/2 puis 1/2; une base brûlée 2/2 ne rapporte plus selon la référence communautaire. Envoyez les marches avant le début et déplacez les renforts vers les attaques. Il n’existe pas de méta stricte de héros : évitez les héros orientés collecte et privilégiez les héros non-MIA; pour les Felons, utilisez le meilleur niveau disponible parmi Scorpion, Spark, Cobra et Barbarian. Coordonnez les renforts avant d’activer « les troupes dans la prison ne défendent pas » : ne retirez pas vos défenseurs sans couverture alliée suffisante. R4/R5 règlent difficulté et heure; vérifiez les seuils de points dans l’événement.',
         tr: ' Turmoil Surge referansı (31 Ekim 2026 topluluk rehberi): iki Sentry Turret hazırlayın; 10. ve 20. dalgalar iki kuleye saldırır. Müttefik hapishanelerine takviye gönderirken alınan öldürmeler kişisel puan verir; başarılı kule savunması kişisel değil ittifak puanına katkı sağlar. “Hapishanedeki birlikler savunmasın” seçeneğini açmadan önce takviyeleri koordine edin; yeterli müttefik desteği olmadan savunmanızı boşaltmayın. Zorluk ve başlangıç saatini R4/R5 belirler; puan eşiklerini etkinlik ekranından kontrol edin. Çevrimiçi oyuncuları hedefleyen özel dalgalar ve ayarlar değişebilir; oyun sayacı ve bildirimlerini izleyin.',
         ru: ' Ориентиры «Натиск смуты» (руководство сообщества от 31 октября 2026): подготовьте обе сторожевые турели; волны 10 и 20 атакуют обе турели. Убийства при подкреплении союзной тюрьмы дают личные очки; успешная защита турели приносит очки альянсу, а не личные очки. Согласуйте подкрепления до включения параметра «войска в тюрьме не защищают»: не оставляйте свою тюрьму без достаточной союзной защиты. R4/R5 выбирают сложность и время; проверяйте пороги очков в событии. Особые волны для игроков онлайн и настройки могут меняться — следите за таймером и сообщениями игры.',
         zh: ' 混乱激增参考（2026 年 10 月 31 日社区指南）：提前准备两座哨戒炮塔；第 10 和第 20 波会攻击两座炮塔。增援盟友监狱时击败敌人可获得个人积分；成功防守炮塔增加的是联盟积分，而非个人积分。启用“监狱部队不参与防守”前先协调增援；没有足够盟友防守时不要撤空自己的防线。R4/R5 负责选择难度和开始时间；积分门槛以活动界面为准。针对在线玩家的特殊波次和设置可能变化，请留意游戏倒计时和提示。',
@@ -1411,6 +1372,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
         ],
         turmoil_surge: [
           { title: 'GuideLOJ — Afflux de Tumulte : renforts et tourelles', url: 'https://www.guideloj.com/fr/events/alliance/turmoil-surge' },
+          { title: 'LOJ XLab — Turmoil Surge : bases et timing des tourelles', url: 'https://lojxlab.com/blog/sun-turmoil-surge-complete-guide/' },
         ],
         gold_hunter: [
           { title: 'LOJ Wiki — Chasseur d’or : trésors et équipement', url: 'https://lojwiki.com/guides/gold-hunter/' },
@@ -1451,11 +1413,6 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
           })),
           informationsIncertaines: [
             ...(heroNames.length === 0 ? [compTextByLang[targetLang]] : []),
-            ...(mode === 'turmoil_surge' && heroNames.length > 0 && heroRecommendations.length === 0
-              ? [targetLang === 'fr'
-                  ? 'Afflux de Tumulte : aucune compétence War offensive ou défensive fiable n’a été reconnue. Vérifie les compétences de tes héros avant de choisir les renforts et les défenseurs.'
-                  : 'Turmoil Surge: no reliable offensive or defensive War skill was found. Verify your heroes’ skills before choosing reinforcements and defenders.']
-              : []),
             ...(mode === 'gold_hunter' && heroNames.length > 0 && heroRecommendations.length === 0
               ? [targetLang === 'fr'
                   ? 'Chasseur d’or : aucune compétence fiable de vitesse, dégâts contre ennemis neutres ou collecte n’a été reconnue dans ce profil. Complète les descriptions visibles avant de choisir les héros.'
