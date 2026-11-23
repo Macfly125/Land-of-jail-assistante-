@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { readApiJson } from './utils/api';
 import {
   Camera,
@@ -49,6 +49,8 @@ import { AdviceView } from './components/AdviceView';
 import { HistoryView } from './components/HistoryView';
 import { ShareCaptureModal } from './components/ShareCaptureModal';
 import { ScreenCaptureConsentModal } from './components/ScreenCaptureConsentModal';
+import { AccountAccess } from './components/AccountAccess';
+import { CloudUser, getSignedInUser, loadCloudGameProfiles, saveCloudGameProfiles, signOutCloud } from './utils/cloudSync';
 
 type NavTab = 'tableau' | 'heros' | 'ressources' | 'conseils' | 'historique';
 
@@ -145,6 +147,11 @@ export default function App() {
     profileData.profiles.find((profile) => profile.id === profileData.activeProfileId)?.state ?? loadAccountState()
   );
   const [activeTab, setActiveTab] = useState<NavTab>('tableau');
+  const [authUser, setAuthUser] = useState<CloudUser | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [cloudReady, setCloudReady] = useState(false);
+  const [cloudStatus, setCloudStatus] = useState('Connexion au compte…');
+  const lastStateSnapshot = useRef(JSON.stringify(state));
 
   // Modales
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
@@ -178,14 +185,130 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    saveAccountState(state);
-    saveProfileCollection({
-      profiles: profileData.profiles.map((profile) =>
-        profile.id === activeProfileId ? { ...profile, state } : profile
-      ),
-      activeProfileId,
+    let cancelled = false;
+    void getSignedInUser().then((user) => {
+      if (cancelled) return;
+      setAuthUser(user);
+      setAuthLoading(false);
+      if (!user) setCloudStatus('Connecte-toi pour activer la synchronisation');
     });
-  }, [state, profileData.profiles, activeProfileId]);
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    if (!authUser) {
+      setCloudReady(false);
+      return;
+    }
+    let cancelled = false;
+    const hydrateProfiles = async () => {
+      setCloudStatus('Récupération des profils cloud…');
+      try {
+        const cloudRows = await loadCloudGameProfiles();
+        if (cancelled) return;
+        const local = loadProfileCollection();
+        const localById = new Map(local.profiles.map((profile) => [profile.id, profile]));
+        const mergedById = new Map<string, PlayerProfile>();
+
+        for (const row of cloudRows) {
+          const localProfile = localById.get(row.profile_id);
+          const localTime = localProfile?.updatedAt ? Date.parse(localProfile.updatedAt) : 0;
+          const cloudTime = Date.parse(row.updated_at);
+          if (localProfile && localTime > cloudTime) {
+            mergedById.set(localProfile.id, localProfile);
+          } else {
+            mergedById.set(row.profile_id, {
+              id: row.profile_id,
+              name: row.profile_name,
+              state: { ...createEmptyAccountState(), ...(row.state as Partial<AccountState>) },
+              updatedAt: row.updated_at,
+            });
+          }
+          localById.delete(row.profile_id);
+        }
+
+        for (const localProfile of localById.values()) {
+          mergedById.set(localProfile.id, {
+            ...localProfile,
+            updatedAt: localProfile.updatedAt ?? new Date().toISOString(),
+          });
+        }
+
+        const mergedProfiles = Array.from(mergedById.values());
+        const nextActiveId = mergedProfiles.some((profile) => profile.id === local.activeProfileId)
+          ? local.activeProfileId
+          : mergedProfiles[0]?.id;
+        if (!nextActiveId) throw new Error('Aucun profil disponible.');
+        const nextCollection = { profiles: mergedProfiles, activeProfileId: nextActiveId };
+        setProfileData(nextCollection);
+        setActiveProfileId(nextActiveId);
+        setState(mergedProfiles.find((profile) => profile.id === nextActiveId)!.state);
+        setCloudReady(true);
+        setCloudStatus('Synchronisation active');
+        try {
+          await saveCloudGameProfiles(authUser.id, mergedProfiles.map((profile) => ({
+            ...profile,
+            state: profile.state as unknown as Record<string, unknown>,
+          })));
+          if (!cancelled) setCloudStatus('Profils synchronisés');
+        } catch {
+          if (!cancelled) setCloudStatus('Synchronisation en attente — données locales conservées');
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setCloudReady(false);
+          setCloudStatus('Cloud indisponible — données locales conservées');
+          console.warn('Synchronisation cloud indisponible :', error);
+        }
+      }
+    };
+    void hydrateProfiles();
+    return () => { cancelled = true; };
+  }, [authUser?.id]);
+
+  useEffect(() => {
+    saveAccountState(state);
+    const snapshot = JSON.stringify(state);
+    const changed = lastStateSnapshot.current !== snapshot;
+    if (changed) lastStateSnapshot.current = snapshot;
+
+    const nextProfiles = profileData.profiles.map((profile) =>
+      profile.id === activeProfileId
+        ? { ...profile, state, ...(changed ? { updatedAt: new Date().toISOString() } : {}) }
+        : profile
+    );
+    const nextCollection = { profiles: nextProfiles, activeProfileId };
+    saveProfileCollection(nextCollection);
+    if (changed) {
+      setProfileData((current) => ({ ...current, profiles: nextProfiles, activeProfileId }));
+    }
+  }, [state, profileData, activeProfileId]);
+
+  useEffect(() => {
+    if (!authUser || !cloudReady) return;
+    const profiles = profileData.profiles.map((profile) =>
+      profile.id === activeProfileId ? { ...profile, state } : profile
+    );
+    const timer = window.setTimeout(() => {
+      void saveCloudGameProfiles(authUser.id, profiles.map((profile) => ({
+        ...profile,
+        state: profile.state as unknown as Record<string, unknown>,
+      }))).then(() => {
+        setCloudStatus('Profils synchronisés');
+      }).catch((error) => {
+        console.warn('Sauvegarde cloud en attente :', error);
+        setCloudStatus('Synchronisation en attente — données locales conservées');
+      });
+    }, 900);
+    return () => window.clearTimeout(timer);
+  }, [authUser, cloudReady, profileData, activeProfileId, state]);
+
+  const handleSignOut = async () => {
+    await signOutCloud();
+    setAuthUser(null);
+    setCloudReady(false);
+    setCloudStatus('Déconnecté');
+  };
 
   const handleSwitchProfile = (profileId: string) => {
     const target = profileData.profiles.find((profile) => profile.id === profileId);
@@ -208,6 +331,7 @@ export default function App() {
       id: `profile-${Date.now()}`,
       name: cleanName,
       state: createEmptyAccountState(state.language ?? 'fr', state.playerRole),
+      updatedAt: new Date().toISOString(),
     };
     setProfileData((current) => ({
       ...current,
@@ -589,6 +713,16 @@ export default function App() {
               : copy.navHistory,
   }));
 
+  if (authLoading) {
+    return <div className="min-h-screen bg-[#0B0F17] text-slate-200 flex items-center justify-center text-sm">Chargement du compte Warden Coach…</div>;
+  }
+  if (!authUser) {
+    return <AccountAccess onAuthenticated={(user) => {
+      setAuthUser(user);
+      setCloudStatus('Récupération des profils cloud…');
+    }} />;
+  }
+
   return (
     <div className="min-h-screen bg-[#0B0F17] text-slate-100 flex flex-col">
       {/* Barre supérieure (Top Bar Contract : 3 zones) */}
@@ -652,6 +786,13 @@ export default function App() {
               <Upload className="w-4 h-4" />
               <span className="hidden sm:inline">{copy.shareCapture}</span>
               <span className="sm:hidden">{copy.captureShort}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleSignOut()}
+              className="ml-2 min-h-[40px] px-2.5 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white border border-slate-800"
+            >
+              Déconnexion
             </button>
           </div>
         </div>
@@ -764,6 +905,7 @@ export default function App() {
             activeProfileId={activeProfileId}
             onSwitchProfile={handleSwitchProfile}
             onCreateProfile={handleCreateProfile}
+            cloudStatus={cloudStatus}
             language={language}
             onChangeLanguage={(lang) => setState((prev) => updateLanguageInState(prev, lang))}
             hasUsagePermission={hasUsagePermission}
