@@ -203,6 +203,51 @@ private val WARDEN_LEVELS_TABLE = listOf(
     WardenLevelReq(30, "Comms 29 · Bâtiment 29 → Débloque Forticlad", 550_000_000, 550_000_000, 110_000_000, 27_500_000, false)
 )
 
+private val FORTICLAD_BUILDING_OPTIONS = listOf(
+    "warden_office" to "Bureau du directeur",
+    "shield_barracks" to "Caserne Shieldbearers",
+    "bomber_barracks" to "Caserne Bombers",
+    "shooter_barracks" to "Caserne Shooters",
+    "comms_center" to "Centre de communications",
+    "command_center" to "Centre de commandement",
+    "medical_station" to "Poste médical",
+    "forticlad_lab" to "Laboratoire Forticlad"
+)
+
+// Coût par palier (1/5 d'un niveau FC), d'après les tableaux communautaires LOJ XLab.
+// Les coûts du poste médical ne sont pas publiés pour FC9/FC10 ; le Laboratoire Forticlad
+// est éligible mais son barème détaillé n'est pas disponible dans la source consultée.
+private val FORTICLAD_STEP_COSTS: Map<String, Map<Int, Pair<Long, Long>>> = mapOf(
+    "warden_office" to mapOf(
+        1 to (250L to 0L), 2 to (320L to 0L), 3 to (490L to 0L), 4 to (600L to 0L), 5 to (720L to 0L),
+        6 to (360L to 24L), 7 to (400L to 36L), 8 to (460L to 48L), 9 to (510L to 72L), 10 to (630L to 168L)
+    ),
+    "shield_barracks" to mapOf(
+        1 to (130L to 0L), 2 to (150L to 0L), 3 to (230L to 0L), 4 to (250L to 0L), 5 to (300L to 0L),
+        6 to (160L to 10L), 7 to (180L to 15L), 8 to (210L to 22L), 9 to (230L to 32L), 10 to (290L to 75L)
+    ),
+    "bomber_barracks" to mapOf(
+        1 to (130L to 0L), 2 to (150L to 0L), 3 to (230L to 0L), 4 to (250L to 0L), 5 to (300L to 0L),
+        6 to (160L to 10L), 7 to (180L to 15L), 8 to (210L to 22L), 9 to (230L to 32L), 10 to (290L to 75L)
+    ),
+    "shooter_barracks" to mapOf(
+        1 to (130L to 0L), 2 to (150L to 0L), 3 to (230L to 0L), 4 to (250L to 0L), 5 to (300L to 0L),
+        6 to (160L to 10L), 7 to (180L to 15L), 8 to (210L to 22L), 9 to (230L to 32L), 10 to (290L to 75L)
+    ),
+    "comms_center" to mapOf(
+        1 to (50L to 0L), 2 to (60L to 0L), 3 to (80L to 0L), 4 to (110L to 0L), 5 to (130L to 0L),
+        6 to (90L to 5L), 7 to (100L to 8L), 8 to (110L to 12L), 9 to (130L to 17L), 10 to (160L to 41L)
+    ),
+    "command_center" to mapOf(
+        1 to (50L to 0L), 2 to (60L to 0L), 3 to (80L to 0L), 4 to (110L to 0L), 5 to (130L to 0L),
+        6 to (70L to 5L), 7 to (80L to 8L), 8 to (90L to 12L), 9 to (100L to 14L), 10 to (130L to 34L)
+    ),
+    "medical_station" to mapOf(
+        1 to (50L to 0L), 2 to (60L to 0L), 3 to (80L to 0L), 4 to (110L to 0L), 5 to (130L to 0L),
+        6 to (70L to 5L), 7 to (80L to 8L), 8 to (90L to 12L)
+    )
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LandsOfJailAssistantApp(
@@ -1454,8 +1499,9 @@ private fun ResourcesScreen(
     var subTab by remember { mutableStateOf(ResourceSubTab.INVENTAIRE) }
     var targetBuildingLvl by remember { mutableIntStateOf(16) }
     var selectedBuildingId by remember { mutableStateOf("warden_office") }
-    var fcStartStage by remember { mutableIntStateOf(0) }
-    var fcTargetStage by remember { mutableIntStateOf(1) }
+    var fcCurrentLevel by remember { mutableIntStateOf(0) }
+    var fcFilledSteps by remember { mutableIntStateOf(0) }
+    var fcTargetLevel by remember { mutableIntStateOf(1) }
     var fcBuildingIds by remember { mutableStateOf(setOf("warden_office")) }
     var upgradeGoal by remember { mutableStateOf("QG / progression") }
     val buildingOptions = listOf(
@@ -1475,13 +1521,26 @@ private fun ResourcesScreen(
         else -> 1.0
     }
     val selectedBuildingLabel = buildingOptions.firstOrNull { it.first == selectedBuildingId }?.second ?: "Bureau du directeur"
-    val fcStageCosts = listOf(
-        Triple(1, 600L, 0L), Triple(2, 900L, 40L), Triple(3, 1_350L, 90L),
-        Triple(4, 1_900L, 160L), Triple(5, 2_600L, 250L)
-    )
-    val selectedFcStages = fcStageCosts.filter { it.first > fcStartStage && it.first <= fcTargetStage }
-    val totalFcCores = selectedFcStages.sumOf { it.second } * fcBuildingIds.size
-    val totalAdvancedFcCores = selectedFcStages.sumOf { it.third } * fcBuildingIds.size
+    val fcBuildingBreakdown = fcBuildingIds.map { buildingId ->
+        var cores = 0L
+        var advanced = 0L
+        var missing = false
+        val table = FORTICLAD_STEP_COSTS[buildingId]
+        for (level in (fcCurrentLevel + 1)..fcTargetLevel) {
+            val steps = if (level == fcCurrentLevel + 1) (5 - fcFilledSteps).coerceIn(1, 5) else 5
+            val stepCost = table?.get(level)
+            if (stepCost == null) {
+                missing = true
+            } else {
+                cores += stepCost.first * steps
+                advanced += stepCost.second * steps
+            }
+        }
+        Triple(buildingId, Pair(cores, advanced), missing)
+    }
+    val totalFcCores = fcBuildingBreakdown.sumOf { it.second.first }
+    val totalAdvancedFcCores = fcBuildingBreakdown.sumOf { it.second.second }
+    val hasMissingFcCosts = fcBuildingBreakdown.any { it.third }
     var starFrom by remember { mutableIntStateOf(0) }
     var starTo by remember { mutableIntStateOf(4) }
     var ownedShardsText by remember { mutableStateOf("0") }
@@ -1625,7 +1684,7 @@ private fun ResourcesScreen(
                             Text("Calculateur Forticlad · FC1 à FC5", fontWeight = FontWeight.Bold)
                             Text("Sélectionne précisément les bâtiments qui doivent passer au Forticlad. Le calcul additionne les coûts pour tous les bâtiments cochés.", style = MaterialTheme.typography.bodySmall)
                             Text("Bâtiments à inclure", fontWeight = FontWeight.SemiBold)
-                            buildingOptions.forEach { option ->
+                            FORTICLAD_BUILDING_OPTIONS.forEach { option ->
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Checkbox(
                                         checked = fcBuildingIds.contains(option.first),
@@ -1636,20 +1695,33 @@ private fun ResourcesScreen(
                                     Text(option.second, style = MaterialTheme.typography.bodySmall)
                                 }
                             }
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                 OutlinedButton(onClick = {
-                                    fcStartStage = if (fcStartStage >= 4) 0 else fcStartStage + 1
-                                    if (fcTargetStage <= fcStartStage) fcTargetStage = (fcStartStage + 1).coerceAtMost(5)
-                                }) { Text(if (fcStartStage == 0) "Départ : Niv. 30" else "Départ : FC$fcStartStage") }
+                                    fcCurrentLevel = if (fcCurrentLevel >= 9) 0 else fcCurrentLevel + 1
+                                    fcFilledSteps = 0
+                                    fcTargetLevel = (fcCurrentLevel + 1).coerceAtMost(10)
+                                }) { Text(if (fcCurrentLevel == 0) "Actuel : Niv. 30" else "Actuel : FC$fcCurrentLevel") }
+                                OutlinedButton(onClick = { fcFilledSteps = (fcFilledSteps + 1) % 5 }) {
+                                    Text("Paliers faits : $fcFilledSteps/5")
+                                }
                                 Button(onClick = {
-                                    fcTargetStage = if (fcTargetStage >= 5) (fcStartStage + 1).coerceAtMost(5) else fcTargetStage + 1
-                                }) { Text("Cible : FC$fcTargetStage") }
+                                    fcTargetLevel = if (fcTargetLevel >= 10) (fcCurrentLevel + 1).coerceAtMost(10) else fcTargetLevel + 1
+                                }) { Text("Cible : FC$fcTargetLevel") }
                             }
                             Text("Bâtiments sélectionnés : ${fcBuildingIds.size}", style = MaterialTheme.typography.labelMedium)
                             Text("Forticlad Cores nécessaires : ${formatCompactFr(totalFcCores)}", fontWeight = FontWeight.SemiBold, color = Color(0xFFFFB36B))
                             Text("Advanced Forticlad Cores : ${formatCompactFr(totalAdvancedFcCores)}", fontWeight = FontWeight.SemiBold)
-                            Text("Prérequis général : Bureau du directeur Niv. 30 ; les prérequis de chaque bâtiment sont à contrôler dans le jeu.", style = MaterialTheme.typography.bodySmall)
-                            Text("Attention : coûts FC/AFC indicatifs, communs par bâtiment dans ce premier barème. Ils ne sont pas encore confirmés séparément pour chaque bâtiment et chaque serveur.", style = MaterialTheme.typography.bodySmall, color = Color(0xFFFBBF24))
+                            fcBuildingBreakdown.forEach { row ->
+                                val label = FORTICLAD_BUILDING_OPTIONS.firstOrNull { it.first == row.first }?.second ?: row.first
+                                Text("$label : ${formatCompactFr(row.second.first)} FC · ${formatCompactFr(row.second.second)} AFC" + if (row.third) " · données manquantes" else "", style = MaterialTheme.typography.bodySmall)
+                            }
+                            Text("Calcul : FC$fcCurrentLevel + $fcFilledSteps/5 paliers → FC$fcTargetLevel. Chaque niveau comprend cinq paliers.", style = MaterialTheme.typography.bodySmall)
+                            Text(
+                                if (hasMissingFcCosts) "Calcul partiel : le barème du Laboratoire Forticlad ou certains coûts du Poste médical FC9/FC10 ne sont pas publiés dans la source. Le total affiché exclut ces valeurs manquantes."
+                                else "Source : coûts par bâtiment et par palier LOJ XLab ; confirmez les valeurs dans le jeu après chaque mise à jour.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFFFBBF24)
+                            )
                         }
                     }
                 }
