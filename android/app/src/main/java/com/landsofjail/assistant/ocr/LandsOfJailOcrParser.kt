@@ -235,6 +235,7 @@ object LandsOfJailOcrParser {
             lowerFull.contains("supreme honor") || lowerFull.contains("svs") -> "svs"
             lowerFull.contains("turmoil") -> "turmoil_surge"
             lowerFull.contains("gold hunter") -> "gold_hunter"
+            lowerFull.contains("robot") || lowerFull.contains("droid") -> "robots"
             heroes.isNotEmpty() || lowerFull.contains("hero") || lowerFull.contains("héros") -> "heros"
             resources.isNotEmpty() || lowerFull.contains("warehouse") || lowerFull.contains("entrepôt") -> "ressources"
             power != null -> "profil"
