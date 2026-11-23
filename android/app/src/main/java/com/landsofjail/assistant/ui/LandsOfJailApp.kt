@@ -1285,7 +1285,7 @@ private fun DashboardScreen(
                     Text("Mon profil joueur", fontWeight = FontWeight.Bold)
                     Text(playerName.ifBlank { "Pseudo non renseigné — complète ton profil dans l'espace Alliance." }, color = Color(0xFFFFB36B))
                     Text("Puissance : ${currentPower?.puissanceTotaleTexte ?: "À analyser"}", fontWeight = FontWeight.SemiBold)
-                    Text("Prison / QG : ${currentPower?.niveauPrisonOuQG ?: "—"} · VIP : ${currentPower?.niveauVip ?: "—"}", style = MaterialTheme.typography.bodySmall)
+                    Text("Prison / QG : ${currentPower?.niveauPrisonOuQG ?: "—"} · VIP : à renseigner", style = MaterialTheme.typography.bodySmall)
                     Text("Héros suivis : $heroesCount", style = MaterialTheme.typography.bodySmall)
                     Text("Ressources détectées", fontWeight = FontWeight.SemiBold)
                     if (resources.isEmpty()) {
