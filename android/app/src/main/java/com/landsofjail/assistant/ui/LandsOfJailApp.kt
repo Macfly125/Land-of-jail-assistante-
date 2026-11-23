@@ -2110,6 +2110,18 @@ private fun HeroEditDialog(
                             )
                         }
                     }
+                    val fieldsToCheck = if (hero.incertain && hero.champsIncertains.isEmpty()) {
+                        listOf("niveau", "rarete", "etoiles", "roleHero", "puissanceHero")
+                    } else hero.champsIncertains
+                    val remainingUncertainFields = fieldsToCheck.filter { field ->
+                        when (field.lowercase()) {
+                            "niveau" -> level.isBlank()
+                            "rarete" -> rarity.isBlank()
+                            "etoiles" -> stars.isBlank()
+                            "puissancehero" -> power.isBlank()
+                            else -> true
+                        }
+                    }
                     onSave(
                         hero.copy(
                             nom = name.trim(),
@@ -2119,35 +2131,9 @@ private fun HeroEditDialog(
                             etoiles = stars.trim().ifBlank { null },
                             puissanceHero = power.trim().ifBlank { null },
                             competences = correctedSkills,
-                            champsIncertains = hero.champsIncertains.filterNot { field ->
-                                when (field.lowercase()) {
-                                    "niveau" -> level.isNotBlank()
-                                    "rarete" -> rarity.isNotBlank()
-                                    "etoiles" -> stars.isNotBlank()
-                                    "puissancehero" -> power.isNotBlank()
-                                    else -> false
-                                }
-                            },
-                            incertain = hero.champsIncertains.any { field ->
-                                when (field.lowercase()) {
-                                    "niveau" -> level.isBlank()
-                                    "rarete" -> rarity.isBlank()
-                                    "etoiles" -> stars.isBlank()
-                                    "puissancehero" -> power.isBlank()
-                                    else -> true
-                                }
-                            },
-                            raisonIncertitude = hero.raisonIncertitude.takeIf {
-                                hero.champsIncertains.any { field ->
-                                    when (field.lowercase()) {
-                                        "niveau" -> level.isBlank()
-                                        "rarete" -> rarity.isBlank()
-                                        "etoiles" -> stars.isBlank()
-                                        "puissancehero" -> power.isBlank()
-                                        else -> true
-                                    }
-                                }
-                            }
+                            champsIncertains = remainingUncertainFields,
+                            incertain = remainingUncertainFields.isNotEmpty(),
+                            raisonIncertitude = hero.raisonIncertitude.takeIf { remainingUncertainFields.isNotEmpty() }
                         )
                     )
                 },
