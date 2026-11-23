@@ -115,10 +115,25 @@ object LandsOfJailOcrParser {
             for (heroName in KNOWN_HEROES) {
                 val heroToken = Regex("(?<![\\p{L}])${Regex.escape(heroName)}(?![\\p{L}])", RegexOption.IGNORE_CASE)
                 if (heroToken.containsMatchIn(line) && !seenHeroKeys.contains(heroName.lowercase())) {
+                    // Ne jamais emprunter les étoiles, la rareté ou le niveau du héros suivant.
+                    // Les captures OCR présentent souvent plusieurs cartes de héros à la suite.
                     val contextLines = lines.subList(index, minOf(lines.size, index + 3))
+                        .takeWhileIndexed { offset, candidateLine ->
+                            offset == 0 || KNOWN_HEROES.none { otherName ->
+                                Regex("(?<![\\\\p{L}])${Regex.escape(otherName)}(?![\\\\p{L}])", RegexOption.IGNORE_CASE)
+                                    .containsMatchIn(candidateLine)
+                            }
+                        }
                     val contextText = contextLines.joinToString(" ")
                     val sameLineLvl = levelRegex.find(line)?.groupValues?.get(1)?.toIntOrNull()
-                    val nextLineLvl = lines.getOrNull(index + 1)?.let { levelRegex.find(it)?.groupValues?.get(1)?.toIntOrNull() }
+                    val nextLine = lines.getOrNull(index + 1)
+                    val nextLineIsAnotherHero = nextLine != null && KNOWN_HEROES.any { otherName ->
+                        Regex("(?<![\\\\p{L}])${Regex.escape(otherName)}(?![\\\\p{L}])", RegexOption.IGNORE_CASE)
+                            .containsMatchIn(nextLine)
+                    }
+                    val nextLineLvl = if (nextLineIsAnotherHero) null else nextLine?.let {
+                        levelRegex.find(it)?.groupValues?.get(1)?.toIntOrNull()
+                    }
                     val lvl = sameLineLvl ?: nextLineLvl
                     // Ne renseigner les étoiles et la rareté que si un libellé/visuel explicite est lu.
                     val starMatch = Regex("""(?:([1-5])\s*(?:étoiles?|stars?)|([1-5])\s*[★☆]|([★☆]{1,5}))""", RegexOption.IGNORE_CASE)
