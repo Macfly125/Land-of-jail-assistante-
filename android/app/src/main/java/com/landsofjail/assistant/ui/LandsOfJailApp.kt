@@ -1897,23 +1897,23 @@ private fun ResourcesScreen(
             migrationPrefs.edit().putBoolean("done", true).commit()
         }
     }
-    var subTab by remember { mutableStateOf(ResourceSubTab.INVENTAIRE) }
+    var subTab by remember(profileId) { mutableStateOf(ResourceSubTab.INVENTAIRE) }
     var targetBuildingLvl by remember { mutableIntStateOf(16) }
     var starFrom by remember { mutableIntStateOf(0) }
     var starTo by remember { mutableIntStateOf(4) }
     var ownedShardsText by remember { mutableStateOf("0") }
     var tomeFrom by remember { mutableIntStateOf(0) }
     var tomeTo by remember { mutableIntStateOf(5) }
-    var robotName by remember { mutableStateOf("") }
-    var robotLevel by remember { mutableStateOf("") }
-    var robotRarity by remember { mutableStateOf("") }
-    var robotPower by remember { mutableStateOf("") }
-    var robotBonus by remember { mutableStateOf("") }
-    var robotSkills by remember { mutableStateOf("") }
-    var selectedTrackedEvent by remember { mutableStateOf(AdviceMode.TRIAL_CAGE) }
-    var eventDateInput by remember { mutableStateOf("") }
-    var eventScoreInput by remember { mutableStateOf("") }
-    var eventNotesInput by remember { mutableStateOf("") }
+    var robotName by remember(profileId) { mutableStateOf("") }
+    var robotLevel by remember(profileId) { mutableStateOf("") }
+    var robotRarity by remember(profileId) { mutableStateOf("") }
+    var robotPower by remember(profileId) { mutableStateOf("") }
+    var robotBonus by remember(profileId) { mutableStateOf("") }
+    var robotSkills by remember(profileId) { mutableStateOf("") }
+    var selectedTrackedEvent by remember(profileId) { mutableStateOf(AdviceMode.TRIAL_CAGE) }
+    var eventDateInput by remember(profileId) { mutableStateOf("") }
+    var eventScoreInput by remember(profileId) { mutableStateOf("") }
+    var eventNotesInput by remember(profileId) { mutableStateOf("") }
 
     var routineItems by remember(routinePrefs) {
         mutableStateOf(
