@@ -485,7 +485,13 @@ fun LandsOfJailAssistantApp(
             if (key.isBlank()) return@forEach
             val previous = merged[key]
             if (previous == null) {
-                merged[key] = fresh
+                val initialUncertainFields = if (fresh.incertain && fresh.champsIncertains.isEmpty()) {
+                    listOf("niveau", "rarete", "etoiles", "roleHero", "puissanceHero")
+                } else fresh.champsIncertains
+                merged[key] = fresh.copy(
+                    champsIncertains = initialUncertainFields,
+                    incertain = fresh.incertain || initialUncertainFields.isNotEmpty()
+                )
             } else {
                 val personalFieldKeys = setOf("niveau", "rarete", "etoiles", "rolehero", "puissancehero")
                 val freshUncertainFields = if (fresh.incertain && fresh.champsIncertains.isEmpty()) {
