@@ -50,13 +50,23 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Configurer Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Installer les composants Android nécessaires
+      - name: Configurer Android SDK et licences
+        timeout-minutes: 8
         run: |
-          yes | sdkmanager --licenses >/dev/null
-          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
+          if [ -f "$SDK_ROOT/platforms/android-35/android.jar" ] && [ -x "$SDK_ROOT/build-tools/35.0.0/aapt" ]; then
+            echo "Android SDK 35 déjà disponible sur le runner."
+          else
+            SDKMANAGER=$(find "$SDK_ROOT" -name "sdkmanager" -type f 2>/dev/null | head -n 1)
+            if [ -n "$SDKMANAGER" ]; then
+              timeout 120s bash -c 'yes | "$1" --licenses >/dev/null 2>&1' _ "$SDKMANAGER" || true
+              timeout 300s "$SDKMANAGER" "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+            else
+              echo "::error::sdkmanager introuvable."
+              exit 1
+            fi
+          fi
 
       - name: Installer Gradle 8.11.1
         run: |
