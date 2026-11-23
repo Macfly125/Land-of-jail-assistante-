@@ -63,6 +63,10 @@ jobs:
           unzip -q /tmp/gradle.zip -d /tmp
           echo "/tmp/gradle-8.11.1/bin" >> "$GITHUB_PATH"
 
+      - name: Exécuter les tests de régression OCR
+        working-directory: android
+        run: gradle testDebugUnitTest --no-daemon --stacktrace
+
       - name: Préparer la signature Android stable
         id: signing
         env:
@@ -72,7 +76,6 @@ jobs:
           KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           if [ -n "$KEYSTORE_BASE64" ] && [ -n "$KEYSTORE_PASSWORD" ] && [ -n "$KEY_ALIAS" ] && [ -n "$KEY_PASSWORD" ]; then
-            # Remove spaces/newlines introduced when copying the one-line Base64 secret.
             if printf '%s' "$KEYSTORE_BASE64" | tr -d '[:space:]' | base64 --decode > "$RUNNER_TEMP/loj-upload-key.jks" && \
               keytool -list -keystore "$RUNNER_TEMP/loj-upload-key.jks" -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" >/dev/null 2>&1; then
               echo "available=true" >> "$GITHUB_OUTPUT"
@@ -127,7 +130,7 @@ jobs:
         working-directory: android
         run: gradle assembleDebug --no-daemon --stacktrace -PVERSION_CODE=${{ github.run_number }} -PVERSION_NAME=1.1.${{ github.run_number }}
 
-      - name: Publier l'APK debug (tests uniquement)
+      - name: Publier APK debug (tests uniquement)
         if: steps.signing.outputs.available != 'true'
         uses: actions/upload-artifact@v4
         with:
