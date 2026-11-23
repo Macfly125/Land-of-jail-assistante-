@@ -3539,6 +3539,8 @@ private fun SupabaseAccountCard() {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val auth = remember(context) { SupabaseAuthRepository(context) }
+    val profilePrefs = remember(context) { context.getSharedPreferences("lands_of_jail_account_v1", Context.MODE_PRIVATE) }
+    val profileJson = remember { Json { ignoreUnknownKeys = true } }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var session by remember { mutableStateOf(auth.currentSession()) }
@@ -3629,6 +3631,30 @@ private fun SupabaseAccountCard() {
                                     session = outcome.session ?: auth.currentSession()
                                     message = outcome.message
                                     isError = false
+                                    val activeSession = session
+                                    val savedAlliance = runCatching {
+                                        profileJson.decodeFromString<AllianceWorkspace>(
+                                            profilePrefs.getString("alliance_workspace", "{}") ?: "{}"
+                                        )
+                                    }.getOrDefault(AllianceWorkspace())
+                                    if (activeSession != null &&
+                                        profilePrefs.getString("cloud_alliance_id", "").isNullOrBlank() &&
+                                        savedAlliance.ownProfile.playerName.isNotBlank() &&
+                                        savedAlliance.server.isNotBlank() &&
+                                        savedAlliance.allianceName.isNotBlank()
+                                    ) {
+                                        auth.submitAllianceJoinRequest(
+                                            savedAlliance.server,
+                                            savedAlliance.allianceName,
+                                            savedAlliance.ownProfile.playerName,
+                                            savedAlliance.ownProfile.rank.name
+                                        ).onSuccess {
+                                            message = "Compte connecté. Demande envoyée aux R4/R5 de ${savedAlliance.allianceName}."
+                                        }.onFailure {
+                                            message = "Compte connecté. Profil conservé ; demande d'alliance non envoyée : ${it.message ?: "vérifie le serveur et le tag"}"
+                                            isError = true
+                                        }
+                                    }
                                 }.onFailure {
                                     message = it.message ?: "Une erreur est survenue."
                                     isError = true
