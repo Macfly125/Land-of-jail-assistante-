@@ -1868,6 +1868,10 @@ private fun ResourcesScreen(
     power: PowerMetric?,
     resources: List<ResourceRecord>,
     profileId: String,
+    robots: List<RobotRecord>,
+    eventRecords: List<EventProgressRecord>,
+    onSaveRobots: (List<RobotRecord>) -> Unit,
+    onSaveEventRecords: (List<EventProgressRecord>) -> Unit,
     migrateLegacyRoutine: Boolean
 ) {
     val context = LocalContext.current
@@ -1900,6 +1904,16 @@ private fun ResourcesScreen(
     var ownedShardsText by remember { mutableStateOf("0") }
     var tomeFrom by remember { mutableIntStateOf(0) }
     var tomeTo by remember { mutableIntStateOf(5) }
+    var robotName by remember { mutableStateOf("") }
+    var robotLevel by remember { mutableStateOf("") }
+    var robotRarity by remember { mutableStateOf("") }
+    var robotPower by remember { mutableStateOf("") }
+    var robotBonus by remember { mutableStateOf("") }
+    var robotSkills by remember { mutableStateOf("") }
+    var selectedTrackedEvent by remember { mutableStateOf(AdviceMode.TRIAL_CAGE) }
+    var eventDateInput by remember { mutableStateOf("") }
+    var eventScoreInput by remember { mutableStateOf("") }
+    var eventNotesInput by remember { mutableStateOf("") }
 
     var routineItems by remember(routinePrefs) {
         mutableStateOf(
@@ -1985,6 +1999,117 @@ private fun ResourcesScreen(
                                         style = MaterialTheme.typography.bodySmall
                                     )
                                 }
+                            }
+                        }
+                    }
+                }
+            }
+
+            ResourceSubTab.ROBOTS -> {
+                item {
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("Inventaire des robots du profil", fontWeight = FontWeight.Bold)
+                            Text("Ces données sont indépendantes des autres profils. Renseigne les bonus tels qu’ils apparaissent en jeu ; aucune statistique n’est devinée.", style = MaterialTheme.typography.bodySmall)
+                            OutlinedTextField(robotName, { robotName = it }, label = { Text("Nom du robot") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                OutlinedTextField(robotLevel, { robotLevel = it }, label = { Text("Niveau") }, modifier = Modifier.weight(1f), singleLine = true)
+                                OutlinedTextField(robotRarity, { robotRarity = it }, label = { Text("Rareté / étoiles") }, modifier = Modifier.weight(1f), singleLine = true)
+                            }
+                            OutlinedTextField(robotPower, { robotPower = it }, label = { Text("Puissance (facultatif)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                            OutlinedTextField(robotBonus, { robotBonus = it }, label = { Text("Bonus actifs / statistiques") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+                            OutlinedTextField(robotSkills, { robotSkills = it }, label = { Text("Compétences / effets (facultatif)") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+                            Button(
+                                enabled = robotName.isNotBlank(),
+                                onClick = {
+                                    val now = Instant.now().toString()
+                                    onSaveRobots(robots + RobotRecord(
+                                        id = UUID.randomUUID().toString(),
+                                        nom = robotName.trim(),
+                                        niveau = robotLevel.trim(),
+                                        rarete = robotRarity.trim(),
+                                        bonus = robotBonus.trim(),
+                                        competences = robotSkills.trim(),
+                                        puissance = robotPower.trim(),
+                                        updatedAtIso = now
+                                    ))
+                                    robotName = ""; robotLevel = ""; robotRarity = ""
+                                    robotPower = ""; robotBonus = ""; robotSkills = ""
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                            ) { Text("Ajouter le robot à ce profil") }
+                        }
+                    }
+                }
+                if (robots.isEmpty()) {
+                    item { Text("Aucun robot enregistré dans ce profil.", style = MaterialTheme.typography.bodySmall) }
+                } else {
+                    items(robots, key = { it.id }) { robot ->
+                        Card(modifier = Modifier.fillMaxWidth()) {
+                            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Text(robot.nom, fontWeight = FontWeight.SemiBold)
+                                val meta = listOf(robot.niveau.takeIf { it.isNotBlank() }?.let { "Niv. $it" }, robot.rarete, robot.puissance.takeIf { it.isNotBlank() }?.let { "Puissance $it" }).filterNotNull()
+                                if (meta.isNotEmpty()) Text(meta.joinToString(" · "), style = MaterialTheme.typography.bodySmall)
+                                if (robot.bonus.isNotBlank()) Text("Bonus : ${robot.bonus}", style = MaterialTheme.typography.bodySmall)
+                                if (robot.competences.isNotBlank()) Text("Compétences : ${robot.competences}", style = MaterialTheme.typography.bodySmall)
+                                TextButton(onClick = { onSaveRobots(robots.filterNot { it.id == robot.id }) }) { Text("Retirer") }
+                            }
+                        }
+                    }
+                }
+            }
+
+            ResourceSubTab.EVENEMENTS -> {
+                item {
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("Journal des événements du profil", fontWeight = FontWeight.Bold)
+                            Text("Conserve tes résultats, scores et observations pour comparer tes propres performances entre les sessions.", style = MaterialTheme.typography.bodySmall)
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                items(AdviceMode.entries) { event ->
+                                    FilterChip(
+                                        selected = selectedTrackedEvent == event,
+                                        onClick = { selectedTrackedEvent = event },
+                                        label = { Text(event.titleFor(currentLang), maxLines = 1) }
+                                    )
+                                }
+                            }
+                            OutlinedTextField(eventDateInput, { eventDateInput = it }, label = { Text("Date (ex. 23/11/2026)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(eventScoreInput, { eventScoreInput = it }, label = { Text("Score / dégâts / classement") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(eventNotesInput, { eventNotesInput = it }, label = { Text("Composition, ratio, remarques") }, minLines = 3, modifier = Modifier.fillMaxWidth())
+                            Button(
+                                enabled = eventDateInput.isNotBlank() || eventScoreInput.isNotBlank() || eventNotesInput.isNotBlank(),
+                                onClick = {
+                                    val now = Instant.now().toString()
+                                    val eventId = selectedTrackedEvent.name
+                                    val existing = eventRecords.firstOrNull { it.eventId == eventId && it.date == eventDateInput.trim() }
+                                    val record = EventProgressRecord(
+                                        id = existing?.id ?: UUID.randomUUID().toString(),
+                                        eventId = eventId,
+                                        eventName = selectedTrackedEvent.titleFor(currentLang),
+                                        date = eventDateInput.trim(),
+                                        score = eventScoreInput.trim(),
+                                        notes = eventNotesInput.trim(),
+                                        updatedAtIso = now
+                                    )
+                                    onSaveEventRecords((eventRecords.filterNot { it.id == record.id } + record).sortedByDescending { it.updatedAtIso })
+                                    eventDateInput = ""; eventScoreInput = ""; eventNotesInput = ""
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                            ) { Text("Enregistrer le résultat") }
+                        }
+                    }
+                }
+                if (eventRecords.isEmpty()) {
+                    item { Text("Aucun résultat d’événement enregistré pour ce profil.", style = MaterialTheme.typography.bodySmall) }
+                } else {
+                    items(eventRecords.sortedByDescending { it.updatedAtIso }, key = { it.id }) { record ->
+                        Card(modifier = Modifier.fillMaxWidth()) {
+                            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Text(record.eventName, fontWeight = FontWeight.SemiBold)
+                                Text(listOf(record.date, record.score).filter { it.isNotBlank() }.joinToString(" · "), style = MaterialTheme.typography.bodySmall)
+                                if (record.notes.isNotBlank()) Text(record.notes, style = MaterialTheme.typography.bodySmall)
+                                TextButton(onClick = { onSaveEventRecords(eventRecords.filterNot { it.id == record.id }) }) { Text("Supprimer l’entrée") }
                             }
                         }
                     }
