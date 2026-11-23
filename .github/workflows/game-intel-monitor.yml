@@ -11,9 +11,6 @@ on:
       - 'package.json'
       - 'package-lock.json'
   workflow_dispatch:
-  schedule:
-    # Vérification quotidienne, indépendante de l'ouverture de l'application.
-    - cron: '17 6 * * *'
 
 permissions:
   contents: read
