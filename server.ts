@@ -1189,7 +1189,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
                 pattern: /gather(?:ing)? speed|resource gathering|gathering capacity|carrying capacity|loot capacity|collection speed|vitesse de collecte|capacité de transport|скорость сбора|вместимость|采集速度|负载|toplama hızı|taşıma kapasitesi/i,
               },
             ];
-            const bestByRole = new Map<number, { hero: string; skill: string; level: number; description: string; role: string }>();
+            const bestByRole = new Map<number, { hero: string; skill: string; level: number; description: string; role: string; category: number }>();
             for (const hero of heroes ?? []) {
               for (const skill of hero.competences || []) {
                 if (skill.incertain || !skill.description?.trim() || skill.type?.toLowerCase() === 'equipment') continue;
@@ -1204,12 +1204,13 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
                       level,
                       description: skill.description.trim().slice(0, 150),
                       role: candidate.role,
+                      category: candidate.category,
                     });
                   }
                 }
               }
             }
-            return [...bestByRole.values()].sort((a, b) => a.level - b.level).map((candidate) => ({
+            return [...bestByRole.values()].sort((a, b) => a.category - b.category).map((candidate) => ({
               titre: `${candidate.role} — ${candidate.hero}`,
               detail: `${candidate.skill} (niv. ${candidate.level || 'à confirmer'}) : ${candidate.description}`,
               herosCibles: [candidate.hero],
