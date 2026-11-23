@@ -48,6 +48,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.ExistingWorkPolicy
 import androidx.work.WorkManager
 import com.landsofjail.assistant.service.ScreenshotAnalysisWorker
 import kotlinx.serialization.decodeFromString
@@ -540,6 +541,29 @@ fun LandsOfJailAssistantApp(
         resources = mergeResourceRecords(resources, result.ressources)
     }
 
+    fun consumePendingBackgroundAnalyses() {
+        val pending = runCatching {
+            accountJson.decodeFromString<List<ScreenshotAnalysis>>(
+                accountPrefs.getString("pending_background_analyses", "[]") ?: "[]"
+            )
+        }.getOrDefault(emptyList())
+        if (pending.isEmpty()) return
+        pending.forEach { mergeNewAnalysis(it) }
+        accountPrefs.edit().remove("pending_background_analyses").apply()
+    }
+
+    LaunchedEffect(Unit) {
+        consumePendingBackgroundAnalyses()
+    }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) consumePendingBackgroundAnalyses()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
     suspend fun analyzeSingleUriInternal(uri: Uri, onProgress: (Int) -> Unit): ScreenshotAnalysis {
         onProgress(15)
         val bitmap = runCatching {
@@ -658,7 +682,7 @@ fun LandsOfJailAssistantApp(
             val request = OneTimeWorkRequestBuilder<ScreenshotAnalysisWorker>()
                 .setInputData(input)
                 .build()
-            WorkManager.getInstance(context).enqueue(request)
+            WorkManager.getInstance(context).enqueueUniqueWork("loj-background-analysis", ExistingWorkPolicy.APPEND_OR_REPLACE, request)
             snackbarHostState.showSnackbar(
                 "${savedUris.size} capture(s) envoyée(s) en arrière-plan. Tu recevras une notification à la fin."
             )
