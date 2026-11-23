@@ -8,6 +8,8 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -1058,7 +1060,12 @@ fun LandsOfJailAssistantApp(
                     AssistantTab.HEROS -> HeroesScreen(
                         heroes = heroes,
                         onUpdateHero = { original, updated ->
-                            heroes = heroes.map { if (it.nom == original.nom) updated else it }
+                            val exists = heroes.any { it.nom.equals(original.nom, ignoreCase = true) }
+                            heroes = if (exists) {
+                                heroes.map { if (it.nom.equals(original.nom, ignoreCase = true)) updated else it }
+                            } else {
+                                heroes + updated
+                            }
                         }
                     )
                     AssistantTab.RESSOURCES -> ResourcesScreen(currentLang, currentPower, resources)
@@ -1595,7 +1602,20 @@ private fun HeroesScreen(
                             }
                         }
                     } else {
-                        Text("Niveau, étoiles et compétences personnels : à scanner depuis le jeu.", style = MaterialTheme.typography.bodySmall)
+                        Text("Ce héros n'a pas encore été reconnu sur tes captures.", style = MaterialTheme.typography.bodySmall)
+                        TextButton(onClick = {
+                            editingHero = HeroRecord(
+                                nom = entry.nom,
+                                niveauTexte = "Non renseigné",
+                                rarete = entry.rarete,
+                                typeTroupe = entry.typeTroupe,
+                                saison = entry.saison,
+                                incertain = true,
+                                raisonIncertitude = "Fiche créée manuellement ; complète les valeurs depuis ton compte."
+                            )
+                        }) {
+                            Text("Ajouter / saisir mes données")
+                        }
                     }
                     entry.usageWarObserve?.let {
                         Text("War / équipement observé : $it", style = MaterialTheme.typography.bodySmall)
@@ -1656,14 +1676,17 @@ private fun HeroEditDialog(
     }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Corriger le héros détecté") },
+        title = { Text("Modifier les données du héros") },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(name, { name = it }, label = { Text("Nom du héros") }, singleLine = true)
-                OutlinedTextField(level, { level = it }, label = { Text("Niveau") }, singleLine = true)
-                OutlinedTextField(rarity, { rarity = it }, label = { Text("Rareté") }, singleLine = true)
-                OutlinedTextField(stars, { stars = it }, label = { Text("Étoiles") }, singleLine = true)
-                OutlinedTextField(power, { power = it }, label = { Text("Puissance") }, singleLine = true)
+            Column(
+                modifier = Modifier.fillMaxWidth().heightIn(max = 440.dp).verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedTextField(name, { name = it }, label = { Text("Nom du héros") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(level, { level = it }, label = { Text("Niveau") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(rarity, { rarity = it }, label = { Text("Rareté") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(stars, { stars = it }, label = { Text("Étoiles") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(power, { power = it }, label = { Text("Puissance") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(
                     skills,
                     { skills = it },
