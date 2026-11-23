@@ -31,6 +31,8 @@ interface DashboardViewProps {
   activeProfileId: string;
   onSwitchProfile: (profileId: string) => void;
   onCreateProfile: (name: string) => void;
+  onRenameProfile: (profileId: string, name: string) => void;
+  onDeleteProfile: (profileId: string) => void;
   cloudStatus: string;
   language: AppLanguage;
   onChangeLanguage: (lang: AppLanguage) => void;
@@ -57,6 +59,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   activeProfileId,
   onSwitchProfile,
   onCreateProfile,
+  onRenameProfile,
+  onDeleteProfile,
   cloudStatus,
   language,
   onChangeLanguage,
@@ -135,6 +139,31 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               className="min-h-[36px] px-3 rounded-lg bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-200 disabled:opacity-40"
             >
               + Ajouter
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const current = profiles.find((profile) => profile.id === activeProfileId);
+                if (!current) return;
+                const next = window.prompt('Nouveau nom du profil', current.name);
+                if (next !== null && next.trim()) onRenameProfile(activeProfileId, next);
+              }}
+              className="min-h-[36px] px-3 rounded-lg bg-slate-900 border border-slate-700 text-xs text-slate-300"
+            >
+              Renommer
+            </button>
+            <button
+              type="button"
+              disabled={profiles.length <= 1}
+              onClick={() => {
+                const current = profiles.find((profile) => profile.id === activeProfileId);
+                if (current && window.confirm(`Supprimer le profil « ${current.name} » et ses données synchronisées ?`)) {
+                  onDeleteProfile(activeProfileId);
+                }
+              }}
+              className="min-h-[36px] px-3 rounded-lg border border-red-900/70 bg-red-950/30 text-xs text-red-300 disabled:opacity-40"
+            >
+              Supprimer
             </button>
           </div>
           <p className="mt-2 text-[11px] text-slate-500">Synchronisation : {cloudStatus}</p>
