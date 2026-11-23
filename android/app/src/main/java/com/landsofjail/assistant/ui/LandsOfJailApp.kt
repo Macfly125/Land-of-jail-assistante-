@@ -281,13 +281,20 @@ fun LandsOfJailAssistantApp(
         mutableStateOf(accountPrefs.getString("active_game_profile_v1", null).orEmpty())
     }
     var showProfileDialog by remember { mutableStateOf(false) }
+    var editingProfileId by remember { mutableStateOf<String?>(null) }
+    var profileNameInput by remember { mutableStateOf("") }
+    var deletingProfileId by remember { mutableStateOf<String?>(null) }
+    var selectedAdviceMode by remember { mutableStateOf(AdviceMode.TRIAL_CAGE) }
+    var adviceResult by remember { mutableStateOf<TacticalAdviceResult?>(null) }
 
     fun currentProfileSnapshot() = LocalGameProfileSnapshot(
         allianceWorkspace = allianceWorkspace,
         analyses = analyses.take(50),
         heroes = heroes,
         resources = resources,
-        currentPower = currentPower
+        currentPower = currentPower,
+        adviceMode = selectedAdviceMode.name,
+        adviceResult = adviceResult
     )
 
     fun saveActiveProfile() {
@@ -330,13 +337,15 @@ fun LandsOfJailAssistantApp(
                 heroes = snapshot.heroes
                 resources = snapshot.resources
                 currentPower = snapshot.currentPower
+                selectedAdviceMode = runCatching { AdviceMode.valueOf(snapshot.adviceMode) }.getOrDefault(AdviceMode.TRIAL_CAGE)
+                adviceResult = snapshot.adviceResult
             }
             accountPrefs.edit().putString("active_game_profile_v1", selected.id).commit()
         }
         accountDataLoaded = true
     }
 
-    LaunchedEffect(allianceWorkspace, analyses, heroes, resources, currentPower, activeProfileId, accountDataLoaded) {
+    LaunchedEffect(allianceWorkspace, analyses, heroes, resources, currentPower, selectedAdviceMode, adviceResult, activeProfileId, accountDataLoaded) {
         if (accountDataLoaded && activeProfileId.isNotBlank()) {
             val snapshotJson = accountJson.encodeToString(currentProfileSnapshot())
             localProfiles = localProfiles.map { profile ->
@@ -372,8 +381,6 @@ fun LandsOfJailAssistantApp(
     var analysisQueue by remember { mutableStateOf<List<AndroidQueuedUri>>(emptyList()) }
     var isQueueRunning by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    var selectedAdviceMode by remember { mutableStateOf(AdviceMode.TRIAL_CAGE) }
-    var adviceResult by remember { mutableStateOf<TacticalAdviceResult?>(null) }
     var isFetchingAdvice by remember { mutableStateOf(false) }
 
     DisposableEffect(lifecycleOwner) {
@@ -760,6 +767,8 @@ fun LandsOfJailAssistantApp(
                                         heroes = snapshot.heroes
                                         resources = snapshot.resources
                                         currentPower = snapshot.currentPower
+                                        selectedAdviceMode = runCatching { AdviceMode.valueOf(snapshot.adviceMode) }.getOrDefault(AdviceMode.TRIAL_CAGE)
+                                        adviceResult = snapshot.adviceResult
                                         activeProfileId = profile.id
                                         accountPrefs.edit().putString("active_game_profile_v1", profile.id).commit()
                                     }.onFailure { errorMessage = "Impossible d'ouvrir ce profil : ${it.message}" }
@@ -1025,7 +1034,7 @@ fun LandsOfJailAssistantApp(
                             heroes = heroes.map { if (it.nom == original.nom) updated else it }
                         }
                     )
-                    AssistantTab.RESSOURCES -> ResourcesScreen(currentLang, currentPower, resources)
+                    AssistantTab.RESSOURCES -> ResourcesScreen(currentLang, currentPower, resources, activeProfileId)
                     AssistantTab.CONSEILS -> AdviceScreen(
                         currentLang = currentLang,
                         onChangeLang = { currentLang = it },
@@ -1601,10 +1610,13 @@ private fun HeroEditDialog(
 private fun ResourcesScreen(
     currentLang: AppLanguage,
     power: PowerMetric?,
-    resources: List<ResourceRecord>
+    resources: List<ResourceRecord>,
+    profileId: String
 ) {
     val context = LocalContext.current
-    val routinePrefs = remember(context) { context.getSharedPreferences("offline_routine", Context.MODE_PRIVATE) }
+    val routinePrefs = remember(context, profileId) {
+        context.getSharedPreferences("offline_routine_" + profileId, Context.MODE_PRIVATE)
+    }
     var subTab by remember { mutableStateOf(ResourceSubTab.INVENTAIRE) }
     var targetBuildingLvl by remember { mutableIntStateOf(16) }
     var starFrom by remember { mutableIntStateOf(0) }
