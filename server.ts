@@ -1028,7 +1028,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
           const uncertainty = skill.incertain && skill.raisonIncertitude
             ? ` ; incertitude : ${skill.raisonIncertitude}`
             : '';
-          return `${skill.nom}: ${level}${description}${uncertainty}`;
+          return `${skill.type || 'type à confirmer'} ${skill.nom}: ${level}${description}${uncertainty}`;
         });
         return `${hero.nom} [${personalFields.join(', ')}]${skills.length ? ` | compétences: ${skills.join('; ')}` : ''}`;
       });
