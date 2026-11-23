@@ -302,12 +302,12 @@ RÈGLES GÉNÉRALES :
               parts: [
                 { inlineData: { mimeType, data: imageBase64 } },
                 {
-                  text: `SECONDE PASSE OBLIGATOIRE — EXTRACTION DES COMPTEURS DE RESSOURCES.
-L'analyse générale n'a retourné aucune ressource. Réinspecte cette image originale uniquement pour trouver les ressources et leurs quantités.
-Repère les icônes par leur apparence et leur position, même si aucun libellé n'est écrit. Lis les nombres immédiatement associés à chaque icône, y compris les formats K, M, B, les espaces et séparateurs.
-Pour le stock actuel du joueur, relève en priorité la barre supérieure : elle montre les quantités disponibles. Ne confonds pas cette barre avec le panneau "Statistiques des ressources et d'accélération", dont "Total des objets" et "Ressources totales" sont des colonnes statistiques distinctes. Si les deux zones sont visibles, retourne les valeurs de la barre supérieure pour le profil ; ne les remplace pas par les grands totaux du tableau.
-Vérifie toute la capture, notamment la barre supérieure, les panneaux d'inventaire et les lignes de ressources. Distingue les quantités possédées des coûts, récompenses et gains.
-Retourne une ligne par compteur réellement visible. N'invente jamais une valeur. Si l'icône est identifiable mais le chiffre illisible, conserve la ressource avec quantiteTexte vide et incertain=true. Si aucun compteur n'est visible, retourne une liste vide.`,
+                  text: `SECONDE PASSE OBLIGATOIRE — EXTRACTION COMPLÈTE DES RESSOURCES (CONTRÔLE DES LECTURES PARTIELLES).
+La première passe peut avoir manqué plusieurs ressources : recommence la lecture de l'image originale, sans supposer que les ressources déjà détectées sont les seules présentes.
+Inspecte chaque zone et chaque ligne. Identifie les icônes par leur dessin, leur ordre et leur position, même si le texte OCR ne reconnaît pas les libellés. Cherche explicitement : Argent liquide/Cash, Nourriture/Food, Bois/Wood, Acier/Steel, Essence/Fuel, cartes en or, endurance, EXP et diamants. Ne retourne pas uniquement l'acier parce que son libellé est plus facile à lire.
+Pour chaque icône, associe le nombre situé immédiatement à côté ou sur la même ligne. Respecte les suffixes K, M, B et les séparateurs décimaux. N'assemble jamais deux colonnes ou deux compteurs voisins en un seul nombre.
+S'il existe une barre de ressources en haut, extrais ses valeurs dans le champ quantiteTexte : c'est le stock disponible maintenant. Si un tableau "Statistiques des ressources et d'accélération" est visible, ne confonds pas "Total des objets" avec "Ressources totales". Quand la barre supérieure est visible, elle reste prioritaire pour le stock actuel. Si seule la table est visible, lis la colonne "Ressources totales" et indique dans raisonIncertitude que la valeur vient du tableau statistique.
+Retourne une entrée distincte pour CHAQUE ressource identifiable, même si son chiffre est illisible (dans ce cas quantiteTexte vide et incertain=true). N'invente aucune valeur, n'omets pas une ressource simplement parce que son chiffre est difficile à lire. Exclue les coûts, gains et récompenses qui ne sont pas le stock possédé.`,
                 },
               ],
             },
