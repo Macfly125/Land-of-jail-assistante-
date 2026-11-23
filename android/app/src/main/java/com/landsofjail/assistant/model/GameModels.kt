@@ -277,7 +277,8 @@ data class LocalGameProfileSnapshot(
     val currentPower: PowerMetric? = null,
     val adviceMode: String = "TRIAL_CAGE",
     val adviceResult: TacticalAdviceResult? = null,
-    val playerRole: String = "POLYVALENT_F2P"
+    val playerRole: String = "POLYVALENT_F2P",
+    val routineState: Map<String, String> = emptyMap()
 )
 
 @Serializable
