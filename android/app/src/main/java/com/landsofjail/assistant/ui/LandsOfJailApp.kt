@@ -1681,7 +1681,7 @@ fun LandsOfJailAssistantApp(
                         }
                     }
                     Text(
-                        "Le rang R4/R5 devra être confirmé par un officier. Aucun droit n'est accordé sur simple déclaration.",
+                        "Si tu es le R5 qui crée l'espace cloud de l'alliance, tu deviens directement R5 sans validation. Pour une alliance déjà créée, rejoins-la d'abord comme membre puis demande au R5 actuel de te transférer le poste.",
                         style = MaterialTheme.typography.bodySmall,
                         color = Color(0xFFFBBF24)
                     )
@@ -1716,17 +1716,38 @@ fun LandsOfJailAssistantApp(
                             accountPrefs.getString("cloud_alliance_id", "").isNullOrBlank()
                         ) {
                             scope.launch {
-                                profileAuth.submitAllianceJoinRequest(
-                                    onboardingServer, onboardingAllianceTag, onboardingPlayerName, onboardingRank.name
-                                ).onSuccess {
-                                    snackbarHostState.showSnackbar("Demande envoyée aux R4/R5 de l'alliance.")
+                                val isInitialR5 = onboardingRank == AllianceRank.R5
+                                val result = if (isInitialR5) {
+                                    profileAuth.createAlliance(onboardingServer, onboardingAllianceTag)
+                                } else {
+                                    profileAuth.submitAllianceJoinRequest(
+                                        onboardingServer, onboardingAllianceTag, onboardingPlayerName, onboardingRank.name
+                                    )
+                                }
+                                result.onSuccess { id ->
+                                    if (isInitialR5) {
+                                        accountPrefs.edit().putString("cloud_alliance_id", id).apply()
+                                        snackbarHostState.showSnackbar("Espace créé : tu es directement R5, sans validation.")
+                                    } else {
+                                        snackbarHostState.showSnackbar("Demande envoyée aux R4/R5 de l'alliance.")
+                                    }
                                 }.onFailure {
-                                    snackbarHostState.showSnackbar(it.message ?: "Demande non envoyée. Vérifie le compte et le tag.")
+                                    snackbarHostState.showSnackbar(it.message ?: if (isInitialR5) {
+                                        "Création de l'espace R5 impossible. Si l'alliance existe déjà, rejoins-la avec un code d'invitation."
+                                    } else {
+                                        "Demande non envoyée. Vérifie le compte et le tag."
+                                    })
                                 }
                             }
                         } else {
                             scope.launch {
-                                snackbarHostState.showSnackbar("Profil enregistré. Connecte-toi pour transmettre la demande aux officiers.")
+                                snackbarHostState.showSnackbar(
+                                    if (onboardingRank == AllianceRank.R5) {
+                                        "Profil enregistré. Connecte-toi pour créer l'espace de l'alliance et devenir R5."
+                                    } else {
+                                        "Profil enregistré. Connecte-toi pour transmettre la demande aux officiers."
+                                    }
+                                )
                             }
                         }
                     },
@@ -3663,15 +3684,26 @@ private fun SupabaseAccountCard() {
                                         savedAlliance.server.isNotBlank() &&
                                         savedAlliance.allianceName.isNotBlank()
                                     ) {
-                                        auth.submitAllianceJoinRequest(
-                                            savedAlliance.server,
-                                            savedAlliance.allianceName,
-                                            savedAlliance.ownProfile.playerName,
-                                            savedAlliance.ownProfile.rank.name
-                                        ).onSuccess {
-                                            message = "Compte connecté. Demande envoyée aux R4/R5 de ${savedAlliance.allianceName}."
+                                        val isInitialR5 = savedAlliance.ownProfile.rank == AllianceRank.R5
+                                        val registration = if (isInitialR5) {
+                                            auth.createAlliance(savedAlliance.server, savedAlliance.allianceName)
+                                        } else {
+                                            auth.submitAllianceJoinRequest(
+                                                savedAlliance.server,
+                                                savedAlliance.allianceName,
+                                                savedAlliance.ownProfile.playerName,
+                                                savedAlliance.ownProfile.rank.name
+                                            )
+                                        }
+                                        registration.onSuccess { id ->
+                                            if (isInitialR5) {
+                                                profilePrefs.edit().putString("cloud_alliance_id", id).apply()
+                                                message = "Compte connecté. Espace créé : tu es directement R5."
+                                            } else {
+                                                message = "Compte connecté. Demande envoyée aux R4/R5 de ${savedAlliance.allianceName}."
+                                            }
                                         }.onFailure {
-                                            message = "Compte connecté. Profil conservé ; demande d'alliance non envoyée : ${it.message ?: "vérifie le serveur et le tag"}"
+                                            message = "Compte connecté. Profil conservé ; inscription d'alliance impossible : ${it.message ?: "vérifie le serveur et le tag"}"
                                             isError = true
                                         }
                                     }
@@ -4405,7 +4437,26 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
     var busy by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
     var isError by remember { mutableStateOf(false) }
+    var myCloudRank by remember { mutableStateOf("") }
+    var r4Members by remember { mutableStateOf(emptyList<AlliancePlayerProfile>()) }
+    var selectedR4 by remember { mutableStateOf<AlliancePlayerProfile?>(null) }
+    var transferBusy by remember { mutableStateOf(false) }
+    var transferMessage by remember { mutableStateOf<String?>(null) }
+    var transferError by remember { mutableStateOf(false) }
     val signedIn = auth.currentSession() != null
+
+    LaunchedEffect(allianceId, signedIn) {
+        if (signedIn && allianceId.isNotBlank()) {
+            auth.fetchMyAllianceRank(allianceId).onSuccess { currentRank ->
+                myCloudRank = currentRank.orEmpty()
+                if (currentRank == "R5") {
+                    auth.fetchAllianceRoster(allianceId).onSuccess { roster ->
+                        r4Members = roster.filter { it.rank == AllianceRank.R4 }
+                    }
+                }
+            }
+        }
+    }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -4450,6 +4501,34 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
                     ) { Text(if (busy) "Création…" else "Créer cette alliance dans le cloud") }
                 } else {
                     Text("Alliance cloud liée : $allianceId", style = MaterialTheme.typography.bodySmall)
+                    if (myCloudRank.isNotBlank()) {
+                        Text("Ton rang confirmé dans le cloud : $myCloudRank", color = Color(0xFF86EFAC), style = MaterialTheme.typography.bodySmall)
+                    }
+                    if (myCloudRank == "R5") {
+                        Divider()
+                        Text("Transférer le poste de R5", fontWeight = FontWeight.SemiBold)
+                        Text(
+                            "Choisis un membre déjà R4. Après confirmation, il deviendra R5 et ton compte passera R4.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        if (r4Members.isEmpty()) {
+                            Text("Aucun membre R4 disponible dans la liste cloud.", style = MaterialTheme.typography.bodySmall)
+                        } else {
+                            r4Members.forEach { member ->
+                                OutlinedButton(
+                                    onClick = { selectedR4 = member },
+                                    enabled = !transferBusy,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text("${member.playerName} · R4")
+                                }
+                            }
+                        }
+                        transferMessage?.let {
+                            Text(it, color = if (transferError) Color(0xFFFCA5A5) else Color(0xFF86EFAC), style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
                     OutlinedButton(
                         onClick = {
                             scope.launch {
@@ -4517,5 +4596,42 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
                     style = MaterialTheme.typography.bodySmall)
             }
         }
+    }
+
+    selectedR4?.let { candidate ->
+        AlertDialog(
+            onDismissRequest = { if (!transferBusy) selectedR4 = null },
+            title = { Text("Confirmer le transfert du R5") },
+            text = {
+                Text("Confirmer que ${candidate.playerName} devient R5 ? Ton propre rang passera automatiquement à R4.")
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        scope.launch {
+                            transferBusy = true
+                            transferMessage = null
+                            auth.transferAllianceR5(allianceId, candidate.id)
+                                .onSuccess {
+                                    myCloudRank = "R4"
+                                    r4Members = emptyList()
+                                    transferMessage = "Transfert effectué. ${candidate.playerName} est le nouveau R5."
+                                    transferError = false
+                                    selectedR4 = null
+                                }
+                                .onFailure {
+                                    transferMessage = it.message ?: "Transfert impossible."
+                                    transferError = true
+                                }
+                            transferBusy = false
+                        }
+                    },
+                    enabled = !transferBusy
+                ) { Text(if (transferBusy) "Transfert…" else "Confirmer le transfert") }
+            },
+            dismissButton = {
+                TextButton(onClick = { selectedR4 = null }, enabled = !transferBusy) { Text("Annuler") }
+            }
+        )
     }
 }
