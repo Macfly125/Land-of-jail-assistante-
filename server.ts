@@ -1170,6 +1170,57 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
       }).filter((signal) => signal.category >= 0 && !signal.purelyDefensive)
         .sort((a, b) => a.category - b.category || b.skillLevel - a.skillLevel);
 
+      const goldHunterHeroRecommendations = mode === 'gold_hunter'
+        ? (() => {
+            const rolePatterns = [
+              {
+                role: 'Vitesse de marche',
+                category: 0,
+                pattern: /march speed|marching speed|march speed bonus|vitesse de marche|скорость марша|行军速度|yürüyüş hızı|marschgeschwindigkeit/i,
+              },
+              {
+                role: 'Dégâts contre mineurs / ennemis neutres',
+                category: 1,
+                pattern: /greedy miners?|neutral enemies|damage to (?:neutral|npc|monsters?)|damage against (?:neutral|npc|monsters?)|dégâts? contre (?:les )?(?:mineurs|ennemis neutres)|скорость.*нейтрал|нейтральн.*урон|中立敌人.*伤害|中立目标.*伤害|nötr düşman.*hasar/i,
+              },
+              {
+                role: 'Collecte / capacité',
+                category: 2,
+                pattern: /gather(?:ing)? speed|resource gathering|gathering capacity|carrying capacity|loot capacity|collection speed|vitesse de collecte|capacité de transport|скорость сбора|вместимость|采集速度|负载|toplama hızı|taşıma kapasitesi/i,
+              },
+            ];
+            const bestByRole = new Map<number, { hero: string; skill: string; level: number; description: string; role: string }>();
+            for (const hero of heroes ?? []) {
+              for (const skill of hero.competences || []) {
+                if (skill.incertain || !skill.description?.trim() || skill.type?.toLowerCase() === 'equipment') continue;
+                for (const candidate of rolePatterns) {
+                  if (!candidate.pattern.test(skill.description)) continue;
+                  const level = Number(String(skill.niveau || '').match(/\d+/)?.[0] || 0);
+                  const previous = bestByRole.get(candidate.category);
+                  if (!previous || level > previous.level) {
+                    bestByRole.set(candidate.category, {
+                      hero: hero.nom,
+                      skill: skill.nom,
+                      level,
+                      description: skill.description.trim().slice(0, 150),
+                      role: candidate.role,
+                    });
+                  }
+                }
+              }
+            }
+            return [...bestByRole.values()].sort((a, b) => a.level - b.level).map((candidate) => ({
+              titre: `${candidate.role} — ${candidate.hero}`,
+              detail: `${candidate.skill} (niv. ${candidate.level || 'à confirmer'}) : ${candidate.description}`,
+              herosCibles: [candidate.hero],
+              incertain: true,
+              raisonIncertitude: targetLang === 'fr'
+                ? 'Correspondance avec une compétence visible du profil; le parcours, les dégâts réels et le rendement ne sont pas simulés.'
+                : 'Matched from a visible profile skill; route, actual damage and farming efficiency are not simulated.',
+            }));
+          })()
+        : [];
+
       const heroRecommendations = mode === 'trial_cage'
         ? (() => {
             // Leaders use the complete War kit of three heroes, one per troop class.
@@ -1216,7 +1267,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
             }));
             return [...leaders, ...joiners].slice(0, 10);
           })()
-        : [];
+        : mode === 'gold_hunter' ? goldHunterHeroRecommendations : [];
 
       const cageSignalLabelsByLang: Record<TargetLang, string[]> = {
         fr: ['dégâts subis par l’ennemi', 'dégâts infligés aux troupes alliées', 'ATQ des troupes alliées', 'réduction de DEF ennemie', 'dégâts directs'],
@@ -1360,6 +1411,11 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
           })),
           informationsIncertaines: [
             ...(heroNames.length === 0 ? [compTextByLang[targetLang]] : []),
+            ...(mode === 'gold_hunter' && heroNames.length > 0 && heroRecommendations.length === 0
+              ? [targetLang === 'fr'
+                  ? 'Chasseur d’or : aucune compétence fiable de vitesse, dégâts contre ennemis neutres ou collecte n’a été reconnue dans ce profil. Complète les descriptions visibles avant de choisir les héros.'
+                  : 'Gold Hunter: no reliable march-speed, neutral-enemy damage or gathering skill was found in this profile. Complete visible skill descriptions before choosing heroes.']
+              : []),
             ...(mode === 'crystal_clash' && heroNames.length > 0
               ? [targetLang === 'fr'
                   ? 'Crystal Clash : le choix principal est le rôle Commander / Warrior / Engineer et l’objectif assigné. Aucun classement de héros automatique n’est fiable sans connaître le rôle, la mission, les troupes et la défense adverse.'
