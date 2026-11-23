@@ -116,6 +116,8 @@ class LandsOfJailOcrParserTest {
     fun recognizesTroopScreensAndRequestsVisualConfirmationWhenEvidenceIsWeak() {
         val result = ScreenRecognitionEngine.analyze("Shieldbearers")
         assertEquals("troupes", result.category)
+        assertEquals(listOf("shieldbearers"), result.matchedLabels)
+        assertTrue(result.confidence < 0.8f)
         assertTrue(result.needsVisualConfirmation)
     }
 
