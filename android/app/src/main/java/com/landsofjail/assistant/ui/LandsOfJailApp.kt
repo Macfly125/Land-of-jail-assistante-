@@ -306,6 +306,7 @@ fun LandsOfJailAssistantApp(
     var isProfileSyncing by remember { mutableStateOf(false) }
     var selectedAdviceMode by remember { mutableStateOf(AdviceMode.TRIAL_CAGE) }
     var adviceResult by remember { mutableStateOf<TacticalAdviceResult?>(null) }
+    var routineRevision by remember { mutableIntStateOf(0) }
 
     fun readRoutineState(profileId: String): Map<String, String> {
         val prefs = context.getSharedPreferences("offline_routine_" + profileId, Context.MODE_PRIVATE)
@@ -408,6 +409,7 @@ fun LandsOfJailAssistantApp(
                 adviceResult = snapshot.adviceResult
                 playerRole = runCatching { PlayerRole.valueOf(snapshot.playerRole) }.getOrDefault(PlayerRole.POLYVALENT_F2P)
                 restoreRoutineState(selected.id, snapshot.routineState, clearWhenEmpty = snapshot.schemaVersion != null && snapshot.schemaVersion >= 2)
+                routineRevision += 1
             }
             accountPrefs.edit().putString("active_game_profile_v1", selected.id).commit()
         }
@@ -849,6 +851,7 @@ fun LandsOfJailAssistantApp(
                                             adviceResult = snapshot.adviceResult
                                             playerRole = runCatching { PlayerRole.valueOf(snapshot.playerRole) }.getOrDefault(PlayerRole.POLYVALENT_F2P)
                                             restoreRoutineState(profile.id, snapshot.routineState, clearWhenEmpty = snapshot.schemaVersion != null && snapshot.schemaVersion >= 2)
+                                            routineRevision += 1
                                             activeProfileId = profile.id
                                             accountPrefs.edit().putString("active_game_profile_v1", profile.id).commit()
                                         }.onFailure { errorMessage = "Impossible d'ouvrir ce profil : ${it.message}" }
@@ -979,6 +982,7 @@ fun LandsOfJailAssistantApp(
                                             adviceResult = snapshot.adviceResult
                                             playerRole = runCatching { PlayerRole.valueOf(snapshot.playerRole) }.getOrDefault(PlayerRole.POLYVALENT_F2P)
                                             restoreRoutineState(active.id, snapshot.routineState, clearWhenEmpty = snapshot.schemaVersion != null && snapshot.schemaVersion >= 2)
+                                            routineRevision += 1
                                         }
                                         snackbarHostState.showSnackbar("Synchronisation terminée. Aucune sauvegarde distante n’a été supprimée.")
                                     } catch (error: Exception) {
@@ -1045,6 +1049,7 @@ fun LandsOfJailAssistantApp(
                                 adviceResult = snapshot.adviceResult
                                 playerRole = runCatching { PlayerRole.valueOf(snapshot.playerRole) }.getOrDefault(PlayerRole.POLYVALENT_F2P)
                                 restoreRoutineState(next.id, snapshot.routineState, clearWhenEmpty = snapshot.schemaVersion != null && snapshot.schemaVersion >= 2)
+                                routineRevision += 1
                                 activeProfileId = next.id
                                 accountPrefs.edit().putString("active_game_profile_v1", next.id).commit()
                                 localProfiles = localProfiles.filterNot { it.id == target.id }
@@ -1295,7 +1300,8 @@ fun LandsOfJailAssistantApp(
                         eventRecords = eventRecords,
                         onSaveRobots = { robots = it },
                         onSaveEventRecords = { eventRecords = it },
-                        migrateLegacyRoutine = localProfiles.firstOrNull()?.id == activeProfileId
+                        migrateLegacyRoutine = localProfiles.firstOrNull()?.id == activeProfileId,
+                        routineRevision = routineRevision
                     )
                     AssistantTab.CONSEILS -> AdviceScreen(
                         currentLang = currentLang,
@@ -1879,7 +1885,8 @@ private fun ResourcesScreen(
     eventRecords: List<EventProgressRecord>,
     onSaveRobots: (List<RobotRecord>) -> Unit,
     onSaveEventRecords: (List<EventProgressRecord>) -> Unit,
-    migrateLegacyRoutine: Boolean
+    migrateLegacyRoutine: Boolean,
+    routineRevision: Int
 ) {
     val context = LocalContext.current
     val routinePrefs = remember(context, profileId) {
@@ -1922,7 +1929,7 @@ private fun ResourcesScreen(
     var eventScoreInput by remember(profileId) { mutableStateOf("") }
     var eventNotesInput by remember(profileId) { mutableStateOf("") }
 
-    var routineItems by remember(routinePrefs) {
+    var routineItems by remember(routinePrefs, routineRevision) {
         mutableStateOf(
             listOf(
                 AndroidRoutineItem("g1", "Marche Récolte #1 (Vivres/Bois/Acier/Essence)", "Lancer avant de quitter le jeu", 120, true, null),
