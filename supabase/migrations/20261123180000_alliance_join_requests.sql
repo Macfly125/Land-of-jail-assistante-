@@ -18,6 +18,8 @@ create unique index if not exists alliance_join_requests_one_pending_per_user
   on public.alliance_join_requests(alliance_id,user_id) where status='pending';
 create index if not exists alliance_join_requests_officer_inbox
   on public.alliance_join_requests(alliance_id,status,created_at desc);
+create index if not exists alliance_join_requests_user_idx on public.alliance_join_requests(user_id);
+create index if not exists alliance_join_requests_reviewed_by_idx on public.alliance_join_requests(reviewed_by);
 
 alter table public.alliance_join_requests enable row level security;
 grant select on public.alliance_join_requests to authenticated;
