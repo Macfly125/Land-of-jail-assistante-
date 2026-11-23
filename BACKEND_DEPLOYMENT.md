@@ -8,7 +8,7 @@ Dans les paramètres du dépôt, branche `audit/ameliorations-android` :
 
 **Variables du dépôt**
 - `GCP_PROJECT_ID` : identifiant du projet Google Cloud.
-- `GCP_REGION` : région Cloud Run (l'ancienne URL indique `europe-west2`, à confirmer).
+- `GCP_REGION` : région Cloud Run (facultative ; par défaut `europe-west2`, d'après l'ancienne URL).
 - `CLOUD_RUN_SERVICE` : nom exact du service Cloud Run existant.
 
 **Secrets du dépôt**
