@@ -232,6 +232,7 @@ fun LandsOfJailAssistantApp(
         context.getSharedPreferences("lands_of_jail_account_v1", Context.MODE_PRIVATE)
     }
     val accountJson = remember { Json { ignoreUnknownKeys = true } }
+    val profileAuth = remember(context) { SupabaseAuthRepository(context) }
     var accountDataLoaded by remember { mutableStateOf(false) }
     var allianceWorkspace by remember {
         mutableStateOf(runCatching {
@@ -284,6 +285,7 @@ fun LandsOfJailAssistantApp(
     var editingProfileId by remember { mutableStateOf<String?>(null) }
     var profileNameInput by remember { mutableStateOf("") }
     var deletingProfileId by remember { mutableStateOf<String?>(null) }
+    var isProfileSyncing by remember { mutableStateOf(false) }
     var selectedAdviceMode by remember { mutableStateOf(AdviceMode.TRIAL_CAGE) }
     var adviceResult by remember { mutableStateOf<TacticalAdviceResult?>(null) }
 
@@ -809,6 +811,78 @@ fun LandsOfJailAssistantApp(
                             showProfileDialog = false
                         }
                     ) { Text("+ Ajouter un profil") }
+                    TextButton(
+                        enabled = !isProfileSyncing,
+                        onClick = {
+                            if (profileAuth.currentSession() == null) {
+                                errorMessage = "Connecte-toi à ton compte dans l’onglet Compte avant la synchronisation."
+                            } else {
+                                scope.launch {
+                                    isProfileSyncing = true
+                                    try {
+                                        // Keep a recoverable local copy before any cloud merge.
+                                        accountPrefs.edit()
+                                            .putString("local_game_profiles_backup_v1", accountJson.encodeToString(localProfiles))
+                                            .commit()
+                                        val remote = profileAuth.fetchGameAccountProfiles().getOrThrow()
+                                        val remoteById = remote.associateBy { it.profileId }
+                                        val merged = localProfiles.toMutableList()
+                                        remote.forEach { cloud ->
+                                            val index = merged.indexOfFirst { it.id == cloud.profileId }
+                                            if (index < 0) {
+                                                merged.add(
+                                                    LocalGameAccountProfile(
+                                                        id = cloud.profileId,
+                                                        name = cloud.profileName.ifBlank { "Profil synchronisé" },
+                                                        stateJson = cloud.stateJson,
+                                                        updatedAtIso = cloud.updatedAt
+                                                    )
+                                                )
+                                            } else {
+                                                val local = merged[index]
+                                                val localTime = runCatching { Instant.parse(local.updatedAtIso) }.getOrNull()
+                                                val cloudTime = runCatching { Instant.parse(cloud.updatedAt) }.getOrNull()
+                                                if (cloudTime != null && (localTime == null || cloudTime.isAfter(localTime))) {
+                                                    merged[index] = local.copy(
+                                                        name = cloud.profileName.ifBlank { local.name },
+                                                        stateJson = cloud.stateJson,
+                                                        updatedAtIso = cloud.updatedAt
+                                                    )
+                                                }
+                                            }
+                                        }
+                                        merged.forEach { local ->
+                                            val cloud = remoteById[local.id]
+                                            val localTime = runCatching { Instant.parse(local.updatedAtIso) }.getOrNull()
+                                            val cloudTime = cloud?.let { runCatching { Instant.parse(it.updatedAt) }.getOrNull() }
+                                            if (cloud == null || (localTime != null && (cloudTime == null || !cloudTime.isAfter(localTime)))) {
+                                                profileAuth.syncGameAccountProfile(local.id, local.name, local.stateJson).getOrThrow()
+                                            }
+                                        }
+                                        localProfiles = merged
+                                        accountPrefs.edit()
+                                            .putString("local_game_profiles_v1", accountJson.encodeToString(merged))
+                                            .commit()
+                                        merged.firstOrNull { it.id == activeProfileId }?.let { active ->
+                                            val snapshot = accountJson.decodeFromString<LocalGameProfileSnapshot>(active.stateJson)
+                                            allianceWorkspace = snapshot.allianceWorkspace
+                                            analyses = snapshot.analyses
+                                            heroes = snapshot.heroes
+                                            resources = snapshot.resources
+                                            currentPower = snapshot.currentPower
+                                            selectedAdviceMode = runCatching { AdviceMode.valueOf(snapshot.adviceMode) }.getOrDefault(AdviceMode.TRIAL_CAGE)
+                                            adviceResult = snapshot.adviceResult
+                                        }
+                                        snackbarHostState.showSnackbar("Synchronisation terminée. Aucune sauvegarde distante n’a été supprimée.")
+                                    } catch (error: Exception) {
+                                        errorMessage = "Synchronisation interrompue : ${error.message ?: "erreur inconnue"}. La copie locale de secours est conservée."
+                                    } finally {
+                                        isProfileSyncing = false
+                                    }
+                                }
+                            }
+                        }
+                    ) { Text(if (isProfileSyncing) "Synchronisation…" else "Synchroniser avec le cloud") }
                 }
             },
             confirmButton = { TextButton(onClick = { showProfileDialog = false }) { Text("Fermer") } }
