@@ -137,8 +137,10 @@ object LandsOfJailOcrParser {
             """total\s+des\s+objets|ressources\s+totales|total\s+items|total\s+resources""",
             RegexOption.IGNORE_CASE
         ).containsMatchIn(rawText)
+        // Ne pas traiter "0 656.6M" comme un entier groupé "0 656" :
+        // les espaces séparent parfois les deux colonnes du tableau OCR.
         val numericTokens = Regex(
-            """(?<![\p{L}])(?:\d{1,3}(?:[ .]\d{3})+|\d+(?:[.,]\d+)?)\s*[kmbKMB]?"""
+            """(?<![\p{L}\d])(?:\d+(?:[.,]\d+)?\s*[kmbKMB]|\d{1,3}(?:[.,]\d{3})+|\d+)"""
         )
 
         for ((index, line) in lines.withIndex()) {
@@ -179,10 +181,26 @@ object LandsOfJailOcrParser {
                     }
                 }
                 val labelMatch = labelRegex.find(rowText) ?: continue
-                val values = numericTokens.findAll(rowText.substring(labelMatch.range.last + 1))
+                val rawValues = numericTokens.findAll(rowText.substring(labelMatch.range.last + 1))
                     .map { it.value.trim() }
                     .filter { parseCompactNumeric(it) != null }
                     .toList()
+                val values = mutableListOf<String>()
+                var valueIndex = 0
+                while (valueIndex < rawValues.size) {
+                    val first = rawValues[valueIndex]
+                    val second = rawValues.getOrNull(valueIndex + 1)
+                    if (
+                        first.matches(Regex("""\d{1,3}""")) &&
+                        second?.matches(Regex("""\d{3}""")) == true
+                    ) {
+                        values.add("$first $second")
+                        valueIndex += 2
+                    } else {
+                        values.add(first)
+                        valueIndex += 1
+                    }
+                }
                 val qtyText = if (values.isEmpty()) null else {
                     if (tableHasTotalColumns) values.last() else values.first()
                 }
