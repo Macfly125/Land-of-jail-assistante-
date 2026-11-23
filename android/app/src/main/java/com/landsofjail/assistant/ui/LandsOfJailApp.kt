@@ -537,22 +537,6 @@ fun LandsOfJailAssistantApp(
                     }
                 }
 
-                // Recheck the game intelligence after six hours when the app returns to foreground.
-                val lastCheckedAt = gameIntel?.checkedAt?.let {
-                    runCatching { Instant.parse(it).toEpochMilli() }.getOrNull()
-                } ?: 0L
-                if (gameIntel != null && !gameIntelLoading &&
-                    System.currentTimeMillis() - lastCheckedAt >= 6 * 60 * 60 * 1000L
-                ) {
-                    scope.launch {
-                        gameIntelLoading = true
-                        gameIntelError = null
-                        repository.fetchGameIntel()
-                            .onSuccess { gameIntel = it }
-                            .onFailure { gameIntelError = it.message ?: "Veille indisponible." }
-                        gameIntelLoading = false
-                    }
-                }
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -1842,62 +1826,6 @@ private fun DashboardScreen(
         item {
             Spacer(Modifier.height(6.dp))
             LanguageSelectorRow(currentLang = currentLang, onChangeLang = onChangeLang)
-        }
-
-        item {
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                        Column(Modifier.weight(1f)) {
-                            Text("Veille intelligente du jeu", fontWeight = FontWeight.Bold)
-                            Text(
-                                when (gameIntel?.status) {
-                                    "updates_found" -> "Nouveautés détectées"
-                                    "up_to_date" -> "Sources vérifiées"
-                                    "sources_unavailable" -> "Sources indisponibles"
-                                    "analysis_unavailable" -> "Analyse IA indisponible"
-                                    else -> "Vérification des nouveautés"
-                                },
-                                style = MaterialTheme.typography.bodySmall,
-                                color = when (gameIntel?.status) {
-                                    "updates_found" -> Color(0xFFFBBF24)
-                                    "up_to_date" -> Color(0xFF34D399)
-                                    else -> MaterialTheme.colorScheme.onSurfaceVariant
-                                }
-                            )
-                        }
-                        if (gameIntelLoading) {
-                            CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-                        } else {
-                            Icon(Icons.Outlined.CloudDone, contentDescription = "Veille vérifiée à l'ouverture")
-                        }
-                    }
-                    if (!gameIntel?.gameVersion.isNullOrBlank()) {
-                        Text("Version détectée : ${gameIntel?.gameVersion}", style = MaterialTheme.typography.bodySmall)
-                    }
-                    Text(
-                        gameIntel?.message ?: gameIntelError ?: "L'application vérifie les annonces officielles et les guides communautaires.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    gameIntelError?.let { Text(it, color = Color(0xFFFCA5A5), style = MaterialTheme.typography.bodySmall) }
-                    gameIntel?.items?.take(3)?.forEach { item ->
-                        Divider(color = MaterialTheme.colorScheme.outlineVariant)
-                        Text(item.title, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium)
-                        Text(item.summary, style = MaterialTheme.typography.bodySmall)
-                        Text(
-                            (if (item.status == "confirmed") "Source officielle" else "Communauté · à vérifier") + " — " + item.sourceName,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = if (item.status == "confirmed") Color(0xFF34D399) else Color(0xFFFBBF24)
-                        )
-                    }
-                    Text(
-                        "Une vérification unique est lancée en arrière-plan à chaque ouverture. Aucun rafraîchissement périodique ni activité permanente. Les données personnelles du compte ne sont jamais remplacées.",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
         }
 
         // Carte capture & autorisations (les autorisations disparaissent dès qu'elles sont accordées)
