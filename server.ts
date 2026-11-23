@@ -1281,15 +1281,15 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
             const rolePatterns = [
               {
                 category: 0,
-                pattern: /rally capacity|rally speed|rally attack|rally defense|rally command|rally bonus|vitesse de ralliement|capacité de ralliement|集结容量|集结速度/i,
+                pattern: /rally capacity|rally speed|rally attack|rally defense|rally command|rally bonus|vitesse de ralliement|capacité de ralliement|ralli kapasitesi|ralli hızı|ralli saldırısı|ralli savunması|скорость ралли|вместимость ралли|Rallye-Kapazität|Rallye-Geschwindigkeit|集结容量|集结速度/i,
               },
               {
                 category: 1,
-                pattern: /reinforce|reinforcement|join(?:ing)? a rally|rally member|march speed.{0,30}reinforc|reinforc.{0,30}march speed|renfort|增援|集结成员/i,
+                pattern: /reinforce|reinforcement|join(?:ing)? a rally|rally member|march speed.{0,30}reinforc|reinforc.{0,30}march speed|renfort|takviye|ralliye katıl|подкрепление|вступление в рейд|Rallye beitreten|Verstärkung|增援|集结成员/i,
               },
               {
                 category: 2,
-                pattern: /crystal collection|crystal gathering|deposit speed|collection speed|gathering speed|crystal points|points from (?:scattered )?crystals|vitesse de dépôt|vitesse de collecte|collecte de cristaux|points de cristal|水晶采集|水晶存放/i,
+                pattern: /crystal collection|crystal gathering|deposit speed|collection speed|gathering speed|crystal points|points from (?:scattered )?crystals|vitesse de dépôt|vitesse de collecte|collecte de cristaux|points de cristal|kristal toplama|depolama hızı|kristal puanı|сбор кристаллов|скорость депонирования|очки кристаллов|Kristallsammlung|Einlagerungsgeschwindigkeit|Kristallpunkte|水晶采集|水晶存放/i,
               },
             ];
             const bestByRole = new Map<number, { hero: string; skill: string; level: number; description: string; role: string; category: number }>();
