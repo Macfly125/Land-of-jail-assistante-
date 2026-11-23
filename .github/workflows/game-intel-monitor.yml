@@ -6,6 +6,10 @@ on:
       - audit/ameliorations-android
     paths:
       - '.github/workflows/game-intel-monitor.yml'
+      - 'game-intel.ts'
+      - 'server.ts'
+      - 'package.json'
+      - 'package-lock.json'
   workflow_dispatch:
   schedule:
     # Vérification quotidienne, indépendante de l'ouverture de l'application.
