@@ -1285,11 +1285,11 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
               },
               {
                 category: 1,
-                pattern: /reinforce|reinforcement|join(?:ing)? a rally|rally member|march speed.{0,30}reinforc|reinforc.{0,30}march speed|renfort|takviye|ralliye katıl|подкрепление|вступление в рейд|Rallye beitreten|Verstärkung|增援|集结成员/i,
+                pattern: /reinforce|reinforcement|join(?:ing)? a rally|join(?:ing)? rallies|rally member|march speed.{0,30}reinforc|reinforc.{0,30}march speed|defend|defense|defence|garrison|défense|garnison|renfort|takviye|ralliye katıl|подкрепление|гарнизон|защит|Rallye beitreten|Verstärkung|增援|集结成员|驻防/i,
               },
               {
                 category: 2,
-                pattern: /crystal collection|crystal gathering|deposit speed|collection speed|gathering speed|crystal points|points from (?:scattered )?crystals|vitesse de dépôt|vitesse de collecte|collecte de cristaux|points de cristal|kristal toplama|depolama hızı|kristal puanı|сбор кристаллов|скорость депонирования|очки кристаллов|Kristallsammlung|Einlagerungsgeschwindigkeit|Kristallpunkte|水晶采集|水晶存放/i,
+                pattern: /crystal collection|crystal gathering|depot gathering|scattered[- ]crystal collection|deposit speed|collection speed|gathering speed|crystal points|points from (?:scattered )?crystals|vitesse de dépôt|vitesse de collecte|collecte de cristaux|cristaux épars|dépôt de cristaux|points de cristal|kristal toplama|depolama hızı|kristal puanı|сбор кристаллов|скорость депонирования|очки кристаллов|Kristallsammlung|Einlagerungsgeschwindigkeit|Kristallpunkte|水晶采集|水晶存放/i,
               },
             ];
             const bestByRole = new Map<number, { hero: string; skill: string; level: number; description: string; role: string; category: number }>();
