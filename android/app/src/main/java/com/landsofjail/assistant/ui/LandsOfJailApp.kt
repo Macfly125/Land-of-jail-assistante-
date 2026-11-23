@@ -603,12 +603,26 @@ fun LandsOfJailAssistantApp(
 
     fun mergeRobotRecords(existing: List<RobotRecord>, incoming: List<RobotRecord>): List<RobotRecord> {
         val merged = existing.toMutableList()
+        val robotFields = setOf("niveau", "rarete", "bonus", "competences", "puissance")
+        fun valueFor(robot: RobotRecord, field: String): String = when (field) {
+            "niveau" -> robot.niveau
+            "rarete" -> robot.rarete
+            "bonus" -> robot.bonus
+            "competences" -> robot.competences
+            "puissance" -> robot.puissance
+            else -> ""
+        }
         incoming.forEach { raw ->
             val robotName = raw.nom.trim()
             if (robotName.isBlank()) return@forEach
             val existingIndex = merged.indexOfFirst { it.nom.equals(robotName, ignoreCase = true) }
+            val candidateFields = if (raw.incertain && raw.champsIncertains.isEmpty()) {
+                robotFields
+            } else raw.champsIncertains.map { it.trim().lowercase() }.toSet()
             val candidate = raw.copy(
                 id = raw.id.ifBlank { UUID.randomUUID().toString() },
+                champsIncertains = candidateFields.toList(),
+                incertain = raw.incertain || candidateFields.isNotEmpty(),
                 source = if (raw.source == "saisie_manuel") "capture_ia" else raw.source,
                 updatedAtIso = raw.updatedAtIso.ifBlank { Instant.now().toString() }
             )
@@ -616,18 +630,37 @@ fun LandsOfJailAssistantApp(
                 merged.add(candidate)
             } else {
                 val previous = merged[existingIndex]
+                val previousFields = if (previous.incertain && previous.champsIncertains.isEmpty()) {
+                    robotFields
+                } else previous.champsIncertains.map { it.trim().lowercase() }.toSet()
                 val keepManual = previous.source == "saisie_manuel"
-                val preserveExisting = candidate.incertain || keepManual
-                merged[existingIndex] = if (preserveExisting) {
-                    previous.copy(
-                        niveau = previous.niveau.ifBlank { candidate.niveau },
-                        rarete = previous.rarete.ifBlank { candidate.rarete },
-                        bonus = previous.bonus.ifBlank { candidate.bonus },
-                        competences = previous.competences.ifBlank { candidate.competences },
-                        puissance = previous.puissance.ifBlank { candidate.puissance },
-                        updatedAtIso = Instant.now().toString()
-                    )
-                } else candidate.copy(id = previous.id)
+                fun choose(field: String, oldValue: String, newValue: String): String = when {
+                    keepManual && oldValue.isNotBlank() -> oldValue
+                    field in candidateFields && oldValue.isNotBlank() -> oldValue
+                    newValue.isNotBlank() -> newValue
+                    else -> oldValue
+                }
+                val allUncertainFields = (previousFields + candidateFields).intersect(robotFields)
+                val unresolvedFields = allUncertainFields.filter { field ->
+                    val oldReliable = valueFor(previous, field).isNotBlank() &&
+                        (keepManual || field !in previousFields)
+                    val newReliable = valueFor(candidate, field).isNotBlank() && field !in candidateFields
+                    !oldReliable && !newReliable
+                }
+                merged[existingIndex] = previous.copy(
+                    niveau = choose("niveau", previous.niveau, candidate.niveau),
+                    rarete = choose("rarete", previous.rarete, candidate.rarete),
+                    bonus = choose("bonus", previous.bonus, candidate.bonus),
+                    competences = choose("competences", previous.competences, candidate.competences),
+                    puissance = choose("puissance", previous.puissance, candidate.puissance),
+                    champsIncertains = unresolvedFields.toList(),
+                    incertain = unresolvedFields.isNotEmpty(),
+                    raisonIncertitude = if (unresolvedFields.isNotEmpty()) {
+                        candidate.raisonIncertitude ?: previous.raisonIncertitude
+                    } else null,
+                    source = if (keepManual) previous.source else candidate.source,
+                    updatedAtIso = Instant.now().toString()
+                )
             }
         }
         return merged.sortedBy { it.nom.lowercase() }
@@ -2332,6 +2365,22 @@ private fun ResourcesScreen(
                                     val now = Instant.now().toString()
                                     val normalizedName = robotName.trim()
                                     val previous = robots.firstOrNull { it.nom.equals(normalizedName, ignoreCase = true) }
+                                    val fieldsToCheck = when {
+                                        previous == null -> setOf("niveau", "rarete", "bonus", "competences", "puissance")
+                                        previous.incertain && previous.champsIncertains.isEmpty() ->
+                                            setOf("niveau", "rarete", "bonus", "competences", "puissance")
+                                        else -> previous.champsIncertains.map { it.lowercase() }.toSet()
+                                    }
+                                    val remainingRobotFields = fieldsToCheck.filter { field ->
+                                        when (field) {
+                                            "niveau" -> robotLevel.isBlank()
+                                            "rarete" -> robotRarity.isBlank()
+                                            "bonus" -> robotBonus.isBlank()
+                                            "competences" -> robotSkills.isBlank()
+                                            "puissance" -> robotPower.isBlank()
+                                            else -> true
+                                        }
+                                    }
                                     val updatedRobot = RobotRecord(
                                         id = previous?.id ?: UUID.randomUUID().toString(),
                                         nom = normalizedName,
@@ -2340,8 +2389,11 @@ private fun ResourcesScreen(
                                         bonus = robotBonus.trim().ifBlank { previous?.bonus.orEmpty() },
                                         competences = robotSkills.trim().ifBlank { previous?.competences.orEmpty() },
                                         puissance = robotPower.trim().ifBlank { previous?.puissance.orEmpty() },
-                                        incertain = false,
-                                        raisonIncertitude = null,
+                                        champsIncertains = remainingRobotFields,
+                                        incertain = remainingRobotFields.isNotEmpty(),
+                                        raisonIncertitude = if (remainingRobotFields.isNotEmpty()) {
+                                            "Certains champs du robot restent à vérifier."
+                                        } else null,
                                         source = "saisie_manuel",
                                         updatedAtIso = now
                                     )
@@ -2368,6 +2420,23 @@ private fun ResourcesScreen(
                                 if (robot.incertain) {
                                     Text(
                                         robot.raisonIncertitude?.takeIf { it.isNotBlank() } ?: "Données détectées à vérifier sur l’écran du jeu.",
+                                        color = Color(0xFFFBBF24),
+                                        style = MaterialTheme.typography.bodySmall
+                                    )
+                                }
+                                if (robot.champsIncertains.isNotEmpty()) {
+                                    val robotFieldLabels = robot.champsIncertains.map { field ->
+                                        when (field.lowercase()) {
+                                            "niveau" -> "niveau"
+                                            "rarete" -> "rareté"
+                                            "bonus" -> "bonus"
+                                            "competences" -> "compétences"
+                                            "puissance" -> "puissance"
+                                            else -> field
+                                        }
+                                    }
+                                    Text(
+                                        "Champs à vérifier : ${robotFieldLabels.joinToString(" · ")}",
                                         color = Color(0xFFFBBF24),
                                         style = MaterialTheme.typography.bodySmall
                                     )
