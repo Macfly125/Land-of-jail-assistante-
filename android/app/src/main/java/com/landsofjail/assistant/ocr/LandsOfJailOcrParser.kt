@@ -239,10 +239,11 @@ object LandsOfJailOcrParser {
                     }?.let { "$it/5" }
                     val rarity = Regex("""\b(legendary|mythic|epic|rare|common|légendaire|épique)\b""", RegexOption.IGNORE_CASE)
                         .find(contextText)?.value
-                    seenHeroKeys.add(heroName.lowercase())
+                    val canonicalHeroName = if (heroName.equals("Ryuichi", ignoreCase = true)) "Ryuichi Ito" else heroName
+                    seenHeroKeys.add(canonicalHeroName.lowercase())
                     heroes.add(
                         HeroRecord(
-                            nom = heroName,
+                            nom = canonicalHeroName,
                             niveau = lvl,
                             niveauTexte = if (lvl != null) "Niv. $lvl" else "Niveau non lu",
                             rarete = rarity,
