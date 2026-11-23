@@ -916,7 +916,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
         const robotName = String(robot.nom || '').trim();
         const effects = [robot.bonus, robot.competences].filter(Boolean).join(' ').trim();
         if (!robotName || !effects) return [];
-        const normalized = effects.toLocaleLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');
+        const normalized = effects.toLocaleLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
         const cagePureDefense = /damage reduction|reduce.{0,20}damage taken|incoming damage|degats recus|degats subis|defense increase|increase.{0,15}defense|hp increase|health increase|soin|healing|shield|bouclier/.test(normalized);
         const cageOffense = /direct damage|deal.{0,15}damage|damage dealt|damage increase|increase.{0,20}damage|attack increase|increase.{0,15}attack|lethality|letalite|degats infliges|enemy defense reduction|reduce.{0,20}enemy.{0,10}defense|reduce.{0,20}defense|armor break/.test(normalized);
         const eventSignals: Record<AdviceEventMode, RegExp> = {
