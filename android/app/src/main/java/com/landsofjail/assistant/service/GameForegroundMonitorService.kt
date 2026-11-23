@@ -49,11 +49,15 @@ class GameForegroundMonitorService : Service() {
         const val ACTION_START = "com.landsofjail.assistant.action.START_MONITORING"
         const val ACTION_STOP = "com.landsofjail.assistant.action.STOP_MONITORING"
         const val ACTION_CAPTURE_WITH_PROJECTION = "com.landsofjail.assistant.action.CAPTURE_WITH_PROJECTION"
+        const val ACTION_START_AUTO_CAPTURE = "com.landsofjail.assistant.action.START_AUTO_CAPTURE"
+        const val ACTION_STOP_AUTO_CAPTURE = "com.landsofjail.assistant.action.STOP_AUTO_CAPTURE"
+        const val ACTION_AUTO_CAPTURE_CONSUMED = "com.landsofjail.assistant.action.AUTO_CAPTURE_CONSUMED"
 
         const val EXTRA_PACKAGE_FILTER = "extra_package_filter"
         const val EXTRA_ALWAYS_SHOW_FLOATING = "extra_always_show_floating"
         const val EXTRA_RESULT_CODE = "extra_result_code"
         const val EXTRA_RESULT_DATA = "extra_result_data"
+        const val EXTRA_INTERVAL_MILLIS = "extra_interval_millis"
 
         private const val CHANNEL_MONITOR_ID = "loj_monitor_channel"
         private const val CHANNEL_PROMPT_ID = "loj_prompt_channel"
@@ -65,6 +69,9 @@ class GameForegroundMonitorService : Service() {
 
         private val _detectedGameForeground = MutableStateFlow(false)
         val detectedGameForeground = _detectedGameForeground.asStateFlow()
+
+        private val _isAutoCapturing = MutableStateFlow(false)
+        val isAutoCapturing = _isAutoCapturing.asStateFlow()
 
         fun start(
             context: Context,
@@ -90,6 +97,33 @@ class GameForegroundMonitorService : Service() {
             context.startService(intent)
         }
 
+        fun startAutoCapture(context: Context, resultCode: Int, resultData: Intent, intervalMillis: Long) {
+            val intent = Intent(context, GameForegroundMonitorService::class.java).apply {
+                action = ACTION_START_AUTO_CAPTURE
+                putExtra(EXTRA_RESULT_CODE, resultCode)
+                putExtra(EXTRA_RESULT_DATA, resultData)
+                putExtra(EXTRA_INTERVAL_MILLIS, intervalMillis)
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(intent)
+            } else {
+                context.startService(intent)
+            }
+        }
+
+        fun stopAutoCapture(context: Context) {
+            context.startService(Intent(context, GameForegroundMonitorService::class.java).apply {
+                action = ACTION_STOP_AUTO_CAPTURE
+            })
+        }
+
+        fun notifyAutoCaptureConsumed(context: Context) {
+            if (!_isAutoCapturing.value) return
+            context.startService(Intent(context, GameForegroundMonitorService::class.java).apply {
+                action = ACTION_AUTO_CAPTURE_CONSUMED
+            })
+        }
+
         fun runSingleCapture(context: Context, resultCode: Int, resultData: Intent) {
             val intent = Intent(context, GameForegroundMonitorService::class.java).apply {
                 action = ACTION_CAPTURE_WITH_PROJECTION
@@ -110,6 +144,11 @@ class GameForegroundMonitorService : Service() {
     private var alwaysShowFloating: Boolean = true
     private var lastKnownForegroundPkg: String? = null
     private var isCapturingNow: Boolean = false
+    private var autoCaptureIntervalMillis: Long = 10_000L
+    private var autoCaptureAwaitingAnalysis: Boolean = false
+    private var nextAutoCaptureAtMillis: Long = 0L
+    private var autoCaptureOwnsMonitor: Boolean = false
+    private var lastAutoFrameSamples: IntArray? = null
 
     private var floatingContainer: LinearLayout? = null
     private var windowManager: WindowManager? = null
@@ -131,6 +170,31 @@ class GameForegroundMonitorService : Service() {
             ACTION_STOP -> {
                 stopMonitoringAndSelf()
                 return START_NOT_STICKY
+            }
+            ACTION_START_AUTO_CAPTURE -> {
+                val resultCode = intent.getIntExtra(EXTRA_RESULT_CODE, Activity.RESULT_CANCELED)
+                val resultData = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    intent.getParcelableExtra(EXTRA_RESULT_DATA, Intent::class.java)
+                } else {
+                    @Suppress("DEPRECATION")
+                    intent.getParcelableExtra(EXTRA_RESULT_DATA)
+                }
+                if (resultCode == Activity.RESULT_OK && resultData != null) {
+                    val interval = intent.getLongExtra(EXTRA_INTERVAL_MILLIS, 10_000L)
+                    startContinuousCapture(resultCode, resultData, interval)
+                }
+                return START_STICKY
+            }
+            ACTION_STOP_AUTO_CAPTURE -> {
+                stopAutoCaptureInternal()
+                return if (_isRunning.value) START_STICKY else START_NOT_STICKY
+            }
+            ACTION_AUTO_CAPTURE_CONSUMED -> {
+                if (_isAutoCapturing.value) {
+                    autoCaptureAwaitingAnalysis = false
+                    nextAutoCaptureAtMillis = System.currentTimeMillis() + autoCaptureIntervalMillis
+                }
+                return START_STICKY
             }
             ACTION_CAPTURE_WITH_PROJECTION -> {
                 val resultCode = intent.getIntExtra(EXTRA_RESULT_CODE, Activity.RESULT_CANCELED)
@@ -305,6 +369,180 @@ class GameForegroundMonitorService : Service() {
         }, 380L)
     }
 
+    private fun startContinuousCapture(resultCode: Int, resultData: Intent, intervalMillis: Long) {
+        if (_isAutoCapturing.value) return
+        val wasMonitoring = _isRunning.value
+        autoCaptureOwnsMonitor = !wasMonitoring
+        autoCaptureIntervalMillis = intervalMillis.coerceIn(10_000L, 60_000L)
+        autoCaptureAwaitingAnalysis = false
+        lastAutoFrameSamples = null
+        nextAutoCaptureAtMillis = System.currentTimeMillis() + 750L
+        _isAutoCapturing.value = true
+        removeFloatingAnalyzeBar()
+
+        val projectionFgType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION
+        } else {
+            0
+        }
+        ServiceCompat.startForeground(
+            this,
+            NOTIF_MONITOR_ID,
+            buildPersistentMonitoringNotification(),
+            projectionFgType
+        )
+        if (!wasMonitoring) startPollingUsageStats()
+
+        val projectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+        val projection = try {
+            projectionManager.getMediaProjection(resultCode, resultData)
+        } catch (_: Throwable) {
+            null
+        }
+        if (projection == null) {
+            _isAutoCapturing.value = false
+            if (autoCaptureOwnsMonitor) stopMonitoringAndSelf() else startAsMonitoringForeground()
+            return
+        }
+
+        mediaProjection = projection
+        val mainHandler = Handler(Looper.getMainLooper())
+        projection.registerCallback(object : MediaProjection.Callback() {
+            override fun onStop() {
+                if (_isAutoCapturing.value) {
+                    handleAutoProjectionStopped()
+                } else {
+                    releaseProjection()
+                }
+            }
+        }, mainHandler)
+
+        val metrics = resources.displayMetrics
+        val width = metrics.widthPixels.coerceAtLeast(1)
+        val height = metrics.heightPixels.coerceAtLeast(1)
+        val density = metrics.densityDpi
+        val reader = ImageReader.newInstance(width, height, PixelFormat.RGBA_8888, 3)
+        imageReader = reader
+        try {
+            virtualDisplay = projection.createVirtualDisplay(
+                "LandsOfJailAutoCapture",
+                width,
+                height,
+                density,
+                DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
+                reader.surface,
+                null,
+                mainHandler
+            )
+        } catch (_: Throwable) {
+            handleAutoProjectionStopped()
+            return
+        }
+
+        reader.setOnImageAvailableListener({ imageReader ->
+            val image = imageReader.acquireLatestImage() ?: return@setOnImageAvailableListener
+            try {
+                val now = System.currentTimeMillis()
+                if (!_isAutoCapturing.value || autoCaptureAwaitingAnalysis ||
+                    !_detectedGameForeground.value || now < nextAutoCaptureAtMillis
+                ) return@setOnImageAvailableListener
+
+                val plane = image.planes[0]
+                val buffer = plane.buffer
+                val pixelStride = plane.pixelStride
+                val rowStride = plane.rowStride
+                val rowPadding = rowStride - pixelStride * width
+                val fullBitmap = Bitmap.createBitmap(
+                    width + rowPadding / pixelStride,
+                    height,
+                    Bitmap.Config.ARGB_8888
+                )
+                fullBitmap.copyPixelsFromBuffer(buffer)
+                val cropped = Bitmap.createBitmap(fullBitmap, 0, 0, width, height)
+                fullBitmap.recycle()
+
+                if (isBitmapMostlyBlank(cropped)) {
+                    cropped.recycle()
+                    nextAutoCaptureAtMillis = now + 1_000L
+                    return@setOnImageAvailableListener
+                }
+                if (!hasMeaningfulScreenChange(cropped)) {
+                    cropped.recycle()
+                    nextAutoCaptureAtMillis = now + autoCaptureIntervalMillis
+                    return@setOnImageAvailableListener
+                }
+
+                val stream = ByteArrayOutputStream()
+                cropped.compress(Bitmap.CompressFormat.JPEG, 88, stream)
+                val jpegBytes = stream.toByteArray()
+                val base64 = Base64.encodeToString(jpegBytes, Base64.NO_WRAP)
+                val savedUri = saveCaptureToInternalFile(jpegBytes)
+                autoCaptureAwaitingAnalysis = true
+                ScreenCaptureConsentActivity.publishCapture(
+                    CapturedScreenPayload(
+                        bitmap = cropped,
+                        base64Jpeg = base64,
+                        capturedAtMillis = now,
+                        imageFileUri = savedUri
+                    )
+                )
+            } catch (_: Throwable) {
+                nextAutoCaptureAtMillis = System.currentTimeMillis() + autoCaptureIntervalMillis
+            } finally {
+                image.close()
+            }
+        }, mainHandler)
+    }
+
+    private fun hasMeaningfulScreenChange(bitmap: Bitmap): Boolean {
+        val samples = IntArray(64)
+        var index = 0
+        for (row in 0 until 8) {
+            for (column in 0 until 8) {
+                val x = (column * bitmap.width / 8).coerceIn(0, bitmap.width - 1)
+                val y = (row * bitmap.height / 8).coerceIn(0, bitmap.height - 1)
+                val pixel = bitmap.getPixel(x, y)
+                val red = (pixel shr 16) and 0xFF
+                val green = (pixel shr 8) and 0xFF
+                val blue = pixel and 0xFF
+                samples[index++] = (red * 299 + green * 587 + blue * 114) / 1000
+            }
+        }
+        val previous = lastAutoFrameSamples
+        lastAutoFrameSamples = samples
+        if (previous == null) return true
+        var changed = 0
+        for (i in samples.indices) {
+            if (kotlin.math.abs(samples[i] - previous[i]) >= 22) changed++
+        }
+        return changed >= 3
+    }
+
+    private fun handleAutoProjectionStopped() {
+        if (!_isAutoCapturing.value) {
+            releaseProjection()
+            return
+        }
+        _isAutoCapturing.value = false
+        autoCaptureAwaitingAnalysis = false
+        lastAutoFrameSamples = null
+        releaseProjection()
+        if (autoCaptureOwnsMonitor) stopMonitoringAndSelf() else startAsMonitoringForeground()
+    }
+
+    private fun stopAutoCaptureInternal() {
+        if (!_isAutoCapturing.value) return
+        _isAutoCapturing.value = false
+        autoCaptureAwaitingAnalysis = false
+        lastAutoFrameSamples = null
+        releaseProjection()
+        if (autoCaptureOwnsMonitor) {
+            stopMonitoringAndSelf()
+        } else {
+            startAsMonitoringForeground()
+        }
+    }
+
     private fun finishCaptureFlow(wasMonitoring: Boolean) {
         if (wasMonitoring) {
             startAsMonitoringForeground()
@@ -355,6 +593,8 @@ class GameForegroundMonitorService : Service() {
     }
 
     private fun releaseProjection() {
+        val projectionToStop = mediaProjection
+        mediaProjection = null
         try {
             virtualDisplay?.release()
         } catch (_: Throwable) {
@@ -364,12 +604,11 @@ class GameForegroundMonitorService : Service() {
         } catch (_: Throwable) {
         }
         try {
-            mediaProjection?.stop()
+            projectionToStop?.stop()
         } catch (_: Throwable) {
         }
         virtualDisplay = null
         imageReader = null
-        mediaProjection = null
     }
 
     private fun startPollingUsageStats() {
@@ -389,13 +628,13 @@ class GameForegroundMonitorService : Service() {
                 val isGameNow = UsageStatsDetector.isLandsOfJailPackage(effectivePkg, targetFilter)
                 _detectedGameForeground.value = isGameNow
 
-                if (isGameNow && !wasGameInForeground) {
+                if (isGameNow && !wasGameInForeground && !_isAutoCapturing.value) {
                     showAnalyzePromptNotification()
                 }
 
                 // Ne jamais masquer le TopAppBar de notre propre appli avec la barre flottante,
                 // mais toujours la garder visible au-dessus du jeu / des autres apps.
-                if (isCapturingNow || isSelfForeground) {
+                if (_isAutoCapturing.value || isCapturingNow || isSelfForeground) {
                     removeFloatingAnalyzeBar()
                 } else if (isGameNow || alwaysShowFloating) {
                     showFloatingAnalyzeBarIfAllowed()
@@ -567,15 +806,24 @@ class GameForegroundMonitorService : Service() {
             },
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-        return NotificationCompat.Builder(this, CHANNEL_MONITOR_ID)
+        val builder = NotificationCompat.Builder(this, CHANNEL_MONITOR_ID)
             .setSmallIcon(android.R.drawable.ic_menu_view)
-            .setContentTitle("Lands of Jail Assistant actif")
-            .setContentText("Bouton prêt. Aucune capture sans votre accord.")
             .setOngoing(true)
             .setContentIntent(openAppIntent)
-            .addAction(0, "Analyser l’écran", analyzeIntent)
-            .addAction(0, "Arrêter la détection", buildStopPendingIntent())
-            .build()
+        if (_isAutoCapturing.value) {
+            builder
+                .setContentTitle("Analyse automatique active")
+                .setContentText("Capture toutes les ${autoCaptureIntervalMillis / 1000}s lorsque le jeu est au premier plan.")
+                .addAction(0, "Arrêter l’analyse auto", buildStopAutoCapturePendingIntent())
+                .addAction(0, "Arrêter la détection", buildStopPendingIntent())
+        } else {
+            builder
+                .setContentTitle("Lands of Jail Assistant actif")
+                .setContentText("Bouton prêt. Aucune capture sans votre accord.")
+                .addAction(0, "Analyser l’écran", analyzeIntent)
+                .addAction(0, "Arrêter la détection", buildStopPendingIntent())
+        }
+        return builder.build()
     }
 
     private fun buildStopPendingIntent(): PendingIntent {
@@ -590,7 +838,22 @@ class GameForegroundMonitorService : Service() {
         )
     }
 
+    private fun buildStopAutoCapturePendingIntent(): PendingIntent {
+        val intent = Intent(this, GameForegroundMonitorService::class.java).apply {
+            action = ACTION_STOP_AUTO_CAPTURE
+        }
+        return PendingIntent.getService(
+            this,
+            104,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+    }
+
     private fun stopMonitoringAndSelf() {
+        _isAutoCapturing.value = false
+        autoCaptureAwaitingAnalysis = false
+        autoCaptureOwnsMonitor = false
         monitorJob?.cancel()
         releaseProjection()
         removeFloatingAnalyzeBar()
@@ -607,6 +870,7 @@ class GameForegroundMonitorService : Service() {
         releaseProjection()
         removeFloatingAnalyzeBar()
         _isRunning.value = false
+        _isAutoCapturing.value = false
         serviceScope.cancel()
         super.onDestroy()
     }
