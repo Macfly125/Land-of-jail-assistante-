@@ -1690,7 +1690,18 @@ private fun DashboardScreen(
                                 ) {
                                     listOf(10, 20, 30, 60).forEach { seconds ->
                                         DropdownMenuItem(
-                                            text = { Text("${seconds} secondes") },
+                                            text = {
+                                                Text(
+                                                    when (currentLang) {
+                                                        AppLanguage.FR -> "${seconds} secondes"
+                                                        AppLanguage.TR -> "${seconds} sn"
+                                                        AppLanguage.RU -> "${seconds} с"
+                                                        AppLanguage.ZH -> "${seconds} 秒"
+                                                        AppLanguage.DE -> "${seconds} Sekunden"
+                                                        AppLanguage.EN -> "${seconds} seconds"
+                                                    }
+                                                )
+                                            },
                                             onClick = {
                                                 onChangeAutoCaptureInterval(seconds)
                                                 showAutoIntervalMenu = false
@@ -1718,12 +1729,12 @@ private fun DashboardScreen(
                     }
                     Text(
                         when (currentLang) {
-                            AppLanguage.FR -> if (isAutoCapturing) "Actif : une analyse à la fois; les écrans quasi identiques sont ignorés. Arrête quand tu as terminé." else "Intervalle cible : 10 à 60 s. Une seule analyse à la fois; si elle dure plus longtemps, la suivante attend sa fin. Chaque analyse utilise le réseau et le quota IA."
-                            AppLanguage.TR -> if (isAutoCapturing) "Etkin: aynı anda tek analiz; benzer ekranlar atlanır." else "Önerilen aralık: 10–30 sn. Her analiz internet ve yapay zekâ kotası kullanır."
-                            AppLanguage.RU -> if (isAutoCapturing) "Активно: по одному анализу; почти одинаковые экраны пропускаются." else "Рекомендуемый интервал: 10–30 с. Анализ расходует интернет и лимит ИИ."
-                            AppLanguage.ZH -> if (isAutoCapturing) "已启用：一次只运行一个分析；相似画面会跳过。" else "建议间隔：10–30 秒。每次分析都会使用网络和 AI 配额。"
-                            AppLanguage.DE -> if (isAutoCapturing) "Aktiv: immer nur eine Analyse; nahezu identische Bildschirme werden übersprungen." else "Empfohlenes Intervall: 10–30 s. Jede Analyse nutzt Netzwerk und KI-Kontingent."
-                            AppLanguage.EN -> if (isAutoCapturing) "Active: one analysis at a time; near-identical screens are skipped." else "Target interval: 10–60 s. Only one analysis runs at a time; if it takes longer, the next waits. Each analysis uses network and AI quota."
+                            AppLanguage.FR -> if (!isMonitoringRunning || !hasUsagePermission) "Active d’abord la détection du jeu et l’accès aux statistiques d’utilisation." else if (isAutoCapturing) "Actif : une analyse à la fois; les écrans quasi identiques sont ignorés. Arrête quand tu as terminé." else "Intervalle cible : 10 à 60 s. Une seule analyse à la fois; si elle dure plus longtemps, la suivante attend sa fin. Chaque analyse utilise le réseau et le quota IA."
+                            AppLanguage.TR -> if (!isMonitoringRunning || !hasUsagePermission) "Önce oyun algılamayı ve kullanım erişimini etkinleştir." else if (isAutoCapturing) "Etkin: aynı anda tek analiz; benzer ekranlar atlanır." else "Hedef aralık: 10–60 sn. Analizler çakışmaz; her analiz internet ve yapay zekâ kotası kullanır."
+                            AppLanguage.RU -> if (!isMonitoringRunning || !hasUsagePermission) "Сначала включите обнаружение игры и доступ к статистике использования." else if (isAutoCapturing) "Активно: по одному анализу; почти одинаковые экраны пропускаются." else "Целевой интервал: 10–60 с. Анализы не перекрываются и расходуют лимит ИИ."
+                            AppLanguage.ZH -> if (!isMonitoringRunning || !hasUsagePermission) "请先启用游戏检测和使用情况访问权限。" else if (isAutoCapturing) "已启用：一次只运行一个分析；相似画面会跳过。" else "目标间隔：10–60 秒。分析不会重叠，每次都会使用 AI 配额。"
+                            AppLanguage.DE -> if (!isMonitoringRunning || !hasUsagePermission) "Aktiviere zuerst die Spielerkennung und den Nutzungszugriff." else if (isAutoCapturing) "Aktiv: immer nur eine Analyse; nahezu identische Bildschirme werden übersprungen." else "Zielintervall: 10–60 s. Analysen überlappen sich nicht und nutzen das KI-Kontingent."
+                            AppLanguage.EN -> if (!isMonitoringRunning || !hasUsagePermission) "Enable game detection and usage access first." else if (isAutoCapturing) "Active: one analysis at a time; near-identical screens are skipped." else "Target interval: 10–60 s. Analyses never overlap; each uses network and AI quota."
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
