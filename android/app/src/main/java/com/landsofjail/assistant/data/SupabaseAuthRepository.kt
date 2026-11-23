@@ -197,55 +197,12 @@ class SupabaseAuthRepository(context: Context) {
 
 
 
-    /** Creates an alliance and its creator's R5 membership using the authenticated user id. */
+    /** Creates the alliance and assigns its creator as R5 atomically on the server. */
     suspend fun createAlliance(serverNumber: String, allianceName: String): Result<String> =
-        withContext(Dispatchers.IO) {
-            runCatching {
-                require(serverNumber.isNotBlank() && allianceName.isNotBlank()) {
-                    "Renseigne le serveur et le nom de l'alliance."
-                }
-                val active = refreshSession().getOrThrow()
-                require(active.user_id.isNotBlank()) { "Reconnecte-toi avant de créer une alliance." }
-                val payload = buildJsonObject {
-                    put("server_number", serverNumber.trim())
-                    put("alliance_name", allianceName.trim())
-                    put("created_by", active.user_id)
-                }
-                val createRequest = Request.Builder()
-                    .url("$BASE_URL/rest/v1/alliances?select=id")
-                    .header("apikey", PUBLISHABLE_KEY)
-                    .header("Authorization", "Bearer ${active.access_token}")
-                    .header("Content-Type", "application/json")
-                    .header("Prefer", "return=representation")
-                    .post(payload.toString().toRequestBody("application/json".toMediaType()))
-                    .build()
-                val allianceId = client.newCall(createRequest).execute().use { response ->
-                    val body = response.body?.string().orEmpty()
-                    if (!response.isSuccessful) error(extractApiError(body, response.code))
-                    val rows = json.parseToJsonElement(body).jsonArray
-                    rows.firstOrNull()?.jsonObject?.get("id")?.jsonPrimitive?.contentOrNull
-                        ?: error("L'identifiant de l'alliance n'a pas été retourné.")
-                }
-                val memberPayload = buildJsonObject {
-                    put("alliance_id", allianceId)
-                    put("user_id", active.user_id)
-                    put("game_rank", "R5")
-                }
-                val memberRequest = Request.Builder()
-                    .url("$BASE_URL/rest/v1/alliance_members")
-                    .header("apikey", PUBLISHABLE_KEY)
-                    .header("Authorization", "Bearer ${active.access_token}")
-                    .header("Content-Type", "application/json")
-                    .header("Prefer", "return=minimal")
-                    .post(memberPayload.toString().toRequestBody("application/json".toMediaType()))
-                    .build()
-                client.newCall(memberRequest).execute().use { response ->
-                    val body = response.body?.string().orEmpty()
-                    if (!response.isSuccessful) error(extractApiError(body, response.code))
-                }
-                allianceId
-            }
-        }
+        callAllianceRpc("create_alliance_as_r5", buildJsonObject {
+            put("p_server_number", serverNumber.trim())
+            put("p_alliance_tag", allianceName.trim())
+        })
 
     /**
      * Loads alliance membership first, then player profiles. Profile visibility is
@@ -404,10 +361,34 @@ class SupabaseAuthRepository(context: Context) {
         }).map { Unit }
     }
 
+    suspend fun fetchMyAllianceRank(allianceId: String): Result<String?> = withContext(Dispatchers.IO) {
+        runCatching {
+            require(allianceId.matches(Regex("[0-9a-fA-F-]{36}"))) { "Identifiant d'alliance invalide." }
+            val active = refreshSession().getOrThrow()
+            val request = Request.Builder()
+                .url("$BASE_URL/rest/v1/alliance_members?select=game_rank&alliance_id=eq.$allianceId&user_id=eq.${active.user_id}&limit=1")
+                .header("apikey", PUBLISHABLE_KEY)
+                .header("Authorization", "Bearer ${active.access_token}")
+                .get().build()
+            client.newCall(request).execute().use { response ->
+                val body = response.body?.string().orEmpty()
+                if (!response.isSuccessful) error(extractApiError(body, response.code))
+                json.parseToJsonElement(body).jsonArray.firstOrNull()
+                    ?.jsonObject?.get("game_rank")?.jsonPrimitive?.contentOrNull
+            }
+        }
+    }
+
+    suspend fun transferAllianceR5(allianceId: String, newR5UserId: String): Result<Unit> =
+        callAllianceRpc("transfer_alliance_r5", buildJsonObject {
+            put("p_alliance_id", allianceId)
+            put("p_new_r5_user_id", newR5UserId)
+        }).map { Unit }
+
     private suspend fun callAllianceRpc(functionName: String, payload: kotlinx.serialization.json.JsonObject): Result<String> =
         withContext(Dispatchers.IO) {
             runCatching {
-                require(functionName in setOf("create_alliance_invite", "accept_alliance_invite", "submit_alliance_join_request", "review_alliance_join_request")) {
+                require(functionName in setOf("create_alliance_as_r5", "transfer_alliance_r5", "create_alliance_invite", "accept_alliance_invite", "submit_alliance_join_request", "review_alliance_join_request")) {
                     "Action d'alliance non autorisée."
                 }
                 require(payload.toString().length <= 4096) { "Données d'invitation trop longues." }
