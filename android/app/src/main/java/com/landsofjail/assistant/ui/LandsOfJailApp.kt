@@ -3707,7 +3707,7 @@ private fun SupabaseAccountCard() {
                     )
                     Text("Ton rang actuel", style = MaterialTheme.typography.labelLarge)
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                        items(AllianceRank.entries.filter { it != AllianceRank.R5 }) { rank ->
+                        items(AllianceRank.entries) { rank ->
                             FilterChip(
                                 selected = signupRank == rank,
                                 onClick = { signupRank = rank },
@@ -3716,7 +3716,7 @@ private fun SupabaseAccountCard() {
                             )
                         }
                     }
-                    Text("Le rang R5 ne peut pas être choisi à l'inscription : il est attribué par le responsable de l'alliance ou lors de la création d'une nouvelle alliance.", style = MaterialTheme.typography.bodySmall, color = Color(0xFFFBBF24))
+                    Text("Choisis R5 uniquement si tu crées un nouvel espace d'alliance. Pour rejoindre une alliance existante, indique ton rang actuel : ta demande sera transmise aux responsables.", style = MaterialTheme.typography.bodySmall, color = Color(0xFFFBBF24))
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     TextButton(onClick = { createAccount = !createAccount; message = null }, enabled = !busy) {
