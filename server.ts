@@ -1268,6 +1268,77 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
           })()
         : [];
 
+      const crystalHeroRecommendations = mode === 'crystal_clash'
+        ? (() => {
+            const rolePatterns = [
+              {
+                role: 'Commander — ralliement',
+                category: 0,
+                pattern: /rally capacity|rally speed|rally attack|rally defense|rally command|rally bonus|vitesse de ralliement|capacité de ralliement|集结容量|集结速度/i,
+              },
+              {
+                role: 'Warrior — renfort',
+                category: 1,
+                pattern: /reinforce|reinforcement|join(?:ing)? a rally|rally member|march speed.{0,30}reinforc|reinforc.{0,30}march speed|lethality|troop hp|troop health|renfort|létalité|增援|集结成员/i,
+              },
+              {
+                role: 'Engineer — cristaux',
+                category: 2,
+                pattern: /crystal collection|crystal gathering|deposit speed|collection speed|gathering speed|crystal points|points from (?:scattered )?crystals|vitesse de dépôt|vitesse de collecte|collecte de cristaux|points de cristal|水晶采集|水晶存放/i,
+              },
+            ];
+            const bestByRole = new Map<number, { hero: string; skill: string; level: number; description: string; role: string; category: number }>();
+            for (const hero of heroes ?? []) {
+              for (const skill of hero.competences || []) {
+                if (skill.incertain || !skill.description?.trim() || skill.type?.toLowerCase() === 'equipment') continue;
+                const text = `${skill.nom} ${skill.description}`;
+                for (const candidate of rolePatterns) {
+                  if (!candidate.pattern.test(text)) continue;
+                  const level = Number(String(skill.niveau || '').match(/\d+/)?.[0] || 0);
+                  const previous = bestByRole.get(candidate.category);
+                  if (!previous || level > previous.level) {
+                    bestByRole.set(candidate.category, {
+                      hero: hero.nom,
+                      skill: skill.nom,
+                      level,
+                      description: skill.description.trim().slice(0, 160),
+                      role: candidate.role,
+                      category: candidate.category,
+                    });
+                  }
+                }
+              }
+            }
+            return [...bestByRole.values()].sort((a, b) => a.category - b.category).map((candidate) => ({
+              titre: `${candidate.role} — ${candidate.hero}`,
+              detail: `${candidate.skill} (niv. ${candidate.level || 'à confirmer'}) : ${candidate.description}`,
+              herosCibles: [candidate.hero],
+              incertain: true,
+              raisonIncertitude: targetLang === 'fr'
+                ? 'Correspondance avec une compétence visible du profil; le rôle Commander/Warrior/Engineer est un rôle de joueur, pas une classe de héros. Vérifie ton affectation et les effets dans l’onglet Règles; aucun score réel n’est simulé.'
+                : 'Matched from visible profile skill text; Commander/Warrior/Engineer is the player event role, not a hero class. Verify your assignment and in-game rules; no actual score is simulated.',
+            }));
+          })()
+        : [];
+
+      const turmoilHeroRecommendations = mode === 'turmoil_surge'
+        ? (() => {
+            const felonNames = new Set(['scorpion', 'spark', 'cobra', 'barbarian']);
+            const candidates = (heroes ?? [])
+              .filter((hero) => felonNames.has(hero.nom.trim().toLowerCase()) && !hero.incertain)
+              .sort((a, b) => (b.niveau ?? 0) - (a.niveau ?? 0) || a.nom.localeCompare(b.nom));
+            return candidates.slice(0, 4).map((hero, index) => ({
+              titre: `Felons — priorité ${index + 1}: ${hero.nom}`,
+              detail: `Niveau ${hero.niveau ?? hero.niveauTexte || 'à confirmer'}. Repère communautaire Afflux de Tumulte : utiliser le meilleur niveau disponible parmi Scorpion, Spark, Cobra et Barbarian.`,
+              herosCibles: [hero.nom],
+              incertain: true,
+              raisonIncertitude: targetLang === 'fr'
+                ? 'Liste issue du guide communautaire; l’application ne connaît pas l’état MIA ni les règles temporaires du match. Vérifie que le héros est disponible et non MIA avant de l’envoyer.'
+                : 'Community-guide shortlist; the app cannot see MIA status or temporary match rules. Verify the hero is available and not MIA before sending.',
+            }));
+          })()
+        : [];
+
       const heroRecommendations = mode === 'trial_cage'
         ? (() => {
             // Leaders use the complete War kit of three heroes, one per troop class.
@@ -1292,8 +1363,8 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
                 : 'Candidate based on War skills and troop class read from your profile; power, equipment, buffs and actual damage are not simulated.',
             }));
 
-            // Joiners contribute only their first War skill. Keep the best known
-            // skill level for each distinct effect family to reduce duplicate buffs.
+            // Joiners contribute only their first War skill. Rank visible offensive
+            // candidates by skill level; the game applies its own four-slot and tie-order rules.
             const joinerCandidates = (heroes ?? []).flatMap((hero) => {
               const firstWarSkill = (hero.competences || []).find((skill) => skill.type?.toLowerCase() === 'war');
               if (!firstWarSkill || firstWarSkill.incertain) return [];
@@ -1315,6 +1386,8 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
             return [...leaders, ...joiners].slice(0, 10);
           })()
         : mode === 'gold_hunter' ? goldHunterHeroRecommendations
+        : mode === 'crystal_clash' ? crystalHeroRecommendations
+        : mode === 'turmoil_surge' ? turmoilHeroRecommendations
         : (mode === 'svs' || mode === 'sandsea_conquest') ? battleRoleHeroRecommendations : [];
 
       const cageSignalLabelsByLang: Record<TargetLang, string[]> = {
@@ -1348,7 +1421,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
         ru: 'Обновленный 4 ноября 2026 года ориентир сообщества для Trial Cage (перепроверяйте после обновлений игры): состав лидера без Ada — 0% Shieldbearer / 10% Bomber / 90% Shooter; с Ada — 1% / 9% / 90%, дополнительно проверьте фактическое число Shieldbearer (около 1 000 по руководству). Для участника — 0/10/90 или 0/0/100 согласно указаниям рейда. Роли различаются: не переносите автоматически соотношение лидера на участника. По наблюдениям LOJ XLab и руководству сообщества Dookee RUS, лидер дает навыки всех трех героев, а каждый участник — первый боевой навык первого героя; учитываются только четыре выбранных навыка участников. Проверьте фактически примененный навык в бонусах рейда и избегайте дублирования бонусов. После вступления откройте Rally Bonus → Rally Member и проверьте название, эффект и уровень навыка; личный урон и общий урон рейда записывайте отдельно.',
         zh: '2026 年 11 月 4 日更新的 Trial Cage 社区参考（游戏更新后需重新核实）：队长无 Ada 时比例为 0% Shieldbearer / 10% Bomber / 90% Shooter；有 Ada 时为 1% / 9% / 90%，还要核对 Shieldbearer 实际数量（指南建议约 1,000）。加入者按集结要求使用 0/10/90 或 0/0/100。两种角色不同，不要把队长比例直接套用给加入者。LOJ XLab 与 Dookee RUS 社区指南指出，队长提供三名英雄的战争技能，每位加入者提供其第一名英雄的第一项战争技能；加入者技能只计入被选中的四项。请在集结奖励中核对实际生效的技能，并避免重复加成。加入后打开 Rally Bonus → Rally Member，核对实际生效技能的名称、效果和等级；个人伤害与集结总伤害要分开记录。',
         de: 'Community-Referenz für Trial Cage, aktualisiert am 4. November 2026 (nach Spielupdates erneut prüfen): Verhältnis des Anführers ohne Ada 0% Shieldbearer / 10% Bomber / 90% Shooter; mit Ada 1% / 9% / 90%, zusätzlich die tatsächliche Zahl der Shieldbearer prüfen (laut Guide etwa 1.000). Für Beitretende je nach Rallye-Anweisung 0/10/90 oder 0/0/100. Die Rollen unterscheiden sich; das Verhältnis des Anführers nicht automatisch auf Beitretende übertragen. Laut den Community-Beobachtungen von LOJ XLab und dem Dookee-RUS-Leitfaden bringt der Anführer die Kriegsfähigkeiten aller drei Helden ein, jeder Beitretende die erste Kriegsfähigkeit seines ersten Helden; nur vier ausgewählte Beitretenden-Fähigkeiten zählen. Prüfen Sie den tatsächlich angewendeten Bonus und vermeiden Sie doppelte Boni. Öffnen Sie nach dem Beitritt Rally Bonus → Rally Member und prüfen Sie Name, Effekt und Stufe der angewendeten Fähigkeit; persönlichen Schaden und gesamten Rallye-Schaden getrennt notieren.',
-        en: 'Trial Cage community reference updated November 4, 2026 (recheck after game updates): leader ratio without Ada is 0% Shieldbearers / 10% Bombers / 90% Shooters; with Ada it is 1% / 9% / 90%, and the actual Shieldbearer count should also be checked (about 1,000 according to the guide). For a joiner, use 0/10/90 or 0/0/100 according to rally instructions. These roles differ; do not automatically apply the leader ratio to joiners. LOJ XLab community observations and the Dookee RUS guide say the leader contributes the war skills of all three heroes, while each joiner contributes the first war skill of their first hero; only four selected joiner skills count. Verify the skill actually applied in rally bonuses and avoid duplicate buffs. After joining, open Rally Bonus → Rally Member and confirm the applied skill name, effect and level. Record personal damage and total rally damage separately; sending a hero does not guarantee its skill was selected. After joining, open Rally Bonus → Rally Member and verify the applied skill name, effect and level. Record personal damage and total rally damage separately; sending a hero does not guarantee that its skill was selected.',
+        en: 'Trial Cage community reference updated November 4, 2026 (recheck after game updates): leader ratio without Ada is 0% Shieldbearers / 10% Bombers / 90% Shooters; with Ada it is 1% / 9% / 90%, and the actual Shieldbearer count should also be checked (about 1,000 according to the guide). For a joiner, use 0/10/90 or 0/0/100 according to rally instructions. These roles differ; do not automatically apply the leader ratio to joiners. LOJ XLab community observations and the Dookee RUS guide say the leader contributes the war skills of all three heroes, while each joiner contributes the first war skill of their first hero; only four selected joiner skills count. Verify the skill actually applied in rally bonuses and avoid duplicate buffs. After joining, open Rally Bonus → Rally Member and verify the applied skill name, effect and level. Record personal damage and total rally damage separately; sending a hero does not guarantee its skill was selected.',
       };
       const cageRallyContext = mode === 'trial_cage' ? cageRallyGuidance[targetLang] : '';
       // Sandsea mechanics reference from the independent LOJ Wiki; not a hero-power ranking.
@@ -1481,10 +1554,15 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
                   ? 'Chasseur d’or : aucune compétence fiable de vitesse, dégâts contre ennemis neutres ou collecte n’a été reconnue dans ce profil. Complète les descriptions visibles avant de choisir les héros.'
                   : 'Gold Hunter: no reliable march-speed, neutral-enemy damage or gathering skill was found in this profile. Complete visible skill descriptions before choosing heroes.']
               : []),
-            ...(mode === 'crystal_clash' && heroNames.length > 0
+            ...(mode === 'crystal_clash' && heroNames.length > 0 && heroRecommendations.length === 0
               ? [targetLang === 'fr'
-                  ? 'Crystal Clash : le choix principal est le rôle Commander / Warrior / Engineer et l’objectif assigné. Aucun classement de héros automatique n’est fiable sans connaître le rôle, la mission, les troupes et la défense adverse.'
-                  : 'Crystal Clash: the main choice is Commander / Warrior / Engineer and the assigned objective. An automatic hero ranking is not reliable without the role, mission, troops and enemy defense.']
+                  ? 'Crystal Clash : aucune compétence explicite de ralliement, renfort ou collecte de cristaux n’a été reconnue. Vérifie les descriptions et ton rôle Commander / Warrior / Engineer; aucun trio universel n’est inventé.'
+                  : 'Crystal Clash: no explicit rally, reinforcement or crystal-collection skill was recognized. Check skill descriptions and your Commander / Warrior / Engineer role; no universal trio is invented.']
+              : []),
+            ...(mode === 'turmoil_surge' && heroNames.length > 0 && heroRecommendations.length === 0
+              ? [targetLang === 'fr'
+                  ? 'Afflux de Tumulte : aucun des héros de référence Scorpion, Spark, Cobra ou Barbarian n’est enregistré dans ce profil. Vérifie aussi leur état MIA dans le jeu.'
+                  : 'Turmoil Surge: none of the reference heroes Scorpion, Spark, Cobra or Barbarian is recorded in this profile. Also verify MIA status in-game.']
               : []),
             ...(mode === 'trial_cage' && heroNames.length > 0 && heroRecommendations.filter((item) => item.titre.startsWith('Chef —')).length < 3
               ? [targetLang === 'fr'
