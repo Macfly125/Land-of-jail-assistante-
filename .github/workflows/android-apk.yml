@@ -1,7 +1,7 @@
 name: Compiler APK Android
 
 permissions:
-  contents: read
+  contents: write
   actions: write
 
 concurrency:
@@ -124,6 +124,19 @@ jobs:
           name: lands-of-jail-assistant-release-apk
           path: android/app/build/outputs/apk/release/app-release.apk
           retention-days: 30
+
+
+      - name: Publier un lien APK direct (sans archive ni Split APK Installer)
+        if: steps.signing.outputs.available == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: android-latest
+          name: Android - dernière version
+          prerelease: true
+          make_latest: false
+          overwrite_files: true
+          files: android/app/build/outputs/apk/release/app-release.apk
+          fail_on_unmatched_files: true
 
       - name: Compiler APK debug (tests uniquement)
         if: steps.signing.outputs.available != 'true'
