@@ -907,6 +907,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
           bonus?: string;
           competences?: string;
           puissance?: string;
+          champsIncertains?: string[];
           incertain?: boolean;
           raisonIncertitude?: string;
           source?: string;
