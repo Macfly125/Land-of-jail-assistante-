@@ -32,11 +32,22 @@ jobs:
           set -euo pipefail
           mkdir -p reports
           echo "Interrogation de la veille Land of Jail..."
-          curl --fail --silent --show-error \
+          HTTP_CODE=$(curl --silent --show-error \
             --retry 2 --retry-delay 10 --max-time 90 \
             "${GAME_INTEL_URL}?refresh=1" \
             -H 'Accept: application/json' \
-            -o reports/game-intel.json
+            -o reports/game-intel.json -w '%{http_code}')
+          if [ "$HTTP_CODE" = "404" ]; then
+            echo "## Veille Land of Jail : serveur à mettre à jour" >> "$GITHUB_STEP_SUMMARY"
+            echo "Le serveur Cloud Run ne connaît pas encore /api/game-intel. Le déploiement du code serveur est nécessaire avant l'activation de la veille." >> "$GITHUB_STEP_SUMMARY"
+            echo "::warning::Endpoint /api/game-intel absent (HTTP 404)."
+            exit 0
+          fi
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "::error::La veille a répondu HTTP $HTTP_CODE."
+            cat reports/game-intel.json
+            exit 1
+          fi
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
           const data = JSON.parse(fs.readFileSync('reports/game-intel.json', 'utf8'));
