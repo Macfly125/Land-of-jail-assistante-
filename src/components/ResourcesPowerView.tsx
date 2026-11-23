@@ -118,7 +118,7 @@ export const ResourcesPowerView: React.FC<ResourcesPowerViewProps> = ({
                 pattern="[0-9]*"
                 maxLength={2}
                 value={state.currentPower?.niveauVip || ''}
-                onChange={(event) => onUpdateVipLevel(event.target.value.replace(/\\D/g, '').slice(0, 2))}
+                onChange={(event) => onUpdateVipLevel(event.target.value.replace(/\D/g, '').slice(0, 2))}
                 placeholder="À renseigner"
                 aria-label="Niveau VIP du compte"
                 className="mt-1 w-full max-w-28 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm font-mono-tabular text-slate-100 placeholder:text-slate-500 focus:border-amber-400 focus:outline-none"
