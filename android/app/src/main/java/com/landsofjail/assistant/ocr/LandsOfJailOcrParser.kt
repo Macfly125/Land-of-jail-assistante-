@@ -98,7 +98,7 @@ object LandsOfJailOcrParser {
         val labelScore = labels.sumOf { label ->
             if (text.contains(label, ignoreCase = true)) 120 else 0
         }
-        val numberScore = Regex("""\\d+(?:[., ]\\d+)?\\s*[KMB]?""", RegexOption.IGNORE_CASE)
+        val numberScore = Regex("""\d+(?:[., ]\d+)?\s*[KMB]?""", RegexOption.IGNORE_CASE)
             .findAll(text).count() * 20
         return text.length + labelScore + numberScore
     }
@@ -123,22 +123,22 @@ object LandsOfJailOcrParser {
         val wardenRegex = Regex("""(?:warden\s*office|bureau\s*du\s*directeur|prison|qg|hq)\s*(?:niv\.?|lv\.?|level)?\s*([0-9]+)""", RegexOption.IGNORE_CASE)
 
         val resourceLabels = listOf(
-            "Argent liquide" to Regex("""argent\\s+liquide|cash""", RegexOption.IGNORE_CASE),
+            "Argent liquide" to Regex("""argent\s+liquide|cash""", RegexOption.IGNORE_CASE),
             "Nourriture" to Regex("""nourriture|food|vivres""", RegexOption.IGNORE_CASE),
             "Bois" to Regex("""bois|wood|lumber""", RegexOption.IGNORE_CASE),
             "Acier" to Regex("""acier|steel|fer|iron""", RegexOption.IGNORE_CASE),
             "Essence" to Regex("""essence|gasoline|fuel|p[ée]trole""", RegexOption.IGNORE_CASE),
-            "Carte en or" to Regex("""carte\\s+en\\s+or|gold\\s+card""", RegexOption.IGNORE_CASE),
+            "Carte en or" to Regex("""carte\s+en\s+or|gold\s+card""", RegexOption.IGNORE_CASE),
             "Endurance" to Regex("""endurance|stamina""", RegexOption.IGNORE_CASE),
-            "EXP" to Regex("""(?<![\\p{L}])exp(?![\\p{L}])|experience""", RegexOption.IGNORE_CASE),
+            "EXP" to Regex("""(?<![\p{L}])exp(?![\p{L}])|experience""", RegexOption.IGNORE_CASE),
             "Diamants" to Regex("""diamants?|diamonds?|gemmes?|gems?""", RegexOption.IGNORE_CASE)
         )
         val tableHasTotalColumns = Regex(
-            """total\\s+des\\s+objets|ressources\\s+totales|total\\s+items|total\\s+resources""",
+            """total\s+des\s+objets|ressources\s+totales|total\s+items|total\s+resources""",
             RegexOption.IGNORE_CASE
         ).containsMatchIn(rawText)
         val numericTokens = Regex(
-            """(?<![\\p{L}])(?:\\d{1,3}(?:[ .]\\d{3})+|\\d+(?:[.,]\\d+)?)\\s*[kmbKMB]?"""
+            """(?<![\p{L}])(?:\d{1,3}(?:[ .]\d{3})+|\d+(?:[.,]\d+)?)\s*[kmbKMB]?"""
         )
 
         for ((index, line) in lines.withIndex()) {
