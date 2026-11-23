@@ -250,6 +250,7 @@ data class RobotRecord(
     val bonus: String = "",
     val competences: String = "",
     val puissance: String = "",
+    val champsIncertains: List<String> = emptyList(),
     val incertain: Boolean = false,
     val raisonIncertitude: String? = null,
     val source: String = "saisie_manuel",

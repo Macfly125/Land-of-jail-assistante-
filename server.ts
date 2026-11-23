@@ -164,7 +164,8 @@ CONSIGNE PRIORITAIRE — ÉCRAN DES ROBOTS :
 - Examine chaque robot visible séparément. Lis uniquement les éléments réellement affichés : nom, niveau, rareté/étoiles, puissance, bonus actifs et compétences/effets.
 - Si plusieurs robots sont visibles, retourne une entrée distincte pour chacun. Ne confonds pas le niveau du robot avec le niveau d'un bâtiment ou d'un héros.
 - Recopie les effets tels qu'ils apparaissent, sans transformer un bonus défensif en bonus offensif et sans supposer une compétence à partir du nom du robot.
-- Si une valeur est floue ou masquée, laisse le champ vide et indique incertain=true avec une raison précise. Ne complète jamais avec une valeur de wiki ou une estimation.
+- Si une valeur est floue ou masquée, laisse le champ vide et indique incertain=true avec une raison précise. Ajoute le nom exact du champ dans "champsIncertains" parmi niveau, rarete, bonus, competences, puissance. Ne complète jamais avec une valeur de wiki ou une estimation.
+- Si un champ n'apparaît pas sur la capture, ne l'invente pas : laisse-le vide et signale-le dans "champsIncertains" uniquement si cette capture devait permettre de le lire.
 - Si la capture montre un robot mais que son identité est illisible, retourne une entrée avec nom="Robot non identifié" et incertain=true plutôt que d'inventer son nom.
 RÈGLES GÉNÉRALES :
 1. Identifie le type d'écran : "profil", "heros", "robots", "ressources", "trial_cage", "crystal_clash", ou "autre".
@@ -276,6 +277,7 @@ RÈGLES GÉNÉRALES :
                     bonus: { type: Type.STRING },
                     competences: { type: Type.STRING },
                     puissance: { type: Type.STRING },
+                    champsIncertains: { type: Type.ARRAY, items: { type: Type.STRING } },
                     incertain: { type: Type.BOOLEAN },
                     raisonIncertitude: { type: Type.STRING },
                     source: { type: Type.STRING },
