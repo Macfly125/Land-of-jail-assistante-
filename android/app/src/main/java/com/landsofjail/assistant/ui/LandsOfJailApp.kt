@@ -879,7 +879,7 @@ fun LandsOfJailAssistantApp(
                                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                TextButton(onClick = {
+                                TextButton(enabled = !isAnalyzing && !isAutoCapturing, onClick = {
                                     if (profile.id != activeProfileId) {
                                         saveActiveProfile()
                                         runCatching {
@@ -902,18 +902,19 @@ fun LandsOfJailAssistantApp(
                                     }
                                     showProfileDialog = false
                                 }) { Text(if (profile.id == activeProfileId) "Actif" else "Ouvrir") }
-                                TextButton(onClick = {
+                                TextButton(enabled = !isAnalyzing && !isAutoCapturing, onClick = {
                                     editingProfileId = profile.id
                                     profileNameInput = profile.name
                                 }) { Text("Renommer") }
                                 TextButton(
-                                    enabled = localProfiles.size > 1,
+                                    enabled = localProfiles.size > 1 && !isAnalyzing && !isAutoCapturing,
                                     onClick = { deletingProfileId = profile.id }
                                 ) { Text("Supprimer") }
                             }
                         }
                     }
                     TextButton(
+                        enabled = !isAnalyzing && !isAutoCapturing,
                         onClick = {
                             saveActiveProfile()
                             val id = UUID.randomUUID().toString()
@@ -943,7 +944,7 @@ fun LandsOfJailAssistantApp(
                         }
                     ) { Text("+ Ajouter un profil") }
                     TextButton(
-                        enabled = !isProfileSyncing,
+                        enabled = !isProfileSyncing && !isAnalyzing && !isAutoCapturing,
                         onClick = {
                             if (profileAuth.currentSession() == null) {
                                 errorMessage = "Connecte-toi à ton compte dans l’onglet Compte avant la synchronisation."
@@ -1140,7 +1141,7 @@ fun LandsOfJailAssistantApp(
                         }
                     },
                     actions = {
-                        TextButton(onClick = { showProfileDialog = true }) {
+                        TextButton(enabled = !isAnalyzing && !isAutoCapturing, onClick = { showProfileDialog = true }) {
                             Text(
                                 localProfiles.firstOrNull { it.id == activeProfileId }?.name ?: "Profil",
                                 maxLines = 1,
