@@ -775,6 +775,14 @@ fun LandsOfJailAssistantApp(
                                 }
                                 showProfileDialog = false
                             }) { Text(if (profile.id == activeProfileId) "Actif" else "Ouvrir") }
+                            TextButton(onClick = {
+                                editingProfileId = profile.id
+                                profileNameInput = profile.name
+                            }) { Text("Renommer") }
+                            TextButton(
+                                enabled = localProfiles.size > 1,
+                                onClick = { deletingProfileId = profile.id }
+                            ) { Text("Supprimer") }
                         }
                     }
                     TextButton(
@@ -795,6 +803,8 @@ fun LandsOfJailAssistantApp(
                             heroes = emptyList()
                             resources = emptyList()
                             currentPower = null
+                            selectedAdviceMode = AdviceMode.TRIAL_CAGE
+                            adviceResult = null
                             accountPrefs.edit().putString("active_game_profile_v1", id).commit()
                             showProfileDialog = false
                         }
@@ -802,6 +812,66 @@ fun LandsOfJailAssistantApp(
                 }
             },
             confirmButton = { TextButton(onClick = { showProfileDialog = false }) { Text("Fermer") } }
+        )
+    }
+    if (editingProfileId != null) {
+        AlertDialog(
+            onDismissRequest = { editingProfileId = null },
+            title = { Text("Renommer le profil") },
+            text = {
+                OutlinedTextField(
+                    value = profileNameInput,
+                    onValueChange = { profileNameInput = it.take(32) },
+                    label = { Text("Nom du profil") },
+                    singleLine = true
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    val name = profileNameInput.trim()
+                    if (name.isNotEmpty()) {
+                        localProfiles = localProfiles.map { profile ->
+                            if (profile.id == editingProfileId) profile.copy(name = name, updatedAtIso = Instant.now().toString()) else profile
+                        }
+                    }
+                    editingProfileId = null
+                }, enabled = profileNameInput.trim().isNotEmpty()) { Text("Enregistrer") }
+            },
+            dismissButton = { TextButton(onClick = { editingProfileId = null }) { Text("Annuler") } }
+        )
+    }
+    if (deletingProfileId != null) {
+        val target = localProfiles.firstOrNull { it.id == deletingProfileId }
+        AlertDialog(
+            onDismissRequest = { deletingProfileId = null },
+            title = { Text("Supprimer ce profil ?") },
+            text = { Text("Les données locales de « ${target?.name.orEmpty()} » seront supprimées de cet appareil. Cette action ne supprime aucune sauvegarde distante.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (target != null && localProfiles.size > 1) {
+                        if (target.id == activeProfileId) {
+                            val next = localProfiles.first { it.id != target.id }
+                            runCatching {
+                                val snapshot = accountJson.decodeFromString<LocalGameProfileSnapshot>(next.stateJson)
+                                allianceWorkspace = snapshot.allianceWorkspace
+                                analyses = snapshot.analyses
+                                heroes = snapshot.heroes
+                                resources = snapshot.resources
+                                currentPower = snapshot.currentPower
+                                selectedAdviceMode = runCatching { AdviceMode.valueOf(snapshot.adviceMode) }.getOrDefault(AdviceMode.TRIAL_CAGE)
+                                adviceResult = snapshot.adviceResult
+                                activeProfileId = next.id
+                                accountPrefs.edit().putString("active_game_profile_v1", next.id).commit()
+                                localProfiles = localProfiles.filterNot { it.id == target.id }
+                            }.onFailure { errorMessage = "Suppression impossible : ${it.message}" }
+                        } else {
+                            localProfiles = localProfiles.filterNot { it.id == target.id }
+                        }
+                    }
+                    deletingProfileId = null
+                }) { Text("Supprimer") }
+            },
+            dismissButton = { TextButton(onClick = { deletingProfileId = null }) { Text("Annuler") } }
         )
     }
 
