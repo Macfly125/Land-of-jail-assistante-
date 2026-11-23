@@ -236,6 +236,7 @@ data class PowerMetric(
     val puissanceTotaleTexte: String,
     val puissanceTotaleNumerique: Long? = null,
     val niveauPrisonOuQG: String? = null,
+    val niveauVip: String? = null,
     val incertain: Boolean = false,
     val raisonIncertitude: String? = null
 )
