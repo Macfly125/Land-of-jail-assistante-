@@ -243,6 +243,8 @@ fun LandsOfJailAssistantApp(
     var hasOverlayPermission by remember { mutableStateOf(Settings.canDrawOverlays(context)) }
     val isMonitoringRunning by GameForegroundMonitorService.isRunning.collectAsState()
     val isGameForeground by GameForegroundMonitorService.detectedGameForeground.collectAsState()
+    val isAutoCapturing by GameForegroundMonitorService.isAutoCapturing.collectAsState()
+    var autoCaptureIntervalSeconds by remember { mutableIntStateOf(10) }
 
     val accountPrefs = remember(context) {
         context.getSharedPreferences("lands_of_jail_account_v1", Context.MODE_PRIVATE)
@@ -800,10 +802,13 @@ fun LandsOfJailAssistantApp(
                     selectedAdviceMode = it
                 }
 
-                currentTab = AssistantTab.TABLEAU
-                snackbarHostState.showSnackbar(
-                    "Capture analysée 100 % (${result.heros.size} héros, ${result.robots.size} robot(s), ${result.ressources.size} ressource(s))"
-                )
+                val autoModeStillActive = GameForegroundMonitorService.isAutoCapturing.value
+                if (!autoModeStillActive) {
+                    currentTab = AssistantTab.TABLEAU
+                    snackbarHostState.showSnackbar(
+                        "Capture analysée 100 % (${result.heros.size} héros, ${result.robots.size} robot(s), ${result.ressources.size} ressource(s))"
+                    )
+                }
 
                 isFetchingAdvice = true
                 repository.fetchTacticalAdvice(
@@ -1299,6 +1304,19 @@ fun LandsOfJailAssistantApp(
                         onToggleAlwaysKeepOverlay = { alwaysKeepOverlay = it },
                         isMonitoringRunning = isMonitoringRunning,
                         isGameForeground = isGameForeground,
+                        isAutoCapturing = isAutoCapturing,
+                        autoCaptureIntervalSeconds = autoCaptureIntervalSeconds,
+                        onChangeAutoCaptureInterval = { autoCaptureIntervalSeconds = it },
+                        onStartAutoCapture = {
+                            context.startActivity(
+                                Intent(context, ScreenCaptureConsentActivity::class.java).apply {
+                                    putExtra(ScreenCaptureConsentActivity.EXTRA_AUTO_CAPTURE, true)
+                                    putExtra(ScreenCaptureConsentActivity.EXTRA_INTERVAL_MILLIS, autoCaptureIntervalSeconds * 1000L)
+                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                }
+                            )
+                        },
+                        onStopAutoCapture = { GameForegroundMonitorService.stopAutoCapture(context) },
                         packageFilter = packageFilter,
                         onPackageFilterChange = { packageFilter = it },
                         onOpenUsageSettings = { UsageStatsDetector.openUsageAccessSettings(context) },
@@ -1412,6 +1430,11 @@ private fun DashboardScreen(
     onToggleAlwaysKeepOverlay: (Boolean) -> Unit,
     isMonitoringRunning: Boolean,
     isGameForeground: Boolean,
+    isAutoCapturing: Boolean,
+    autoCaptureIntervalSeconds: Int,
+    onChangeAutoCaptureInterval: (Int) -> Unit,
+    onStartAutoCapture: () -> Unit,
+    onStopAutoCapture: () -> Unit,
     packageFilter: String,
     onPackageFilterChange: (String) -> Unit,
     onOpenUsageSettings: () -> Unit,
@@ -1429,6 +1452,7 @@ private fun DashboardScreen(
     onPickImage: () -> Unit
 ) {
     var showCaptureSettings by remember { mutableStateOf(false) }
+    var showAutoIntervalMenu by remember { mutableStateOf(false) }
     val allPermissionsGranted = hasUsagePermission && hasOverlayPermission
 
     LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -1609,6 +1633,101 @@ private fun DashboardScreen(
                             )
                         }
                     }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                            Text(
+                                when (currentLang) {
+                                    AppLanguage.FR -> "Analyse automatique"
+                                    AppLanguage.TR -> "Otomatik analiz"
+                                    AppLanguage.RU -> "Автоанализ"
+                                    AppLanguage.ZH -> "自动分析"
+                                    AppLanguage.DE -> "Automatische Analyse"
+                                    AppLanguage.EN -> "Automatic analysis"
+                                },
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                when (currentLang) {
+                                    AppLanguage.FR -> "Capture et analyse uniquement quand le jeu est au premier plan."
+                                    AppLanguage.TR -> "Yalnızca oyun öndeyken yakala ve analiz et."
+                                    AppLanguage.RU -> "Снимок и анализ только когда игра открыта."
+                                    AppLanguage.ZH -> "仅在游戏位于前台时截图和分析。"
+                                    AppLanguage.DE -> "Aufnahme und Analyse nur bei geöffnetem Spiel."
+                                    AppLanguage.EN -> "Capture and analyze only while the game is in the foreground."
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        if (isAutoCapturing) {
+                            FilledTonalButton(onClick = onStopAutoCapture) {
+                                Text(
+                                    when (currentLang) {
+                                        AppLanguage.FR -> "Arrêter"
+                                        AppLanguage.TR -> "Durdur"
+                                        AppLanguage.RU -> "Стоп"
+                                        AppLanguage.ZH -> "停止"
+                                        AppLanguage.DE -> "Stoppen"
+                                        AppLanguage.EN -> "Stop"
+                                    }
+                                )
+                            }
+                        } else {
+                            Box {
+                                OutlinedButton(
+                                    onClick = { showAutoIntervalMenu = true },
+                                    enabled = isMonitoringRunning && hasUsagePermission
+                                ) {
+                                    Text("${autoCaptureIntervalSeconds}s")
+                                }
+                                DropdownMenu(
+                                    expanded = showAutoIntervalMenu,
+                                    onDismissRequest = { showAutoIntervalMenu = false }
+                                ) {
+                                    listOf(10, 20, 30, 60).forEach { seconds ->
+                                        DropdownMenuItem(
+                                            text = { Text("${seconds} secondes") },
+                                            onClick = {
+                                                onChangeAutoCaptureInterval(seconds)
+                                                showAutoIntervalMenu = false
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                            FilledTonalButton(
+                                onClick = onStartAutoCapture,
+                                enabled = isMonitoringRunning && hasUsagePermission
+                            ) {
+                                Text(
+                                    when (currentLang) {
+                                        AppLanguage.FR -> "Démarrer"
+                                        AppLanguage.TR -> "Başlat"
+                                        AppLanguage.RU -> "Старт"
+                                        AppLanguage.ZH -> "开始"
+                                        AppLanguage.DE -> "Start"
+                                        AppLanguage.EN -> "Start"
+                                    }
+                                )
+                            }
+                        }
+                    }
+                    Text(
+                        when (currentLang) {
+                            AppLanguage.FR -> if (isAutoCapturing) "Actif : une analyse à la fois; les écrans quasi identiques sont ignorés. Arrête quand tu as terminé." else "Intervalle conseillé : 10 à 30 s. Chaque analyse utilise le réseau et le quota IA."
+                            AppLanguage.TR -> if (isAutoCapturing) "Etkin: aynı anda tek analiz; benzer ekranlar atlanır." else "Önerilen aralık: 10–30 sn. Her analiz internet ve yapay zekâ kotası kullanır."
+                            AppLanguage.RU -> if (isAutoCapturing) "Активно: по одному анализу; почти одинаковые экраны пропускаются." else "Рекомендуемый интервал: 10–30 с. Анализ расходует интернет и лимит ИИ."
+                            AppLanguage.ZH -> if (isAutoCapturing) "已启用：一次只运行一个分析；相似画面会跳过。" else "建议间隔：10–30 秒。每次分析都会使用网络和 AI 配额。"
+                            AppLanguage.DE -> if (isAutoCapturing) "Aktiv: immer nur eine Analyse; nahezu identische Bildschirme werden übersprungen." else "Empfohlenes Intervall: 10–30 s. Jede Analyse nutzt Netzwerk und KI-Kontingent."
+                            AppLanguage.EN -> if (isAutoCapturing) "Active: one analysis at a time; near-identical screens are skipped." else "Suggested interval: 10–30 s. Each analysis uses network and AI quota."
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         }
