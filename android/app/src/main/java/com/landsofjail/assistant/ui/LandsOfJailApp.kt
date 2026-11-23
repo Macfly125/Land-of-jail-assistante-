@@ -1,6 +1,11 @@
 package com.landsofjail.assistant.ui
 
 import android.content.Context
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.os.Build
+import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import android.content.Intent
 import android.graphics.BitmapFactory
 import java.io.File
@@ -3750,6 +3755,22 @@ private fun AllianceScreen(
         }
     }
 
+    LaunchedEffect(isOfficer) {
+        val linkedAllianceId = accountPrefs.getString("cloud_alliance_id", "").orEmpty()
+        if (isOfficer && cloudAuth.currentSession() != null && linkedAllianceId.isNotBlank()) {
+            cloudAuth.fetchPendingAllianceJoinRequests(linkedAllianceId).onSuccess { pending ->
+                joinRequests = pending
+                val previousIds = accountPrefs.getStringSet("notified_join_request_ids", emptySet()).orEmpty().toSet()
+                val currentIds = pending.map { it.id }.toSet()
+                val newCount = (currentIds - previousIds).size
+                if (newCount > 0) {
+                    notifyAllianceJoinRequests(context, newCount)
+                }
+                accountPrefs.edit().putStringSet("notified_join_request_ids", previousIds + currentIds).apply()
+            }
+        }
+    }
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -4329,6 +4350,28 @@ private fun AllianceScreen(
 }
 
 private fun itTagNotUsed(used: Set<String>, tag: String): Boolean = tag !in used
+
+private fun notifyAllianceJoinRequests(context: Context, count: Int) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+        ContextCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+    ) return
+    val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    val channelId = "alliance_join_requests"
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        manager.createNotificationChannel(
+            NotificationChannel(channelId, "Demandes de l'alliance", NotificationManager.IMPORTANCE_DEFAULT)
+        )
+    }
+    val notification = NotificationCompat.Builder(context, channelId)
+        .setSmallIcon(android.R.drawable.ic_dialog_info)
+        .setContentTitle("Nouvelle demande dans ton alliance")
+        .setContentText(if (count == 1) "1 joueur attend la validation d'un R4/R5." else "$count joueurs attendent la validation d'un R4/R5.")
+        .setAutoCancel(true)
+        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+        .build()
+    manager.notify(7301, notification)
+}
+
 
 
 @Composable
