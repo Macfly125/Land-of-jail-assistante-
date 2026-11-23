@@ -165,6 +165,7 @@ CONSIGNE PRIORITAIRE — ÉCRAN DES RESSOURCES :
 CONSIGNE PRIORITAIRE — ÉCRAN DES HÉROS :
 - Si l'écran montre une équipe ou une liste de 5 héros, tu DOIS examiner les 5 emplacements séparément, de gauche à droite puis de haut en bas. Ne t'arrête jamais au premier ou au deuxième héros.
 - Retourne une entrée distincte dans "heros" pour CHAQUE héros dont le portrait ou le nom est visiblement identifiable. Le nombre attendu est 5 lorsque cinq portraits sont présents.
+- Reconnais explicitement les noms de héros connus, notamment Ryuichi : vérifie chaque portrait et chaque libellé avant de conclure qu'un héros manque. Si le nom Ryuichi est visible, retourne impérativement son entrée individuelle même si les autres noms sont plus faciles à lire.
 - Pour chaque emplacement, inspecte indépendamment le portrait, le nom sous/près du portrait, le niveau, le nombre d'étoiles/éclats, la rareté, la puissance individuelle si affichée et chaque icône/ligne de compétence avec son niveau.
 - Le niveau peut être affiché dans un badge séparé du nom : examine toute la zone autour du portrait, pas uniquement la ligne de texte qui contient le nom.
 - Ne confonds jamais la puissance maximale théorique du wiki avec la puissance réelle du héros sur le compte.
