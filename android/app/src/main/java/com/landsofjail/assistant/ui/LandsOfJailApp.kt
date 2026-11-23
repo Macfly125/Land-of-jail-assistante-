@@ -2567,6 +2567,37 @@ private fun AdviceScreen(
                 }
             }
 
+            if (res.troopRatioProfiles.isNotEmpty()) {
+                item {
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                            Text(res.troopRatioTitle ?: "Ratios de troupes", fontWeight = FontWeight.SemiBold)
+                            Text(
+                                "Ratios de référence : vérifie toujours les consignes du chef et les règles affichées dans l’événement.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            res.troopRatioProfiles.forEach { ratio ->
+                                Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                    Text(ratio.label, fontWeight = FontWeight.Medium)
+                                    Text(
+                                        "${ratio.shieldbearer}% Shieldbearers · ${ratio.bomber}% Bombers · ${ratio.shooter}% Shooters",
+                                        color = Color(0xFFFBBF24),
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                    if (ratio.roleLabel.isNotBlank()) {
+                                        Text(ratio.roleLabel, style = MaterialTheme.typography.labelSmall)
+                                    }
+                                    if (ratio.note.isNotBlank()) {
+                                        Text(ratio.note, style = MaterialTheme.typography.bodySmall)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             if (res.robotRecommendations.isNotEmpty()) {
                 item {
                     Card(modifier = Modifier.fillMaxWidth()) {
