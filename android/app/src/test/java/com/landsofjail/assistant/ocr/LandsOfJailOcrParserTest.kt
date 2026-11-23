@@ -97,6 +97,15 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun doesNotConfuseExactFrenchAliasWithSimilarHeroNames() {
+        val berry = LandsOfJailOcrParser.parseLocalOcrText("Berry")
+        assertEquals(listOf("Beary"), berry.heroes.map { it.nom })
+
+        val terry = LandsOfJailOcrParser.parseLocalOcrText("Terry")
+        assertEquals(listOf("Terry Bogard"), terry.heroes.map { it.nom })
+    }
+
+    @Test
     fun doesNotGuessShortHeroNamesFromSimilarWords() {
         val result = LandsOfJailOcrParser.parseLocalOcrText("Adda\nEddie")
 
