@@ -88,6 +88,10 @@ jobs:
           npm ci
           npm run lint
 
+      - name: Vérifier la construction de l'image backend Cloud Run
+        if: hashFiles('Dockerfile') != ''
+        run: docker build --tag lands-of-jail-assistant-backend:ci .
+
       - name: Publier le bilan de contrôle
         if: always()
         run: |
