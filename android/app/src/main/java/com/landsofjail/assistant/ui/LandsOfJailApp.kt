@@ -3577,6 +3577,13 @@ private fun AllianceScreen(
     var cloudSyncBusy by remember { mutableStateOf(false) }
     var cloudSyncMessage by remember { mutableStateOf<String?>(null) }
     var cloudSyncError by remember { mutableStateOf(false) }
+    var joinRequests by remember { mutableStateOf<List<SupabaseAuthRepository.AllianceJoinRequest>>(emptyList()) }
+    var joinRequestsBusy by remember { mutableStateOf(false) }
+    var joinRequestsMessage by remember { mutableStateOf<String?>(null) }
+    var joinRequestBusy by remember { mutableStateOf(false) }
+    var joinRequestError by remember { mutableStateOf(false) }
+    var joinRequestMessage by remember { mutableStateOf<String?>(null) }
+    var joinRequestsError by remember { mutableStateOf(false) }
     var playerName by remember(workspace.ownProfile.playerName) { mutableStateOf(workspace.ownProfile.playerName) }
     var server by remember(workspace.server) { mutableStateOf(workspace.server) }
     var allianceName by remember(workspace.allianceName) { mutableStateOf(workspace.allianceName) }
@@ -3607,6 +3614,106 @@ private fun AllianceScreen(
     ) {
         item { SupabaseAccountCard() }
         item { AllianceCloudControls(server = server, allianceName = allianceName) }
+        item {
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Demandes d'adhésion · R4 / R5", fontWeight = FontWeight.Bold)
+                    Text(
+                        "Les demandes des joueurs de ton alliance apparaissent ici. Seuls les droits confirmés par un officier sont appliqués.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    OutlinedButton(
+                        onClick = {
+                            val allianceId = accountPrefs.getString("cloud_alliance_id", "").orEmpty()
+                            if (!isOfficer) {
+                                joinRequestsMessage = "La consultation est réservée aux R4/R5 validés par le serveur."
+                                joinRequestsError = true
+                            } else if (allianceId.isBlank()) {
+                                joinRequestsMessage = "L'alliance cloud n'est pas encore liée. Rejoins-la ou crée son espace cloud."
+                                joinRequestsError = true
+                            } else {
+                                scope.launch {
+                                    joinRequestsBusy = true
+                                    joinRequestsMessage = null
+                                    cloudAuth.fetchPendingAllianceJoinRequests(allianceId)
+                                        .onSuccess {
+                                            joinRequests = it
+                                            joinRequestsMessage = if (it.isEmpty()) "Aucune nouvelle demande." else "${it.size} demande(s) en attente."
+                                            joinRequestsError = false
+                                        }
+                                        .onFailure {
+                                            joinRequestsMessage = it.message ?: "Lecture des demandes impossible."
+                                            joinRequestsError = true
+                                        }
+                                    joinRequestsBusy = false
+                                }
+                            }
+                        },
+                        enabled = !joinRequestsBusy,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        if (joinRequestsBusy) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+                        else Icon(Icons.Outlined.NotificationsActive, contentDescription = null)
+                        Spacer(Modifier.width(7.dp))
+                        Text(if (joinRequestsBusy) "Actualisation…" else "Voir les nouvelles demandes")
+                    }
+                    joinRequestsMessage?.let {
+                        Text(it, color = if (joinRequestsError) Color(0xFFFCA5A5) else Color(0xFF86EFAC), style = MaterialTheme.typography.bodySmall)
+                    }
+                    joinRequests.forEach { request ->
+                        Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF202B3A))) {
+                            Column(Modifier.fillMaxWidth().padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text(request.playerName, fontWeight = FontWeight.Bold)
+                                Text("Rang demandé : ${request.requestedRank} · ${request.createdAt.take(10)}", style = MaterialTheme.typography.bodySmall)
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Button(
+                                        onClick = {
+                                            scope.launch {
+                                                joinRequestsBusy = true
+                                                cloudAuth.reviewAllianceJoinRequest(request.id, true, request.requestedRank)
+                                                    .onSuccess {
+                                                        joinRequests = joinRequests.filterNot { it.id == request.id }
+                                                        joinRequestsMessage = "Demande acceptée. Rang ${request.requestedRank} appliqué après validation serveur."
+                                                        joinRequestsError = false
+                                                    }
+                                                    .onFailure {
+                                                        joinRequestsMessage = it.message ?: "Validation impossible."
+                                                        joinRequestsError = true
+                                                    }
+                                                joinRequestsBusy = false
+                                            }
+                                        },
+                                        enabled = !joinRequestsBusy,
+                                        modifier = Modifier.weight(1f)
+                                    ) { Text("Accepter") }
+                                    OutlinedButton(
+                                        onClick = {
+                                            scope.launch {
+                                                joinRequestsBusy = true
+                                                cloudAuth.reviewAllianceJoinRequest(request.id, false)
+                                                    .onSuccess {
+                                                        joinRequests = joinRequests.filterNot { it.id == request.id }
+                                                        joinRequestsMessage = "Demande refusée."
+                                                        joinRequestsError = false
+                                                    }
+                                                    .onFailure {
+                                                        joinRequestsMessage = it.message ?: "Refus impossible."
+                                                        joinRequestsError = true
+                                                    }
+                                                joinRequestsBusy = false
+                                            }
+                                        },
+                                        enabled = !joinRequestsBusy,
+                                        modifier = Modifier.weight(1f)
+                                    ) { Text("Refuser") }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
         item {
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
                 Text("Espace Alliance", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
@@ -3727,6 +3834,37 @@ private fun AllianceScreen(
                             Spacer(Modifier.width(8.dp))
                         }
                         Text(if (cloudSyncBusy) "Synchronisation…" else "Synchroniser mon profil et mes héros")
+                    }
+                    OutlinedButton(
+                        onClick = {
+                            if (cloudAuth.currentSession() == null) {
+                                joinRequestMessage = "Crée d'abord ton compte ou connecte-toi pour envoyer la demande."
+                            } else {
+                                scope.launch {
+                                    joinRequestBusy = true
+                                    joinRequestMessage = null
+                                    cloudAuth.submitAllianceJoinRequest(server, allianceName, playerName, rank.name)
+                                        .onSuccess {
+                                            joinRequestMessage = "Demande envoyée aux R4/R5 de l'alliance. Ton rang sera activé après leur validation."
+                                            joinRequestError = false
+                                        }
+                                        .onFailure {
+                                            joinRequestMessage = it.message ?: "Envoi de la demande impossible."
+                                            joinRequestError = true
+                                        }
+                                    joinRequestBusy = false
+                                }
+                            }
+                        },
+                        enabled = !joinRequestBusy && playerName.isNotBlank() && server.isNotBlank() && allianceName.isNotBlank(),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        if (joinRequestBusy) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+                        Spacer(Modifier.width(7.dp))
+                        Text(if (joinRequestBusy) "Envoi…" else "Demander à rejoindre cette alliance")
+                    }
+                    joinRequestMessage?.let {
+                        Text(it, color = if (joinRequestError) Color(0xFFFCA5A5) else Color(0xFF86EFAC), style = MaterialTheme.typography.bodySmall)
                     }
                     cloudSyncMessage?.let {
                         Text(
