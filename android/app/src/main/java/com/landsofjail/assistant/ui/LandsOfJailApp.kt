@@ -451,7 +451,12 @@ fun LandsOfJailAssistantApp(
         val localExtraction = LandsOfJailOcrParser.parseLocalOcrText(ocrRaw)
 
         onProgress(55)
-        val remote = repository.analyzeSharedScreenshot(context, uri, playerRole, null)
+        val remote = repository.analyzeSharedScreenshot(
+            context,
+            uri,
+            playerRole,
+            "Capture importée : inspecte aussi les icônes et les compteurs de ressources visibles. " + ocrRaw.take(400)
+        )
         onProgress(85)
 
         return remote.fold(
