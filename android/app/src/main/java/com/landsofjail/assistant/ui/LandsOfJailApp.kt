@@ -1326,6 +1326,7 @@ fun LandsOfJailAssistantApp(
                     AssistantTab.ALLIANCE -> AllianceScreen(
                         workspace = allianceWorkspace,
                         heroes = heroes,
+                        robots = robots,
                         currentPowerText = currentPower?.puissanceTotaleTexte.orEmpty(),
                         onSaveWorkspace = { allianceWorkspace = it }
                     )
@@ -2834,6 +2835,7 @@ private fun SupabaseAccountCard() {
 private fun AllianceScreen(
     workspace: AllianceWorkspace,
     heroes: List<HeroRecord>,
+    robots: List<RobotRecord>,
     currentPowerText: String,
     onSaveWorkspace: (AllianceWorkspace) -> Unit
 ) {
@@ -3155,11 +3157,20 @@ private fun AllianceScreen(
                         onClick = {
                             val roster = buildList {
                                 if (workspace.ownProfile.playerName.isNotBlank()) {
+                                    val robotInventorySummary = robots.joinToString("; ") { robot ->
+                                        listOf(
+                                            robot.nom,
+                                            robot.niveau.takeIf { it.isNotBlank() }?.let { "niv. $it" },
+                                            robot.bonus,
+                                            robot.competences
+                                        ).filterNotNull().filter { it.isNotBlank() }.joinToString(" ")
+                                    }
                                     add(workspace.ownProfile.copy(
                                         server = workspace.server,
                                         allianceName = workspace.allianceName,
                                         powerText = currentPowerText.ifBlank { workspace.ownProfile.powerText },
-                                        heroSkillSummary = ownHeroSummary
+                                        heroSkillSummary = ownHeroSummary,
+                                        robotSummary = robotInventorySummary.ifBlank { workspace.ownProfile.robotSummary }
                                     ))
                                 }
                                 addAll(workspace.members)
