@@ -3,6 +3,8 @@ package com.landsofjail.assistant.ui
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
+import java.io.File
+import java.io.FileOutputStream
 import android.net.Uri
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -675,90 +677,108 @@ fun LandsOfJailAssistantApp(
         robots = mergeRobotRecords(robots, result.robots)
     }
 
+    /**
+     * Les images choisies dans la galerie sont traitées uniquement sur l'appareil.
+     * Une image n'est conservée dans filesDir/import_review que si le décodage/OCR
+     * échoue ou si aucune donnée exploitable n'a pu être extraite.
+     */
+    fun keepImportedImageForReview(uri: Uri): String? = runCatching {
+        val reviewDir = File(context.filesDir, "import_review").apply { mkdirs() }
+        val reviewFile = File(reviewDir, "capture-${UUID.randomUUID()}.jpg")
+        context.contentResolver.openInputStream(uri)?.use { input ->
+            FileOutputStream(reviewFile).use { output -> input.copyTo(output) }
+        } ?: throw IllegalStateException("Impossible de lire le fichier source")
+        Uri.fromFile(reviewFile).toString()
+    }.getOrNull()
+
     suspend fun analyzeSingleUriInternal(uri: Uri, onProgress: (Int) -> Unit): ScreenshotAnalysis {
-        onProgress(15)
-        val bitmap = runCatching {
+        onProgress(10)
+        val timestamp = Instant.now().toString()
+        val localImage = runCatching {
             context.contentResolver.openInputStream(uri)?.use { stream ->
                 BitmapFactory.decodeStream(stream)
             }
         }.getOrNull()
 
-        onProgress(35)
-        val ocrRaw = if (bitmap != null) {
-            runCatching { LandsOfJailOcrParser.recognizeBitmap(bitmap) }.getOrDefault("")
-        } else {
-            ""
+        if (localImage == null) {
+            val retainedUri = keepImportedImageForReview(uri).orEmpty()
+            return ScreenshotAnalysis(
+                id = UUID.randomUUID().toString(),
+                analyzedAtIso = timestamp,
+                imageUriString = retainedUri,
+                typeCapture = "lecture_a_verifier",
+                resumeCapture = "Image conservée : impossible de décoder le fichier importé. Réessaie avec une capture nette au format PNG ou JPG.",
+                champsIncertains = listOf(
+                    UncertainItem("Image", "Décodage impossible", "Le fichier est illisible ou son accès a expiré.")
+                )
+            )
         }
-        val localExtraction = LandsOfJailOcrParser.parseLocalOcrText(ocrRaw)
 
-        onProgress(55)
-        val remote = repository.analyzeSharedScreenshot(context, uri, playerRole, null)
-        onProgress(85)
+        val ocrRaw = try {
+            onProgress(30)
+            LandsOfJailOcrParser.recognizeBitmap(localImage)
+        } catch (error: Throwable) {
+            val retainedUri = keepImportedImageForReview(uri).orEmpty()
+            return ScreenshotAnalysis(
+                id = UUID.randomUUID().toString(),
+                analyzedAtIso = timestamp,
+                imageUriString = retainedUri,
+                typeCapture = "lecture_a_verifier",
+                resumeCapture = "Image conservée pour vérification : échec de lecture OCR locale (${error.message ?: "erreur inconnue"}).",
+                champsIncertains = listOf(
+                    UncertainItem("OCR local", "Lecture impossible", error.message ?: "Erreur du moteur OCR.")
+                )
+            )
+        } finally {
+            localImage.recycle()
+        }
 
-        return remote.fold(
-            onSuccess = { remoteAnalysis ->
-                // L'OCR local complète toujours l'analyse distante : le profil joueur
-                // affiche la puissance près de l'icône du poing, sans libellé textuel.
-                val mergedPower = remoteAnalysis.puissance ?: localExtraction.power
-                val mergedHeroes = if (remoteAnalysis.heros.isEmpty()) {
-                    localExtraction.heroes
-                } else {
-                    remoteAnalysis.heros
-                }
-                val mergedResources = if (remoteAnalysis.ressources.isEmpty()) {
-                    localExtraction.resources
-                } else {
-                    remoteAnalysis.ressources
-                }
-                val localPowerSummary = if (
-                    remoteAnalysis.puissance == null &&
-                    localExtraction.power?.puissanceTotaleTexte?.isNotBlank() == true
-                ) {
-                    "Puissance détectée localement : ${localExtraction.power.puissanceTotaleTexte}"
-                } else {
-                    null
-                }
-                remoteAnalysis.copy(
-                    typeCapture = if (
-                        remoteAnalysis.typeCapture.equals("autre", true) &&
-                        localExtraction.detectedCategory != "ocr_local"
-                    ) localExtraction.detectedCategory else remoteAnalysis.typeCapture,
-                    resumeCapture = listOf(remoteAnalysis.resumeCapture, localPowerSummary)
-                        .filterNot { it.isNullOrBlank() }
-                        .distinct()
-                        .joinToString(" · "),
-                    puissance = mergedPower,
-                    heros = mergedHeroes,
-                    ressources = mergedResources,
-                    champsIncertains = remoteAnalysis.champsIncertains + localExtraction.uncertainItems
-                )
-            },
-            onFailure = {
-                val foundParts = buildList {
-                    localExtraction.power?.let { add("Puissance : ${it.puissanceTotaleTexte}") }
-                    if (localExtraction.heroes.isNotEmpty()) add("${localExtraction.heroes.size} héros")
-                    if (localExtraction.resources.isNotEmpty()) add("${localExtraction.resources.size} ressource(s)")
-                }
-                val summaryLine = if (foundParts.isNotEmpty()) {
-                    "${foundParts.joinToString(" · ")} — ${localExtraction.ocrSnippet}"
-                } else if (ocrRaw.isNotBlank()) {
-                    "OCR local : ${localExtraction.ocrSnippet}"
-                } else {
-                    "Image importée (aucun texte OCR lisible)"
-                }
-                ScreenshotAnalysis(
-                    id = UUID.randomUUID().toString(),
-                    analyzedAtIso = Instant.now().toString(),
-                    imageUriString = uri.toString(),
-                    typeCapture = localExtraction.detectedCategory,
-                    resumeCapture = summaryLine,
-                    puissance = localExtraction.power,
-                    ressources = localExtraction.resources,
-                    heros = localExtraction.heroes,
-                    champsIncertains = localExtraction.uncertainItems
-                )
+        onProgress(65)
+        val extracted = LandsOfJailOcrParser.parseLocalOcrText(ocrRaw)
+        val hasUsableData = extracted.power != null ||
+            extracted.heroes.isNotEmpty() ||
+            extracted.resources.isNotEmpty()
+
+        if (!hasUsableData) {
+            val retainedUri = keepImportedImageForReview(uri).orEmpty()
+            val reason = if (ocrRaw.isBlank()) {
+                "Aucun texte lisible détecté."
+            } else {
+                "Texte reconnu, mais aucune donnée de compte exploitable n'a été identifiée."
             }
-        )
+            return ScreenshotAnalysis(
+                id = UUID.randomUUID().toString(),
+                analyzedAtIso = timestamp,
+                imageUriString = retainedUri,
+                typeCapture = "lecture_a_verifier",
+                resumeCapture = "$reason L'image est conservée localement pour correction ou nouvelle lecture. ${extracted.ocrSnippet}",
+                champsIncertains = extracted.uncertainItems + UncertainItem(
+                    "Données importées",
+                    "Aucune donnée structurée",
+                    reason
+                )
+            )
+        }
+
+        onProgress(90)
+        val detectedParts = buildList {
+            extracted.power?.let { add("Puissance : ${it.puissanceTotaleTexte}") }
+            if (extracted.heroes.isNotEmpty()) add("${extracted.heroes.size} héros")
+            if (extracted.resources.isNotEmpty()) add("${extracted.resources.size} ressource(s)")
+        }
+        // Pas d'URI ni de copie de l'image après extraction : seules les données
+        // reconnues sont fusionnées et conservées dans le profil local du joueur.
+        ScreenshotAnalysis(
+            id = UUID.randomUUID().toString(),
+            analyzedAtIso = timestamp,
+            imageUriString = "",
+            typeCapture = extracted.detectedCategory,
+            resumeCapture = "Lecture locale réussie · ${detectedParts.joinToString(" · ")}",
+            puissance = extracted.power,
+            ressources = extracted.resources,
+            heros = extracted.heroes,
+            champsIncertains = extracted.uncertainItems
+        ).also { onProgress(100) }
     }
 
     fun enqueueUrisSequentially(uris: List<Uri>) {
@@ -1510,7 +1530,15 @@ fun LandsOfJailAssistantApp(
                         currentPowerText = currentPower?.puissanceTotaleTexte.orEmpty(),
                         onSaveWorkspace = { allianceWorkspace = it }
                     )
-                    AssistantTab.HISTORIQUE -> HistoryScreen(analyses, onClearHistory = { analyses = emptyList() })
+                    AssistantTab.HISTORIQUE -> HistoryScreen(analyses, onClearHistory = {
+                            analyses.forEach { analysis ->
+                                if (analysis.imageUriString.startsWith("file:")) {
+                                    runCatching { File(Uri.parse(analysis.imageUriString).path.orEmpty()).delete() }
+                                }
+                            }
+                            File(context.filesDir, "import_review").listFiles()?.forEach { it.delete() }
+                            analyses = emptyList()
+                        })
                 }
             }
         }
