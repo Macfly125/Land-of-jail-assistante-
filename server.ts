@@ -522,7 +522,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
               competences: Array.from(skillMap.values()),
             });
           }
-          parsed.heros = [...merged.values()].slice(0, 5);
+          parsed.heros = [...merged.values()].slice(0, 50);
           if (Array.isArray(retryParsed.champsIncertains)) {
             parsed.champsIncertains = [
               ...(Array.isArray(parsed.champsIncertains) ? parsed.champsIncertains : []),
