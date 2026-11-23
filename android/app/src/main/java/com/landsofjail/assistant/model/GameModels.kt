@@ -330,6 +330,18 @@ data class AdviceRecommendation(
 )
 
 @Serializable
+data class TroopRatioProfile(
+    val id: String = "",
+    val role: String = "",
+    val roleLabel: String = "",
+    val label: String = "",
+    val shieldbearer: Int = 0,
+    val bomber: Int = 0,
+    val shooter: Int = 0,
+    val note: String = ""
+)
+
+@Serializable
 data class TacticalAdviceResult(
     val mode: String = "",
     val language: String? = null,
@@ -339,6 +351,8 @@ data class TacticalAdviceResult(
     val compositionRecommandee: String = "",
     val recommandations: List<AdviceRecommendation> = emptyList(),
     val robotRecommendations: List<AdviceRecommendation> = emptyList(),
+    val troopRatioTitle: String? = null,
+    val troopRatioProfiles: List<TroopRatioProfile> = emptyList(),
     val informationsIncertaines: List<String> = emptyList(),
     val sources: List<GroundedWebSource> = emptyList(),
     val geminiWarning: String? = null
