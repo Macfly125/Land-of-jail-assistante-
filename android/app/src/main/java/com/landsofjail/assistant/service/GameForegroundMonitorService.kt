@@ -155,7 +155,7 @@ class GameForegroundMonitorService : Service() {
     @Volatile private var nextAutoCaptureAtMillis: Long = 0L
     private var autoCaptureHandlerThread: HandlerThread? = null
     private var autoCaptureOwnsMonitor: Boolean = false
-    private var lastAutoFrameSamples: IntArray? = null
+    @Volatile private var lastAutoFrameSamples: IntArray? = null
 
     private var floatingContainer: LinearLayout? = null
     private var windowManager: WindowManager? = null
