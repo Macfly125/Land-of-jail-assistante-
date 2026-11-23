@@ -3882,10 +3882,15 @@ private fun AllianceScreen(
                                         onClick = {
                                             scope.launch {
                                                 joinRequestsBusy = true
-                                                cloudAuth.reviewAllianceJoinRequest(request.id, true, request.requestedRank)
+                                                val rankToGrant = if (request.requestedRank == "R5") "R4" else request.requestedRank
+                                                cloudAuth.reviewAllianceJoinRequest(request.id, true, rankToGrant)
                                                     .onSuccess {
                                                         joinRequests = joinRequests.filterNot { it.id == request.id }
-                                                        joinRequestsMessage = "Demande acceptée. Rang ${request.requestedRank} appliqué après validation serveur."
+                                                        joinRequestsMessage = if (request.requestedRank == "R5") {
+                                                            "Demande acceptée comme R4. Le R5 actuel peut ensuite lui transférer le poste."
+                                                        } else {
+                                                            "Demande acceptée. Rang $rankToGrant appliqué."
+                                                        }
                                                         joinRequestsError = false
                                                     }
                                                     .onFailure {
