@@ -6,7 +6,7 @@ on:
       service:
         description: Exact Cloud Run service name
         required: true
-        default: ais-pre-5yvyv3v3pqwxalk2bhijpo
+        default: land-of-jail-assistant
       region:
         description: Cloud Run region
         required: true
@@ -47,3 +47,4 @@ jobs:
           region: ${{ inputs.region }}
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           source: .
+          env_vars: GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
