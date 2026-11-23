@@ -1,0 +1,15 @@
+.git
+.github
+.idea
+.vscode
+node_modules
+android
+dist
+coverage
+reports
+*.apk
+*.aab
+*.jks
+*.keystore
+.env
+.env.*
