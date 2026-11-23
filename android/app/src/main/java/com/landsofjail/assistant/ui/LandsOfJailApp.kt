@@ -332,27 +332,35 @@ fun LandsOfJailAssistantApp(
     var isProfileSyncing by remember { mutableStateOf(false) }
     var selectedAdviceMode by remember { mutableStateOf(AdviceMode.TRIAL_CAGE) }
     var adviceResult by remember { mutableStateOf<TacticalAdviceResult?>(null) }
-    var gameIntel by remember { mutableStateOf<GameIntelSnapshot?>(null) }
+    val gameIntelPrefs = remember(context) {
+        context.getSharedPreferences("game_intel_cache_v1", Context.MODE_PRIVATE)
+    }
+    var gameIntel by remember {
+        mutableStateOf(runCatching {
+            gameIntelPrefs.getString("snapshot", null)?.let {
+                accountJson.decodeFromString<GameIntelSnapshot>(it)
+            }
+        }.getOrNull())
+    }
     var gameIntelLoading by remember { mutableStateOf(false) }
     var gameIntelError by remember { mutableStateOf<String?>(null) }
     var routineRevision by remember { mutableIntStateOf(0) }
 
+    // Une seule requête non bloquante au démarrage de l'application.
+    // Aucun Worker, timer ou rafraîchissement périodique : le serveur décide
+    // s'il peut servir son cache ou s'il doit vérifier les sources.
     LaunchedEffect(Unit) {
         gameIntelLoading = true
-        repository.fetchGameIntel().onSuccess { gameIntel = it }
+        repository.fetchGameIntel(forceRefresh = false)
+            .onSuccess { snapshot ->
+                gameIntel = snapshot
+                gameIntelPrefs.edit()
+                    .putString("snapshot", accountJson.encodeToString(snapshot))
+                    .putLong("saved_at", System.currentTimeMillis())
+                    .apply()
+            }
             .onFailure { gameIntelError = it.message ?: "Veille indisponible." }
         gameIntelLoading = false
-    }
-
-    val refreshGameIntel: () -> Unit = {
-        scope.launch {
-            gameIntelLoading = true
-            gameIntelError = null
-            repository.fetchGameIntel(forceRefresh = true)
-                .onSuccess { gameIntel = it }
-                .onFailure { gameIntelError = it.message ?: "Veille indisponible." }
-            gameIntelLoading = false
-        }
     }
 
     fun readRoutineState(profileId: String): Map<String, String> {
@@ -1559,7 +1567,6 @@ fun LandsOfJailAssistantApp(
                         gameIntel = gameIntel,
                         gameIntelLoading = gameIntelLoading,
                         gameIntelError = gameIntelError,
-                        onRefreshGameIntel = refreshGameIntel,
                         onOpenHistory = { currentTab = AssistantTab.HISTORIQUE },
                         onPickImage = { imagePicker.launch("image/*") }
                     )
@@ -1860,9 +1867,10 @@ private fun DashboardScreen(
                                 }
                             )
                         }
-                        IconButton(onClick = onRefreshGameIntel, enabled = !gameIntelLoading) {
-                            if (gameIntelLoading) CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
-                            else Icon(Icons.Outlined.Refresh, contentDescription = "Actualiser la veille")
+                        if (gameIntelLoading) {
+                            CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                        } else {
+                            Icon(Icons.Outlined.CloudDone, contentDescription = "Veille vérifiée à l'ouverture")
                         }
                     }
                     if (!gameIntel?.gameVersion.isNullOrBlank()) {
@@ -1885,7 +1893,7 @@ private fun DashboardScreen(
                         )
                     }
                     Text(
-                        "Résultats mis en cache pendant 6 h. Une nouvelle vérification démarre à l'ouverture après expiration ou avec « Actualiser ». Les données personnelles du compte ne sont jamais remplacées.",
+                        "Une vérification unique est lancée en arrière-plan à chaque ouverture. Aucun rafraîchissement périodique ni activité permanente. Les données personnelles du compte ne sont jamais remplacées.",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
