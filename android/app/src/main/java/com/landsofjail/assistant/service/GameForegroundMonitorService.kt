@@ -904,11 +904,12 @@ class GameForegroundMonitorService : Service() {
     }
 
     override fun onDestroy() {
+        _isAutoCapturing.value = false
+        autoCaptureAwaitingAnalysis = false
         monitorJob?.cancel()
         releaseProjection()
         removeFloatingAnalyzeBar()
         _isRunning.value = false
-        _isAutoCapturing.value = false
         serviceScope.cancel()
         super.onDestroy()
     }
