@@ -448,8 +448,13 @@ fun LandsOfJailAssistantApp(
         value.lowercase().trim().replace(Regex("\\s+"), " ")
 
     fun mergeHeroRecords(existing: List<HeroRecord>, incoming: List<HeroRecord>): List<HeroRecord> {
-        val merged = existing.associateBy { normalizedKey(it.nom) }.toMutableMap()
-        incoming.forEach { fresh ->
+        fun canonicalName(name: String): String =
+            if (normalizedKey(name) == "ryuichi") "Ryuichi Ito" else name.trim()
+        val merged = existing.associateBy { normalizedKey(canonicalName(it.nom)) }
+            .mapValues { (_, value) -> value.copy(nom = canonicalName(value.nom)) }
+            .toMutableMap()
+        incoming.forEach { source ->
+            val fresh = source.copy(nom = canonicalName(source.nom))
             val key = normalizedKey(fresh.nom)
             if (key.isBlank()) return@forEach
             val previous = merged[key]
@@ -1434,7 +1439,11 @@ private fun HeroesScreen(
     var editingHero by remember { mutableStateOf<HeroRecord?>(null) }
     var search by remember { mutableStateOf("") }
     var selectedClass by remember { mutableStateOf("Tous") }
-    val profileByName = remember(heroes) { heroes.associateBy { it.nom.trim().lowercase() } }
+    fun canonicalHeroKey(name: String): String =
+        if (name.trim().equals("Ryuichi", ignoreCase = true) || name.trim().equals("Ryuichi Ito", ignoreCase = true)) {
+            "ryuichi ito"
+        } else name.trim().lowercase()
+    val profileByName = remember(heroes) { heroes.associateBy { canonicalHeroKey(it.nom) } }
     val visibleHeroes = remember(search, selectedClass, heroes) {
         HeroCatalog.entries.filter { entry ->
             (search.isBlank() || entry.nom.contains(search.trim(), ignoreCase = true)) &&
@@ -1475,7 +1484,7 @@ private fun HeroesScreen(
             }
         }
         items(visibleHeroes, key = { it.nom }) { entry ->
-            val hero = profileByName[entry.nom.lowercase()]
+            val hero = profileByName[canonicalHeroKey(entry.nom)]
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                     Row(
@@ -1557,7 +1566,7 @@ private fun HeroesScreen(
             item { Text("Aucun héros ne correspond à cette recherche.") }
         }
         val detectedOutsideCatalog = heroes.filter { detected ->
-            HeroCatalog.entries.none { it.nom.equals(detected.nom, ignoreCase = true) }
+            HeroCatalog.entries.none { canonicalHeroKey(it.nom) == canonicalHeroKey(detected.nom) }
         }
         if (detectedOutsideCatalog.isNotEmpty()) {
             item { Text("Autres héros détectés", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold) }
