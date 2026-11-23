@@ -1222,6 +1222,45 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
           })()
         : [];
 
+      const turmoilHeroRecommendations = mode === 'turmoil_surge'
+        ? (() => {
+            const offensive = [...cageSkillSignals]
+              .sort((a, b) => b.skillLevel - a.skillLevel)[0];
+            const defensiveCandidates = (heroes ?? []).flatMap((hero) =>
+              (hero.competences || [])
+                .filter((skill) => skill.type?.toLowerCase() === 'war' && !skill.incertain && Boolean(skill.description?.trim()))
+                .filter((skill) => /increase[s]?.{0,35}(?:allied |troop )?(?:defen[cs]e|def|hp|health)|(?:allied |troop )?(?:defen[cs]e|def|hp|health).{0,20}(?:increase|boost)|shield|heal|healing|damage reduction|reduce[s]? damage taken|réduit.*dégâts reçus|augmente.*défense|bouclier|soin|лечени|щит|护盾|治疗|防御.*提高|生命值.*提高/i.test(skill.description!))
+                .map((skill) => ({
+                  hero: hero.nom,
+                  skill: skill.nom,
+                  level: Number(String(skill.niveau || '').match(/\d+/)?.[0] || 0),
+                  description: skill.description!.trim().slice(0, 140),
+                }))
+            );
+            const bestDefense = defensiveCandidates.sort((a, b) => b.level - a.level)[0];
+            const results = [];
+            if (offensive) results.push({
+              titre: `Renfort offensif — ${offensive.hero}`,
+              detail: `${offensive.skill} — compétence War offensive détectée (niveau ${offensive.skillLevel || 'à confirmer'}).`,
+              herosCibles: [offensive.hero],
+              incertain: true,
+              raisonIncertitude: targetLang === 'fr'
+                ? 'Candidat pour les éliminations en renfort; les points réels dépendent du combat et les effets ne sont pas simulés.'
+                : 'Candidate for reinforcement kills; actual points depend on combat and effects are not simulated.',
+            });
+            if (bestDefense) results.push({
+              titre: `Défense des tourelles — ${bestDefense.hero}`,
+              detail: `${bestDefense.skill} (niveau ${bestDefense.level || 'à confirmer'}) : ${bestDefense.description}`,
+              herosCibles: [bestDefense.hero],
+              incertain: true,
+              raisonIncertitude: targetLang === 'fr'
+                ? 'Candidat défensif fondé sur le texte War visible; vérifie que l’effet s’applique bien à la défense de tourelle.'
+                : 'Defensive candidate based on visible War text; verify that the effect applies to turret defense.',
+            });
+            return results;
+          })()
+        : [];
+
       const heroRecommendations = mode === 'trial_cage'
         ? (() => {
             // Leaders use the complete War kit of three heroes, one per troop class.
@@ -1268,7 +1307,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
             }));
             return [...leaders, ...joiners].slice(0, 10);
           })()
-        : mode === 'gold_hunter' ? goldHunterHeroRecommendations : [];
+        : mode === 'gold_hunter' ? goldHunterHeroRecommendations\n        : mode === 'turmoil_surge' ? turmoilHeroRecommendations : [];
 
       const cageSignalLabelsByLang: Record<TargetLang, string[]> = {
         fr: ['dégâts subis par l’ennemi', 'dégâts infligés aux troupes alliées', 'ATQ des troupes alliées', 'réduction de DEF ennemie', 'dégâts directs'],
@@ -1412,6 +1451,11 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
           })),
           informationsIncertaines: [
             ...(heroNames.length === 0 ? [compTextByLang[targetLang]] : []),
+            ...(mode === 'turmoil_surge' && heroNames.length > 0 && heroRecommendations.length === 0
+              ? [targetLang === 'fr'
+                  ? 'Afflux de Tumulte : aucune compétence War offensive ou défensive fiable n’a été reconnue. Vérifie les compétences de tes héros avant de choisir les renforts et les défenseurs.'
+                  : 'Turmoil Surge: no reliable offensive or defensive War skill was found. Verify your heroes’ skills before choosing reinforcements and defenders.']
+              : []),
             ...(mode === 'gold_hunter' && heroNames.length > 0 && heroRecommendations.length === 0
               ? [targetLang === 'fr'
                   ? 'Chasseur d’or : aucune compétence fiable de vitesse, dégâts contre ennemis neutres ou collecte n’a été reconnue dans ce profil. Complète les descriptions visibles avant de choisir les héros.'
