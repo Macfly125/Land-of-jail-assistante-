@@ -1157,7 +1157,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
             .slice(0, 6)
             .map((signal) => ({
               titre: signal.hero,
-              detail: `${signal.skill} — ${cageSignalLabelsByLang[targetLang][signal.category]}`,
+              detail: `${signal.skill} — ${['dégâts directs', 'bonus dégâts / dégâts subis par l’ennemi', 'réduction de DEF ennemie'][signal.category]}`,
               herosCibles: [signal.hero],
               incertain: true,
               raisonIncertitude: targetLang === 'fr'
