@@ -865,6 +865,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
           competences?: string;
           puissance?: string;
           incertain?: boolean;
+          raisonIncertitude?: string;
           source?: string;
         }>;
         extraQuestion?: string;
@@ -966,7 +967,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
           herosCibles: [],
           incertain: true,
           raisonIncertitude: robot.incertain
-            ? 'La fiche du robot contient des champs signalés incertains; vérifie-les en jeu.'
+            ? (robot.raisonIncertitude || 'La fiche du robot contient des champs signalés incertains; vérifie-les en jeu.')
             : 'Correspondance par mots-clés uniquement : ce n’est pas un classement de puissance ni une simulation de combat.',
           imageUrl: null,
         }];
