@@ -326,6 +326,15 @@ fun LandsOfJailAssistantApp(
                 ?.takeIf { it in setOf("Bâtiments", "Héros", "Robot") } ?: "Bâtiments"
         )
     }
+    var buildingProgress by remember {
+        mutableStateOf(accountPrefs.getString("building_progress", "").orEmpty())
+    }
+    var robotProgress by remember {
+        mutableStateOf(accountPrefs.getString("robot_progress", "").orEmpty())
+    }
+    var vipLevel by remember {
+        mutableStateOf(accountPrefs.getString("vip_level", "").orEmpty())
+    }
 
     LaunchedEffect(allianceWorkspace) {
         accountPrefs.edit()
@@ -341,8 +350,56 @@ fun LandsOfJailAssistantApp(
             .putString("current_power", accountJson.encodeToString(currentPower))
             .apply()
     }
-    LaunchedEffect(progressionGoal) {
-        accountPrefs.edit().putString("progression_goal", progressionGoal).apply()
+    LaunchedEffect(progressionGoal, buildingProgress, robotProgress, vipLevel) {
+        accountPrefs.edit()
+            .putString("progression_goal", progressionGoal)
+            .putString("building_progress", buildingProgress)
+            .putString("robot_progress", robotProgress)
+            .putString("vip_level", vipLevel)
+            .apply()
+    }
+
+    // Complète le profil depuis le texte OCR quand une capture contient clairement ces valeurs.
+    // Les champs manuels restent modifiables et ne sont jamais effacés par une capture incomplète.
+    fun updateProgressFromCapture(ocrText: String) {
+        if (ocrText.isBlank()) return
+        val vipMatch = Regex(
+            """(?i)\bVIP\s*(?:level|niv(?:eau)?)?\s*[:#-]?\s*(\d{1,2})\b|\b(?:niveau|level)\s*VIP\s*[:#-]?\s*(\d{1,2})\b"""
+        ).find(ocrText)
+        vipMatch?.let { match ->
+            val detected = match.groupValues.drop(1).firstOrNull { it.isNotBlank() }.orEmpty()
+            if (detected.isNotBlank()) vipLevel = detected
+        }
+
+        val lines = ocrText.lines().map { it.trim() }.filter { it.isNotBlank() }
+        val levelPattern = Regex("""(?i)(?:niv(?:eau)?|level|lv)\.?\s*[:#-]?\s*\d{1,3}\b""")
+        val buildingKeywords = listOf(
+            "bureau", "warden", "communication", "comms", "caserne", "barracks",
+            "laboratoire", "laboratory", "lab", "infirmerie", "medical", "commandement",
+            "command center", "cuisine", "cellule", "douche", "cour", "prison"
+        )
+        val detectedBuildings = lines.filter { line ->
+            levelPattern.containsMatchIn(line) &&
+                buildingKeywords.any { keyword -> line.contains(keyword, ignoreCase = true) }
+        }
+        if (detectedBuildings.isNotEmpty()) {
+            val existing = buildingProgress.lines().filter { it.isNotBlank() }
+            buildingProgress = (existing + detectedBuildings)
+                .distinctBy { normalizedKey(it) }
+                .takeLast(40)
+                .joinToString("\n")
+        }
+
+        val robotLines = lines.filter { line ->
+            line.contains("robot", ignoreCase = true) &&
+                (levelPattern.containsMatchIn(line) || Regex("""(?i)\b(?:robot)\s*[:#-]?\s*\d{1,3}\b""").containsMatchIn(line))
+        }
+        if (robotLines.isNotEmpty()) {
+            robotProgress = (robotProgress.lines().filter { it.isNotBlank() } + robotLines)
+                .distinctBy { normalizedKey(it) }
+                .takeLast(10)
+                .joinToString("\n")
+        }
     }
 
     var isAnalyzing by remember { mutableStateOf(false) }
@@ -474,6 +531,7 @@ fun LandsOfJailAssistantApp(
             ""
         }
         val localExtraction = LandsOfJailOcrParser.parseLocalOcrText(ocrRaw)
+        updateProgressFromCapture(ocrRaw)
 
         onProgress(55)
         val remote = repository.analyzeSharedScreenshot(
@@ -633,6 +691,7 @@ fun LandsOfJailAssistantApp(
                 }.getOrDefault("")
                 singleAnalysisPercent = 50
                 val localExtraction = LandsOfJailOcrParser.parseLocalOcrText(ocrRaw)
+                updateProgressFromCapture(ocrRaw)
                 val localImageUri = capturedScreenPayload.imageFileUri
 
                 val result = runCatching {
@@ -970,6 +1029,13 @@ fun LandsOfJailAssistantApp(
                         resources = resources,
                         progressionGoal = progressionGoal,
                         onProgressionGoalChange = { progressionGoal = it },
+                        buildingProgress = buildingProgress,
+                        onBuildingProgressChange = { buildingProgress = it },
+                        robotProgress = robotProgress,
+                        onRobotProgressChange = { robotProgress = it },
+                        vipLevel = vipLevel,
+                        onVipLevelChange = { vipLevel = it.filter(Char::isDigit).take(2) },
+                        heroes = heroes,
                         heroesCount = heroes.size,
                         resourcesCount = resources.size,
                         latestAnalysis = analyses.firstOrNull(),
@@ -1064,6 +1130,13 @@ private fun DashboardScreen(
     resources: List<ResourceRecord>,
     progressionGoal: String,
     onProgressionGoalChange: (String) -> Unit,
+    buildingProgress: String,
+    onBuildingProgressChange: (String) -> Unit,
+    robotProgress: String,
+    onRobotProgressChange: (String) -> Unit,
+    vipLevel: String,
+    onVipLevelChange: (String) -> Unit,
+    heroes: List<HeroRecord>,
     heroesCount: Int,
     resourcesCount: Int,
     latestAnalysis: ScreenshotAnalysis?,
@@ -1304,7 +1377,15 @@ private fun DashboardScreen(
                     Text("Mon profil joueur", fontWeight = FontWeight.Bold)
                     Text(playerName.ifBlank { "Pseudo non renseigné — complète ton profil dans l'espace Alliance." }, color = Color(0xFFFFB36B))
                     Text("Puissance : ${currentPower?.puissanceTotaleTexte ?: "À analyser"}", fontWeight = FontWeight.SemiBold)
-                    Text("Prison / QG : ${currentPower?.niveauPrisonOuQG ?: "—"} · VIP : à renseigner", style = MaterialTheme.typography.bodySmall)
+                    Text("Prison / QG : ${currentPower?.niveauPrisonOuQG ?: "—"}", style = MaterialTheme.typography.bodySmall)
+                    OutlinedTextField(
+                        value = vipLevel,
+                        onValueChange = onVipLevelChange,
+                        label = { Text("Niveau VIP (détection capture ou saisie)") },
+                        placeholder = { Text("Ex. 12") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
                     Text("Héros suivis : $heroesCount", style = MaterialTheme.typography.bodySmall)
                     Text("Ressources détectées", fontWeight = FontWeight.SemiBold)
                     if (resources.isEmpty()) {
@@ -1333,6 +1414,51 @@ private fun DashboardScreen(
                             }
                         }
                     }
+                    Text(
+                        when (progressionGoal) {
+                            "Bâtiments" -> if (buildingProgress.isBlank())
+                                "Aucun niveau de bâtiment reconnu : importe une capture de tes bâtiments ou renseigne-les ci-dessous."
+                            else "Données bâtiments enregistrées : ${buildingProgress.lines().count { it.isNotBlank() }} ligne(s). Elles servent de base à ton suivi."
+                            "Héros" -> if (heroes.isEmpty())
+                                "Aucun héros analysé : importe une capture de ton profil ou de ta liste de héros."
+                            else "Suivi réel : $heroesCount héros enregistrés, avec leurs niveaux, étoiles et compétences détectés."
+                            else -> if (robotProgress.isBlank())
+                                "Niveau du robot non reconnu : importe une capture du robot ou renseigne son niveau ci-dessous."
+                            else "Données robot enregistrées : ${robotProgress.lines().count { it.isNotBlank() }} ligne(s)."
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    when (progressionGoal) {
+                        "Bâtiments" -> OutlinedTextField(
+                            value = buildingProgress,
+                            onValueChange = onBuildingProgressChange,
+                            label = { Text("Bâtiments et niveaux (un par ligne)") },
+                            placeholder = { Text("Bureau du directeur : niv. 25\\nCentre de communications : niv. 24") },
+                            minLines = 2,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        "Robot" -> OutlinedTextField(
+                            value = robotProgress,
+                            onValueChange = onRobotProgressChange,
+                            label = { Text("Robot : niveau et améliorations") },
+                            placeholder = { Text("Niveau 30 — compétences / modules…") },
+                            minLines = 2,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        "Héros" -> Text(
+                            heroes.sortedByDescending { it.niveau ?: 0 }
+                                .take(5)
+                                .joinToString(" · ") { hero -> "${hero.nom} niv. ${hero.niveauTexte.ifBlank { "?" }}" }
+                                .ifBlank { "Les héros seront ajoutés après analyse d'une capture." },
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                    Text(
+                        "Les valeurs détectées par capture complètent ce profil. Tu peux toujours corriger les niveaux manuellement ; les données restent enregistrées sur cet appareil.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         }
