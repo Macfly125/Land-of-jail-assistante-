@@ -9,6 +9,12 @@ android {
     namespace = "com.landsofjail.assistant"
     compileSdk = 35
 
+    // Always build one universal APK; do not generate ABI/density split APKs.
+    splits {
+        abi { isEnable = false }
+        density { isEnable = false }
+    }
+
     defaultConfig {
         applicationId = "com.landsofjail.assistant"
         minSdk = 26
