@@ -117,20 +117,20 @@ object LandsOfJailOcrParser {
                 if (heroToken.containsMatchIn(line) && !seenHeroKeys.contains(heroName.lowercase())) {
                     // Ne jamais emprunter les étoiles, la rareté ou le niveau du héros suivant.
                     // Les captures OCR présentent souvent plusieurs cartes de héros à la suite.
-                    val contextLines = lines.subList(index, minOf(lines.size, index + 3))
-                        .takeWhileIndexed { offset, candidateLine ->
-                            offset == 0 || KNOWN_HEROES.none { otherName ->
-                                Regex("(?<![\\\\p{L}])${Regex.escape(otherName)}(?![\\\\p{L}])", RegexOption.IGNORE_CASE)
-                                    .containsMatchIn(candidateLine)
-                            }
+                    val isAnotherHeroLine: (String) -> Boolean = { candidateLine ->
+                        KNOWN_HEROES.any { otherName ->
+                            Regex("(?<![\\p{L}])${Regex.escape(otherName)}(?![\\p{L}])", RegexOption.IGNORE_CASE)
+                                .containsMatchIn(candidateLine)
                         }
+                    }
+                    val contextLines = lines.subList(index, minOf(lines.size, index + 3))
+                        .withIndex()
+                        .takeWhile { indexed -> indexed.index == 0 || !isAnotherHeroLine(indexed.value) }
+                        .map { it.value }
                     val contextText = contextLines.joinToString(" ")
                     val sameLineLvl = levelRegex.find(line)?.groupValues?.get(1)?.toIntOrNull()
                     val nextLine = lines.getOrNull(index + 1)
-                    val nextLineIsAnotherHero = nextLine != null && KNOWN_HEROES.any { otherName ->
-                        Regex("(?<![\\\\p{L}])${Regex.escape(otherName)}(?![\\\\p{L}])", RegexOption.IGNORE_CASE)
-                            .containsMatchIn(nextLine)
-                    }
+                    val nextLineIsAnotherHero = nextLine?.let(isAnotherHeroLine) == true
                     val nextLineLvl = if (nextLineIsAnotherHero) null else nextLine?.let {
                         levelRegex.find(it)?.groupValues?.get(1)?.toIntOrNull()
                     }
