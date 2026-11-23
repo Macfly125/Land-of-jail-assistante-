@@ -154,6 +154,7 @@ class GameForegroundMonitorService : Service() {
     @Volatile private var autoCaptureAwaitingAnalysis: Boolean = false
     @Volatile private var nextAutoCaptureAtMillis: Long = 0L
     private var autoCaptureHandlerThread: HandlerThread? = null
+    private var autoCaptureSurfaceAttached: Boolean = false
     private var autoCaptureOwnsMonitor: Boolean = false
     @Volatile private var lastAutoFrameSamples: IntArray? = null
 
@@ -313,10 +314,11 @@ class GameForegroundMonitorService : Service() {
                 height,
                 density,
                 DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
-                reader.surface,
+                if (_detectedGameForeground.value) reader.surface else null,
                 null,
                 mainHandler
             )
+            autoCaptureSurfaceAttached = _detectedGameForeground.value
 
             var attempts = 0
             reader.setOnImageAvailableListener({ r ->
@@ -503,6 +505,16 @@ class GameForegroundMonitorService : Service() {
         }, Handler(captureThread.looper))
     }
 
+    private fun updateAutoCaptureSurface(gameForeground: Boolean) {
+        val shouldAttach = _isAutoCapturing.value && gameForeground
+        if (shouldAttach == autoCaptureSurfaceAttached) return
+        try {
+            virtualDisplay?.setSurface(if (shouldAttach) imageReader?.surface else null)
+            autoCaptureSurfaceAttached = shouldAttach
+        } catch (_: Throwable) {
+        }
+    }
+
     private fun hasMeaningfulScreenChange(bitmap: Bitmap): Boolean {
         val samples = IntArray(144)
         var index = 0
@@ -621,6 +633,7 @@ class GameForegroundMonitorService : Service() {
         } catch (_: Throwable) {
         }
         autoCaptureHandlerThread = null
+        autoCaptureSurfaceAttached = false
         try {
             projectionToStop?.stop()
         } catch (_: Throwable) {
@@ -643,6 +656,7 @@ class GameForegroundMonitorService : Service() {
                 val isSelfForeground = effectivePkg == applicationContext.packageName
                 val isGameNow = UsageStatsDetector.isLandsOfJailPackage(effectivePkg, targetFilter)
                 _detectedGameForeground.value = isGameNow
+                if (_isAutoCapturing.value) updateAutoCaptureSurface(isGameNow)
 
                 if (isGameNow && !wasGameInForeground && !_isAutoCapturing.value) {
                     showAnalyzePromptNotification()
