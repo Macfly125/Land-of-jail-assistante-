@@ -187,6 +187,13 @@ class GeminiAssistantRepository(
             client.newCall(request).execute().use { response ->
                 val body = response.body?.string().orEmpty()
                 if (!response.isSuccessful || !body.trimStart().startsWith("{")) {
+                    if (response.code == 404) {
+                        return@use GameIntelSnapshot(
+                            status = "sources_unavailable",
+                            checkedAt = Instant.now().toString(),
+                            message = "La veille attend le déploiement de la nouvelle version du serveur. Les autres fonctions de l'application restent disponibles. Appuyez sur « Actualiser » après la mise à jour du serveur."
+                        )
+                    }
                     error("Veille du jeu indisponible (HTTP ${response.code}).")
                 }
                 json.decodeFromString<GameIntelSnapshot>(body)
