@@ -37,6 +37,7 @@ import coil.compose.AsyncImage
 import com.landsofjail.assistant.capture.CapturedScreenPayload
 import com.landsofjail.assistant.capture.ScreenCaptureConsentActivity
 import com.landsofjail.assistant.data.GeminiAssistantRepository
+import com.landsofjail.assistant.data.GameIntelSnapshot
 import com.landsofjail.assistant.data.SupabaseAuthRepository
 import com.landsofjail.assistant.model.*
 import com.landsofjail.assistant.ocr.LandsOfJailOcrParser
@@ -310,7 +311,28 @@ fun LandsOfJailAssistantApp(
     var isProfileSyncing by remember { mutableStateOf(false) }
     var selectedAdviceMode by remember { mutableStateOf(AdviceMode.TRIAL_CAGE) }
     var adviceResult by remember { mutableStateOf<TacticalAdviceResult?>(null) }
+    var gameIntel by remember { mutableStateOf<GameIntelSnapshot?>(null) }
+    var gameIntelLoading by remember { mutableStateOf(false) }
+    var gameIntelError by remember { mutableStateOf<String?>(null) }
     var routineRevision by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(Unit) {
+        gameIntelLoading = true
+        repository.fetchGameIntel().onSuccess { gameIntel = it }
+            .onFailure { gameIntelError = it.message ?: "Veille indisponible." }
+        gameIntelLoading = false
+    }
+
+    val refreshGameIntel: () -> Unit = {
+        scope.launch {
+            gameIntelLoading = true
+            gameIntelError = null
+            repository.fetchGameIntel(forceRefresh = true)
+                .onSuccess { gameIntel = it }
+                .onFailure { gameIntelError = it.message ?: "Veille indisponible." }
+            gameIntelLoading = false
+        }
+    }
 
     fun readRoutineState(profileId: String): Map<String, String> {
         val prefs = context.getSharedPreferences("offline_routine_" + profileId, Context.MODE_PRIVATE)
@@ -1481,6 +1503,10 @@ fun LandsOfJailAssistantApp(
                         heroesCount = heroes.size,
                         resourcesCount = resources.size,
                         latestAnalysis = analyses.firstOrNull(),
+                        gameIntel = gameIntel,
+                        gameIntelLoading = gameIntelLoading,
+                        gameIntelError = gameIntelError,
+                        onRefreshGameIntel = refreshGameIntel,
                         onOpenHistory = { currentTab = AssistantTab.HISTORIQUE },
                         onPickImage = { imagePicker.launch("image/*") }
                     )
@@ -1611,6 +1637,10 @@ private fun DashboardScreen(
     heroesCount: Int,
     resourcesCount: Int,
     latestAnalysis: ScreenshotAnalysis?,
+    gameIntel: GameIntelSnapshot?,
+    gameIntelLoading: Boolean,
+    gameIntelError: String?,
+    onRefreshGameIntel: () -> Unit,
     onOpenHistory: () -> Unit,
     onPickImage: () -> Unit
 ) {
@@ -1622,6 +1652,60 @@ private fun DashboardScreen(
         item {
             Spacer(Modifier.height(6.dp))
             LanguageSelectorRow(currentLang = currentLang, onChangeLang = onChangeLang)
+        }
+
+        item {
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.weight(1f)) {
+                            Text("Veille intelligente du jeu", fontWeight = FontWeight.Bold)
+                            Text(
+                                when (gameIntel?.status) {
+                                    "updates_found" -> "Nouveautés détectées"
+                                    "up_to_date" -> "Sources vérifiées"
+                                    "sources_unavailable" -> "Sources indisponibles"
+                                    else -> "Vérification des nouveautés"
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = when (gameIntel?.status) {
+                                    "updates_found" -> Color(0xFFFBBF24)
+                                    "up_to_date" -> Color(0xFF34D399)
+                                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                                }
+                            )
+                        }
+                        IconButton(onClick = onRefreshGameIntel, enabled = !gameIntelLoading) {
+                            if (gameIntelLoading) CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                            else Icon(Icons.Outlined.Refresh, contentDescription = "Actualiser la veille")
+                        }
+                    }
+                    if (!gameIntel?.gameVersion.isNullOrBlank()) {
+                        Text("Version détectée : ${gameIntel?.gameVersion}", style = MaterialTheme.typography.bodySmall)
+                    }
+                    Text(
+                        gameIntel?.message ?: gameIntelError ?: "L'application vérifie les annonces officielles et les guides communautaires.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    gameIntelError?.let { Text(it, color = Color(0xFFFCA5A5), style = MaterialTheme.typography.bodySmall) }
+                    gameIntel?.items?.take(3)?.forEach { item ->
+                        Divider(color = MaterialTheme.colorScheme.outlineVariant)
+                        Text(item.title, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium)
+                        Text(item.summary, style = MaterialTheme.typography.bodySmall)
+                        Text(
+                            (if (item.status == "confirmed") "Source officielle" else "Communauté · à vérifier") + " — " + item.sourceName,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (item.status == "confirmed") Color(0xFF34D399) else Color(0xFFFBBF24)
+                        )
+                    }
+                    Text(
+                        "Contrôle automatique toutes les 6 h côté serveur. Les données personnelles du compte ne sont jamais remplacées.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
         }
 
         // Carte capture & autorisations (les autorisations disparaissent dès qu'elles sont accordées)
