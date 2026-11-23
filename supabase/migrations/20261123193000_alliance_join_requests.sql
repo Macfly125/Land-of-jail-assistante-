@@ -104,5 +104,7 @@ revoke all on function private.review_alliance_join_request(uuid,boolean,text) f
 -- required because the public SQL wrappers run with invoker privileges.
 grant execute on function private.submit_alliance_join_request(text,text,text,text) to authenticated;
 grant execute on function private.review_alliance_join_request(uuid,boolean,text) to authenticated;
+revoke all on function public.submit_alliance_join_request(text,text,text,text) from public, anon;
+revoke all on function public.review_alliance_join_request(uuid,boolean,text) from public, anon;
 grant execute on function public.submit_alliance_join_request(text,text,text,text) to authenticated;
 grant execute on function public.review_alliance_join_request(uuid,boolean,text) to authenticated;
