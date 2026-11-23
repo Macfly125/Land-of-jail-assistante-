@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   AlertTriangle,
   Camera,
@@ -70,7 +70,24 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onOpenMobileGuide,
 }) => {
   const [showCaptureSettings, setShowCaptureSettings] = useState(false);
+  const [apiStatus, setApiStatus] = useState<'checking' | 'online' | 'missing-key' | 'offline'>('checking');
   const copy = UI_COPY[language];
+
+  const checkApiHealth = async () => {
+    setApiStatus('checking');
+    try {
+      const response = await fetch('/api/health', { cache: 'no-store' });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const health = (await response.json()) as { ok?: boolean; geminiConfigured?: boolean };
+      setApiStatus(health.ok ? (health.geminiConfigured ? 'online' : 'missing-key') : 'offline');
+    } catch {
+      setApiStatus('offline');
+    }
+  };
+
+  useEffect(() => {
+    void checkApiHealth();
+  }, []);
 
   const uncertainHeroesCount = state.heroes.filter(
     (h) => h.incertain || h.competences.some((s) => s.incertain)
@@ -154,9 +171,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             {state.currentPower?.puissanceTotaleTexte || '—'}
           </div>
           <div className="mt-2 text-xs text-slate-400">
-            {state.currentPower?.niveauPrisonOuQG
-              ? `QG / Prison : ${state.currentPower.niveauPrisonOuQG}`
-              : 'Aucune capture profil'}
+            {[
+              state.currentPower?.niveauPrisonOuQG ? `QG / Prison : ${state.currentPower.niveauPrisonOuQG}` : null,
+              state.currentPower?.niveauVip ? `VIP ${state.currentPower.niveauVip}` : null,
+            ].filter(Boolean).join(' · ') || 'Profil à compléter'}
             {state.currentPower?.incertain ? ' · Incertain' : ''}
           </div>
         </div>
@@ -211,6 +229,33 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               ? 'Héros et ressources à vérifier'
               : 'Toutes les données vérifiées'}
           </div>
+        </button>
+      </section>
+
+      <section className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-slate-800 bg-[#121826] px-4 py-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${
+            apiStatus === 'online' ? 'bg-emerald-400' :
+            apiStatus === 'missing-key' ? 'bg-amber-400' :
+            apiStatus === 'offline' ? 'bg-rose-400' : 'bg-slate-500 animate-pulse'
+          }`} />
+          <div className="min-w-0">
+            <div className="text-sm font-medium text-slate-100">Service d’analyse IA</div>
+            <p className="text-xs text-slate-400">
+              {apiStatus === 'online' ? 'API accessible · clé Gemini configurée' :
+               apiStatus === 'missing-key' ? 'Serveur accessible · clé Gemini absente' :
+               apiStatus === 'offline' ? 'API inaccessible · analyse distante indisponible' :
+               'Vérification de la connexion au serveur…'}
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => void checkApiHealth()}
+          disabled={apiStatus === 'checking'}
+          className="min-h-[40px] px-3 py-2 rounded-lg border border-slate-700 bg-slate-900 text-xs font-semibold text-slate-200 hover:border-amber-400 disabled:opacity-50"
+        >
+          Tester le service
         </button>
       </section>
 
