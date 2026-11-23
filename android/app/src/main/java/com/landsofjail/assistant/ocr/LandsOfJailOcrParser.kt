@@ -277,7 +277,7 @@ object LandsOfJailOcrParser {
                 UncertainItem(
                     champ = "Type de capture",
                     valeurObservee = detectedCategory,
-                    raison = "Classification OCR de confiance \${screenRecognition.confidence}; vérification visuelle recommandée."
+                    raison = "Classification OCR de confiance ${screenRecognition.confidence}; vérification visuelle recommandée."
                 )
             )
         }
