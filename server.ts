@@ -1150,6 +1150,35 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
       }).filter((signal) => signal.category >= 0 && !signal.purelyDefensive)
         .sort((a, b) => a.category - b.category);
 
+      // Personalized hero signals: only verified skill descriptions are used.
+      // Trial Cage signals are text matches, never a combat simulation or guaranteed ranking.
+      const heroRecommendations = mode === 'trial_cage'
+        ? [...new Map(cageSkillSignals.map((signal) => [signal.hero, signal])).values()]
+            .slice(0, 6)
+            .map((signal) => ({
+              titre: signal.hero,
+              detail: `${signal.skill} — ${cageSignalLabelsByLang[targetLang][signal.category]}`,
+              herosCibles: [signal.hero],
+              incertain: true,
+              raisonIncertitude: targetLang === 'fr'
+                ? 'Correspondance fondée sur le texte visible de la compétence; dégâts réels, niveaux et synergies non simulés.'
+                : 'Matched from visible skill text; actual damage, levels and synergies are not simulated.',
+            }))
+        : mode === 'crystal_clash'
+          ? eventRoleContext.slice(0, 6).map((entry) => {
+              const [hero, ...roleParts] = entry.split(':');
+              return {
+                titre: hero.trim(),
+                detail: roleParts.join(':').trim(),
+                herosCibles: [hero.trim()],
+                incertain: true,
+                raisonIncertitude: targetLang === 'fr'
+                  ? 'Repère de rôle issu du catalogue communautaire; à confirmer avec la version actuelle du jeu et ton roster.'
+                  : 'Role hint from the community catalogue; verify against the current game version and your roster.',
+              };
+            })
+          : [];
+
       const cageSignalLabelsByLang: Record<TargetLang, string[]> = {
         fr: ['dégâts directs', 'bonus dégâts / dégâts subis par l’ennemi', 'réduction de DEF ennemie'],
         tr: ['doğrudan hasar', 'hasar bonusu / düşmanın aldığı hasar', 'düşman savunmasını düşürme'],
@@ -1279,6 +1308,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
           synthese: `${synthPrefix[targetLang]}${leadSummary}`,
           compositionRecommandee: `${compTextByLang[targetLang]}${groundedProfileContext}${eventRoleContextText}${cageAssessment}${cageRallyContext}${sandseaContext}${crystalContext}${turmoilContext}${goldHunterContext}${svsContext}`,
           ...(troopRatioProfiles.length ? { troopRatioTitle: ratioLabels[targetLang].title, troopRatioProfiles } : {}),
+          heroRecommendations,
           robotRecommendations,
           recommandations: liveGuides.slice(0, 4).map((g) => ({
             titre: g.title,
@@ -1289,6 +1319,11 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
           })),
           informationsIncertaines: [
             ...(heroNames.length === 0 ? [compTextByLang[targetLang]] : []),
+            ...(mode === 'trial_cage' && heroNames.length > 0 && heroRecommendations.length === 0
+              ? [targetLang === 'fr'
+                  ? 'Aucune recommandation de héros Trial Cage : aucune compétence offensive fiable et lisible dans ce profil. Complète les descriptions/compétences sans deviner.'
+                  : 'No Trial Cage hero recommendation: no reliable readable offensive skill was found in this profile. Complete skill descriptions without guessing.']
+              : []),
             ...(liveGuides.length === 0 ? [liveGuideUnavailableByLang[targetLang]] : []),
             ...((robots ?? []).length === 0 ? [targetLang === 'fr' ? 'Aucun robot enregistré dans ce profil : recommandations robots personnalisées indisponibles.' : 'No robots recorded in this profile; personalized robot advice is unavailable.'] : []),
             ...((robots ?? []).length > 0 && robotRecommendations.length === 0 ? [targetLang === 'fr' ? 'Aucun bonus robot saisi ne correspond explicitement aux critères textuels de cet événement. Aucune recommandation robot n’est inventée.' : 'No entered robot bonus explicitly matches this event’s text signals; no robot recommendation was invented.'] : []),

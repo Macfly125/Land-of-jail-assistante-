@@ -2598,6 +2598,30 @@ private fun AdviceScreen(
                 }
             }
 
+            if (res.heroRecommendations.isNotEmpty()) {
+                item {
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("Héros du profil — compétences correspondantes", fontWeight = FontWeight.SemiBold)
+                            Text(
+                                "Sélection fondée sur les compétences reconnues dans ce profil. Ce n’est pas un classement de puissance ni une simulation de combat.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            res.heroRecommendations.forEach { hero ->
+                                Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                    Text(hero.titre, fontWeight = FontWeight.Medium)
+                                    Text(hero.detail, style = MaterialTheme.typography.bodySmall)
+                                    hero.raisonIncertitude?.let {
+                                        Text("À vérifier : $it", color = Color(0xFFFBBF24), style = MaterialTheme.typography.bodySmall)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             if (res.robotRecommendations.isNotEmpty()) {
                 item {
                     Card(modifier = Modifier.fillMaxWidth()) {

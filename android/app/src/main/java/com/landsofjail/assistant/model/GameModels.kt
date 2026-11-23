@@ -350,6 +350,7 @@ data class TacticalAdviceResult(
     val synthese: String = "",
     val compositionRecommandee: String = "",
     val recommandations: List<AdviceRecommendation> = emptyList(),
+    val heroRecommendations: List<AdviceRecommendation> = emptyList(),
     val robotRecommendations: List<AdviceRecommendation> = emptyList(),
     val troopRatioTitle: String? = null,
     val troopRatioProfiles: List<TroopRatioProfile> = emptyList(),
