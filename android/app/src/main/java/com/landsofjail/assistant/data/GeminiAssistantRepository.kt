@@ -271,6 +271,8 @@ class GeminiAssistantRepository(
                     add("https://guideloj.com/fr/events/alliance/trial-cage-rally")
                     add("https://lojxlab.com/topic/cage/")
                     add("https://lojxlab.com/library/lands-of-jail-robot-upgrade-cost/")
+                    add("https://loj.dookee.ru/en/knowledge/cage/")
+                    add("https://lojstrats.com/")
                 }
                 AdviceMode.CRYSTAL_CLASH -> {
                     add("https://guideloj.com/fr/events/alliance/crystal-clash")
