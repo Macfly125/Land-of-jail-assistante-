@@ -102,4 +102,34 @@ class LandsOfJailOcrParserTest {
         assertEquals("ocr_local", result.detectedCategory)
         assertTrue(result.uncertainItems.isNotEmpty())
     }
+    @Test
+    fun recognizesBuildingScreensSeparatelyFromResources() {
+        val result = ScreenRecognitionEngine.analyze(
+            "Warden Office Level 18\\nUpgrade building\\nRequired resources"
+        )
+        assertEquals("batiments", result.category)
+        assertTrue(result.confidence >= 0.8f)
+        assertTrue(result.matchedLabels.isNotEmpty())
+    }
+
+    @Test
+    fun recognizesTroopScreensAndRequestsVisualConfirmationWhenEvidenceIsWeak() {
+        val result = ScreenRecognitionEngine.analyze("Shieldbearers")
+        assertEquals("troupes", result.category)
+        assertTrue(result.needsVisualConfirmation)
+    }
+
+    @Test
+    fun distinguishesHeroAndResourceScreensFromBuildingScreens() {
+        assertEquals("heros", ScreenRecognitionEngine.analyze("Heroes\\nSkills\\nStars").category)
+        assertEquals("ressources", ScreenRecognitionEngine.analyze("Food\\nWood\\nSteel").category)
+    }
+
+    @Test
+    fun doesNotClaimVisualRecognitionFromOcrAlone() {
+        val result = ScreenRecognitionEngine.analyze("Level 18")
+        assertEquals("ocr_local", result.category)
+        assertTrue(result.needsVisualConfirmation)
+    }
+
 }
