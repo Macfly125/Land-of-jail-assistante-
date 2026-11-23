@@ -134,10 +134,7 @@ object LandsOfJailOcrParser {
                     // Ne jamais emprunter les étoiles, la rareté ou le niveau du héros suivant.
                     // Les captures OCR présentent souvent plusieurs cartes de héros à la suite.
                     val isAnotherHeroLine: (String) -> Boolean = { candidateLine ->
-                        KNOWN_HEROES.any { otherName ->
-                            Regex("(?<![\\p{L}])${Regex.escape(otherName)}(?![\\p{L}])", RegexOption.IGNORE_CASE)
-                                .containsMatchIn(candidateLine)
-                        }
+                        KNOWN_HEROES.any { otherName -> matchesHeroName(otherName, candidateLine) }
                     }
                     val contextLines = lines.subList(index, minOf(lines.size, index + 3))
                         .withIndex()
