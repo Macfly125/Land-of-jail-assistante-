@@ -210,7 +210,6 @@ export default function App() {
             competences?: Array<{
               nom: string;
               niveau: string;
-              type?: string;
               description?: string;
               incertain: boolean;
               raisonIncertitude?: string;

@@ -97,6 +97,25 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: gradle assembleRelease --no-daemon --stacktrace -PVERSION_CODE=${{ github.run_number }} -PVERSION_NAME=1.1.${{ github.run_number }}
 
+      - name: Vérifier le paquet APK généré
+        shell: bash
+        run: |
+          if [ -f android/app/build/outputs/apk/release/app-release.apk ]; then
+            APK="android/app/build/outputs/apk/release/app-release.apk"
+          elif [ -f android/app/build/outputs/apk/debug/app-debug.apk ]; then
+            APK="android/app/build/outputs/apk/debug/app-debug.apk"
+          else
+            echo "::error::Aucun APK généré."
+            exit 1
+          fi
+          SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          APKSIGNER=$(find "$SDK_ROOT/build-tools" -name apksigner -type f | sort -V | tail -n 1)
+          AAPT=$(find "$SDK_ROOT/build-tools" -name aapt -type f | sort -V | tail -n 1)
+          test -n "$APKSIGNER" && test -n "$AAPT"
+          "$APKSIGNER" verify --verbose "$APK"
+          "$AAPT" dump badging "$APK" | grep -E "^(package:|sdkVersion:|targetSdkVersion:)"
+          echo "APK validé : $APK ($(du -h "$APK" | cut -f1))"
+
       - name: Publier l'APK release signé
         if: steps.signing.outputs.available == 'true'
         uses: actions/upload-artifact@v4
