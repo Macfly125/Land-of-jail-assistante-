@@ -1147,45 +1147,74 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
         en: `${modeName} · Role: ${roleLabel}. `,
       };
 
-      // Heuristic Trial Cage assessment: only explicit skill text can qualify a hero.
-      // This is a transparent signal detector, not a combat-damage simulation.
+      // Trial Cage: classify only verified War skills. Arrest skills never enter this calculation.
+      // This is a transparent text-based candidate selector, not a damage simulator.
       const cageSkillSignals = (heroes ?? []).flatMap((hero) => {
-        const uncertainFields = new Set(hero.champsIncertains || []);
-        if (uncertainFields.has('etoiles') || uncertainFields.has('niveau')) return [];
-        return (hero.competences || [])
-          .filter((skill) => skill.type?.toLowerCase() === 'war' && !skill.incertain && Boolean(skill.description?.trim()))
-          .map((skill) => {
-            const effect = skill.description!.toLocaleLowerCase();
-            // Do not treat the bare word "damage" as an offensive signal:
-            // "reduces damage taken" is defensive, while "deals damage" is offensive.
-            const incomingDamageReduction = /damage reduction|reduce[s]? damage taken|reduce[s]? incoming damage|less damage taken|réduction des dégâts reçus|réduit les dégâts reçus|diminue les dégâts subis|уменьш.*получаем.*урон|сниж.*получаем.*урон|受到的伤害降低|降低受到的伤害|alınan hasarı azalt|erlitten schaden.*reduzier|erlittenen schaden.*senk/i.test(effect);
-            const directDamage = /(?:deal|deals|dealing|inflict|inflicts|cause|causes)\s+(?:\w+\s+){0,2}(?:damage|dmg)|(?:damage|dmg)\s+(?:to|against)\s+(?:the\s+)?(?:enemy|enemies|opponent)|inflige(?:r|s|nt)?\s+(?:des?\s+)?dégâts?|наносит урон|причиняет урон|造成伤害|对敌人造成伤害|hasar verir|hasar uygular|verursacht schaden|fügt.*schaden zu/i.test(effect);
-            const enemyDamageTaken = /enemy.{0,35}(?:take|takes|receive|receives).{0,20}(?:more|increased|additional).{0,20}damage|(?:increase|increases|increased|boosts?).{0,35}damage taken by (?:the )?enemy(?: troops)?|damage taken by (?:the )?enemy(?: troops)?|augmente les dégâts subis par (?:l'ennemi|les ennemis)|dégâts subis par l'ennemi.*augment|увелич.*получаем.*урон.*враг|敌人受到的伤害.*提高|hasar alımını artır.*düşman/i.test(effect);
-            const damageBoost = /attack increase|increase[s]? (?:allied |troop )?(?:damage(?: dealt)?|attack|atk)|(?:increase|increases|boosts?) (?:the )?(?:troop )?attack|damage increase|bonus damage|augmente.*(?:dégâts infligés|attaque)|bonus de dégâts|dégâts? infligés.*augment|повыш.*атак|увелич.*урон|урон.*увелич|伤害.*提高|攻击.*提高|hasar.*art|saldırı.*art|schaden.*erhöh|angriff.*erhöh/i.test(effect);
-            const defenseBreak = /(?:reduce|reduces|lower|lowers|decrease|decreases).{0,30}(?:enemy|opponent)?\s*(?:troops?\s*)?(?:defen[cs]e|armor)|(?:enemy|opponent).{0,25}(?:defen[cs]e|armor).{0,20}(?:reduc|lower|decreas)|defen[cs]e reduc|armor reduc|降低.*防御|防御降低|défense.*réduit|réduit.*défense|уменьш.*защит|сниж.*защит|savunma.*azal|düşman.*savunma.*azal|verteidig.*senk|senk.*verteidig/i.test(effect);
-            const hasOffensiveSignal = directDamage || enemyDamageTaken || damageBoost || defenseBreak;
-            const purelyDefensive = (incomingDamageReduction || /heal|healing|shield|soin|soigne|bouclier|лечени|щит|лечение|护盾|治疗|iyileştir|kalkan|heilung|schild/i.test(effect))
-              && !hasOffensiveSignal;
-            const category = directDamage ? 0 : enemyDamageTaken || damageBoost ? 1 : defenseBreak ? 2 : -1;
-            return { hero: hero.nom, skill: skill.nom, category, purelyDefensive };
-          });
+        const warSkills = (hero.competences || []).filter((skill) =>
+          skill.type?.toLowerCase() === 'war' && !skill.incertain && Boolean(skill.description?.trim())
+        );
+        return warSkills.map((skill) => {
+          const effect = skill.description!.toLocaleLowerCase();
+          const incomingDamageReduction = /damage reduction|reduce[s]? damage taken|reduce[s]? incoming damage|less damage taken|réduction des dégâts reçus|réduit les dégâts reçus|diminue les dégâts subis|уменьш.*получаем.*урон|сниж.*получаем.*урон|受到的伤害降低|降低受到的伤害|alınan hasarı azalt|erlitten schaden.*reduzier|erlittenen schaden.*senk/i.test(effect);
+          const directDamage = /(?:deal|deals|dealing|inflict|inflicts|cause|causes)\s+(?:\w+\s+){0,2}(?:damage|dmg)|(?:damage|dmg)\s+(?:to|against)\s+(?:the\s+)?(?:enemy|enemies|opponent)|inflige(?:r|s|nt)?\s+(?:des?\s+)?dégâts?|наносит урон|причиняет урон|造成伤害|对敌人造成伤害|hasar verir|hasar uygular|verursacht schaden|fügt.*schaden zu/i.test(effect);
+          const enemyDamageTaken = /enemy.{0,35}(?:take|takes|receive|receives).{0,20}(?:more|increased|additional).{0,20}damage|(?:increase|increases|increased|boosts?).{0,35}damage taken by (?:the )?enemy(?: troops)?|damage taken by (?:the )?enemy(?: troops)?|augmente les dégâts subis par (?:l'ennemi|les ennemis)|dégâts subis par l'ennemi.*augment|увелич.*получаем.*урон.*враг|敌人受到的伤害.*提高|hasar alımını artır.*düşman/i.test(effect);
+          const troopDamageBoost = /increase[s]? (?:allied |troop )?damage(?: dealt)?|damage increase|bonus damage|augmente.*dégâts infligés|bonus de dégâts|dégâts? infligés.*augment|увелич.*урон|урон.*увелич|伤害.*提高|hasar.*art|schaden.*erhöh/i.test(effect);
+          const attackBoost = /attack increase|increase[s]? (?:allied |troop )?attack|increase[s]? (?:allied |troop )?atk|boosts? (?:allied |troop )?attack|augmente.*attaque|повыш.*атак|攻击.*提高|saldırı.*art|angriff.*erhöh/i.test(effect);
+          const defenseBreak = /(?:reduce|reduces|lower|lowers|decrease|decreases).{0,30}(?:enemy|opponent)?\s*(?:troops?\s*)?(?:defen[cs]e|armor)|(?:enemy|opponent).{0,25}(?:defen[cs]e|armor).{0,20}(?:reduc|lower|decreas)|defen[cs]e reduc|armor reduc|降低.*防御|防御降低|défense.*réduit|réduit.*défense|уменьш.*защит|сниж.*защит|savunma.*azal|düşman.*savunma.*azal|verteidig.*senk|senk.*verteidig/i.test(effect);
+          const hasOffensiveSignal = directDamage || enemyDamageTaken || troopDamageBoost || attackBoost || defenseBreak;
+          const purelyDefensive = (incomingDamageReduction || /heal|healing|shield|soin|soigne|bouclier|лечени|щит|лечение|护盾|治疗|iyileştir|kalkan|heilung|schild/i.test(effect)) && !hasOffensiveSignal;
+          const category = enemyDamageTaken ? 0 : troopDamageBoost ? 1 : attackBoost ? 2 : defenseBreak ? 3 : directDamage ? 4 : -1;
+          const skillLevel = Number(String(skill.niveau || '').match(/\d+/)?.[0] || 0);
+          return { hero: hero.nom, heroClass: hero.typeTroupe || '', skill: skill.nom, skillLevel, category, purelyDefensive };
+        });
       }).filter((signal) => signal.category >= 0 && !signal.purelyDefensive)
-        .sort((a, b) => a.category - b.category);
+        .sort((a, b) => a.category - b.category || b.skillLevel - a.skillLevel);
 
-      // Personalized hero signals: only verified skill descriptions are used.
-      // Trial Cage signals are text matches, never a combat simulation or guaranteed ranking.
       const heroRecommendations = mode === 'trial_cage'
-        ? [...new Map(cageSkillSignals.map((signal) => [signal.hero, signal])).values()]
-            .slice(0, 6)
-            .map((signal) => ({
-              titre: signal.hero,
-              detail: `${signal.skill} — ${['dégâts directs', 'bonus dégâts / dégâts subis par l’ennemi', 'réduction de DEF ennemie'][signal.category]}`,
+        ? (() => {
+            // Leaders use the complete War kit of three heroes, one per troop class.
+            const leaderByClass = new Map<string, { hero: string; heroClass: string; skills: string[]; signalCount: number }>();
+            for (const hero of heroes ?? []) {
+              const warSkills = (hero.competences || []).filter((skill) => skill.type?.toLowerCase() === 'war');
+              if (warSkills.length < 3 || !hero.typeTroupe?.trim()) continue;
+              const signals = cageSkillSignals.filter((signal) => signal.hero === hero.nom);
+              const key = hero.typeTroupe.trim().toLowerCase();
+              const previous = leaderByClass.get(key);
+              const candidate = { hero: hero.nom, heroClass: hero.typeTroupe, skills: warSkills.slice(0, 3).map((skill) => skill.nom), signalCount: signals.length };
+              if (!previous || candidate.signalCount > previous.signalCount) leaderByClass.set(key, candidate);
+            }
+            const leaders = [...leaderByClass.values()].map((candidate) => ({
+              titre: `Chef — ${candidate.heroClass}: ${candidate.hero}`,
+              detail: `Kit War détecté: ${candidate.skills.join(', ')}. À associer avec un héros de chacune des deux autres classes.`,
+              herosCibles: [candidate.hero],
+              incertain: true,
+              raisonIncertitude: targetLang === 'fr'
+                ? 'Candidat fondé sur les compétences War et la classe lues dans ton profil; puissance, équipement, buffs et dégâts réels ne sont pas simulés.'
+                : 'Candidate based on War skills and troop class read from your profile; power, equipment, buffs and actual damage are not simulated.',
+            }));
+
+            // Joiners contribute only their first War skill. Keep the best known
+            // skill level for each distinct effect family to reduce duplicate buffs.
+            const joinerByCategory = new Map<number, (typeof cageSkillSignals)[number]>();
+            for (const hero of heroes ?? []) {
+              const firstWarSkill = (hero.competences || []).find((skill) => skill.type?.toLowerCase() === 'war');
+              if (!firstWarSkill || firstWarSkill.incertain) continue;
+              const signal = cageSkillSignals.find((item) => item.hero === hero.nom && item.skill === firstWarSkill.nom);
+              if (!signal) continue;
+              const previous = joinerByCategory.get(signal.category);
+              if (!previous || signal.skillLevel > previous.skillLevel) joinerByCategory.set(signal.category, signal);
+            }
+            const joiners = [...joinerByCategory.values()].sort((a, b) => a.category - b.category).map((signal) => ({
+              titre: `Participant — ${signal.hero}`,
+              detail: `Première compétence War: ${signal.skill} (niv. ${signal.skillLevel || 'à confirmer'}) — ${['dégâts subis par l’ennemi', 'dégâts infligés aux troupes alliées', 'ATQ des troupes alliées', 'réduction de DEF ennemie', 'dégâts directs'][signal.category]}`,
               herosCibles: [signal.hero],
               incertain: true,
               raisonIncertitude: targetLang === 'fr'
-                ? 'Correspondance fondée sur le texte visible de la compétence; dégâts réels, niveaux et synergies non simulés.'
-                : 'Matched from visible skill text; actual damage, levels and synergies are not simulated.',
-            }))
+                ? 'Candidat participant basé sur la première compétence War visible; le niveau doit être vérifié et seuls les quatre meilleurs niveaux retenus par le jeu comptent selon le guide communautaire.'
+                : 'Joiner candidate based on the visible first War skill; verify its level. The game selects the four highest-level joiner skills according to the community guide.',
+            }));
+            return [...leaders, ...joiners].slice(0, 10);
+          })()
         : mode === 'crystal_clash'
           ? eventRoleContext.slice(0, 6).map((entry) => {
               const [hero, ...roleParts] = entry.split(':');
@@ -1202,12 +1231,12 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
           : [];
 
       const cageSignalLabelsByLang: Record<TargetLang, string[]> = {
-        fr: ['dégâts directs', 'bonus dégâts / dégâts subis par l’ennemi', 'réduction de DEF ennemie'],
-        tr: ['doğrudan hasar', 'hasar bonusu / düşmanın aldığı hasar', 'düşman savunmasını düşürme'],
-        ru: ['прямой урон', 'бонус урона / увеличение получаемого врагом урона', 'снижение защиты врага'],
-        zh: ['直接伤害', '伤害加成 / 提高敌人受到的伤害', '降低敌方防御'],
-        de: ['direkter Schaden', 'Schadensbonus / erhöhter erlittener Gegner-Schaden', 'Senkung der Gegnerverteidigung'],
-        en: ['direct damage', 'damage buff / increased enemy damage taken', 'enemy defense reduction'],
+        fr: ['dégâts subis par l’ennemi', 'dégâts infligés aux troupes alliées', 'ATQ des troupes alliées', 'réduction de DEF ennemie', 'dégâts directs'],
+        tr: ['düşmanın aldığı hasar', 'dost birliklerin verdiği hasar', 'dost birliklerin saldırısı', 'düşman savunmasını düşürme', 'doğrudan hasar'],
+        ru: ['получаемый врагом урон', 'урон союзных войск', 'атака союзных войск', 'снижение защиты врага', 'прямой урон'],
+        zh: ['敌人受到的伤害', '友军造成的伤害', '友军攻击', '降低敌方防御', '直接伤害'],
+        de: ['erlittener Gegnerschaden', 'Schaden verbündeter Truppen', 'Angriff verbündeter Truppen', 'Senkung der Gegnerverteidigung', 'direkter Schaden'],
+        en: ['enemy damage taken', 'damage dealt by allied troops', 'allied troop attack', 'enemy defense reduction', 'direct damage'],
       };
       const cageAssessmentText: Record<TargetLang, string> = {
         fr: 'Indices offensifs détectés dans les descriptions de compétences (heuristique, pas une simulation) :',
@@ -1227,7 +1256,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
       // Trial Cage rally guidance from the curated in-app reference catalogue.
       // Keep launcher ratios separate from joiner troop composition.
       const cageRallyGuidance: Record<TargetLang, string> = {
-        fr: ' Référence communautaire Trial Cage mise à jour le 4 novembre 2026 (à vérifier après chaque mise à jour du jeu) : ratio du chef sans Ada 0% Shieldbearers / 10% Bombers / 90% Shooters; avec Ada 1% / 9% / 90%, en vérifiant aussi le nombre réel de Shieldbearers (environ 1 000 selon le guide). Pour un participant : 0/10/90 ou 0/0/100 selon les consignes du ralliement. Les rôles sont différents : ne transposez pas automatiquement le ratio du chef au participant. Le guide LOJ XLab rapporte que le chef apporte ses 3 héros et leurs compétences de guerre, tandis que chaque participant apporte la première compétence de guerre de son premier héros; seules les quatre compétences de participants retenues comptent selon cette observation communautaire. Vérifiez la compétence réellement affichée dans les bonus du ralliement et évitez les bonus identiques.',
+        fr: ' Référence communautaire Trial Cage mise à jour le 4 novembre 2026 (à vérifier après chaque mise à jour du jeu) : ratio du chef sans Ada 0% Shieldbearers / 10% Bombers / 90% Shooters; avec Ada 1% / 9% / 90%, en vérifiant aussi le nombre réel de Shieldbearers (environ 1 000 selon le guide). Pour un participant : 0/10/90 ou 0/0/100 selon les consignes du ralliement. Les rôles sont différents : ne transposez pas automatiquement le ratio du chef au participant. Le guide LOJ XLab rapporte que le chef apporte les compétences War de ses 3 héros (un par classe), tandis que chaque participant apporte uniquement la première compétence War de son premier héros. Le jeu retient jusqu’à quatre compétences de participants, en privilégiant les niveaux les plus élevés puis l’ordre de formation en cas d’égalité. Vérifiez les bonus réellement appliqués dans le ralliement et évitez les effets identiques.',
         tr: '4 Kasım 2026 tarihli topluluk Trial Cage referansı (oyun güncellemelerinden sonra tekrar doğrulayın): Ada olmadan lider oranı %0 Shieldbearer / %10 Bomber / %90 Shooter; Ada ile %1 / %9 / %90 ve gerçek Shieldbearer sayısını da kontrol edin (rehbere göre yaklaşık 1.000). Katılan oyuncu için ralli talimatına göre %0/10/90 veya %0/0/100. Roller farklıdır; lider oranını katılana otomatik uygulamayın. LOJ XLab topluluk gözlemine göre lider 3 kahramanının savaş becerilerini sağlar; her katılımcı ilk kahramanının ilk savaş becerisini sağlar ve katılımcı becerilerinden yalnızca seçilen dört tanesi sayılır. Ralli bonuslarında gerçekten uygulanan beceriyi kontrol edin ve aynı bonusları tekrarlamayın.',
         ru: 'Обновленный 4 ноября 2026 года ориентир сообщества для Trial Cage (перепроверяйте после обновлений игры): состав лидера без Ada — 0% Shieldbearer / 10% Bomber / 90% Shooter; с Ada — 1% / 9% / 90%, дополнительно проверьте фактическое число Shieldbearer (около 1 000 по руководству). Для участника — 0/10/90 или 0/0/100 согласно указаниям рейда. Роли различаются: не переносите автоматически соотношение лидера на участника. По наблюдениям сообщества LOJ XLab, лидер дает навыки всех трех героев, а каждый участник — первый боевой навык первого героя; учитываются только четыре выбранных навыка участников. Проверьте фактически примененный навык в бонусах рейда и избегайте дублирования бонусов.',
         zh: '2026 年 11 月 4 日更新的 Trial Cage 社区参考（游戏更新后需重新核实）：队长无 Ada 时比例为 0% Shieldbearer / 10% Bomber / 90% Shooter；有 Ada 时为 1% / 9% / 90%，还要核对 Shieldbearer 实际数量（指南建议约 1,000）。加入者按集结要求使用 0/10/90 或 0/0/100。两种角色不同，不要把队长比例直接套用给加入者。LOJ XLab 的社区观察称，队长提供三名英雄的战争技能，每位加入者提供其第一名英雄的第一项战争技能；加入者技能只计入被选中的四项。请在集结奖励中核对实际生效的技能，并避免重复加成。',
