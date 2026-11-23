@@ -263,6 +263,14 @@ fun LandsOfJailAssistantApp(
         }.getOrDefault(AllianceWorkspace()))
     }
 
+    var showAllianceOnboarding by remember {
+        mutableStateOf(!accountPrefs.getBoolean("alliance_onboarding_completed_v1", false))
+    }
+    var onboardingPlayerName by remember { mutableStateOf(allianceWorkspace.ownProfile.playerName) }
+    var onboardingServer by remember { mutableStateOf(allianceWorkspace.server) }
+    var onboardingAllianceTag by remember { mutableStateOf(allianceWorkspace.allianceName) }
+    var onboardingRank by remember { mutableStateOf(allianceWorkspace.ownProfile.rank) }
+
     var analyses by remember {
         mutableStateOf(runCatching {
             accountJson.decodeFromString<List<ScreenshotAnalysis>>(
@@ -1604,7 +1612,116 @@ fun LandsOfJailAssistantApp(
                         })
                 }
             }
+
         }
+    }
+
+    if (showAllianceOnboarding) {
+        AlertDialog(
+            onDismissRequest = {
+                showAllianceOnboarding = false
+                accountPrefs.edit().putBoolean("alliance_onboarding_completed_v1", true).apply()
+            },
+            title = { Text("Bienvenue · Inscription joueur") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        "Renseigne ton identité dans Land of Jail. Ces informations seront enregistrées sur cet appareil et pourront être transmises aux officiers de ton alliance après connexion.",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    OutlinedTextField(
+                        value = onboardingPlayerName,
+                        onValueChange = { onboardingPlayerName = it.take(40) },
+                        label = { Text("Pseudo dans le jeu") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = onboardingServer,
+                        onValueChange = { onboardingServer = it.filter(Char::isDigit).take(6) },
+                        label = { Text("Serveur (ex. 311)") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = onboardingAllianceTag,
+                        onValueChange = { onboardingAllianceTag = it.take(12) },
+                        label = { Text("Initiales / tag de l'alliance") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Text("Ton rang déclaré", style = MaterialTheme.typography.labelLarge)
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                        items(AllianceRank.entries) { item ->
+                            FilterChip(
+                                selected = onboardingRank == item,
+                                onClick = { onboardingRank = item },
+                                label = { Text(item.name) }
+                            )
+                        }
+                    }
+                    Text(
+                        "Le rang R4/R5 devra être confirmé par un officier. Aucun droit n'est accordé sur simple déclaration.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFFFBBF24)
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val player = AlliancePlayerProfile(
+                            id = allianceWorkspace.ownProfile.id.ifBlank { UUID.randomUUID().toString() },
+                            playerName = onboardingPlayerName.trim(),
+                            server = onboardingServer.trim(),
+                            allianceName = onboardingAllianceTag.trim(),
+                            rank = onboardingRank,
+                            powerText = allianceWorkspace.ownProfile.powerText,
+                            heroSkillSummary = allianceWorkspace.ownProfile.heroSkillSummary,
+                            robotSummary = allianceWorkspace.ownProfile.robotSummary,
+                            updatedAtIso = Instant.now().toString()
+                        )
+                        allianceWorkspace = allianceWorkspace.copy(
+                            server = onboardingServer.trim(),
+                            allianceName = onboardingAllianceTag.trim(),
+                            ownProfile = player
+                        )
+                        accountPrefs.edit().putBoolean("alliance_onboarding_completed_v1", true).apply()
+                        showAllianceOnboarding = false
+                        currentTab = AssistantTab.ALLIANCE
+                        if (profileAuth.currentSession() != null &&
+                            onboardingPlayerName.isNotBlank() &&
+                            onboardingServer.isNotBlank() &&
+                            onboardingAllianceTag.isNotBlank() &&
+                            accountPrefs.getString("cloud_alliance_id", "").isNullOrBlank()
+                        ) {
+                            scope.launch {
+                                profileAuth.submitAllianceJoinRequest(
+                                    onboardingServer, onboardingAllianceTag, onboardingPlayerName, onboardingRank.name
+                                ).onSuccess {
+                                    snackbarHostState.showSnackbar("Demande envoyée aux R4/R5 de l'alliance.")
+                                }.onFailure {
+                                    snackbarHostState.showSnackbar(it.message ?: "Demande non envoyée. Vérifie le compte et le tag.")
+                                }
+                            }
+                        } else {
+                            scope.launch {
+                                snackbarHostState.showSnackbar("Profil enregistré. Connecte-toi pour transmettre la demande aux officiers.")
+                            }
+                        }
+                    },
+                    enabled = onboardingPlayerName.isNotBlank() && onboardingServer.isNotBlank() && onboardingAllianceTag.isNotBlank()
+                ) { Text("Enregistrer et continuer") }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showAllianceOnboarding = false
+                        accountPrefs.edit().putBoolean("alliance_onboarding_completed_v1", true).apply()
+                    }
+                ) { Text("Plus tard") }
+            }
+        )
     }
 }
 
