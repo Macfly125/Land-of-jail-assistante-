@@ -363,6 +363,14 @@ fun LandsOfJailAssistantApp(
         }
     }
 
+    LaunchedEffect(localProfiles, accountDataLoaded) {
+        if (accountDataLoaded) {
+            accountPrefs.edit()
+                .putString("local_game_profiles_v1", accountJson.encodeToString(localProfiles))
+                .commit()
+        }
+    }
+
     LaunchedEffect(allianceWorkspace) {
         accountPrefs.edit()
             .putString("alliance_workspace", accountJson.encodeToString(allianceWorkspace))
