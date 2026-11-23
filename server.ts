@@ -20,18 +20,18 @@ function getGeminiQuotaError(error: unknown): { message: string; retryAfterSecon
     !normalized.includes('resource_exhausted') &&
     !normalized.includes('quota exceeded') &&
     !normalized.includes('generate_content_free_tier_requests') &&
-    !/\\b429\\b/.test(normalized)
+    !/\b429\b/.test(normalized)
   ) return null;
 
   let retryAfterSeconds: number | undefined;
-  const retryDelay = raw.match(/retryDelay["':=\\s]+["']?((?:\\d+h)?(?:\\d+m)?(?:\\d+(?:\\.\\d+)?s))/i)?.[1];
+  const retryDelay = raw.match(/retryDelay["':=\s]+["']?((?:\d+h)?(?:\d+m)?(?:\d+(?:\.\d+)?s))/i)?.[1];
   if (retryDelay) {
-    const hours = Number(retryDelay.match(/(\\d+)h/i)?.[1] || 0);
-    const minutes = Number(retryDelay.match(/(\\d+)m/i)?.[1] || 0);
-    const seconds = Number(retryDelay.match(/(\\d+(?:\\.\\d+)?)s/i)?.[1] || 0);
+    const hours = Number(retryDelay.match(/(\d+)h/i)?.[1] || 0);
+    const minutes = Number(retryDelay.match(/(\d+)m/i)?.[1] || 0);
+    const seconds = Number(retryDelay.match(/(\d+(?:\.\d+)?)s/i)?.[1] || 0);
     retryAfterSeconds = Math.ceil(hours * 3600 + minutes * 60 + seconds);
   } else {
-    const retrySeconds = raw.match(/retry(?: after| in)[^0-9]{0,20}(\\d+(?:\\.\\d+)?)\\s*s/i)?.[1];
+    const retrySeconds = raw.match(/retry(?: after| in)[^0-9]{0,20}(\d+(?:\.\d+)?)\s*s/i)?.[1];
     if (retrySeconds) retryAfterSeconds = Math.ceil(Number(retrySeconds));
   }
 
