@@ -288,7 +288,7 @@ class SupabaseAuthRepository(context: Context) {
                     AlliancePlayerProfile(
                         id = userId,
                         playerName = profile?.get("player_name")?.jsonPrimitive?.contentOrNull
-                            ?.takeIf { it.isNotBlank() } ?: "Profil non synchronisé",
+                            ?.takeIf { it.isNotBlank() } ?: "Membre ${userId.take(8)}",
                         rank = rank,
                         powerText = profile?.get("power_text")?.jsonPrimitive?.contentOrNull.orEmpty(),
                         heroSkillSummary = heroSummary,
