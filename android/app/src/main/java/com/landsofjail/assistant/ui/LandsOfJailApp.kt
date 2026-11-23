@@ -40,6 +40,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
+import coil.compose.SubcomposeAsyncImageContent
 import com.landsofjail.assistant.capture.CapturedScreenPayload
 import com.landsofjail.assistant.capture.ScreenCaptureConsentActivity
 import com.landsofjail.assistant.data.GeminiAssistantRepository
@@ -2197,6 +2199,23 @@ private fun DashboardScreen(
     }
 }
 
+
+@Composable
+private fun HeroPortraitFallback(typeTroupe: String?) {
+    val classIcon = when (typeTroupe) {
+        "Shieldbearer" -> "🛡️"
+        "Shooter" -> "🎯"
+        "Bomber" -> "💥"
+        else -> "⭐"
+    }
+    Box(
+        modifier = Modifier.size(58.dp).clip(RoundedCornerShape(10.dp)),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(classIcon, fontSize = 28.sp)
+    }
+}
+
 @Composable
 private fun HeroesScreen(
     heroes: List<HeroRecord>,
@@ -2281,25 +2300,17 @@ private fun HeroesScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         if (!entry.portraitUrl.isNullOrBlank()) {
-                            AsyncImage(
+                            SubcomposeAsyncImage(
                                 model = entry.portraitUrl,
                                 contentDescription = "Portrait de ${entry.nom}",
                                 contentScale = ContentScale.Crop,
-                                modifier = Modifier.size(58.dp).clip(RoundedCornerShape(10.dp))
+                                modifier = Modifier.size(58.dp).clip(RoundedCornerShape(10.dp)),
+                                loading = { HeroPortraitFallback(entry.typeTroupe) },
+                                error = { HeroPortraitFallback(entry.typeTroupe) },
+                                success = { SubcomposeAsyncImageContent() }
                             )
                         } else {
-                            val classIcon = when (entry.typeTroupe) {
-                                "Shieldbearer" -> "🛡️"
-                                "Shooter" -> "🎯"
-                                "Bomber" -> "💥"
-                                else -> "⭐"
-                            }
-                            Box(
-                                modifier = Modifier.size(58.dp).clip(RoundedCornerShape(10.dp)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(classIcon, fontSize = 28.sp)
-                            }
+                            HeroPortraitFallback(entry.typeTroupe)
                         }
                         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             Text(entry.nom, fontWeight = FontWeight.SemiBold)
