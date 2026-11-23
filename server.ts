@@ -1191,7 +1191,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
             const bestByRole = new Map<number, { hero: string; skill: string; level: number; description: string; role: string; category: number }>();
             for (const hero of heroes ?? []) {
               for (const skill of hero.competences || []) {
-                if (skill.type?.toLowerCase() !== 'war' || skill.incertain || !skill.description?.trim()) continue;
+                if (!['war', 'equipment'].includes(skill.type?.toLowerCase() || '') || skill.incertain || !skill.description?.trim()) continue;
                 for (const candidate of rolePatterns) {
                   if (!candidate.pattern.test(skill.description)) continue;
                   const level = Number(String(skill.niveau || '').match(/\d+/)?.[0] || 0);
@@ -1295,7 +1295,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
             const bestByRole = new Map<number, { hero: string; skill: string; level: number; description: string; role: string; category: number }>();
             for (const hero of heroes ?? []) {
               for (const skill of hero.competences || []) {
-                if (skill.type?.toLowerCase() !== 'war' || skill.incertain || !skill.description?.trim()) continue;
+                if (!['war', 'equipment'].includes(skill.type?.toLowerCase() || '') || skill.incertain || !skill.description?.trim()) continue;
                 const text = `${skill.nom} ${skill.description}`;
                 for (const candidate of rolePatterns) {
                   if (!candidate.pattern.test(text)) continue;
