@@ -50,7 +50,7 @@ import { HistoryView } from './components/HistoryView';
 import { ShareCaptureModal } from './components/ShareCaptureModal';
 import { ScreenCaptureConsentModal } from './components/ScreenCaptureConsentModal';
 import { AccountAccess } from './components/AccountAccess';
-import { CloudUser, getSignedInUser, loadCloudGameProfiles, saveCloudGameProfiles, signOutCloud } from './utils/cloudSync';
+import { CloudUser, deleteCloudGameProfile, getSignedInUser, loadCloudGameProfiles, saveCloudGameProfiles, signOutCloud } from './utils/cloudSync';
 
 type NavTab = 'tableau' | 'heros' | 'ressources' | 'conseils' | 'historique';
 
@@ -322,6 +322,41 @@ export default function App() {
     setActiveProfileId(target.id);
     setState(target.state);
     setActiveTab('tableau');
+  };
+
+  const handleRenameProfile = (profileId: string, name: string) => {
+    const cleanName = name.trim().slice(0, 32);
+    if (!cleanName) return;
+    setProfileData((current) => ({
+      ...current,
+      profiles: current.profiles.map((profile) =>
+        profile.id === profileId
+          ? { ...profile, name: cleanName, updatedAt: new Date().toISOString() }
+          : profile
+      ),
+    }));
+  };
+
+  const handleDeleteProfile = async (profileId: string) => {
+    if (profileData.profiles.length <= 1) {
+      showToast('Conserve au moins un profil de jeu.');
+      return;
+    }
+    try {
+      if (authUser && cloudReady) await deleteCloudGameProfile(profileId);
+      const remaining = profileData.profiles.filter((profile) => profile.id !== profileId);
+      const nextActive = profileId === activeProfileId ? remaining[0] : remaining.find((p) => p.id === activeProfileId)!;
+      const nextCollection = { profiles: remaining, activeProfileId: nextActive.id };
+      setProfileData(nextCollection);
+      if (profileId === activeProfileId) {
+        setActiveProfileId(nextActive.id);
+        setState(nextActive.state);
+      }
+      showToast('Profil supprimé.');
+    } catch (error) {
+      setCloudStatus('Suppression cloud impossible — profil conservé');
+      showToast(error instanceof Error ? error.message : 'Impossible de supprimer ce profil du cloud.');
+    }
   };
 
   const handleCreateProfile = (name: string) => {
@@ -905,6 +940,8 @@ export default function App() {
             activeProfileId={activeProfileId}
             onSwitchProfile={handleSwitchProfile}
             onCreateProfile={handleCreateProfile}
+            onRenameProfile={handleRenameProfile}
+            onDeleteProfile={(profileId) => { void handleDeleteProfile(profileId); }}
             cloudStatus={cloudStatus}
             language={language}
             onChangeLanguage={(lang) => setState((prev) => updateLanguageInState(prev, lang))}
