@@ -1329,7 +1329,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
               .sort((a, b) => (b.niveau ?? 0) - (a.niveau ?? 0) || a.nom.localeCompare(b.nom));
             return candidates.slice(0, 4).map((hero, index) => ({
               titre: `Felons — priorité ${index + 1}: ${hero.nom}`,
-              detail: `Niveau ${hero.niveau ?? hero.niveauTexte || 'à confirmer'}. Repère communautaire Afflux de Tumulte : utiliser le meilleur niveau disponible parmi Scorpion, Spark, Cobra et Barbarian.`,
+              detail: `Niveau ${(hero.niveau ?? hero.niveauTexte) || 'à confirmer'}. Repère communautaire Afflux de Tumulte : utiliser le meilleur niveau disponible parmi Scorpion, Spark, Cobra et Barbarian.`,
               herosCibles: [hero.nom],
               incertain: true,
               raisonIncertitude: targetLang === 'fr'
