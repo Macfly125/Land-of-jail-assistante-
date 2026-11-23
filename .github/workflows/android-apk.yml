@@ -115,7 +115,12 @@ jobs:
           test -n "$APKSIGNER" && test -n "$AAPT"
           "$APKSIGNER" verify --verbose "$APK"
           "$AAPT" dump badging "$APK" | grep -E "^(package:|sdkVersion:|targetSdkVersion:)"
-          echo "APK validé : $APK ($(du -h "$APK" | cut -f1))"
+          APK_COUNT=$(find android/app/build/outputs/apk -type f -name '*.apk' | wc -l)
+          test "$APK_COUNT" -eq 1 || { echo "::error::Le build doit produire exactement un APK, trouvé: $APK_COUNT"; exit 1; }
+          for ABI in arm64-v8a armeabi-v7a x86_64 x86; do
+            unzip -Z1 "$APK" | grep -q "^lib/$ABI/" || { echo "::error::ABI manquante dans l'APK universel: $ABI"; exit 1; }
+          done
+          echo "APK universel unique validé : $APK ($(du -h "$APK" | cut -f1))"
 
       - name: Publier l'APK release signé
         if: steps.signing.outputs.available == 'true'
