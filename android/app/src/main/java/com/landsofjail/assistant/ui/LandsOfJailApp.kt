@@ -2101,6 +2101,13 @@ private fun ResourcesScreen(
                                 if (meta.isNotEmpty()) Text(meta.joinToString(" · "), style = MaterialTheme.typography.bodySmall)
                                 if (robot.bonus.isNotBlank()) Text("Bonus : ${robot.bonus}", style = MaterialTheme.typography.bodySmall)
                                 if (robot.competences.isNotBlank()) Text("Compétences : ${robot.competences}", style = MaterialTheme.typography.bodySmall)
+                                if (robot.incertain) {
+                                    Text(
+                                        robot.raisonIncertitude?.takeIf { it.isNotBlank() } ?: "Données détectées à vérifier sur l’écran du jeu.",
+                                        color = Color(0xFFFBBF24),
+                                        style = MaterialTheme.typography.bodySmall
+                                    )
+                                }
                                 TextButton(onClick = { onSaveRobots(robots.filterNot { it.id == robot.id }) }) { Text("Retirer") }
                             }
                         }
