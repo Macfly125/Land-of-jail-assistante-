@@ -1,0 +1,74 @@
+name: Veille nocturne Android
+
+on:
+  schedule:
+    # Tous les jours à 01:00 UTC (02:00 en Belgique en hiver).
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly-android-checks
+  cancel-in-progress: false
+
+jobs:
+  verify-and-build:
+    name: Vérifier et compiler Android
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Récupérer la branche de développement
+        uses: actions/checkout@v4
+        with:
+          ref: audit/ameliorations-android
+
+      - name: Configurer Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Installer Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Installer les composants Android nécessaires
+        run: |
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          yes | sdkmanager --licenses >/dev/null
+
+      - name: Installer Gradle 8.11.1
+        run: |
+          curl -fsSL https://services.gradle.org/distributions/gradle-8.11.1-bin.zip -o /tmp/gradle.zip
+          unzip -q /tmp/gradle.zip -d /tmp
+          echo "/tmp/gradle-8.11.1/bin" >> "$GITHUB_PATH"
+
+      - name: Vérifier les tests unitaires Android
+        working-directory: android
+        run: gradle testDebugUnitTest --no-daemon --stacktrace
+
+      - name: Compiler un APK Android universel de débogage
+        if: success()
+        working-directory: android
+        run: gradle assembleDebug --no-daemon --stacktrace
+
+      - name: Publier l'APK si la compilation réussit
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: land-of-jail-assistant-nightly-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 7
+
+      - name: Résumé du contrôle
+        if: always()
+        run: |
+          {
+            echo "## Contrôle nocturne Android"
+            echo "- Branche contrôlée : audit/ameliorations-android"
+            echo "- Tests unitaires : voir l'étape correspondante"
+            echo "- APK : publié uniquement si les tests et la compilation réussissent"
+            echo "- Aucun service payant ni compte de facturation requis par ce workflow"
+          } >> "$GITHUB_STEP_SUMMARY"
