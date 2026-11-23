@@ -413,7 +413,7 @@ fun LandsOfJailAssistantApp(
         accountDataLoaded = true
     }
 
-    LaunchedEffect(allianceWorkspace, analyses, heroes, resources, currentPower, selectedAdviceMode, adviceResult, playerRole, activeProfileId, accountDataLoaded) {
+    LaunchedEffect(allianceWorkspace, analyses, heroes, resources, robots, eventRecords, currentPower, selectedAdviceMode, adviceResult, playerRole, activeProfileId, accountDataLoaded) {
         if (accountDataLoaded && activeProfileId.isNotBlank()) {
             val snapshotJson = accountJson.encodeToString(currentProfileSnapshot())
             localProfiles = localProfiles.map { profile ->
@@ -821,7 +821,7 @@ fun LandsOfJailAssistantApp(
             title = { Text("Profils Land of Jail") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Chaque profil conserve ses propres héros, ressources, puissance et historique.")
+                    Text("Chaque profil conserve séparément ses héros, robots, ressources, puissance, événements, minuteries et historique.")
                     localProfiles.forEach { profile ->
                         Column(modifier = Modifier.fillMaxWidth()) {
                             Text(
