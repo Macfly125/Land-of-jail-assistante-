@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { AlertTriangle, Building2, CheckCircle2, Clock, Sparkles, Users } from 'lucide-react';
 import {
   BUILDINGS_CATALOG,
-  FORTICLAD_STAGES,
+  FORTICLAD_BUILDING_COSTS,
   HERO_SHARD_TIERS,
   HERO_SKILL_BOOK_STEPS,
   KNOWN_HEROES_META,
@@ -112,22 +112,42 @@ export const UpgradeCalculatorView: React.FC<UpgradeCalculatorViewProps> = ({ st
   const ownedSteel = findScannedResourceAmount(state, ['steel', 'acier', 'fer']);
   const ownedGas = findScannedResourceAmount(state, ['gas', 'essence', 'pétrole', 'petrole', 'fuel']);
 
-  // --- Calculateur Forticlad (FC 1 → FC 5) ---
-  const [fcStart, setFcStart] = useState<number>(0);
-  const [fcTarget, setFcTarget] = useState<number>(1);
+  // --- Calculateur Forticlad par bâtiment et par palier (FC 1 → FC 10) ---
+  const [fcCurrentLevel, setFcCurrentLevel] = useState<number>(0);
+  const [fcFilledSteps, setFcFilledSteps] = useState<number>(0);
+  const [fcTargetLevel, setFcTargetLevel] = useState<number>(1);
   const [fcSelectedBuildingIds, setFcSelectedBuildingIds] = useState<string[]>(['warden_office']);
   const [priorityGoal, setPriorityGoal] = useState<'hq' | 'trial_cage' | 'pvp' | 'f2p'>('hq');
-  const selectedForticladBuildings = BUILDINGS_CATALOG.filter((building) => fcSelectedBuildingIds.includes(building.id));
+  const selectedForticladBuildings = useMemo(
+    () => FORTICLAD_BUILDING_COSTS.filter((building) => fcSelectedBuildingIds.includes(building.id)),
+    [fcSelectedBuildingIds]
+  );
 
   const forticladCalculation = useMemo(() => {
-    const start = Math.max(0, Math.min(4, fcStart));
-    const end = Math.max(start + 1, Math.min(5, fcTarget));
-    const stages = FORTICLAD_STAGES.filter((s) => s.fcLevel > start && s.fcLevel <= end);
-    const buildingCount = fcSelectedBuildingIds.length;
-    const totalFc = stages.reduce((s, item) => s + item.forticladCores, 0) * buildingCount;
-    const totalAfc = stages.reduce((s, item) => s + item.advancedForticladCores, 0) * buildingCount;
-    return { start, end, stages, totalFc, totalAfc, buildingCount };
-  }, [fcStart, fcTarget, fcSelectedBuildingIds]);
+    const breakdown = selectedForticladBuildings.map((building) => {
+      let fc = 0;
+      let afc = 0;
+      let missing = false;
+      for (let level = fcCurrentLevel + 1; level <= fcTargetLevel; level += 1) {
+        const steps = level === fcCurrentLevel + 1 ? Math.max(1, 5 - fcFilledSteps) : 5;
+        const cost = building.stepCosts[level];
+        if (!cost) {
+          missing = true;
+          continue;
+        }
+        fc += cost.cores * steps;
+        afc += cost.advanced * steps;
+      }
+      return { id: building.id, nomFr: building.nomFr, fc, afc, missing };
+    });
+    return {
+      breakdown,
+      totalFc: breakdown.reduce((sum, item) => sum + item.fc, 0),
+      totalAfc: breakdown.reduce((sum, item) => sum + item.afc, 0),
+      hasMissingCosts: breakdown.some((item) => item.missing),
+      buildingCount: selectedForticladBuildings.length,
+    };
+  }, [fcCurrentLevel, fcFilledSteps, fcTargetLevel, selectedForticladBuildings]);
 
   // --- Calculateur Héros & Tomes ---
   const [selectedHeroName, setSelectedHeroName] = useState<string>(
@@ -467,97 +487,79 @@ export const UpgradeCalculatorView: React.FC<UpgradeCalculatorViewProps> = ({ st
           <section className="p-6 rounded-2xl bg-[#121826] border border-slate-800/90 space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
-                <h2 className="text-lg font-semibold text-slate-50">
-                  Calculateur Forticlad (après niveau 30)
-                </h2>
-                <p className="text-xs text-slate-400 mt-1">
-                  Après le niveau 30, chaque niveau Forticlad (FC) se divise en 5 paliers et demande
-                  des Forticlad Cores (FC) et Advanced Forticlad Cores (AFC).
-                </p>
+                <h2 className="text-lg font-semibold text-slate-50">Calculateur Forticlad par bâtiment (FC 1–10)</h2>
+                <p className="text-xs text-slate-400 mt-1">Chaque niveau FC comprend cinq paliers. Les coûts changent selon le bâtiment et, à partir de FC6, demandent aussi des Advanced Forticlad Cores.</p>
               </div>
               <span className="text-xs text-amber-300 inline-flex items-center gap-1.5 shrink-0">
                 <AlertTriangle className="w-4 h-4" />
-                <span>Valeurs estimatives · à vérifier selon bâtiment</span>
+                <span>Barèmes communautaires · contrôle en jeu</span>
               </span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">
-                  Palier actuel
-                </label>
-                <select
-                  value={fcStart}
-                  onChange={(e) => {
-                    const v = Number(e.target.value);
-                    setFcStart(v);
-                    if (fcTarget <= v) setFcTarget(Math.min(5, v + 1));
-                  }}
-                  className="w-full min-h-[44px] rounded-xl bg-slate-900 border border-slate-800 px-3.5 py-2 text-sm text-slate-100"
-                >
-                  <option value={0}>Niv. 30 (avant FC1)</option>
-                  <option value={1}>FC 1</option>
-                  <option value={2}>FC 2</option>
-                  <option value={3}>FC 3</option>
-                  <option value={4}>FC 4</option>
+                <label className="block text-xs font-medium text-slate-400 mb-1.5">Niveau FC actuel</label>
+                <select value={fcCurrentLevel} onChange={(event) => {
+                  const value = Number(event.target.value);
+                  setFcCurrentLevel(value);
+                  setFcFilledSteps(0);
+                  if (fcTargetLevel <= value) setFcTargetLevel(Math.min(10, value + 1));
+                }} className="w-full min-h-[44px] rounded-xl bg-slate-900 border border-slate-800 px-3.5 py-2 text-sm text-slate-100">
+                  <option value={0}>Niveau 30 · avant FC1</option>
+                  {Array.from({ length: 9 }, (_, index) => index + 1).map((value) => <option key={value} value={value}>FC {value}</option>)}
                 </select>
               </div>
-
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">
-                  Palier cible
-                </label>
-                <select
-                  value={fcTarget}
-                  onChange={(e) => setFcTarget(Number(e.target.value))}
-                  className="w-full min-h-[44px] rounded-xl bg-slate-900 border border-slate-800 px-3.5 py-2 text-sm text-slate-100"
-                >
-                  {[1, 2, 3, 4, 5]
-                    .filter((v) => v > fcStart)
-                    .map((v) => (
-                      <option key={v} value={v}>
-                        FC {v}
-                      </option>
-                    ))}
+                <label className="block text-xs font-medium text-slate-400 mb-1.5">Paliers déjà faits sur le niveau suivant</label>
+                <select value={fcFilledSteps} onChange={(event) => setFcFilledSteps(Number(event.target.value))} className="w-full min-h-[44px] rounded-xl bg-slate-900 border border-slate-800 px-3.5 py-2 text-sm text-slate-100">
+                  {[0, 1, 2, 3, 4].map((value) => <option key={value} value={value}>{value} / 5 paliers</option>)}
                 </select>
               </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-400 mb-1.5">Niveau FC cible</label>
+                <select value={fcTargetLevel} onChange={(event) => setFcTargetLevel(Number(event.target.value))} className="w-full min-h-[44px] rounded-xl bg-slate-900 border border-slate-800 px-3.5 py-2 text-sm text-slate-100">
+                  {Array.from({ length: 10 - fcCurrentLevel }, (_, index) => fcCurrentLevel + index + 1).map((value) => <option key={value} value={value}>FC {value}</option>)}
+                </select>
+              </div>
+            </div>
 
-              <div className="md:col-span-3">
-                <label className="block text-xs font-medium text-slate-400 mb-2">
-                  Sélectionnez les bâtiments qui passent au Forticlad
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                  {BUILDINGS_CATALOG.map((building) => (
-                    <label key={building.id} className="flex items-center gap-2 p-2.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-200">
-                      <input type="checkbox" checked={fcSelectedBuildingIds.includes(building.id)} onChange={(event) => setFcSelectedBuildingIds((current) => event.target.checked ? [...current, building.id] : current.filter((id) => id !== building.id))} className="accent-amber-500" />
-                      <span>{building.nomFr}</span>
-                    </label>
-                  ))}
-                </div>
-                <p className="text-[11px] text-slate-500 mt-2">{selectedForticladBuildings.length} bâtiment(s) sélectionné(s). Les coûts FC/AFC ci-dessous sont des estimations communes par bâtiment ; vérifiez les coûts affichés en jeu avant de dépenser.</p>
+            <div>
+              <label className="block text-xs font-medium text-slate-400 mb-2">Sélectionnez un ou plusieurs bâtiments</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                {FORTICLAD_BUILDING_COSTS.map((building) => (
+                  <label key={building.id} className="flex items-center gap-2 p-2.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-200">
+                    <input type="checkbox" checked={fcSelectedBuildingIds.includes(building.id)} onChange={(event) => setFcSelectedBuildingIds((current) => event.target.checked ? [...current, building.id] : current.filter((id) => id !== building.id))} className="accent-amber-500" />
+                    <span>{building.nomFr}</span>
+                  </label>
+                ))}
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
               <div className="p-5 rounded-xl bg-slate-900/70 border border-slate-800">
-                <div className="text-xs text-slate-400">Forticlad Cores (FC) nécessaires · {forticladCalculation.buildingCount} bâtiment(s)</div>
-                <div className="text-2xl font-semibold font-mono-tabular text-amber-400 mt-1">
-                  {formatCompactNumber(forticladCalculation.totalFc)}
-                </div>
+                <div className="text-xs text-slate-400">Forticlad Cores nécessaires · {forticladCalculation.buildingCount} bâtiment(s)</div>
+                <div className="text-2xl font-semibold font-mono-tabular text-amber-400 mt-1">{formatCompactNumber(forticladCalculation.totalFc)}</div>
               </div>
               <div className="p-5 rounded-xl bg-slate-900/70 border border-slate-800">
-                <div className="text-xs text-slate-400">Advanced Forticlad Cores (AFC)</div>
-                <div className="text-2xl font-semibold font-mono-tabular text-slate-50 mt-1">
-                  {formatCompactNumber(forticladCalculation.totalAfc)}
-                </div>
+                <div className="text-xs text-slate-400">Advanced Forticlad Cores</div>
+                <div className="text-2xl font-semibold font-mono-tabular text-slate-50 mt-1">{formatCompactNumber(forticladCalculation.totalAfc)}</div>
               </div>
+            </div>
+            <div className="p-4 rounded-xl bg-slate-900/70 border border-slate-800 space-y-2">
+              <h3 className="text-sm font-semibold text-slate-100">Détail par bâtiment</h3>
+              {forticladCalculation.breakdown.length === 0 ? <p className="text-xs text-slate-400">Sélectionnez au moins un bâtiment.</p> : forticladCalculation.breakdown.map((item) => (
+                <div key={item.id} className="flex flex-wrap justify-between gap-2 text-xs text-slate-300">
+                  <span>{item.nomFr}{item.missing ? ' · barème incomplet' : ''}</span>
+                  <span className="font-mono-tabular">{formatCompactNumber(item.fc)} FC · {formatCompactNumber(item.afc)} AFC</span>
+                </div>
+              ))}
+              <p className="text-[11px] text-slate-500">Calcul de FC {fcCurrentLevel} + {fcFilledSteps}/5 paliers vers FC {fcTargetLevel}. Les coûts sont calculés palier par palier, séparément pour chaque bâtiment.</p>
+              {forticladCalculation.hasMissingCosts && <p className="text-xs text-amber-300">Calcul partiel : le barème du Laboratoire Forticlad n'est pas publié dans la table consultée et celui du Poste médical s'arrête à FC8. Les valeurs manquantes ne sont pas inventées.</p>}
             </div>
           </section>
         </div>
       )}
 
-
-      {/* SECTION : PRIORITÉS D’ÉVOLUTION */}
       {section === 'priorities' && (
         <div className="space-y-5">
           <section className="p-6 rounded-2xl bg-[#121826] border border-slate-800/90 space-y-4">
