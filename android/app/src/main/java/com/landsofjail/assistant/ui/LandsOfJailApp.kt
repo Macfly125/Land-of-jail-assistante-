@@ -3779,6 +3779,12 @@ private fun AllianceScreen(
     var cloudRosterBusy by remember { mutableStateOf(false) }
     var cloudRosterMessage by remember { mutableStateOf<String?>(null) }
     var cloudRosterError by remember { mutableStateOf(false) }
+    var cloudCanManageRanks by remember { mutableStateOf(false) }
+    var cloudMemberIds by remember { mutableStateOf<Set<String>>(emptySet()) }
+    var expandedRankMenuFor by remember { mutableStateOf<String?>(null) }
+    var rankChangeBusyFor by remember { mutableStateOf<String?>(null) }
+    var rankChangeMessage by remember { mutableStateOf<String?>(null) }
+    var rankChangeError by remember { mutableStateOf(false) }
     var cloudSyncBusy by remember { mutableStateOf(false) }
     var cloudSyncMessage by remember { mutableStateOf<String?>(null) }
     var cloudSyncError by remember { mutableStateOf(false) }
@@ -3820,11 +3826,21 @@ private fun AllianceScreen(
                 val previousIds = accountPrefs.getStringSet("notified_join_request_ids", emptySet()).orEmpty().toSet()
                 val currentIds = pending.map { it.id }.toSet()
                 val newCount = (currentIds - previousIds).size
-                if (newCount > 0) {
-                    notifyAllianceJoinRequests(context, newCount)
-                }
+                if (newCount > 0) notifyAllianceJoinRequests(context, newCount)
                 accountPrefs.edit().putStringSet("notified_join_request_ids", previousIds + currentIds).apply()
             }
+        }
+    }
+
+    LaunchedEffect(cloudAuth.currentSession() != null, accountPrefs.getString("cloud_alliance_id", "")) {
+        val linkedAllianceId = accountPrefs.getString("cloud_alliance_id", "").orEmpty()
+        if (cloudAuth.currentSession() != null && linkedAllianceId.isNotBlank()) {
+            val developer = cloudAuth.isAppDeveloper().getOrDefault(false)
+            val cloudRank = cloudAuth.fetchMyAllianceRank(linkedAllianceId).getOrNull()
+            cloudCanManageRanks = cloudRank == "R5" || (developer && cloudRank == "R4")
+        } else {
+            cloudCanManageRanks = false
+            cloudMemberIds = emptySet()
         }
     }
 
@@ -4153,6 +4169,7 @@ private fun AllianceScreen(
                                     cloudRosterMessage = null
                                     cloudAuth.fetchAllianceRoster(linkedAllianceId)
                                         .onSuccess { cloudMembers ->
+                                            cloudMemberIds = cloudMembers.map { it.id }.toSet()
                                             val cloudNames = cloudMembers.map { it.playerName.lowercase() }.toSet()
                                             val mergedMembers = cloudMembers.map { cloudMember ->
                                                 val local = workspace.members.firstOrNull {
@@ -4216,6 +4233,68 @@ private fun AllianceScreen(
                     Text("Puissance : ${member.powerText.ifBlank { "non renseignée" }}", style = MaterialTheme.typography.bodySmall)
                     if (member.heroSkillSummary.isNotBlank()) Text("Héros / compétences : ${member.heroSkillSummary}", style = MaterialTheme.typography.bodySmall)
                     if (member.robotSummary.isNotBlank()) Text("Robot : ${member.robotSummary}", style = MaterialTheme.typography.bodySmall)
+                    if (cloudCanManageRanks && member.id in cloudMemberIds) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box {
+                                OutlinedButton(
+                                    onClick = { expandedRankMenuFor = member.id },
+                                    enabled = rankChangeBusyFor == null,
+                                    modifier = Modifier.heightIn(min = 36.dp)
+                                ) {
+                                    Text(if (rankChangeBusyFor == member.id) "Mise à jour…" else "Changer le rang · ${member.rank.name}")
+                                }
+                                DropdownMenu(
+                                    expanded = expandedRankMenuFor == member.id,
+                                    onDismissRequest = { expandedRankMenuFor = null }
+                                ) {
+                                    AllianceRank.entries
+                                        .filter { it != member.rank && (it != AllianceRank.R5 || member.rank == AllianceRank.R4) }
+                                        .forEach { newRank ->
+                                            DropdownMenuItem(
+                                                text = { Text(newRank.name) },
+                                                onClick = {
+                                                    expandedRankMenuFor = null
+                                                    val linkedAllianceId = accountPrefs.getString("cloud_alliance_id", "").orEmpty()
+                                                    scope.launch {
+                                                        rankChangeBusyFor = member.id
+                                                        rankChangeMessage = null
+                                                        cloudAuth.setAllianceMemberRank(linkedAllianceId, member.id, newRank.name)
+                                                            .onSuccess {
+                                                                val developer = cloudAuth.isAppDeveloper().getOrDefault(false)
+                                                                val myCloudRank = cloudAuth.fetchMyAllianceRank(linkedAllianceId).getOrNull()
+                                                                cloudCanManageRanks = myCloudRank == "R5" || (developer && myCloudRank == "R4")
+                                                                cloudAuth.fetchAllianceRoster(linkedAllianceId).onSuccess { latest ->
+                                                                    cloudMemberIds = latest.map { it.id }.toSet()
+                                                                    val latestById = latest.associateBy { it.id }
+                                                                    onSaveWorkspace(workspace.copy(
+                                                                        members = workspace.members.map { existing ->
+                                                                            latestById[existing.id]?.let { existing.copy(rank = it.rank) } ?: existing
+                                                                        }
+                                                                    ))
+                                                                }
+                                                                rankChangeMessage = "${member.playerName} est maintenant ${newRank.name}."
+                                                                rankChangeError = false
+                                                            }
+                                                            .onFailure {
+                                                                rankChangeMessage = it.message ?: "Modification du rang impossible."
+                                                                rankChangeError = true
+                                                            }
+                                                        rankChangeBusyFor = null
+                                                    }
+                                                }
+                                            )
+                                        }
+                                }
+                            }
+                            if (member.rank == AllianceRank.R5) {
+                                Text("Le R5 se remplace en nommant un R4.", style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                    }
                     if (isOfficer) {
                         TextButton(onClick = {
                             onSaveWorkspace(workspace.copy(members = workspace.members.filterNot { it.id == member.id }))
