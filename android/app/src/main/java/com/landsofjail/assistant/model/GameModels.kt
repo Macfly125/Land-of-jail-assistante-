@@ -336,6 +336,7 @@ data class TacticalAdviceResult(
     val synthese: String = "",
     val compositionRecommandee: String = "",
     val recommandations: List<AdviceRecommendation> = emptyList(),
+    val robotRecommendations: List<AdviceRecommendation> = emptyList(),
     val informationsIncertaines: List<String> = emptyList(),
     val sources: List<GroundedWebSource> = emptyList(),
     val geminiWarning: String? = null
