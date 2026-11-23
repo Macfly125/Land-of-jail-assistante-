@@ -27,7 +27,7 @@ object LandsOfJailOcrParser {
 
     private val KNOWN_HEROES = listOf(
         "Tyronn", "Phoenix", "Rin", "Rex", "Boogie", "Edwin", "Ada", "Otto",
-        "Marcus", "Gerd", "Lee", "Jasser", "Patrick", "Mia", "Kate", "Darius",
+        "Marcus", "Gerd", "Lee", "Jasser", "Patrick", "Mia", "Kate", "Darius", "Ryuichi",
         "Victor", "Molly", "Clara", "Hector", "Rico", "Vesper"
     )
 
