@@ -32,8 +32,15 @@ object ScreenRecognitionEngine {
 
     fun analyze(rawText: String): ScreenRecognitionResult {
         val normalized = normalize(rawText)
+        val paddedText = " $normalized "
         val ranked = dictionaries.mapNotNull { (category, labels) ->
-            val hits = labels.filter { normalized.contains(normalize(it)) }.distinct()
+            // Comparaison par mots/expressions entiers : « shieldbearers »
+            // ne doit pas compter simultanément comme « shieldbearer ».
+            val hits = labels.filter { label ->
+                val normalizedLabel = normalize(label)
+                normalizedLabel.isNotEmpty() &&
+                    paddedText.contains(" $normalizedLabel ")
+            }.distinct()
             if (hits.isEmpty()) null else category to hits
         }.sortedByDescending { it.second.size }
 
