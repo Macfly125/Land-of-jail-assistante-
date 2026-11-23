@@ -1294,24 +1294,24 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
 
             // Joiners contribute only their first War skill. Keep the best known
             // skill level for each distinct effect family to reduce duplicate buffs.
-            const joinerByCategory = new Map<number, (typeof cageSkillSignals)[number]>();
-            for (const hero of heroes ?? []) {
+            const joinerCandidates = (heroes ?? []).flatMap((hero) => {
               const firstWarSkill = (hero.competences || []).find((skill) => skill.type?.toLowerCase() === 'war');
-              if (!firstWarSkill || firstWarSkill.incertain) continue;
+              if (!firstWarSkill || firstWarSkill.incertain) return [];
               const signal = cageSkillSignals.find((item) => item.hero === hero.nom && item.skill === firstWarSkill.nom);
-              if (!signal) continue;
-              const previous = joinerByCategory.get(signal.category);
-              if (!previous || signal.skillLevel > previous.skillLevel) joinerByCategory.set(signal.category, signal);
-            }
-            const joiners = [...joinerByCategory.values()].sort((a, b) => a.category - b.category).slice(0, 4).map((signal) => ({
-              titre: `Participant — ${signal.hero}`,
-              detail: `Première compétence War: ${signal.skill} (niv. ${signal.skillLevel || 'à confirmer'}) — ${['dégâts subis par l’ennemi', 'dégâts infligés aux troupes alliées', 'ATQ des troupes alliées', 'réduction de DEF ennemie', 'dégâts directs'][signal.category]}`,
-              herosCibles: [signal.hero],
-              incertain: true,
-              raisonIncertitude: targetLang === 'fr'
-                ? 'Candidat participant basé sur la première compétence War visible; le niveau doit être vérifié et seuls les quatre meilleurs niveaux retenus par le jeu comptent selon le guide communautaire.'
-                : 'Joiner candidate based on the visible first War skill; verify its level. The game selects the four highest-level joiner skills according to the community guide.',
-            }));
+              return signal ? [signal] : [];
+            });
+            const joiners = [...joinerCandidates]
+              .sort((a, b) => b.skillLevel - a.skillLevel || a.hero.localeCompare(b.hero))
+              .slice(0, 4)
+              .map((signal) => ({
+                titre: `Participant — ${signal.hero}`,
+                detail: `Première compétence War: ${signal.skill} (niv. ${signal.skillLevel || 'à confirmer'}) — ${['dégâts subis par l’ennemi', 'dégâts infligés aux troupes alliées', 'ATQ des troupes alliées', 'réduction de DEF ennemie', 'dégâts directs'][signal.category]}`,
+                herosCibles: [signal.hero],
+                incertain: true,
+                raisonIncertitude: targetLang === 'fr'
+                  ? 'Candidat classé par niveau de première compétence War offensive visible. Le jeu retient jusqu’à quatre compétences de participants; en cas d’égalité, l’ordre réel des participants dans le ralliement compte, et doit être vérifié dans Rally Bonus → Rally Member.'
+                  : 'Candidate sorted by visible first-War-skill level. The game selects up to four joiner skills; actual rally participant order breaks ties and must be checked in Rally Bonus → Rally Member.',
+              }));
             return [...leaders, ...joiners].slice(0, 10);
           })()
         : mode === 'gold_hunter' ? goldHunterHeroRecommendations
@@ -1344,11 +1344,11 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
       // Keep launcher ratios separate from joiner troop composition.
       const cageRallyGuidance: Record<TargetLang, string> = {
         fr: ' Référence communautaire Trial Cage mise à jour le 4 novembre 2026 (à vérifier après chaque mise à jour du jeu) : ratio du chef sans Ada 0% Shieldbearers / 10% Bombers / 90% Shooters; avec Ada 1% / 9% / 90%, en vérifiant aussi le nombre réel de Shieldbearers (environ 1 000 selon le guide). Pour un participant : 0/10/90 ou 0/0/100 selon les consignes du ralliement. Les rôles sont différents : ne transposez pas automatiquement le ratio du chef au participant. Le guide LOJ XLab rapporte que le chef apporte les compétences War de ses 3 héros (un par classe), tandis que chaque participant apporte uniquement la première compétence War de son premier héros. Le jeu retient jusqu’à quatre compétences de participants, en privilégiant les niveaux les plus élevés puis l’ordre de formation en cas d’égalité. Vérifiez les bonus réellement appliqués dans le ralliement et évitez les effets identiques.',
-        tr: '4 Kasım 2026 tarihli topluluk Trial Cage referansı (oyun güncellemelerinden sonra tekrar doğrulayın): Ada olmadan lider oranı %0 Shieldbearer / %10 Bomber / %90 Shooter; Ada ile %1 / %9 / %90 ve gerçek Shieldbearer sayısını da kontrol edin (rehbere göre yaklaşık 1.000). Katılan oyuncu için ralli talimatına göre %0/10/90 veya %0/0/100. Roller farklıdır; lider oranını katılana otomatik uygulamayın. LOJ XLab topluluk gözlemine göre lider 3 kahramanının savaş becerilerini sağlar; her katılımcı ilk kahramanının ilk savaş becerisini sağlar ve katılımcı becerilerinden yalnızca seçilen dört tanesi sayılır. Ralli bonuslarında gerçekten uygulanan beceriyi kontrol edin ve aynı bonusları tekrarlamayın.',
-        ru: 'Обновленный 4 ноября 2026 года ориентир сообщества для Trial Cage (перепроверяйте после обновлений игры): состав лидера без Ada — 0% Shieldbearer / 10% Bomber / 90% Shooter; с Ada — 1% / 9% / 90%, дополнительно проверьте фактическое число Shieldbearer (около 1 000 по руководству). Для участника — 0/10/90 или 0/0/100 согласно указаниям рейда. Роли различаются: не переносите автоматически соотношение лидера на участника. По наблюдениям сообщества LOJ XLab, лидер дает навыки всех трех героев, а каждый участник — первый боевой навык первого героя; учитываются только четыре выбранных навыка участников. Проверьте фактически примененный навык в бонусах рейда и избегайте дублирования бонусов.',
-        zh: '2026 年 11 月 4 日更新的 Trial Cage 社区参考（游戏更新后需重新核实）：队长无 Ada 时比例为 0% Shieldbearer / 10% Bomber / 90% Shooter；有 Ada 时为 1% / 9% / 90%，还要核对 Shieldbearer 实际数量（指南建议约 1,000）。加入者按集结要求使用 0/10/90 或 0/0/100。两种角色不同，不要把队长比例直接套用给加入者。LOJ XLab 的社区观察称，队长提供三名英雄的战争技能，每位加入者提供其第一名英雄的第一项战争技能；加入者技能只计入被选中的四项。请在集结奖励中核对实际生效的技能，并避免重复加成。',
-        de: 'Community-Referenz für Trial Cage, aktualisiert am 4. November 2026 (nach Spielupdates erneut prüfen): Verhältnis des Anführers ohne Ada 0% Shieldbearer / 10% Bomber / 90% Shooter; mit Ada 1% / 9% / 90%, zusätzlich die tatsächliche Zahl der Shieldbearer prüfen (laut Guide etwa 1.000). Für Beitretende je nach Rallye-Anweisung 0/10/90 oder 0/0/100. Die Rollen unterscheiden sich; das Verhältnis des Anführers nicht automatisch auf Beitretende übertragen. Laut Community-Beobachtung von LOJ XLab bringt der Anführer die Kriegsfähigkeiten aller drei Helden ein, jeder Beitretende die erste Kriegsfähigkeit seines ersten Helden; nur vier ausgewählte Beitretenden-Fähigkeiten zählen. Prüfen Sie den tatsächlich angewendeten Bonus und vermeiden Sie doppelte Boni.',
-        en: 'Trial Cage community reference updated November 4, 2026 (recheck after game updates): leader ratio without Ada is 0% Shieldbearers / 10% Bombers / 90% Shooters; with Ada it is 1% / 9% / 90%, and the actual Shieldbearer count should also be checked (about 1,000 according to the guide). For a joiner, use 0/10/90 or 0/0/100 according to rally instructions. These roles differ; do not automatically apply the leader ratio to joiners. LOJ XLab community observations say the leader contributes the war skills of all three heroes, while each joiner contributes the first war skill of their first hero; only four selected joiner skills count. Verify the skill actually applied in rally bonuses and avoid duplicate buffs.',
+        tr: '4 Kasım 2026 tarihli topluluk Trial Cage referansı (oyun güncellemelerinden sonra tekrar doğrulayın): Ada olmadan lider oranı %0 Shieldbearer / %10 Bomber / %90 Shooter; Ada ile %1 / %9 / %90 ve gerçek Shieldbearer sayısını da kontrol edin (rehbere göre yaklaşık 1.000). Katılan oyuncu için ralli talimatına göre %0/10/90 veya %0/0/100. Roller farklıdır; lider oranını katılana otomatik uygulamayın. LOJ XLab topluluk gözlemine göre lider 3 kahramanının savaş becerilerini sağlar; her katılımcı ilk kahramanının ilk savaş becerisini sağlar ve katılımcı becerilerinden yalnızca seçilen dört tanesi sayılır. Ralli bonuslarında gerçekten uygulanan beceriyi kontrol edin ve aynı bonusları tekrarlamayın. Katıldıktan sonra Rally Bonus → Rally Member bölümünde uygulanan becerinin adını, etkisini ve seviyesini doğrulayın; kişisel hasarı ve toplam ralli hasarını ayrı kaydedin.',
+        ru: 'Обновленный 4 ноября 2026 года ориентир сообщества для Trial Cage (перепроверяйте после обновлений игры): состав лидера без Ada — 0% Shieldbearer / 10% Bomber / 90% Shooter; с Ada — 1% / 9% / 90%, дополнительно проверьте фактическое число Shieldbearer (около 1 000 по руководству). Для участника — 0/10/90 или 0/0/100 согласно указаниям рейда. Роли различаются: не переносите автоматически соотношение лидера на участника. По наблюдениям сообщества LOJ XLab, лидер дает навыки всех трех героев, а каждый участник — первый боевой навык первого героя; учитываются только четыре выбранных навыка участников. Проверьте фактически примененный навык в бонусах рейда и избегайте дублирования бонусов. После вступления откройте Rally Bonus → Rally Member и проверьте название, эффект и уровень навыка; личный урон и общий урон рейда записывайте отдельно.',
+        zh: '2026 年 11 月 4 日更新的 Trial Cage 社区参考（游戏更新后需重新核实）：队长无 Ada 时比例为 0% Shieldbearer / 10% Bomber / 90% Shooter；有 Ada 时为 1% / 9% / 90%，还要核对 Shieldbearer 实际数量（指南建议约 1,000）。加入者按集结要求使用 0/10/90 或 0/0/100。两种角色不同，不要把队长比例直接套用给加入者。LOJ XLab 的社区观察称，队长提供三名英雄的战争技能，每位加入者提供其第一名英雄的第一项战争技能；加入者技能只计入被选中的四项。请在集结奖励中核对实际生效的技能，并避免重复加成。加入后打开 Rally Bonus → Rally Member，核对实际生效技能的名称、效果和等级；个人伤害与集结总伤害要分开记录。',
+        de: 'Community-Referenz für Trial Cage, aktualisiert am 4. November 2026 (nach Spielupdates erneut prüfen): Verhältnis des Anführers ohne Ada 0% Shieldbearer / 10% Bomber / 90% Shooter; mit Ada 1% / 9% / 90%, zusätzlich die tatsächliche Zahl der Shieldbearer prüfen (laut Guide etwa 1.000). Für Beitretende je nach Rallye-Anweisung 0/10/90 oder 0/0/100. Die Rollen unterscheiden sich; das Verhältnis des Anführers nicht automatisch auf Beitretende übertragen. Laut Community-Beobachtung von LOJ XLab bringt der Anführer die Kriegsfähigkeiten aller drei Helden ein, jeder Beitretende die erste Kriegsfähigkeit seines ersten Helden; nur vier ausgewählte Beitretenden-Fähigkeiten zählen. Prüfen Sie den tatsächlich angewendeten Bonus und vermeiden Sie doppelte Boni. Öffnen Sie nach dem Beitritt Rally Bonus → Rally Member und prüfen Sie Name, Effekt und Stufe der angewendeten Fähigkeit; persönlichen Schaden und gesamten Rallye-Schaden getrennt notieren.',
+        en: 'Trial Cage community reference updated November 4, 2026 (recheck after game updates): leader ratio without Ada is 0% Shieldbearers / 10% Bombers / 90% Shooters; with Ada it is 1% / 9% / 90%, and the actual Shieldbearer count should also be checked (about 1,000 according to the guide). For a joiner, use 0/10/90 or 0/0/100 according to rally instructions. These roles differ; do not automatically apply the leader ratio to joiners. LOJ XLab community observations say the leader contributes the war skills of all three heroes, while each joiner contributes the first war skill of their first hero; only four selected joiner skills count. Verify the skill actually applied in rally bonuses and avoid duplicate buffs. After joining, open Rally Bonus → Rally Member and confirm the applied skill name, effect and level. Record personal damage and total rally damage separately; sending a hero does not guarantee its skill was selected. After joining, open Rally Bonus → Rally Member and verify the applied skill name, effect and level. Record personal damage and total rally damage separately; sending a hero does not guarantee that its skill was selected.',
       };
       const cageRallyContext = mode === 'trial_cage' ? cageRallyGuidance[targetLang] : '';
       // Sandsea mechanics reference from the independent LOJ Wiki; not a hero-power ranking.
@@ -1382,7 +1382,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
       const turmoilContext = mode === 'turmoil_surge' ? turmoilContextByLang[targetLang] : '';
 
       const goldHunterContextByLang: Record<TargetLang, string> = {
-        fr: ' Repères Chasseur d’or (guides communautaires 2026) : gardez vos marches actives et évitez les trajets longs; les vagues de trésors souterrains sont signalées autour de 20 puis 10 minutes restantes — interrompez les activités secondaires pour les trésors proches. Boucle de départ : mineurs cupides, mines encore rentables, collecte des butins, rappel immédiat. Le guide communautaire conseille le plan d’équipement Jungle et la règle des 20 clics pour décider d’une relocalisation; vérifiez les minuteries réelles de l’événement. Choisissez les héros pour vitesse de marche, dégâts contre les ennemis neutres et collecte selon leurs compétences visibles. Repères de troupes du guide : F2P surtout cavalerie; compte intermédiaire cavalerie + tireurs; compte très développé un type de troupe par marche. Envoyez toujours le meilleur palier disponible; ce sont des profils, pas des pourcentages universels.',
+        fr: ' Repères Chasseur d’or (guides communautaires 2026) : gardez vos marches actives et évitez les trajets longs; les vagues de trésors souterrains sont signalées autour de 20 puis 10 minutes restantes — interrompez les activités secondaires pour les trésors proches. Boucle de départ : mineurs cupides, mines encore rentables, collecte des butins, rappel immédiat. Le guide communautaire conseille le plan d’équipement Jungle et la règle des 20 clics pour décider d’une relocalisation; vérifiez les minuteries réelles de l’événement. Les mineurs et les mines ne deviennent attaquables qu’après les 3 minutes de préparation. Les trésors apparaissent en vagues autour de 10–12 et 20–22 minutes de match, avec une alerte environ 60 secondes avant; le guide estime leur collecte à près de 4 000 or/s contre 200–800 dans une mine. Gardez toutes les marches utiles en mouvement (repères communautaires : 3–4 pour F2P, 4–5 intermédiaire, 5–6 gros compte) et réservez une marche légère aux butins. Après l’équipement, comparez les talents Plundering puis Prospecting; coûts, niveaux et effets doivent être confirmés dans l’écran du jeu. Choisissez les héros pour vitesse de marche, dégâts contre les ennemis neutres et collecte selon leurs compétences visibles. Repères de troupes du guide : F2P surtout cavalerie; compte intermédiaire cavalerie + tireurs; compte très développé un type de troupe par marche. Envoyez toujours le meilleur palier disponible; ce sont des profils, pas des pourcentages universels.',
         tr: ' Gold Hunter referansı (2026 topluluk rehberleri): yürüyüşlerinizi sürekli hareket halinde tutun ve uzun yolculuklardan kaçının; yeraltı hazine dalgaları yaklaşık 20 ve 10 dakika kala duyurulur — yakın hazineler için ikincil işleri bırakın. Başlangıç döngüsü: Greedy Miner, hâlâ kârlı madenler, ganimetleri toplama, hemen geri çağırma. Topluluk rehberi Jungle ekipman planını ve yeniden konumlanma için 20 tıklama kuralını önerir; gerçek etkinlik zamanlayıcısını kontrol edin. Kahramanları görünen becerilerine göre yürüyüş hızı, nötr düşmana hasar ve toplama için seçin; evrensel birlik oranı önerilmez.',
         ru: ' Ориентиры «Охотник за золотом» (руководства сообщества 2026): держите марши в движении и избегайте долгих переходов; волны подземных сокровищ объявляются примерно за 20 и 10 минут до конца — переключайтесь на ближайшие сокровища, прекращая второстепенные действия. Начальный цикл: жадные шахтеры, еще выгодные шахты, сбор трофеев, немедленный возврат. Сообщество рекомендует комплект экипировки «Джунгли» и правило 20 кликов для перемещения базы; сверяйтесь с таймером события. Выбирайте героев по видимым навыкам скорости марша, урона нейтральным врагам и сбора; универсальное соотношение войск не обосновано.',
         zh: ' 黄金猎人参考（2026 年社区指南）：保持行军队列持续行动，避免长距离行军；地下宝藏波次大约在剩余 20 分钟和 10 分钟时出现提示，应暂停次要活动优先争夺附近宝藏。开局循环：攻击 Greedy Miners、清理仍有收益的矿点、收集掉落物并立即召回。社区指南建议使用 Jungle 装备方案，并用“20 次点击”规则判断是否迁城；请以活动倒计时为准。根据可见技能选择行军速度、对中立敌人伤害和采集能力，不推荐没有依据的通用兵种比例。',
@@ -1406,26 +1406,35 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
           { title: 'YouTube — Best Rally Heroes for the Cage Event (S1–S6)', url: 'https://www.youtube.com/watch?v=PX7taSphjn8' },
           { title: 'YouTube — Ultimate Trial Cage Rally Opener Guide 2026', url: 'https://www.youtube.com/watch?v=Z52PtxzLTOs' },
           { title: 'Discord officiel — Lands of Jail : guides et communauté', url: 'https://discord.com/invite/lands-of-jail' },
+          { title: 'Dookee RUS — Trial Cage : bonus du ralliement et compétences participants', url: 'https://loj.dookee.ru/en/knowledge/cage/' },
+          { title: 'Communauté — Trial Cage Formation Generator (saisons et héros)', url: 'https://lands-of-jail-trial-cage-generator.vercel.app/' },
+          { title: 'YouTube — Trial Cage 2025 : héros, troupes et bonus', url: 'https://www.youtube.com/watch?v=Z8eM6bP2ZLk' },
+          { title: 'LOJ364 — Bibliothèque de tutoriels communautaires', url: 'https://www.loj364.online/tutorials.html' },
         ],
         crystal_clash: [
           { title: 'GuideLOJ — Crystal Clash : objectifs et rôles', url: 'https://www.guideloj.com/fr/events/alliance/crystal-clash' },
           { title: 'LOJ XLab — Crystal Clash : points et classes', url: 'https://lojxlab.com/blog/crystal-clash-points-776k-to-64k/' },
-        ],
+
+          { title: 'LOJ364 — Bibliothèque de tutoriels communautaires', url: 'https://www.loj364.online/tutorials.html' },        ],
         sandsea_conquest: [
           { title: 'LOJ Wiki — Conquête des sables : règles et phases', url: 'https://lojwiki.com/fr/events/sandsea-conquest/' },
           { title: 'Discord officiel — Lands of Jail : guide maître de Sandsea', url: 'https://discord.com/invite/lands-of-jail' },
-        ],
+
+          { title: 'LOJ364 — Bibliothèque de tutoriels communautaires', url: 'https://www.loj364.online/tutorials.html' },        ],
         svs: [
           { title: 'LOJ Strats — SvS : préparation des cinq jours', url: 'https://lojstrats.com/svs-preparation' },
           { title: 'LOJ XLab — État de SvS : règles et guerre finale', url: 'https://lojxlab.com/svs/state-of-svs/' },
-        ],
+
+          { title: 'LOJ364 — Bibliothèque de tutoriels communautaires', url: 'https://www.loj364.online/tutorials.html' },        ],
         turmoil_surge: [
           { title: 'GuideLOJ — Afflux de Tumulte : renforts et tourelles', url: 'https://www.guideloj.com/fr/events/alliance/turmoil-surge' },
           { title: 'LOJ XLab — Turmoil Surge : bases et timing des tourelles', url: 'https://lojxlab.com/blog/sun-turmoil-surge-complete-guide/' },
-        ],
+
+          { title: 'LOJ364 — Bibliothèque de tutoriels communautaires', url: 'https://www.loj364.online/tutorials.html' },        ],
         gold_hunter: [
           { title: 'LOJ Wiki — Chasseur d’or : trésors et équipement', url: 'https://lojwiki.com/guides/gold-hunter/' },
           { title: 'LOJ XLab — Gold Hunter : troves et règle des 20/10 minutes', url: 'https://lojxlab.com/blog/lands-of-jail-gold-hunter-guide/' },
+          { title: 'LOJ364 — Bibliothèque de tutoriels communautaires', url: 'https://www.loj364.online/tutorials.html' },
         ],
       };
       const ratioLabels: Record<TargetLang, { title: string; leader: string; joiner: string; standard: string; ada: string; mixed: string; shooters: string; standardNote: string; adaNote: string; joinerNote: string; shootersNote: string }> = {
@@ -1484,8 +1493,8 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
               : []),
             ...(mode === 'trial_cage' && heroNames.length > 0 && heroRecommendations.filter((item) => item.titre.startsWith('Participant —')).length < 4
               ? [targetLang === 'fr'
-                  ? `Participants : ${heroRecommendations.filter((item) => item.titre.startsWith('Participant —')).length}/4 familles d’effets de première compétence War sont reconnues. N’invente pas les effets manquants.`
-                  : 'Joiners: fewer than four distinct first-War-skill effect families were recognized. Do not invent missing effects.']
+                  ? `Participants : seulement ${heroRecommendations.filter((item) => item.titre.startsWith('Participant —')).length} candidats avec une première compétence War offensive fiable sont reconnus. Le jeu peut retenir jusqu’à quatre compétences; vérifie le niveau et l’ordre réel des participants.`
+                  : 'Joiners: fewer than four reliable offensive first-War-skill candidates were found. The game may select up to four skills; verify levels and actual participant order.']
               : []),
             ...(mode === 'trial_cage' && heroNames.length > 0 && heroRecommendations.length === 0
               ? [targetLang === 'fr'
