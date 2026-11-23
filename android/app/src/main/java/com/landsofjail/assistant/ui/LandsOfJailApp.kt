@@ -848,7 +848,7 @@ fun LandsOfJailAssistantApp(
                                             selectedAdviceMode = runCatching { AdviceMode.valueOf(snapshot.adviceMode) }.getOrDefault(AdviceMode.TRIAL_CAGE)
                                             adviceResult = snapshot.adviceResult
                                             playerRole = runCatching { PlayerRole.valueOf(snapshot.playerRole) }.getOrDefault(PlayerRole.POLYVALENT_F2P)
-                                            restoreRoutineState(profile.id, snapshot.routineState)
+                                            restoreRoutineState(profile.id, snapshot.routineState, clearWhenEmpty = snapshot.schemaVersion != null && snapshot.schemaVersion >= 2)
                                             activeProfileId = profile.id
                                             accountPrefs.edit().putString("active_game_profile_v1", profile.id).commit()
                                         }.onFailure { errorMessage = "Impossible d'ouvrir ce profil : ${it.message}" }
@@ -874,7 +874,7 @@ fun LandsOfJailAssistantApp(
                             val fresh = LocalGameAccountProfile(
                                 id = id,
                                 name = "Profil $number",
-                                stateJson = accountJson.encodeToString(LocalGameProfileSnapshot()),
+                                stateJson = accountJson.encodeToString(LocalGameProfileSnapshot(schemaVersion = 2)),
                                 updatedAtIso = Instant.now().toString()
                             )
                             localProfiles = localProfiles + fresh
