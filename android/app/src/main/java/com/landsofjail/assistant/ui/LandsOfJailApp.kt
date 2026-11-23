@@ -487,8 +487,13 @@ fun LandsOfJailAssistantApp(
             if (previous == null) {
                 merged[key] = fresh
             } else {
-                val freshUncertainFields = fresh.champsIncertains.map { it.trim().lowercase() }.toSet()
-                val previousUncertainFields = previous.champsIncertains.map { it.trim().lowercase() }.toSet()
+                val personalFieldKeys = setOf("niveau", "rarete", "etoiles", "rolehero", "puissancehero")
+                val freshUncertainFields = if (fresh.incertain && fresh.champsIncertains.isEmpty()) {
+                    personalFieldKeys
+                } else fresh.champsIncertains.map { it.trim().lowercase() }.toSet()
+                val previousUncertainFields = if (previous.incertain && previous.champsIncertains.isEmpty()) {
+                    personalFieldKeys
+                } else previous.champsIncertains.map { it.trim().lowercase() }.toSet()
                 fun isFieldUncertain(hero: HeroRecord, uncertainFields: Set<String>, field: String): Boolean =
                     field in uncertainFields || (hero.incertain && uncertainFields.isEmpty())
                 fun isFieldAvailable(hero: HeroRecord, field: String): Boolean = when (field) {
@@ -541,8 +546,6 @@ fun LandsOfJailAssistantApp(
                             raisonIncertitude = if (trusted == null) selected.raisonIncertitude else null
                         )
                     }
-                val freshHeroUncertainWithoutFieldList = fresh.incertain && freshUncertainFields.isEmpty()
-                val previousHeroUncertainWithoutFieldList = previous.incertain && previousUncertainFields.isEmpty()
                 merged[key] = previous.copy(
                     niveau = if (freshFieldReliable("niveau")) fresh.niveau ?: previous.niveau else previous.niveau ?: fresh.niveau,
                     niveauTexte = if (freshFieldReliable("niveau")) {
@@ -566,8 +569,7 @@ fun LandsOfJailAssistantApp(
                     wikiUrl = fresh.wikiUrl ?: previous.wikiUrl,
                     champsIncertains = unresolvedFields,
                     competences = skills,
-                    incertain = unresolvedFields.isNotEmpty() ||
-                        (freshHeroUncertainWithoutFieldList && previousHeroUncertainWithoutFieldList),
+                    incertain = unresolvedFields.isNotEmpty(),
                     raisonIncertitude = if (unresolvedFields.isNotEmpty()) {
                         fresh.raisonIncertitude ?: previous.raisonIncertitude
                     } else null
