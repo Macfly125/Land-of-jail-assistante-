@@ -1453,6 +1453,35 @@ private fun ResourcesScreen(
     val routinePrefs = remember(context) { context.getSharedPreferences("offline_routine", Context.MODE_PRIVATE) }
     var subTab by remember { mutableStateOf(ResourceSubTab.INVENTAIRE) }
     var targetBuildingLvl by remember { mutableIntStateOf(16) }
+    var selectedBuildingId by remember { mutableStateOf("warden_office") }
+    var fcStartStage by remember { mutableIntStateOf(0) }
+    var fcTargetStage by remember { mutableIntStateOf(1) }
+    var fcBuildingIds by remember { mutableStateOf(setOf("warden_office")) }
+    var upgradeGoal by remember { mutableStateOf("QG / progression") }
+    val buildingOptions = listOf(
+        "warden_office" to "Bureau du directeur",
+        "comms" to "Centre de communications",
+        "shield" to "Caserne Shieldbearers",
+        "shooters" to "Caserne Shooters",
+        "bombers" to "Caserne Bombers",
+        "lab" to "Laboratoire",
+        "warehouse" to "Entrepôt"
+    )
+    val buildingFactor = when (selectedBuildingId) {
+        "comms" -> 0.55
+        "shield", "shooters", "bombers" -> 0.45
+        "lab" -> 0.50
+        "warehouse" -> 0.35
+        else -> 1.0
+    }
+    val selectedBuildingLabel = buildingOptions.firstOrNull { it.first == selectedBuildingId }?.second ?: "Bureau du directeur"
+    val fcStageCosts = listOf(
+        Triple(1, 600L, 0L), Triple(2, 900L, 40L), Triple(3, 1_350L, 90L),
+        Triple(4, 1_900L, 160L), Triple(5, 2_600L, 250L)
+    )
+    val selectedFcStages = fcStageCosts.filter { it.first > fcStartStage && it.first <= fcTargetStage }
+    val totalFcCores = selectedFcStages.sumOf { it.second } * fcBuildingIds.size
+    val totalAdvancedFcCores = selectedFcStages.sumOf { it.third } * fcBuildingIds.size
     var starFrom by remember { mutableIntStateOf(0) }
     var starTo by remember { mutableIntStateOf(4) }
     var ownedShardsText by remember { mutableStateOf("0") }
@@ -1554,36 +1583,93 @@ private fun ResourcesScreen(
                 item {
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text(
-                                "Bureau du directeur (Warden Office) → Niv. $targetBuildingLvl",
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            Text(
-                                "Règle d'or dès Niv. 9 : gardez le Centre de communications à Niv. ${targetBuildingLvl - 1}.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color(0xFFFBBF24)
-                            )
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                OutlinedButton(
-                                    onClick = { if (targetBuildingLvl > 2) targetBuildingLvl-- },
-                                    enabled = targetBuildingLvl > 2
-                                ) { Text("-1 Niveau") }
-                                Button(
-                                    onClick = { if (targetBuildingLvl < 30) targetBuildingLvl++ },
-                                    enabled = targetBuildingLvl < 30
-                                ) { Text("+1 Niveau") }
+                            Text("Calculateur de bâtiments · niveaux 1 à 30", fontWeight = FontWeight.SemiBold)
+                            Text("Choisis le bâtiment à estimer. Le barème détaillé disponible concerne le Bureau du directeur ; les autres coûts sont des estimations proportionnelles à confirmer en jeu.", style = MaterialTheme.typography.bodySmall, color = Color(0xFFFBBF24))
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                items(buildingOptions, key = { it.first }) { option ->
+                                    FilterChip(
+                                        selected = selectedBuildingId == option.first,
+                                        onClick = { selectedBuildingId = option.first },
+                                        label = { Text(option.second, maxLines = 1) }
+                                    )
+                                }
                             }
-                            Text("Prérequis : ${req.prereqs}", fontWeight = FontWeight.Medium)
-                            Text("Nourriture : ${formatCompactFr(req.food)}")
-                            Text("Bois : ${formatCompactFr(req.wood)}")
-                            Text("Acier : ${formatCompactFr(req.steel)}")
-                            Text("Essence : ${formatCompactFr(req.gasoline)}")
+                            Text("$selectedBuildingLabel → Niv. $targetBuildingLvl", fontWeight = FontWeight.SemiBold)
+                            if (selectedBuildingId == "warden_office" && targetBuildingLvl >= 9) {
+                                Text("Règle d'or : gardez le Centre de communications au niveau ${targetBuildingLvl - 1}.", style = MaterialTheme.typography.bodySmall, color = Color(0xFFFBBF24))
+                            }
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                OutlinedButton(onClick = { if (targetBuildingLvl > 2) targetBuildingLvl-- }, enabled = targetBuildingLvl > 2) { Text("-1 Niveau") }
+                                Button(onClick = { if (targetBuildingLvl < 30) targetBuildingLvl++ }, enabled = targetBuildingLvl < 30) { Text("+1 Niveau") }
+                            }
                             Text(
-                                if (req.verified) "Source : Wiki / lojxlab vérifié"
-                                else "Source : Estimation (à confirmer en jeu)",
-                                color = if (req.verified) Color(0xFF34D399) else Color(0xFFFBBF24),
+                                "Prérequis : " + if (selectedBuildingId == "warden_office") req.prereqs else "À vérifier dans l'écran du bâtiment en jeu.",
+                                fontWeight = FontWeight.Medium
+                            )
+                            Text("Nourriture estimée : ${formatCompactFr((req.food * buildingFactor).toLong())}")
+                            Text("Bois estimé : ${formatCompactFr((req.wood * buildingFactor).toLong())}")
+                            Text("Acier estimé : ${formatCompactFr((req.steel * buildingFactor).toLong())}")
+                            Text("Essence estimée : ${formatCompactFr((req.gasoline * buildingFactor).toLong())}")
+                            Text(
+                                if (selectedBuildingId == "warden_office" && req.verified) "Source : barème Warden vérifié"
+                                else "Source : estimation · confirmer les coûts et prérequis dans le jeu",
+                                color = Color(0xFFFBBF24),
                                 style = MaterialTheme.typography.bodySmall
                             )
+                        }
+                    }
+                }
+                item {
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                            Text("Calculateur Forticlad · FC1 à FC5", fontWeight = FontWeight.Bold)
+                            Text("Sélectionne précisément les bâtiments qui doivent passer au Forticlad. Le calcul additionne les coûts pour tous les bâtiments cochés.", style = MaterialTheme.typography.bodySmall)
+                            Text("Bâtiments à inclure", fontWeight = FontWeight.SemiBold)
+                            buildingOptions.forEach { option ->
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Checkbox(
+                                        checked = fcBuildingIds.contains(option.first),
+                                        onCheckedChange = { checked ->
+                                            fcBuildingIds = if (checked) fcBuildingIds + option.first else fcBuildingIds - option.first
+                                        }
+                                    )
+                                    Text(option.second, style = MaterialTheme.typography.bodySmall)
+                                }
+                            }
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                OutlinedButton(onClick = {
+                                    fcStartStage = if (fcStartStage >= 4) 0 else fcStartStage + 1
+                                    if (fcTargetStage <= fcStartStage) fcTargetStage = (fcStartStage + 1).coerceAtMost(5)
+                                }) { Text(if (fcStartStage == 0) "Départ : Niv. 30" else "Départ : FC$fcStartStage") }
+                                Button(onClick = {
+                                    fcTargetStage = if (fcTargetStage >= 5) (fcStartStage + 1).coerceAtMost(5) else fcTargetStage + 1
+                                }) { Text("Cible : FC$fcTargetStage") }
+                            }
+                            Text("Bâtiments sélectionnés : ${fcBuildingIds.size}", style = MaterialTheme.typography.labelMedium)
+                            Text("Forticlad Cores nécessaires : ${formatCompactFr(totalFcCores)}", fontWeight = FontWeight.SemiBold, color = Color(0xFFFFB36B))
+                            Text("Advanced Forticlad Cores : ${formatCompactFr(totalAdvancedFcCores)}", fontWeight = FontWeight.SemiBold)
+                            Text("Prérequis général : Bureau du directeur Niv. 30 ; les prérequis de chaque bâtiment sont à contrôler dans le jeu.", style = MaterialTheme.typography.bodySmall)
+                            Text("Attention : coûts FC/AFC indicatifs, communs par bâtiment dans ce premier barème. Ils ne sont pas encore confirmés séparément pour chaque bâtiment et chaque serveur.", style = MaterialTheme.typography.bodySmall, color = Color(0xFFFBBF24))
+                        }
+                    }
+                }
+                item {
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                            Text("Priorité d'évolution", fontWeight = FontWeight.Bold)
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                items(listOf("QG / progression", "Trial Cage", "PvP / Crystal Clash / SvS", "Économie / F2P")) { goal ->
+                                    FilterChip(selected = upgradeGoal == goal, onClick = { upgradeGoal = goal }, label = { Text(goal, maxLines = 1) })
+                                }
+                            }
+                            val priorityText = when (upgradeGoal) {
+                                "Trial Cage" -> "1. Caserne Shooters et capacité de marche. 2. Recherches offensives du Laboratoire. 3. Héros apportant dégâts directs, bonus d'attaque ou réduction de DEF ennemie. 4. Autres casernes selon le ratio utilisé. Les bonus purement défensifs ne sont pas prioritaires pour le score de dégâts."
+                                "PvP / Crystal Clash / SvS" -> "1. Caserne Shieldbearers pour la première ligne. 2. Caserne Shooters pour le DPS. 3. Laboratoire : attaque, défense, PV et capacité de marche. 4. Héros principaux et compétences adaptées à l'événement. 5. Progression QG/Comms selon les prérequis."
+                                "Économie / F2P" -> "1. Centre de communications et Bureau du directeur selon les prérequis. 2. Laboratoire : recherches permanentes de construction et collecte. 3. Une caserne principale liée à votre meilleure équipe. 4. Quelques héros clés. 5. Bâtiments secondaires uniquement si nécessaires."
+                                else -> "1. Centre de communications au niveau requis (N-1). 2. Bureau du directeur. 3. Bâtiment secondaire demandé par le prochain palier. 4. Laboratoire pour les recherches utiles. 5. Entrepôt et autres bâtiments selon les besoins."
+                            }
+                            Text(priorityText, style = MaterialTheme.typography.bodySmall)
+                            Text("Cet ordre est une recommandation générale. Vérifie toujours les prérequis et les coûts exacts dans le jeu avant de lancer une amélioration.", style = MaterialTheme.typography.bodySmall, color = Color(0xFFFBBF24))
                         }
                     }
                 }
