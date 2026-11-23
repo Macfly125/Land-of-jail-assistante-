@@ -2521,6 +2521,30 @@ private fun AdviceScreen(
                 }
             }
 
+            if (res.robotRecommendations.isNotEmpty()) {
+                item {
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("Robots du profil — correspondances à vérifier", fontWeight = FontWeight.SemiBold)
+                            Text(
+                                "Sélection basée sur les bonus et compétences que tu as saisis. Ce n’est pas une simulation ni un classement garanti.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            res.robotRecommendations.forEach { robot ->
+                                Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                    Text(robot.titre, fontWeight = FontWeight.Medium)
+                                    Text(robot.detail, style = MaterialTheme.typography.bodySmall)
+                                    robot.raisonIncertitude?.let {
+                                        Text("À vérifier : $it", color = Color(0xFFFBBF24), style = MaterialTheme.typography.bodySmall)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             items(res.recommandations) { rec ->
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column {
