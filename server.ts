@@ -576,6 +576,16 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
         );
       }
 
+      const detectedRobots = Array.isArray(parsed.robots) ? parsed.robots : [];
+      parsed.robots = detectedRobots
+        .filter((robot: unknown) => robot && typeof robot === 'object')
+        .map((robot: Record<string, unknown>) => ({
+          ...robot,
+          nom: String(robot.nom || 'Robot non identifié'),
+          incertain: Boolean(robot.incertain ?? true),
+          source: 'capture_ia',
+        }));
+
       res.json({
         analysis: parsed,
         analyzedAt: new Date().toISOString(),
