@@ -773,7 +773,19 @@ fun LandsOfJailAssistantApp(
                                 fontSize = 12.sp
                             )
                         }
-                        Spacer(Modifier.width(8.dp))
+                        Spacer(Modifier.width(4.dp))
+                        TextButton(
+                            onClick = {
+                                scope.launch {
+                                    authRepository.signOut()
+                                        .onSuccess { authSession = null }
+                                        .onFailure { snackbarHostState.showSnackbar(it.message ?: "Déconnexion impossible.") }
+                                }
+                            },
+                            contentPadding = PaddingValues(horizontal = 6.dp, vertical = 4.dp)
+                        ) {
+                            Text("Quitter", color = Color(0xFFB8C3D1), fontSize = 11.sp)
+                        }
                     }
                 )
             },
