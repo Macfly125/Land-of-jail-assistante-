@@ -1406,6 +1406,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
           { title: 'LOJ XLab — Cage : leaders, joiners et compétences', url: 'https://lojxlab.com/blog/lands-of-jail-cage-advanced-guide/' },
           { title: 'YouTube — Best Rally Heroes for the Cage Event (S1–S6)', url: 'https://www.youtube.com/watch?v=PX7taSphjn8' },
           { title: 'YouTube — Ultimate Trial Cage Rally Opener Guide 2026', url: 'https://www.youtube.com/watch?v=Z52PtxzLTOs' },
+          { title: 'Discord officiel — Lands of Jail : guides et communauté', url: 'https://discord.com/invite/lands-of-jail' },
         ],
         crystal_clash: [
           { title: 'GuideLOJ — Crystal Clash : objectifs et rôles', url: 'https://www.guideloj.com/fr/events/alliance/crystal-clash' },
@@ -1413,6 +1414,7 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
         ],
         sandsea_conquest: [
           { title: 'LOJ Wiki — Conquête des sables : règles et phases', url: 'https://lojwiki.com/fr/events/sandsea-conquest/' },
+          { title: 'Discord officiel — Lands of Jail : guide maître de Sandsea', url: 'https://discord.com/invite/lands-of-jail' },
         ],
         svs: [
           { title: 'LOJ Strats — SvS : préparation des cinq jours', url: 'https://lojstrats.com/svs-preparation' },
