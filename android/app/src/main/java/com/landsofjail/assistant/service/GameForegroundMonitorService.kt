@@ -314,11 +314,10 @@ class GameForegroundMonitorService : Service() {
                 height,
                 density,
                 DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
-                if (_detectedGameForeground.value) reader.surface else null,
+                reader.surface,
                 null,
                 mainHandler
             )
-            autoCaptureSurfaceAttached = _detectedGameForeground.value
 
             var attempts = 0
             reader.setOnImageAvailableListener({ r ->
@@ -438,10 +437,11 @@ class GameForegroundMonitorService : Service() {
                 height,
                 density,
                 DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
-                reader.surface,
+                if (_detectedGameForeground.value) reader.surface else null,
                 null,
                 mainHandler
             )
+            autoCaptureSurfaceAttached = _detectedGameForeground.value
         } catch (_: Throwable) {
             handleAutoProjectionStopped()
             return
