@@ -504,15 +504,22 @@ Réponds en français et retourne uniquement le JSON conforme au schéma.`,
                 .replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
               if (!skillKey) continue;
               const oldSkill = skillMap.get(skillKey);
+              const knownSkillTypes = ['war', 'arrest', 'equipment'];
+              const oldTypeKnown = oldSkill && knownSkillTypes.includes(String(oldSkill.type || '').toLowerCase());
+              const newTypeKnown = knownSkillTypes.includes(String(skill.type || '').toLowerCase());
               if (!oldSkill || (oldSkill.incertain === true && skill.incertain === false)) {
-                skillMap.set(skillKey, skill);
+                skillMap.set(skillKey, oldTypeKnown && !newTypeKnown
+                  ? { ...skill, type: oldSkill.type }
+                  : skill);
               } else if (oldSkill.incertain !== true && skill.incertain !== true) {
-                skillMap.set(skillKey, {
+                const mergedSkill = {
                   ...oldSkill,
                   ...Object.fromEntries(Object.entries(skill).filter(([, value]) =>
                     value !== undefined && value !== null && value !== ''
                   )),
-                });
+                };
+                if (oldTypeKnown && !newTypeKnown) mergedSkill.type = oldSkill.type;
+                skillMap.set(skillKey, mergedSkill);
               }
             }
 
