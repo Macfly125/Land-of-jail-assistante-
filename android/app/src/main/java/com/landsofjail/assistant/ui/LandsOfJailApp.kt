@@ -3344,7 +3344,7 @@ private fun ResourcesScreen(
                                 Text("${localizedResourceName(currentLang, res.nom)} : ${res.quantiteTexte}", fontWeight = FontWeight.Medium)
                                 if (res.incertain) {
                                     Text(
-                                        localizedAppText("Incertain : ${res.raisonIncertitude ?: "affichage tronqué"}"),
+                                        localizedUiText(currentLang, "Incertain : ${res.raisonIncertitude ?: "affichage tronqué"}", "Uncertain: ${res.raisonIncertitude ?: "truncated display"}", "Unsicher: ${res.raisonIncertitude ?: "Anzeige abgeschnitten"}", "Belirsiz: ${res.raisonIncertitude ?: "görüntü kesildi"}", "Неточно: ${res.raisonIncertitude ?: "данные обрезаны"}", "不确定：${res.raisonIncertitude ?: "显示内容被截断"}"),
                                         color = Color(0xFFFBBF24),
                                         style = MaterialTheme.typography.bodySmall
                                     )
@@ -3425,8 +3425,8 @@ private fun ResourcesScreen(
                                 Text(robot.nom, fontWeight = FontWeight.SemiBold)
                                 val meta = listOf(robot.niveau.takeIf { it.isNotBlank() }?.let { localizedUiText(currentLang, "Niv. $it", "Lv. $it", "Stufe $it", "Sv. $it", "Ур. $it", "等级 $it") }, robot.rarete, robot.puissance.takeIf { it.isNotBlank() }?.let { localizedUiText(currentLang, "Puissance $it", "Power $it", "Macht $it", "Güç $it", "Мощь $it", "战力 $it") }).filterNotNull()
                                 if (meta.isNotEmpty()) Text(meta.joinToString(" · "), style = MaterialTheme.typography.bodySmall)
-                                if (robot.bonus.isNotBlank()) Text(localizedAppText(localizedAppText("Bonus : ${robot.bonus}")), style = MaterialTheme.typography.bodySmall)
-                                if (robot.competences.isNotBlank()) Text(localizedAppText(localizedAppText("Compétences : ${robot.competences}")), style = MaterialTheme.typography.bodySmall)
+                                if (robot.bonus.isNotBlank()) Text(localizedUiText(currentLang, "Bonus : ${robot.bonus}", "Bonus: ${robot.bonus}", "Bonus: ${robot.bonus}", "Bonus: ${robot.bonus}", "Бонус: ${robot.bonus}", "加成：${robot.bonus}"), style = MaterialTheme.typography.bodySmall)
+                                if (robot.competences.isNotBlank()) Text(localizedUiText(currentLang, "Compétences : ${robot.competences}", "Skills: ${robot.competences}", "Fähigkeiten: ${robot.competences}", "Beceriler: ${robot.competences}", "Навыки: ${robot.competences}", "技能：${robot.competences}"), style = MaterialTheme.typography.bodySmall)
                                 if (robot.incertain) {
                                     Text(
                                         robot.raisonIncertitude?.takeIf { it.isNotBlank() }?.let { localizedUiText(currentLang, "Nom du robot reconnu, niveau non lu explicitement", "Robot name recognized; level not read explicitly", "Robotername erkannt; Stufe nicht eindeutig gelesen", "Robot adı tanındı; seviye açıkça okunamadı", "Название робота распознано, уровень не прочитан", "已识别机器人名称，但未明确读取等级") } ?: localizedUiText(currentLang, "Données détectées à vérifier sur l’écran du jeu.", "Detected data must be checked against the game screen.", "Erkannte Daten müssen im Spiel überprüft werden.", "Algılanan veriler oyun ekranında doğrulanmalı.", "Распознанные данные нужно проверить по экрану игры.", "识别的数据需要与游戏画面核对。"),
@@ -3437,11 +3437,11 @@ private fun ResourcesScreen(
                                 if (robot.champsIncertains.isNotEmpty()) {
                                     val robotFieldLabels = robot.champsIncertains.map { field ->
                                         when (field.lowercase()) {
-                                            "niveau" -> "niveau"
-                                            "rarete" -> "rareté"
-                                            "bonus" -> "bonus"
-                                            "competences" -> "compétences"
-                                            "puissance" -> "puissance"
+                                            "niveau" -> resourceUiText(currentLang, "level")
+                                            "rarete" -> resourceUiText(currentLang, "rarity_stars")
+                                            "bonus" -> resourceUiText(currentLang, "active_bonuses")
+                                            "competences" -> resourceUiText(currentLang, "skills_effects")
+                                            "puissance" -> resourceUiText(currentLang, "power_optional")
                                             else -> field
                                         }
                                     }
