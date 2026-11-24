@@ -252,7 +252,23 @@ fun LandsOfJailAssistantApp(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    var currentLang by remember { mutableStateOf(AppLanguage.FR) }
+    var currentLang by remember(context) {
+        mutableStateOf(
+            runCatching {
+                val savedCode = context.getSharedPreferences(
+                    "lands_of_jail_account_v1",
+                    Context.MODE_PRIVATE
+                ).getString("app_language_code", AppLanguage.FR.code)
+                AppLanguage.entries.firstOrNull { it.code == savedCode } ?: AppLanguage.FR
+            }.getOrDefault(AppLanguage.FR)
+        )
+    }
+    LaunchedEffect(currentLang) {
+        context.getSharedPreferences("lands_of_jail_account_v1", Context.MODE_PRIVATE)
+            .edit()
+            .putString("app_language_code", currentLang.code)
+            .apply()
+    }
     var currentTab by remember { mutableStateOf(AssistantTab.TABLEAU) }
     var playerRole by remember { mutableStateOf(PlayerRole.POLYVALENT_F2P) }
     var packageFilter by remember { mutableStateOf(UsageStatsDetector.DEFAULT_GAME_PACKAGE_KEYWORD) }
