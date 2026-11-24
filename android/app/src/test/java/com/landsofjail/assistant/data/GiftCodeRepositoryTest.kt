@@ -17,7 +17,7 @@ class GiftCodeRepositoryTest {
         assertNotNull(vip)
         assertEquals("OFFICIAL_LISTED", vip?.status)
         assertEquals("21/09/2026", vip?.firstSeen)
-        assertEquals("13/10/2026", vip?.lastChecked)
+        assertEquals("01/11/2026", vip?.lastChecked)
         assertTrue(vip?.expiresAt.isNullOrBlank())
 
         assertNotNull(expired)
