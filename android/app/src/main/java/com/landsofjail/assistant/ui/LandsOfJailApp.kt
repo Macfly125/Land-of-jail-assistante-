@@ -1182,7 +1182,7 @@ fun LandsOfJailAssistantApp(
                             accountPrefs.edit().putString("active_game_profile_v1", id).commit()
                             showProfileDialog = false
                         }
-                    ) { Text("+ Ajouter un profil") }
+                    ) { Text("+ " + localizedUiText(currentLang, "Ajouter un profil", "Add a profile", "Profil hinzufügen", "Profil ekle", "Добавить профиль", "添加档案")) }
                     TextButton(
                         enabled = !isProfileSyncing && !isAnalyzing && !isAutoCapturing,
                         onClick = {
@@ -1283,18 +1283,18 @@ fun LandsOfJailAssistantApp(
                     ) { Text(if (isProfileSyncing) "Synchronisation…" else "Synchroniser avec le cloud") }
                 }
             },
-            confirmButton = { TextButton(onClick = { showProfileDialog = false }) { Text("Fermer") } }
+            confirmButton = { TextButton(onClick = { showProfileDialog = false }) { Text(localizedUiText(currentLang, "Fermer", "Close", "Schließen", "Kapat", "Закрыть", "关闭")) } }
         )
     }
     if (editingProfileId != null) {
         AlertDialog(
             onDismissRequest = { editingProfileId = null },
-            title = { Text("Renommer le profil") },
+            title = { Text(localizedUiText(currentLang, "Renommer le profil", "Rename profile", "Profil umbenennen", "Profili yeniden adlandır", "Переименовать профиль", "重命名档案")) },
             text = {
                 OutlinedTextField(
                     value = profileNameInput,
                     onValueChange = { profileNameInput = it.take(32) },
-                    label = { Text("Nom du profil") },
+                    label = { Text(localizedUiText(currentLang, "Nom du profil", "Profile name", "Profilname", "Profil adı", "Название профиля", "档案名称")) },
                     singleLine = true
                 )
             },
@@ -1307,17 +1307,17 @@ fun LandsOfJailAssistantApp(
                         }
                     }
                     editingProfileId = null
-                }, enabled = profileNameInput.trim().isNotEmpty()) { Text("Enregistrer") }
+                }, enabled = profileNameInput.trim().isNotEmpty()) { Text(localizedUiText(currentLang, "Enregistrer", "Save", "Speichern", "Kaydet", "Сохранить", "保存")) }
             },
-            dismissButton = { TextButton(onClick = { editingProfileId = null }) { Text("Annuler") } }
+            dismissButton = { TextButton(onClick = { editingProfileId = null }) { Text(localizedUiText(currentLang, "Annuler", "Cancel", "Abbrechen", "İptal", "Отмена", "取消")) } }
         )
     }
     if (deletingProfileId != null) {
         val target = localProfiles.firstOrNull { it.id == deletingProfileId }
         AlertDialog(
             onDismissRequest = { deletingProfileId = null },
-            title = { Text("Supprimer ce profil ?") },
-            text = { Text("Les données locales de « ${target?.name.orEmpty()} » seront supprimées de cet appareil. Cette action ne supprime aucune sauvegarde distante.") },
+            title = { Text(localizedUiText(currentLang, "Supprimer ce profil ?", "Delete this profile?", "Dieses Profil löschen?", "Bu profil silinsin mi?", "Удалить этот профиль?", "删除此档案？")) },
+            text = { Text(localizedUiText(currentLang, "Les données locales de « ${target?.name.orEmpty()} » seront supprimées de cet appareil. Cette action ne supprime aucune sauvegarde distante.", "The local data for “${target?.name.orEmpty()}” will be deleted from this device. This does not delete any cloud backup.", "Die lokalen Daten von „${target?.name.orEmpty()}“ werden von diesem Gerät gelöscht. Cloud-Sicherungen bleiben erhalten.", "“${target?.name.orEmpty()}” profilinin yerel verileri bu cihazdan silinecek. Bulut yedekleri silinmez.", "Локальные данные профиля «${target?.name.orEmpty()}» будут удалены с этого устройства. Облачные копии не удаляются.", "“${target?.name.orEmpty()}”的本地数据将从此设备删除。此操作不会删除云端备份。")) },
             confirmButton = {
                 TextButton(onClick = {
                     if (target != null && localProfiles.size > 1) {
@@ -1346,7 +1346,7 @@ fun LandsOfJailAssistantApp(
                         }
                     }
                     deletingProfileId = null
-                }) { Text("Supprimer") }
+                }) { Text(localizedUiText(currentLang, "Supprimer", "Delete", "Löschen", "Sil", "Удалить", "删除")) }
             },
             dismissButton = { TextButton(onClick = { deletingProfileId = null }) { Text("Annuler") } }
         )
