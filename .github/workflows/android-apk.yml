@@ -48,7 +48,6 @@ jobs:
       - name: Tester le démarrage réel sur émulateur Android
         uses: reactivecircus/android-emulator-runner@v2
         timeout-minutes: 15
-        continue-on-error: true
         with:
           api-level: 32
           arch: x86_64
