@@ -85,6 +85,7 @@ private fun localizedUiText(
 private fun localizedCaptureCategory(language: AppLanguage, raw: String): String = when (raw.lowercase()) {
     "heros", "heroes" -> localizedUiText(language, "Héros", "Heroes", "Helden", "Kahramanlar", "Герои", "英雄")
     "robots" -> localizedUiText(language, "Robots", "Robots", "Roboter", "Robotlar", "Роботы", "机器人")
+    "equipements", "equipment", "gear" -> localizedUiText(language, "Amélioration d'équipements", "Equipment upgrades", "Ausrüstungsverbesserung", "Ekipman geliştirme", "Улучшение снаряжения", "装备升级")
     "ressources", "resources" -> localizedUiText(language, "Ressources", "Resources", "Ressourcen", "Kaynaklar", "Ресурсы", "资源")
     "batiments", "buildings" -> localizedUiText(language, "Bâtiments", "Buildings", "Gebäude", "Binalar", "Здания", "建筑")
     "troupes", "troops" -> localizedUiText(language, "Troupes", "Troops", "Truppen", "Birlikler", "Войска", "部队")
@@ -1387,7 +1388,8 @@ fun LandsOfJailAssistantApp(
             localExtraction.resources.isNotEmpty() ||
             localExtraction.robots.isNotEmpty() ||
             localExtraction.detectedCategory == "robots" ||
-            localExtraction.detectedCategory == "ressources"
+            localExtraction.detectedCategory == "ressources" ||
+            localExtraction.detectedCategory == "equipements"
 
         if (hasLocalData) {
             onProgress(100)
@@ -1401,6 +1403,7 @@ fun LandsOfJailAssistantApp(
                         localExtraction.power?.let { add("Puissance : ${it.puissanceTotaleTexte}") }
                         if (localExtraction.heroes.isNotEmpty()) add("${localExtraction.heroes.size} héros")
                         if (localExtraction.resources.isNotEmpty()) add("${localExtraction.resources.size} ressource(s)")
+                        if (localExtraction.robots.isNotEmpty()) add("${localExtraction.robots.size} robot(s)")
                     }.joinToString(" · "),
                 puissance = localExtraction.power,
                 ressources = localExtraction.resources,
