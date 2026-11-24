@@ -1390,6 +1390,7 @@ fun LandsOfJailAssistantApp(
             localExtraction.heroes.isNotEmpty() ||
             localExtraction.resources.isNotEmpty() ||
             localExtraction.robots.isNotEmpty() ||
+            localExtraction.equipment.isNotEmpty() ||
             localExtraction.detectedCategory == "robots" ||
             localExtraction.detectedCategory == "ressources" ||
             localExtraction.detectedCategory == "equipements"
@@ -1407,6 +1408,7 @@ fun LandsOfJailAssistantApp(
                         if (localExtraction.heroes.isNotEmpty()) add("${localExtraction.heroes.size} héros")
                         if (localExtraction.resources.isNotEmpty()) add("${localExtraction.resources.size} ressource(s)")
                         if (localExtraction.robots.isNotEmpty()) add("${localExtraction.robots.size} robot(s)")
+                        if (localExtraction.equipment.isNotEmpty()) add("${localExtraction.equipment.size} pièce(s) d'équipement")
                     }.joinToString(" · "),
                 puissance = localExtraction.power,
                 ressources = localExtraction.resources,
@@ -1551,6 +1553,12 @@ fun LandsOfJailAssistantApp(
                         if (localExtraction.resources.isNotEmpty()) {
                             add("${localExtraction.resources.size} ressource(s)")
                         }
+                        if (localExtraction.robots.isNotEmpty()) {
+                            add("${localExtraction.robots.size} robot(s)")
+                        }
+                        if (localExtraction.equipment.isNotEmpty()) {
+                            add("${localExtraction.equipment.size} pièce(s) d'équipement")
+                        }
                     }
                     val summaryLine = if (foundParts.isNotEmpty()) {
                         "${foundParts.joinToString(" · ")} — ${localExtraction.ocrSnippet}"
@@ -1566,6 +1574,8 @@ fun LandsOfJailAssistantApp(
                         puissance = localExtraction.power,
                         ressources = localExtraction.resources,
                         heros = localExtraction.heroes,
+                        robots = localExtraction.robots,
+                        equipements = localExtraction.equipment,
                         champsIncertains = localExtraction.uncertainItems
                     )
                 }
