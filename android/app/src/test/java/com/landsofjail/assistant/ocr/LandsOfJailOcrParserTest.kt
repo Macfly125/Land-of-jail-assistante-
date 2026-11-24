@@ -224,6 +224,22 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun recognizesGameEventScreensAcrossSupportedLanguages() {
+        val samples = listOf(
+            "Trial Cage\\nDamage dealt",
+            "Prüfungskäfig\\nVerursachter Schaden",
+            "Deneme Kafesi\\nVerilen hasar",
+            "Испытательная клетка\\nНанесенный урон",
+            "试炼笼\\n造成伤害"
+        )
+        samples.forEach { sample ->
+            val result = ScreenRecognitionEngine.analyze(sample)
+            assertEquals("Événement Trial Cage non reconnu : $sample", "trial_cage", result.category)
+            assertTrue(result.matchedLabels.isNotEmpty())
+        }
+    }
+
+    @Test
     fun doesNotClaimVisualRecognitionFromOcrAlone() {
         val result = ScreenRecognitionEngine.analyze("Level 18")
         assertEquals("ocr_local", result.category)
