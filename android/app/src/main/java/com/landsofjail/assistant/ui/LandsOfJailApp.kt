@@ -3396,7 +3396,9 @@ private fun ResourcesScreen(
     var armorCoreModule by remember(profileId) { mutableStateOf(developmentPrefs.getString("armor_core_module", "Solo") ?: "Solo") }
     var armorCoreModulesCount by remember(profileId) { mutableIntStateOf(developmentPrefs.getInt("armor_core_modules_count", 1).coerceIn(1, 3)) }
     var armorCoreChipsOwned by remember(profileId) { mutableStateOf(developmentPrefs.getString("armor_core_chips", "0") ?: "0") }
-    LaunchedEffect(fcBuildingKey, fcCurrentLevel, fcCurrentProgress, fcTargetLevel, fcCoresOwned, fcAdvancedOwned, gearFromTier, gearToTier, gearExpOwned, gearMagnetsOwned, gearCoilsOwned, gearPrecisionOwned, armorCoreTier, armorCoreModule, armorCoreModulesCount, armorCoreChipsOwned) {
+    var hyperalloyOwned by remember(profileId) { mutableStateOf(developmentPrefs.getString("hyperalloy_owned", "0") ?: "0") }
+    var hyperalloyPlan by remember(profileId) { mutableStateOf(developmentPrefs.getString("hyperalloy_plan", "bastion") ?: "bastion") }
+    LaunchedEffect(fcBuildingKey, fcCurrentLevel, fcCurrentProgress, fcTargetLevel, fcCoresOwned, fcAdvancedOwned, gearFromTier, gearToTier, gearExpOwned, gearMagnetsOwned, gearCoilsOwned, gearPrecisionOwned, armorCoreTier, armorCoreModule, armorCoreModulesCount, armorCoreChipsOwned, hyperalloyOwned, hyperalloyPlan) {
         developmentPrefs.edit()
             .putString("fc_building", fcBuildingKey)
             .putInt("fc_current_level", fcCurrentLevel)
@@ -3414,6 +3416,8 @@ private fun ResourcesScreen(
             .putString("armor_core_module", armorCoreModule)
             .putInt("armor_core_modules_count", armorCoreModulesCount)
             .putString("armor_core_chips", armorCoreChipsOwned)
+            .putString("hyperalloy_owned", hyperalloyOwned)
+            .putString("hyperalloy_plan", hyperalloyPlan)
             .apply()
     }
 
@@ -3820,6 +3824,38 @@ private fun ResourcesScreen(
                             OutlinedTextField(armorCoreChipsOwned, { armorCoreChipsOwned = it.filter(Char::isDigit).take(10) }, label = { Text("🔹 " + localizedUiText(currentLang, "Puces de noyau possédées", "Core Chips owned", "Kernchips vorhanden", "Mevcut Çekirdek Çipleri", "Чипы ядра в наличии", "现有核心芯片")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                             Divider()
                             Text(localizedUiText(currentLang, "Coût : \${formatCompactFr(requiredChips.toLong())} puces · Manquantes : \${formatCompactFr(missingChips.toLong())}", "Cost: \${formatCompactFr(requiredChips.toLong())} chips · Missing: \${formatCompactFr(missingChips.toLong())}", "Kosten: \${formatCompactFr(requiredChips.toLong())} Chips · Fehlend: \${formatCompactFr(missingChips.toLong())}", "Maliyet: \${formatCompactFr(requiredChips.toLong())} çip · Eksik: \${formatCompactFr(missingChips.toLong())}", "Стоимость: \${formatCompactFr(requiredChips.toLong())} чипов · Не хватает: \${formatCompactFr(missingChips.toLong())}", "成本：\${formatCompactFr(requiredChips.toLong())} 芯片 · 缺少：\${formatCompactFr(missingChips.toLong())}"), fontWeight = FontWeight.SemiBold)
+                        }
+                    }
+                }
+                item {
+                    val hyperalloyRequired = when (hyperalloyPlan) {
+                        "one_type" -> 48150
+                        "three_types" -> 144450
+                        else -> 25730
+                    }
+                    val hyperalloyMissing = (hyperalloyRequired - (hyperalloyOwned.toIntOrNull() ?: 0)).coerceAtLeast(0)
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("🔬 " + localizedUiText(currentLang, "Laboratoire Forticlad · Hyperalliage", "Forticlad Lab · Hyperalloy", "Forticlad-Labor · Hyperlegierung", "Forticlad Laboratuvarı · Hiperalaşım", "Лаборатория Forticlad · Гиперсплав", "Forticlad 实验室 · 超合金"), fontWeight = FontWeight.Bold)
+                            Text(localizedUiText(currentLang, "Objectifs documentés : débloquer les troupes niveau 11 Bastion, terminer un type de troupe ou les trois types.", "Documented goals: unlock Bastion level 11 troops, complete one troop type, or all three types.", "Dokumentierte Ziele: Bastion-Truppen Stufe 11 freischalten, einen Truppentyp oder alle drei abschließen.", "Belgelenen hedefler: 11. seviye Bastion birliklerini açmak, bir birlik türünü veya üçünü tamamlamak.", "Цели: открыть войска Bastion 11-го уровня, завершить один или все три типа войск.", "已记录目标：解锁 11 级 Bastion 部队、完成一种或全部三种部队科技。"), style = MaterialTheme.typography.bodySmall)
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                items(listOf("bastion", "one_type", "three_types")) { plan ->
+                                    FilterChip(
+                                        selected = hyperalloyPlan == plan,
+                                        onClick = { hyperalloyPlan = plan },
+                                        label = {
+                                            Text(when (plan) {
+                                                "bastion" -> localizedUiText(currentLang, "Débloquer Bastion Niv. 11", "Unlock Bastion Lv. 11", "Bastion Stufe 11 freischalten", "Bastion Sv. 11 aç", "Открыть Bastion ур. 11", "解锁 Bastion 11 级")
+                                                "one_type" -> localizedUiText(currentLang, "1 type de troupe", "1 troop type", "1 Truppentyp", "1 birlik türü", "1 тип войск", "1 种部队")
+                                                else -> localizedUiText(currentLang, "3 types de troupe", "3 troop types", "3 Truppentypen", "3 birlik türü", "3 типа войск", "3 种部队")
+                                            })
+                                        }
+                                    )
+                                }
+                            }
+                            OutlinedTextField(hyperalloyOwned, { hyperalloyOwned = it.filter(Char::isDigit).take(9) }, label = { Text("🧩 " + localizedUiText(currentLang, "Hyperalliage possédé", "Hyperalloy owned", "Hyperlegierung vorhanden", "Mevcut Hiperalaşım", "Гиперсплав в наличии", "现有超合金")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                            Divider()
+                            Text(localizedUiText(currentLang, "Requis : \${formatCompactFr(hyperalloyRequired.toLong())} · Manquant : \${formatCompactFr(hyperalloyMissing.toLong())}", "Required: \${formatCompactFr(hyperalloyRequired.toLong())} · Missing: \${formatCompactFr(hyperalloyMissing.toLong())}", "Benötigt: \${formatCompactFr(hyperalloyRequired.toLong())} · Fehlend: \${formatCompactFr(hyperalloyMissing.toLong())}", "Gerekli: \${formatCompactFr(hyperalloyRequired.toLong())} · Eksik: \${formatCompactFr(hyperalloyMissing.toLong())}", "Требуется: \${formatCompactFr(hyperalloyRequired.toLong())} · Не хватает: \${formatCompactFr(hyperalloyMissing.toLong())}", "需要：\${formatCompactFr(hyperalloyRequired.toLong())} · 缺少：\${formatCompactFr(hyperalloyMissing.toLong())}"), fontWeight = FontWeight.SemiBold)
                         }
                     }
                 }
