@@ -3800,7 +3800,7 @@ private fun ResourcesScreen(
                                 items(listOf("Solo", "Formation", "Barrier")) { module ->
                                     FilterChip(selected = armorCoreModule == module, onClick = { armorCoreModule = module }, label = {
                                         Text(when (module) {
-                                            "Solo" -> localizedUiText(currentLang, "单人".takeIf { currentLang == AppLanguage.ZH } ?: "Solo", "Solo", "Solo", "Solo", "Соло", "单人")
+                                            "Solo" -> localizedUiText(currentLang, "Solo", "Solo", "Solo", "Solo", "Соло", "单人")
                                             "Formation" -> localizedUiText(currentLang, "Formation", "Formation", "Formation", "Formasyon", "Формирование", "编队")
                                             else -> localizedUiText(currentLang, "Barrière", "Barrier", "Barriere", "Bariyer", "Барьер", "屏障")
                                         })
