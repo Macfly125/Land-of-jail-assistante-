@@ -223,7 +223,7 @@ enum class AdviceMode(
             AppLanguage.ZH -> "试炼之笼是伤害竞赛。起始兵种比例（Shieldbearer / Bomber / Shooter）：无 Ada 队长 0/10/90；Ada 队长 1/9/90（按行军规模约 1,000 名 Shieldbearer）；混合兵种队员 0/10/90，纯 Shooter 队员 0/0/100。队员只派一名英雄，且只计算其第一项 War 技能，最多计入 4 个队员技能。优先攻击、杀伤、伤害和降低敌方防御；不要为了伤害分数选择生命/防御/生存加成。请核对实际生效加成并比较战报；这些只是起始比例。"
             AppLanguage.DE -> "Trial Cage ist ein Schadensrennen. Startverhältnisse (Shieldbearer / Bomber / Shooter): Anführer ohne Ada 0/10/90; mit Ada 1/9/90 (etwa 1.000 Shieldbearer abhängig von der Marschgröße); gemischter Joiner 0/10/90 oder nur Shooter 0/0/100. Joiner senden nur einen Helden; nur dessen erste War-Fähigkeit zählt, maximal vier Joiner-Fähigkeiten. ATK, Letalität, Schaden und gegnerische DEF-Senkung priorisieren; HP/DEF/Überleben nicht für den Schadenswert wählen. Tatsächlich angewendete Boni und Kampfberichte prüfen; Startwerte, keine Garantie."
             AppLanguage.EN -> "Trial Cage is a damage race. Starting ratios (Shieldbearer / Bomber / Shooter): leader without Ada 0/10/90; leader with Ada 1/9/90 (about 1,000 Shieldbearers depending on march size); mixed joiner 0/10/90 or Shooter-only 0/0/100. A joiner sends one hero: only that hero's first War skill counts, up to four joiner skills. Prioritize ATK, Lethality, damage and enemy DEF reduction; do not pick HP/DEF/survival buffs for the damage score. Verify applied bonuses and compare battle reports; these are starting ratios, not guaranteed optimal."
-            AppLanguage.IT -> "Trial Cage is a damage race. Starting ratios (Shieldbearer / Bomber / Shooter): leader without Ada 0/10/90; leader with Ada 1/9/90 (about 1,000 Shieldbearers depending on march size); mixed joiner 0/10/90 or Shooter-only 0/0/100. A joiner sends one hero: only that hero's first War skill counts, up to four joiner skills. Prioritize ATK, Lethality, damage and enemy DEF reduction; do not pick HP/DEF/survival buffs for the damage score. Verify applied bonuses and compare battle reports; these are starting ratios, not guaranteed optimal."
+            AppLanguage.IT -> "La Gabbia di prova è una gara di danni. Rapporti iniziali (Shieldbearer / Bomber / Shooter): capo senza Ada 0/10/90; capo con Ada 1/9/90 (circa 1.000 Shieldbearer in base alla dimensione della marcia); partecipante misto 0/10/90 o solo Shooter 0/0/100. Ogni partecipante invia un eroe: conta solo la sua prima abilità War, fino a quattro abilità dei partecipanti. Dai priorità ad ATK, letalità, danni e riduzione della DEF nemica; non scegliere bonus HP/DEF/sopravvivenza per il punteggio danni. Verifica i bonus applicati e confronta i rapporti di battaglia: sono rapporti iniziali, non una garanzia di ottimalità."
         }
         CRYSTAL_CLASH -> when (lang) {
             AppLanguage.FR -> "Capturez Crystal Prisons, Ironholds & Energy Hubs en Phase 1, poussez Central Ironprison en Phase 2 et utilisez les fenêtres de soin (~12 min)."
@@ -232,7 +232,7 @@ enum class AdviceMode(
             AppLanguage.ZH -> "第1阶段夺取Crystal Prisons与Energy Hubs，第2阶段强攻Central Ironprison并利用治疗窗口。"
             AppLanguage.DE -> "Phase 1 Crystal Prisons & Energy Hubs sichern, Phase 2 Central Ironprison angreifen, Heilzyklen nutzen."
             AppLanguage.EN -> "Secure Crystal Prisons, Ironholds & Energy Hubs in Phase 1, push Central Ironprison in Phase 2, use 12-min healing cycles."
-            AppLanguage.IT -> "Secure Crystal Prisons, Ironholds & Energy Hubs in Phase 1, push Central Ironprison in Phase 2, use 12-min healing cycles."
+            AppLanguage.IT -> "Conquista Crystal Prisons, Ironholds ed Energy Hubs nella fase 1; attacca Central Ironprison nella fase 2 e sfrutta i cicli di cura di circa 12 minuti."
         }
         SANDSEA_CONQUEST -> when (lang) {
             AppLanguage.FR -> "Économisez le Carburant (Fuel) sur les routes, protégez les Vessel Stations, capturez les Phares et poussez vers S100 avec le Tacticien."
@@ -241,7 +241,7 @@ enum class AdviceMode(
             AppLanguage.ZH -> "节省队伍燃料，保护船坞站点，占领灯塔，配合战术官推进至S100。"
             AppLanguage.DE -> "Treibstoff sparen, Vessel Stations schützen, Leuchttürme einnehmen und koordiniert auf S100 vorrücken."
             AppLanguage.EN -> "Save squad Fuel on sand roads, protect Vessel Stations, capture Lighthouses and coordinate pushes toward S100."
-            AppLanguage.IT -> "Save squad Fuel on sand roads, protect Vessel Stations, capture Lighthouses and coordinate pushes toward S100."
+            AppLanguage.IT -> "Risparmia carburante durante gli spostamenti sulla sabbia, proteggi le Vessel Stations, conquista i fari e coordina l’avanzata verso S100."
         }
         SVS -> when (lang) {
             AppLanguage.FR -> "Optimisez la puissance avant le matchmaking, gardez accélérations & éclats pour la Préparation, puis défendez/attaquez en Phase Guerre."
@@ -250,7 +250,7 @@ enum class AdviceMode(
             AppLanguage.ZH -> "匹配前优化战力，加速道具和碎片留给准备阶段，战争阶段协同攻防。"
             AppLanguage.DE -> "Macht vor Matchmaking prüfen, Beschleuniger/Splitter für Vorbereitung sparen, dann Kriegsphase."
             AppLanguage.EN -> "Manage matchmaking power, save speedups & hero shards for Preparation Phase, then fight in War Phase."
-            AppLanguage.IT -> "Manage matchmaking power, save speedups & hero shards for Preparation Phase, then fight in War Phase."
+            AppLanguage.IT -> "Gestisci la potenza prima del matchmaking, conserva accelerazioni e frammenti eroe per la fase di preparazione, poi combatti nella fase di guerra."
         }
         TURMOIL_SURGE -> when (lang) {
             AppLanguage.FR -> "20 vagues (~40 min) : les vagues 10 & 20 visent les Tourelles (Sentry Turrets), et les vagues 7, 14 & 17 ciblent les joueurs en ligne. Échangez vos garnisons."
@@ -259,7 +259,7 @@ enum class AdviceMode(
             AppLanguage.ZH -> "20波进攻：第10、20波攻击炮塔，第7、14、17波攻击在线玩家，与盟友互换驻防。"
             AppLanguage.DE -> "20 Wellen: 10 & 20 treffen Sentry Turrets; 7, 14 & 17 aktive Spieler. Garnisonen mit Verbündeten tauschen."
             AppLanguage.EN -> "20 waves (~40 min): waves 10 & 20 hit Sentry Turrets; Frenzy waves 7, 14 & 17 hit online players. Swap ally garrisons."
-            AppLanguage.IT -> "20 waves (~40 min): waves 10 & 20 hit Sentry Turrets; Frenzy waves 7, 14 & 17 hit online players. Swap ally garrisons."
+            AppLanguage.IT -> "20 ondate (circa 40 min): le ondate 10 e 20 colpiscono le torrette Sentry; le ondate Frenzy 7, 14 e 17 attaccano i giocatori online. Scambia le guarnigioni con gli alleati."
         }
         GOLD_HUNTER -> when (lang) {
             AppLanguage.FR -> "Réservez éclats, livres de compétences, matériaux d'Arsenal et gros bâtiments exclusivement pour les paliers d'événement."
@@ -268,7 +268,7 @@ enum class AdviceMode(
             AppLanguage.ZH -> "将英雄碎片、技能书、军械材料与大型建筑升级留到活动窗口再集中使用。"
             AppLanguage.DE -> "Splitter, Skillbücher, Ausrüstungsmaterialien und große Ausbauten für Event-Tage aufsparen."
             AppLanguage.EN -> "Save hero shards, skill books, Arsenal materials and long upgrades exclusively for event milestone days."
-            AppLanguage.IT -> "Save hero shards, skill books, Arsenal materials and long upgrades exclusively for event milestone days."
+            AppLanguage.IT -> "Conserva frammenti eroe, libri abilità, materiali dell’Arsenale e miglioramenti lunghi per i giorni delle tappe evento."
         }
         GORILLA_LEGION -> when (lang) {
             AppLanguage.FR -> "Vérifie le boss et le bonus affichés en jeu : le bonus du jour est amplifié de +1000 %. Seuls les compétences de héros, l'équipement exclusif et ce bonus comptent. Ratio communauté de départ : 0 % Shieldbearers / 10 % Bombers / 90 % Shooters ; compare plusieurs rapports et ajuste selon le boss."
@@ -277,7 +277,7 @@ enum class AdviceMode(
             AppLanguage.ZH -> "先确认游戏内显示的首领和每日加成：当日加成额外提高 1000%。只有英雄技能、专属装备和当日加成生效。社区起始比例：Shieldbearers 0% / Bombers 10% / Shooters 90%；比较多次战报，再按首领调整。"
             AppLanguage.DE -> "Prüfe den angezeigten Gorilla und Tagesbonus im Spiel: Der Tagesbonus wird um +1000 % verstärkt. Es zählen nur Heldenfähigkeiten, exklusive Ausrüstung und der Tagesbonus. Community-Startverhältnis: 0 % Shieldbearers / 10 % Bombers / 90 % Shooters; mehrere Kampfberichte vergleichen und je Boss anpassen."
             AppLanguage.EN -> "Check the in-game boss and daily bonus: that day's bonus is amplified by +1000%. Only hero skills, exclusive equipment and the daily bonus count. Community starting ratio: 0% Shieldbearers / 10% Bombers / 90% Shooters; compare several battle reports and adjust for the boss."
-            AppLanguage.IT -> "Check the in-game boss and daily bonus: that day's bonus is amplified by +1000%. Only hero skills, exclusive equipment and the daily bonus count. Community starting ratio: 0% Shieldbearers / 10% Bombers / 90% Shooters; compare several battle reports and adjust for the boss."
+            AppLanguage.IT -> "Controlla il boss e il bonus giornaliero mostrati nel gioco: il bonus del giorno è amplificato del +1000%. Contano solo le abilità degli eroi, l’equipaggiamento esclusivo e il bonus giornaliero. Rapporto iniziale della community: 0% Shieldbearer / 10% Bomber / 90% Shooter; confronta più rapporti di battaglia e adatta la formazione al boss."
         }
     }
 }
