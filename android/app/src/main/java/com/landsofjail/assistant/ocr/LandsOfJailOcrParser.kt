@@ -119,10 +119,17 @@ object LandsOfJailOcrParser {
                 val match = regex.find(line)
                 if (match != null) {
                     val inlineQuantity = match.groupValues.drop(1).firstOrNull { it.isNotBlank() }?.trim()
-                    val nextLineQuantity = lines.getOrNull(index + 1)?.let { candidate ->
-                        Regex("""^\s*([0-9][0-9.,\s]*[kmbKMB]?)\s*$""", RegexOption.IGNORE_CASE)
-                            .find(candidate)?.groupValues?.get(1)?.trim()
-                    }
+                    val nextLineQuantity = (index + 1..minOf(lines.lastIndex, index + 2))
+                        .firstNotNullOfOrNull { candidateIndex ->
+                            val candidate = lines[candidateIndex]
+                            val skippedLinesAreOnlySymbols = (index + 1 until candidateIndex).all { skipped ->
+                                lines[skipped].none { it.isLetterOrDigit() }
+                            }
+                            if (!skippedLinesAreOnlySymbols) null else {
+                                Regex("""^\s*([0-9][0-9.,\s]*[kmbKMB]?)\s*$""", RegexOption.IGNORE_CASE)
+                                    .find(candidate)?.groupValues?.get(1)?.trim()
+                            }
+                        }
                     val qtyText = inlineQuantity ?: nextLineQuantity ?: continue
                     seenResKeys.add(resLabel)
                     resources.add(
@@ -139,7 +146,10 @@ object LandsOfJailOcrParser {
 
             // Robots connus : ne créer une fiche que si le nom exact est lisible.
             for (robotName in knownRobotNames) {
-                val normalizedLine = " ${normalizeHeroText(line)} "
+                // Certains noms composés sont coupés sur deux lignes par l'OCR.
+                // On accepte la ligne courante + la suivante, sans recherche floue.
+                val robotText = lines.drop(index).take(2).joinToString(" ")
+                val normalizedLine = " ${normalizeHeroText(robotText)} "
                 val normalizedRobot = normalizeHeroText(robotName)
                 if (normalizedLine.contains(" $normalizedRobot ") && seenRobotKeys.add(normalizedRobot)) {
                     val context = lines.subList(index, minOf(lines.size, index + 4)).joinToString(" ")
