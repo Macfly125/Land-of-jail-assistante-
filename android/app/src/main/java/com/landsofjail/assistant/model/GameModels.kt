@@ -16,7 +16,93 @@ enum class PlayerRole(val labelFr: String, val descriptionFr: String) {
     ASSAUT_DPS("Assaut / DPS", "Maximise les dégâts bruts en escarmouche et duel."),
     DEFENSEUR_GARNISON("Défenseur / Garnison", "Protège la base avec tanks, boucliers et contre-attaques."),
     SOUTIEN_CONTROLE("Soutien / Contrôle", "Soins, réductions de dégâts et effets de contrôle."),
-    POLYVALENT_F2P("Polyvalent / F2P", "Progression équilibrée et gestion stricte des ressources.")
+    POLYVALENT_F2P("Polyvalent / F2P", "Progression équilibrée et gestion stricte des ressources.");
+
+    fun labelFor(language: AppLanguage): String = when (this) {
+        LEADER_RALLIEMENT -> when (language) {
+            AppLanguage.FR -> labelFr
+            AppLanguage.EN -> "Rally Leader"
+            AppLanguage.DE -> "Rallye-Anführer"
+            AppLanguage.TR -> "Ralli Lideri"
+            AppLanguage.RU -> "Лидер сбора"
+            AppLanguage.ZH -> "集结队长"
+        }
+        ASSAUT_DPS -> when (language) {
+            AppLanguage.FR -> labelFr
+            AppLanguage.EN -> "Assault / DPS"
+            AppLanguage.DE -> "Angriff / DPS"
+            AppLanguage.TR -> "Taarruz / DPS"
+            AppLanguage.RU -> "Штурм / урон"
+            AppLanguage.ZH -> "突击 / 输出"
+        }
+        DEFENSEUR_GARNISON -> when (language) {
+            AppLanguage.FR -> labelFr
+            AppLanguage.EN -> "Defender / Garrison"
+            AppLanguage.DE -> "Verteidiger / Garnison"
+            AppLanguage.TR -> "Savunma / Garnizon"
+            AppLanguage.RU -> "Защита / гарнизон"
+            AppLanguage.ZH -> "防守 / 驻防"
+        }
+        SOUTIEN_CONTROLE -> when (language) {
+            AppLanguage.FR -> labelFr
+            AppLanguage.EN -> "Support / Control"
+            AppLanguage.DE -> "Unterstützung / Kontrolle"
+            AppLanguage.TR -> "Destek / Kontrol"
+            AppLanguage.RU -> "Поддержка / контроль"
+            AppLanguage.ZH -> "支援 / 控制"
+        }
+        POLYVALENT_F2P -> when (language) {
+            AppLanguage.FR -> labelFr
+            AppLanguage.EN -> "Versatile / F2P"
+            AppLanguage.DE -> "Vielseitig / F2P"
+            AppLanguage.TR -> "Çok yönlü / F2P"
+            AppLanguage.RU -> "Универсальный / F2P"
+            AppLanguage.ZH -> "多面手 / F2P"
+        }
+    }
+
+    fun descriptionFor(language: AppLanguage): String = when (this) {
+        LEADER_RALLIEMENT -> when (language) {
+            AppLanguage.FR -> descriptionFr
+            AppLanguage.EN -> "Optimizes rally capacity and group damage."
+            AppLanguage.DE -> "Optimiert Rallye-Kapazität und Gruppenschaden."
+            AppLanguage.TR -> "Ralli kapasitesini ve grup hasarını artırır."
+            AppLanguage.RU -> "Повышает вместимость сбора и групповой урон."
+            AppLanguage.ZH -> "提升集结容量与团队伤害。"
+        }
+        ASSAUT_DPS -> when (language) {
+            AppLanguage.FR -> descriptionFr
+            AppLanguage.EN -> "Maximizes raw damage in skirmishes and duels."
+            AppLanguage.DE -> "Maximiert direkten Schaden in Gefechten und Duellen."
+            AppLanguage.TR -> "Çatışma ve düellolarda ham hasarı en üst düzeye çıkarır."
+            AppLanguage.RU -> "Максимизирует прямой урон в стычках и дуэлях."
+            AppLanguage.ZH -> "最大化遭遇战与决斗中的直接伤害。"
+        }
+        DEFENSEUR_GARNISON -> when (language) {
+            AppLanguage.FR -> descriptionFr
+            AppLanguage.EN -> "Protects the base with tanks, shields and counterattacks."
+            AppLanguage.DE -> "Schützt die Basis mit Tanks, Schilden und Gegenangriffen."
+            AppLanguage.TR -> "Tanklar, kalkanlar ve karşı saldırılarla üssü korur."
+            AppLanguage.RU -> "Защищает базу танками, щитами и контратаками."
+            AppLanguage.ZH -> "利用坦克、护盾和反击保护基地。"
+        }
+        SOUTIEN_CONTROLE -> when (language) {
+            AppLanguage.FR -> descriptionFr
+            AppLanguage.EN -> "Provides healing, damage reduction and control effects."
+            AppLanguage.DE -> "Bietet Heilung, Schadensminderung und Kontrolleffekte."
+            AppLanguage.TR -> "İyileştirme, hasar azaltma ve kontrol etkileri sağlar."
+            AppLanguage.RU -> "Обеспечивает лечение, снижение урона и контроль."
+            AppLanguage.ZH -> "提供治疗、减伤和控制效果。"
+        }
+        POLYVALENT_F2P -> when (language) {
+            AppLanguage.FR -> descriptionFr
+            AppLanguage.EN -> "Balances progression with strict resource management."
+            AppLanguage.DE -> "Gleicht den Fortschritt durch striktes Ressourcenmanagement aus."
+            AppLanguage.TR -> "Dengeli ilerleme ve sıkı kaynak yönetimi sağlar."
+            AppLanguage.RU -> "Обеспечивает сбалансированное развитие и строгую экономию ресурсов."
+            AppLanguage.ZH -> "平衡发展并严格管理资源。"
+        }
+    }
 }
 
 enum class AdviceMode(
