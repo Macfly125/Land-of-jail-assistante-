@@ -16,12 +16,12 @@ data class ScreenRecognitionResult(
 
 object ScreenRecognitionEngine {
     private val dictionaries = linkedMapOf(
-        "trial_cage" to listOf("trial cage", "cage", "damage ranking", "damage dealt", "dégâts infligés"),
-        "crystal_clash" to listOf("crystal clash", "ironhold", "ironprison", "energy hub", "crystal prison"),
-        "sandsea_conquest" to listOf("sandsea", "vessel station", "lighthouse", "phare", "fuel"),
-        "svs" to listOf("supreme honor", "svs", "war preparation", "préparation de guerre"),
-        "turmoil_surge" to listOf("turmoil", "sentry turret", "wave", "vague"),
-        "gold_hunter" to listOf("gold hunter", "hunter points"),
+        "trial_cage" to listOf("trial cage", "cage", "damage ranking", "damage dealt", "dégâts infligés", "versuchskäfig", "schadensrangliste", "verursachter schaden", "deneme kafesi", "verilen hasar", "испытательная клетка", "нанесенный урон", "试炼笼", "造成伤害"),
+        "crystal_clash" to listOf("crystal clash", "ironhold", "ironprison", "energy hub", "crystal prison", "kristallkonflikt", "kristallkampf", "kristal çatışması", "kristal savaşı", "кристальная битва", "кристальное столкновение", "水晶冲突", "水晶争夺"),
+        "sandsea_conquest" to listOf("sandsea", "vessel station", "lighthouse", "phare", "fuel", "sandmeer", "schiffsstation", "leuchtturm", "kum denizi", "gemi istasyonu", "deniz feneri", "песчаное море", "станция судов", "маяк", "沙海", "船只站", "灯塔"),
+        "svs" to listOf("supreme honor", "svs", "war preparation", "préparation de guerre", "kriegsvorbereitung", "kriegsvorbereitungen", "savaş hazırlığı", "savaş hazırlıkları", "подготовка к войне", "战前准备", "战争准备"),
+        "turmoil_surge" to listOf("turmoil", "sentry turret", "wave", "vague", "chaoswelle", "geschützturm", "dalga", "nöbetçi kulesi", "волна хаоса", "сторожeвая турель", "混乱浪潮", "哨戒炮塔"),
+        "gold_hunter" to listOf("gold hunter", "hunter points", "goldjäger", "jägerpunkte", "altın avcısı", "avcı puanları", "золотой охотник", "очки охотника", "黄金猎人", "猎人积分"),
         "robots" to listOf("robot", "robots", "droid", "drone", "robotics", "robot center", "robot upgrade", "power armor", "power armor hangar", "core module", "power module", "prisoner armor data", "musashimaru", "phantom cat", "ranger", "infercore", "hercules", "halo", "light cone", "atlax", "yokozuna", "bastion", "pluto"),
         "equipements" to listOf("hero equipment", "equipment upgrade", "equipment improvement", "equipment", "gear", "arsenal", "equipment exp", "equipment part", "potential coil", "precision gear", "magnet", "équipement", "équipements", "équipement du héros", "équipement héros", "amélioration d'équipement", "amélioration équipement", "aimant", "arsenal", "ausrüstung", "heldenausrüstung", "ausrüstungsverbesserung", "ausrüstung verbessern", "magnet", "ekipman", "kahraman ekipmani", "ekipman geliştirme", "teçhizat", "mıknatıs", "снаряжение", "улучшение снаряжения", "экипировка", "магнит", "装备", "装备升级", "英雄装备", "磁铁"),
         "heros" to listOf("heroes", "hero", "héros", "skills", "compétences", "stars", "étoiles", "helden", "fähigkeiten", "sterne", "kahraman", "kahramanlar", "beceriler", "yıldızlar", "герои", "навыки", "звёзды", "英雄", "技能", "星级"),
