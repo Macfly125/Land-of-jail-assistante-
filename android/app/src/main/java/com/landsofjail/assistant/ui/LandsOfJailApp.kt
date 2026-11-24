@@ -1319,6 +1319,7 @@ fun LandsOfJailAssistantApp(
                     ?: localExtraction.power,
                 ressources = mergeResourceRecords(localExtraction.resources, remoteResult.ressources),
                 heros = mergeHeroRecords(localExtraction.heroes, remoteResult.heros),
+                robots = mergeRobotRecords(localExtraction.robots, remoteResult.robots),
                 champsIncertains = (remoteResult.champsIncertains + localExtraction.uncertainItems)
                     .distinctBy { normalizedKey(it.champ) + normalizedKey(it.valeurObservee) }
             )
@@ -1329,7 +1330,8 @@ fun LandsOfJailAssistantApp(
         // Si Internet ou Gemini est indisponible, ne pas perdre le résultat local.
         val hasLocalData = localExtraction.power != null ||
             localExtraction.heroes.isNotEmpty() ||
-            localExtraction.resources.isNotEmpty()
+            localExtraction.resources.isNotEmpty() ||
+            localExtraction.robots.isNotEmpty()
 
         if (hasLocalData) {
             onProgress(100)
@@ -1347,6 +1349,7 @@ fun LandsOfJailAssistantApp(
                 puissance = localExtraction.power,
                 ressources = localExtraction.resources,
                 heros = localExtraction.heroes,
+                robots = localExtraction.robots,
                 champsIncertains = localExtraction.uncertainItems + UncertainItem(
                     "Analyse en ligne",
                     "Indisponible",
@@ -1468,6 +1471,7 @@ fun LandsOfJailAssistantApp(
                                 ?: localExtraction.power,
                             ressources = mergeResourceRecords(remote.ressources, localExtraction.resources),
                             heros = mergeHeroRecords(remote.heros, localExtraction.heroes),
+                            robots = mergeRobotRecords(remote.robots, localExtraction.robots),
                             champsIncertains = (remote.champsIncertains + localExtraction.uncertainItems)
                                 .distinctBy { normalizedKey(it.champ) + normalizedKey(it.valeurObservee) }
                         )
