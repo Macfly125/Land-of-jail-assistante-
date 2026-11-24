@@ -3386,7 +3386,13 @@ private fun ResourcesScreen(
     var fcTargetLevel by remember(profileId) { mutableIntStateOf(developmentPrefs.getInt("fc_target_level", 2).coerceIn(2, 10)) }
     var fcCoresOwned by remember(profileId) { mutableStateOf(developmentPrefs.getString("fc_cores_owned", "0") ?: "0") }
     var fcAdvancedOwned by remember(profileId) { mutableStateOf(developmentPrefs.getString("fc_advanced_owned", "0") ?: "0") }
-    LaunchedEffect(fcBuildingKey, fcCurrentLevel, fcCurrentProgress, fcTargetLevel, fcCoresOwned, fcAdvancedOwned) {
+    var gearFromTier by remember(profileId) { mutableIntStateOf(developmentPrefs.getInt("gear_from", 0).coerceIn(0, 9)) }
+    var gearToTier by remember(profileId) { mutableIntStateOf(developmentPrefs.getInt("gear_to", 1).coerceIn(1, 10)) }
+    var gearExpOwned by remember(profileId) { mutableStateOf(developmentPrefs.getString("gear_exp", "0") ?: "0") }
+    var gearMagnetsOwned by remember(profileId) { mutableStateOf(developmentPrefs.getString("gear_magnets", "0") ?: "0") }
+    var gearCoilsOwned by remember(profileId) { mutableStateOf(developmentPrefs.getString("gear_coils", "0") ?: "0") }
+    var gearPrecisionOwned by remember(profileId) { mutableStateOf(developmentPrefs.getString("gear_precision", "0") ?: "0") }
+    LaunchedEffect(fcBuildingKey, fcCurrentLevel, fcCurrentProgress, fcTargetLevel, fcCoresOwned, fcAdvancedOwned, gearFromTier, gearToTier, gearExpOwned, gearMagnetsOwned, gearCoilsOwned, gearPrecisionOwned) {
         developmentPrefs.edit()
             .putString("fc_building", fcBuildingKey)
             .putInt("fc_current_level", fcCurrentLevel)
@@ -3394,6 +3400,12 @@ private fun ResourcesScreen(
             .putInt("fc_target_level", fcTargetLevel)
             .putString("fc_cores_owned", fcCoresOwned)
             .putString("fc_advanced_owned", fcAdvancedOwned)
+            .putInt("gear_from", gearFromTier)
+            .putInt("gear_to", gearToTier)
+            .putString("gear_exp", gearExpOwned)
+            .putString("gear_magnets", gearMagnetsOwned)
+            .putString("gear_coils", gearCoilsOwned)
+            .putString("gear_precision", gearPrecisionOwned)
             .apply()
     }
 
@@ -3718,6 +3730,52 @@ private fun ResourcesScreen(
                                     }
                                 }
                             }
+                        }
+                    }
+                }
+                item {
+                    val gearSteps = listOf(
+                        Triple(2300, 20, 0), Triple(6980, 40, 0), Triple(19220, 120, 0),
+                        Triple(41140, 200, 0), Triple(77000, 400, 0), Triple(117000, 600, 20),
+                        Triple(157000, 1000, 40), Triple(197000, 1000, 60),
+                        Triple(258000, 2000, 80), Triple(338200, 2000, 100)
+                    )
+                    val gearStart = gearFromTier.coerceIn(0, 9)
+                    val gearEnd = gearToTier.coerceIn(gearStart + 1, 10)
+                    val gearRange = gearSteps.subList(gearStart, gearEnd)
+                    val requiredExp = gearRange.sumOf { it.first }
+                    val requiredMagnets = gearRange.sumOf { it.second }
+                    val requiredCoils = gearRange.sumOf { it.third }
+                    val ownedExp = gearExpOwned.toIntOrNull() ?: 0
+                    val ownedMagnets = gearMagnetsOwned.toIntOrNull() ?: 0
+                    val ownedCoils = gearCoilsOwned.toIntOrNull() ?: 0
+                    val ownedPrecision = gearPrecisionOwned.toIntOrNull() ?: 0
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("🛡️ " + localizedUiText(currentLang, "Arsenal · Équipements de héros", "Arsenal · Hero equipment", "Arsenal · Heldenausrüstung", "Cephanelik · Kahraman ekipmanı", "Арсенал · Снаряжение героев", "军械库 · 英雄装备"), fontWeight = FontWeight.Bold)
+                            Text(localizedUiText(currentLang, "Calcule l’EXP, les aimants et les bobines potentielles pour faire évoluer une pièce de niveau 0 à 200. Le niveau de réforme est suivi séparément.", "Calculate EXP, Magnets and Potential Coils to upgrade one piece from level 0 to 200. Reform level is tracked separately.", "Berechne EXP, Magnete und Potenzialspulen für ein Ausrüstungsteil von Stufe 0 bis 200. Reformstufen werden separat verfolgt.", "Bir ekipmanı 0'dan 200'e yükseltmek için EXP, Mıknatıs ve Potansiyel Bobinleri hesapla. Reform seviyesi ayrı izlenir.", "Рассчитайте опыт, магниты и потенциальные катушки для улучшения предмета с 0 до 200. Уровень перековки учитывается отдельно.", "计算单件装备从 0 升至 200 所需经验、磁铁和潜能线圈。重铸等级单独跟踪。"), style = MaterialTheme.typography.bodySmall)
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Column(Modifier.weight(1f)) {
+                                    Text(localizedUiText(currentLang, "Palier de départ (0–9)", "Starting tier (0–9)", "Startstufe (0–9)", "Başlangıç kademesi (0–9)", "Начальный этап (0–9)", "起始阶段（0–9）"), style = MaterialTheme.typography.labelSmall)
+                                    OutlinedTextField(gearFromTier.toString(), { gearFromTier = (it.toIntOrNull() ?: 0).coerceIn(0, 9); if (gearToTier <= gearFromTier) gearToTier = gearFromTier + 1 }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                                }
+                                Column(Modifier.weight(1f)) {
+                                    Text(localizedUiText(currentLang, "Palier cible (1–10)", "Target tier (1–10)", "Zielstufe (1–10)", "Hedef kademe (1–10)", "Целевой этап (1–10)", "目标阶段（1–10）"), style = MaterialTheme.typography.labelSmall)
+                                    OutlinedTextField(gearToTier.toString(), { gearToTier = (it.toIntOrNull() ?: (gearFromTier + 1)).coerceIn(gearFromTier + 1, 10) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                                }
+                            }
+                            OutlinedTextField(gearExpOwned, { gearExpOwned = it.filter(Char::isDigit).take(10) }, label = { Text("📘 " + localizedUiText(currentLang, "EXP équipement possédée", "Equipment EXP owned", "Ausrüstungs-EXP vorhanden", "Mevcut Ekipman EXP", "Опыт снаряжения в наличии", "现有装备经验")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                OutlinedTextField(gearMagnetsOwned, { gearMagnetsOwned = it.filter(Char::isDigit).take(9) }, label = { Text("🧲 " + localizedUiText(currentLang, "Aimants", "Magnets", "Magnete", "Mıknatıs", "Магниты", "磁铁")) }, singleLine = true, modifier = Modifier.weight(1f))
+                                OutlinedTextField(gearCoilsOwned, { gearCoilsOwned = it.filter(Char::isDigit).take(9) }, label = { Text("🌀 " + localizedUiText(currentLang, "Bobines potentielles", "Potential Coils", "Potenzialspulen", "Potansiyel Bobin", "Потенциальные катушки", "潜能线圈")) }, singleLine = true, modifier = Modifier.weight(1f))
+                            }
+                            OutlinedTextField(gearPrecisionOwned, { gearPrecisionOwned = it.filter(Char::isDigit).take(9) }, label = { Text("⚙️ " + localizedUiText(currentLang, "Engrenages de précision (réforme)", "Precision Gears (reform)", "Präzisionszahnräder (Reform)", "Hassas Dişliler (reform)", "Точные шестерни (перековка)", "精密齿轮（重铸）")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                            Divider()
+                            Text(localizedUiText(currentLang, "Nécessaire pour cette plage", "Required for this range", "Für diesen Bereich benötigt", "Bu aralık için gerekli", "Требуется для этого диапазона", "此阶段所需"), fontWeight = FontWeight.SemiBold)
+                            Text("📘 EXP : \${formatCompactFr(requiredExp.toLong())} · \${localizedUiText(currentLang, "manquant", "missing", "fehlend", "eksik", "не хватает", "缺少")} \${formatCompactFr((requiredExp - ownedExp).coerceAtLeast(0).toLong())}")
+                            Text("🧲 Aimants : \${formatCompactFr(requiredMagnets.toLong())} · \${localizedUiText(currentLang, "manquants", "missing", "fehlend", "eksik", "не хватает", "缺少")} \${formatCompactFr((requiredMagnets - ownedMagnets).coerceAtLeast(0).toLong())}")
+                            Text("🌀 Bobines : \${formatCompactFr(requiredCoils.toLong())} · \${localizedUiText(currentLang, "manquantes", "missing", "fehlend", "eksik", "не хватает", "缺少")} \${formatCompactFr((requiredCoils - ownedCoils).coerceAtLeast(0).toLong())}")
+                            Text(localizedUiText(currentLang, "Réforme complète 0→20 : 11 000 aimants + 4 200 engrenages de précision. Ton stock : \${formatCompactFr(ownedMagnets.toLong())} aimants et \${formatCompactFr(ownedPrecision.toLong())} engrenages.", "Full reform 0→20: 11,000 Magnets + 4,200 Precision Gears. Your stock: \${formatCompactFr(ownedMagnets.toLong())} Magnets and \${formatCompactFr(ownedPrecision.toLong())} Gears.", "Vollständige Reform 0→20: 11.000 Magnete + 4.200 Präzisionszahnräder. Bestand: \${formatCompactFr(ownedMagnets.toLong())} Magnete und \${formatCompactFr(ownedPrecision.toLong())} Zahnräder.", "Tam reform 0→20: 11.000 Mıknatıs + 4.200 Hassas Dişli. Stok: \${formatCompactFr(ownedMagnets.toLong())} Mıknatıs ve \${formatCompactFr(ownedPrecision.toLong())} Dişli.", "Полная перековка 0→20: 11 000 магнитов + 4 200 точных шестерён. В наличии: \${formatCompactFr(ownedMagnets.toLong())} магнитов и \${formatCompactFr(ownedPrecision.toLong())} шестерён.", "完整重铸 0→20：11,000 磁铁 + 4,200 精密齿轮。库存：\${formatCompactFr(ownedMagnets.toLong())} 磁铁、\${formatCompactFr(ownedPrecision.toLong())} 齿轮。"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }
