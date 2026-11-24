@@ -38,8 +38,12 @@ object ScreenRecognitionEngine {
             // ne doit pas compter simultanément comme « shieldbearer ».
             val hits = labels.filter { label ->
                 val normalizedLabel = normalize(label)
-                normalizedLabel.isNotEmpty() &&
-                    paddedText.contains(" $normalizedLabel ")
+                normalizedLabel.isNotEmpty() && when {
+                    // Les libellés chinois sont souvent concaténés sans espaces dans l'OCR.
+                    normalizedLabel.any { it.code in 0x3400..0x9FFF || it.code in 0xF900..0xFAFF } ->
+                        normalized.contains(normalizedLabel)
+                    else -> paddedText.contains(" $normalizedLabel ")
+                }
             }.distinct()
             if (hits.isEmpty()) null else category to hits
         }.sortedByDescending { it.second.size }
