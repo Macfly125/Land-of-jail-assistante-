@@ -188,10 +188,11 @@ object LandsOfJailOcrParser {
                 "Bottes" to listOf("boots", "bottes", "stiefel", "bot", "сапоги", "靴子"),
                 "Accessoire" to listOf("accessory", "accessoire", "zubehör", "aksesuar", "аксессуар", "配件")
             )
-            val normalizedEquipmentLine = normalizeHeroText(line)
+            // Preserve Cyrillic and Chinese characters: normalizeHeroText is Latin-only and strips them.
+            val normalizedEquipmentLine = line.lowercase().trim().replace(Regex("\\s+"), " ")
             for ((partName, aliases) in equipmentPartLabels) {
-                if (aliases.none { alias -> normalizedEquipmentLine == normalizeHeroText(alias) ||
-                        normalizedEquipmentLine.startsWith(normalizeHeroText(alias) + " ") }) continue
+                if (aliases.none { alias -> normalizedEquipmentLine == alias.lowercase() ||
+                        normalizedEquipmentLine.startsWith(alias.lowercase() + " ") }) continue
                 val context = lines.subList(index, minOf(lines.size, index + 4)).joinToString(" ")
                 val level = Regex("""(?:lv\.?|level|niv\.?|niveau|stufe|seviye|уровень|等级)\s*[:+]?\s*([0-9]{1,3})""", RegexOption.IGNORE_CASE)
                     .find(context)?.groupValues?.get(1)
