@@ -197,6 +197,17 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun recognizesChineseOcrWhenWordsHaveNoSpaces() {
+        val heroes = ScreenRecognitionEngine.analyze("英雄技能星级")
+        assertEquals("heros", heroes.category)
+        assertTrue(heroes.confidence >= 0.8f)
+
+        val resources = ScreenRecognitionEngine.analyze("食物木材钢材")
+        assertEquals("ressources", resources.category)
+        assertTrue(resources.confidence >= 0.8f)
+    }
+
+    @Test
     fun recognizesHeroScreensInGermanTurkishRussianAndChinese() {
         val samples = listOf(
             "Helden\\nFähigkeiten\\nSterne",
