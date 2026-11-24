@@ -348,21 +348,26 @@ fun LandsOfJailAssistantApp(
     var gameIntelError by remember { mutableStateOf<String?>(null) }
     var routineRevision by remember { mutableIntStateOf(0) }
 
-    // Une seule requête non bloquante au démarrage de l'application.
-    // Aucun Worker, timer ou rafraîchissement périodique : le serveur décide
-    // s'il peut servir son cache ou s'il doit vérifier les sources.
+    // Une seule actualisation à l'ouverture, uniquement si un backend est configuré.
+    // En mode local-first (backend vide), aucune requête réseau inutile n'est lancée :
+    // le dernier instantané sauvegardé reste disponible hors ligne.
     LaunchedEffect(Unit) {
-        gameIntelLoading = true
-        repository.fetchGameIntel(forceRefresh = false)
-            .onSuccess { snapshot ->
-                gameIntel = snapshot
-                gameIntelPrefs.edit()
-                    .putString("snapshot", accountJson.encodeToString(snapshot))
-                    .putLong("saved_at", System.currentTimeMillis())
-                    .apply()
-            }
-            .onFailure { gameIntelError = it.message ?: "Veille indisponible." }
-        gameIntelLoading = false
+        if (repository.isRemoteBackendEnabled) {
+            gameIntelLoading = true
+            repository.fetchGameIntel(forceRefresh = false)
+                .onSuccess { snapshot ->
+                    gameIntel = snapshot
+                    gameIntelPrefs.edit()
+                        .putString("snapshot", accountJson.encodeToString(snapshot))
+                        .putLong("saved_at", System.currentTimeMillis())
+                        .apply()
+                }
+                .onFailure { gameIntelError = it.message ?: "Veille indisponible." }
+            gameIntelLoading = false
+        } else {
+            gameIntelLoading = false
+            gameIntelError = null
+        }
     }
 
     fun readRoutineState(profileId: String): Map<String, String> {
