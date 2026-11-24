@@ -96,6 +96,21 @@ private fun localizedAppText(source: String): String {
         "Annuler" to listOf("Annuler", "Cancel", "Abbrechen", "İptal", "Отмена", "取消"),
         "Synchronisation terminée. Aucune sauvegarde distante n’a été supprimée." to listOf("Synchronisation terminée. Aucune sauvegarde distante n’a été supprimée.", "Sync complete. No remote backup was deleted.", "Synchronisierung abgeschlossen. Kein Remote-Backup wurde gelöscht.", "Senkronizasyon tamamlandı. Hiçbir uzak yedek silinmedi.", "Синхронизация завершена. Ни одна удалённая резервная копия не удалена.", "同步完成。没有删除任何远程备份。"),
         "Réglages capture" to listOf("Réglages capture", "Capture settings", "Aufnahmeeinstellungen", "Yakalama ayarları", "Настройки захвата", "捕获设置"),
+        "Synchronisation…" to listOf("Synchronisation…", "Syncing…", "Synchronisierung…", "Eşitleniyor…", "Синхронизация…", "正在同步…"),
+        "Synchroniser avec le cloud" to listOf("Synchroniser avec le cloud", "Sync with cloud", "Mit der Cloud synchronisieren", "Bulutla eşitle", "Синхронизировать с облаком", "与云端同步"),
+        "Masquer la fiche" to listOf("Masquer la fiche", "Hide profile", "Profil ausblenden", "Profili gizle", "Скрыть профиль", "隐藏档案"),
+        "Fiche complète" to listOf("Fiche complète", "Full profile", "Vollständiges Profil", "Tam profil", "Полный профиль", "完整档案"),
+        "Voir la fiche complète" to listOf("Voir la fiche complète", "View full profile", "Vollständiges Profil anzeigen", "Tam profili görüntüle", "Посмотреть полный профиль", "查看完整档案"),
+        "Description non disponible" to listOf("Description non disponible", "Description unavailable", "Beschreibung nicht verfügbar", "Açıklama mevcut değil", "Описание недоступно", "暂无描述"),
+        "Les corrections manuelles remplacent les valeurs incertaines de la capture." to listOf("Les corrections manuelles remplacent les valeurs incertaines de la capture.", "Manual corrections replace uncertain values from the capture.", "Manuelle Korrekturen ersetzen unsichere Werte aus der Aufnahme.", "Elle yapılan düzeltmeler, ekran görüntüsündeki belirsiz değerlerin yerine geçer.", "Ручные исправления заменяют неточные значения со снимка.", "手动更正会替换截图中不确定的数值。"),
+        "Conserve tes résultats, scores et observations pour comparer tes propres performances entre les sessions." to listOf("Conserve tes résultats, scores et observations pour comparer tes propres performances entre les sessions.", "Keep your results, scores and notes to compare your performance between sessions.", "Bewahre Ergebnisse, Punktzahlen und Notizen auf, um deine Leistung zwischen Sitzungen zu vergleichen.", "Oturumlar arasında performansını karşılaştırmak için sonuçlarını, puanlarını ve notlarını sakla.", "Сохраняйте результаты, очки и заметки, чтобы сравнивать свои показатели между сессиями.", "保存结果、分数和备注，以便比较不同场次的表现。"),
+        "Date (ex. 23/11/2026)" to listOf("Date (ex. 23/11/2026)", "Date (e.g. 23/11/2026)", "Datum (z. B. 23.11.2026)", "Tarih (örn. 23/11/2026)", "Дата (например, 23.11.2026)", "日期（例如 2026/11/23）"),
+        "Score / dégâts / classement" to listOf("Score / dégâts / classement", "Score / damage / ranking", "Punktzahl / Schaden / Rang", "Puan / hasar / sıralama", "Очки / урон / рейтинг", "分数 / 伤害 / 排名"),
+        "Composition, ratio, remarques" to listOf("Composition, ratio, remarques", "Composition, ratio, notes", "Zusammensetzung, Verhältnis, Notizen", "Dizilim, oran, notlar", "Состав, соотношение, заметки", "阵容、比例、备注"),
+        "Voir les nouvelles demandes" to listOf("Voir les nouvelles demandes", "View new requests", "Neue Anfragen anzeigen", "Yeni istekleri görüntüle", "Посмотреть новые запросы", "查看新申请"),
+        "Renvoyer l’e-mail de confirmation" to listOf("Renvoyer l’e-mail de confirmation", "Resend confirmation email", "Bestätigungs-E-Mail erneut senden", "Onay e-postasını yeniden gönder", "Повторно отправить письмо подтверждения", "重新发送确认邮件"),
+        "S’inscrire" to listOf("S’inscrire", "Sign up", "Registrieren", "Kaydol", "Зарегистрироваться", "注册"),
+        "Se connecter" to listOf("Se connecter", "Sign in", "Anmelden", "Giriş yap", "Войти", "登录"),
         "Fermer la file (100 %)" to listOf("Fermer la file (100 %)", "Close queue (100%)", "Warteschlange schließen (100 %)", "Kuyruğu kapat (%100)", "Закрыть очередь (100 %)", "关闭队列（100%）"),
         "Bienvenue · Inscription joueur" to listOf("Bienvenue · Inscription joueur", "Welcome · Player registration", "Willkommen · Spielerregistrierung", "Hoş geldiniz · Oyuncu kaydı", "Добро пожаловать · Регистрация игрока", "欢迎 · 玩家注册"),
         "Renseigne ton identité dans Land of Jail. Ces informations seront enregistrées sur cet appareil et pourront être transmises aux officiers de ton alliance après connexion." to listOf("Renseigne ton identité dans Land of Jail. Ces informations seront enregistrées sur cet appareil et pourront être transmises aux officiers de ton alliance après connexion.", "Enter your Land of Jail identity. This information is saved on this device and can be shared with your alliance officers after you sign in.", "Gib deine Land-of-Jail-Spielerdaten ein. Diese Informationen werden auf diesem Gerät gespeichert und können nach der Anmeldung an deine Allianz-Offiziere weitergegeben werden.", "Land of Jail oyuncu bilgilerini gir. Bu bilgiler cihazda saklanır ve giriş yaptıktan sonra ittifak yetkilileriyle paylaşılabilir.", "Укажите данные игрока Land of Jail. Они сохранятся на устройстве и после входа могут быть переданы офицерам альянса.", "填写你的 Land of Jail 玩家信息。这些信息会保存在此设备上，登录后可分享给联盟官员。"),
@@ -1546,7 +1561,7 @@ fun LandsOfJailAssistantApp(
                                 }
                             }
                         }
-                    ) { Text(if (isProfileSyncing) localizedAppText("Synchronisation…") else localizedAppText("Synchroniser avec le cloud")) }
+                    ) { Text(if (isProfileSyncing) localizedAppText(localizedAppText("Synchronisation…")) else localizedAppText(localizedAppText("Synchroniser avec le cloud"))) }
                 }
             },
             confirmButton = { TextButton(onClick = { showProfileDialog = false }) { Text(localizedUiText(currentLang, "Fermer", "Close", "Schließen", "Kapat", "Закрыть", "关闭")) } }
@@ -2735,7 +2750,7 @@ private fun HeroesScreen(
                                 Text(localizedUiText(language, "Modifier mon héros", "Edit my hero", "Meinen Helden bearbeiten", "Kahramanımı düzenle", "Изменить героя", "编辑我的英雄"))
                             }
                             TextButton(onClick = { expandedHeroName = if (expandedHeroName == entry.nom) null else entry.nom }) {
-                                Text(if (expandedHeroName == entry.nom) localizedAppText("Masquer la fiche") else localizedAppText("Fiche complète"))
+                                Text(if (expandedHeroName == entry.nom) localizedAppText(localizedAppText("Masquer la fiche")) else localizedAppText(localizedAppText("Fiche complète")))
                             }
                         }
                         if (!hero.rarete.isNullOrBlank() && !hero.rarete.equals(entry.rarete, true)) {
@@ -2780,7 +2795,7 @@ private fun HeroesScreen(
                             Text(localizedUiText(language, "Ajouter à mon profil", "Add to my profile", "Zu meinem Profil hinzufügen", "Profilime ekle", "Добавить в профиль", "添加到我的档案"))
                         }
                         TextButton(onClick = { expandedHeroName = if (expandedHeroName == entry.nom) null else entry.nom }) {
-                            Text(if (expandedHeroName == entry.nom) localizedAppText("Masquer la fiche") else localizedAppText("Voir la fiche complète"))
+                            Text(if (expandedHeroName == entry.nom) localizedAppText(localizedAppText("Masquer la fiche")) else localizedAppText(localizedAppText("Voir la fiche complète")))
                         }
                     }
                     if (expandedHeroName == entry.nom) {
@@ -2803,7 +2818,7 @@ private fun HeroesScreen(
                                         "${skill.type.uppercase()} · ${skill.nom} · Niv. ${skill.niveau}",
                                         fontWeight = FontWeight.SemiBold
                                     )
-                                    Text(skill.description ?: localizedAppText("Description non disponible"), style = MaterialTheme.typography.bodySmall)
+                                    Text(skill.description ?: localizedAppText(localizedAppText("Description non disponible")), style = MaterialTheme.typography.bodySmall)
                                     if (skill.incertain) Text(localizedAppText("À vérifier"), color = Color(0xFFFBBF24), style = MaterialTheme.typography.labelSmall)
                                 }
                             }
@@ -2888,7 +2903,7 @@ private fun HeroEditDialog(
                     minLines = 3,
                     modifier = Modifier.fillMaxWidth()
                 )
-                Text(localizedAppText("Les corrections manuelles remplacent les valeurs incertaines de la capture."), style = MaterialTheme.typography.bodySmall)
+                Text(localizedAppText(localizedAppText("Les corrections manuelles remplacent les valeurs incertaines de la capture.")), style = MaterialTheme.typography.bodySmall)
             }
         },
         confirmButton = {
@@ -3200,7 +3215,7 @@ private fun ResourcesScreen(
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(resourceUiText(currentLang, "event_journal"), fontWeight = FontWeight.Bold)
-                            Text(localizedAppText("Conserve tes résultats, scores et observations pour comparer tes propres performances entre les sessions."), style = MaterialTheme.typography.bodySmall)
+                            Text(localizedAppText(localizedAppText("Conserve tes résultats, scores et observations pour comparer tes propres performances entre les sessions.")), style = MaterialTheme.typography.bodySmall)
                             LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                 items(AdviceMode.entries) { event ->
                                     FilterChip(
@@ -3210,9 +3225,9 @@ private fun ResourcesScreen(
                                     )
                                 }
                             }
-                            OutlinedTextField(eventDateInput, { eventDateInput = it }, label = { Text(localizedAppText("Date (ex. 23/11/2026)")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                            OutlinedTextField(eventScoreInput, { eventScoreInput = it }, label = { Text(localizedAppText("Score / dégâts / classement")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                            OutlinedTextField(eventNotesInput, { eventNotesInput = it }, label = { Text(localizedAppText("Composition, ratio, remarques")) }, minLines = 3, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(eventDateInput, { eventDateInput = it }, label = { Text(localizedAppText(localizedAppText("Date (ex. 23/11/2026)"))) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(eventScoreInput, { eventScoreInput = it }, label = { Text(localizedAppText(localizedAppText("Score / dégâts / classement"))) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(eventNotesInput, { eventNotesInput = it }, label = { Text(localizedAppText(localizedAppText("Composition, ratio, remarques"))) }, minLines = 3, modifier = Modifier.fillMaxWidth())
                             Button(
                                 enabled = eventDateInput.isNotBlank() || eventScoreInput.isNotBlank() || eventNotesInput.isNotBlank(),
                                 onClick = {
@@ -4167,7 +4182,7 @@ private fun SupabaseAccountCard() {
                         if (busy) {
                             CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
                         } else {
-                            Text(if (createAccount) localizedAppText("S'inscrire") else localizedAppText("Se connecter"))
+                            Text(if (createAccount) localizedAppText("S'inscrire") else localizedAppText(localizedAppText("Se connecter")))
                         }
                     }
                 }
@@ -4354,7 +4369,7 @@ private fun AllianceScreen(
                         if (joinRequestsBusy) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
                         else Icon(Icons.Outlined.NotificationsActive, contentDescription = null)
                         Spacer(Modifier.width(7.dp))
-                        Text(if (joinRequestsBusy) localizedAppText("Actualisation…") else localizedAppText("Voir les nouvelles demandes"))
+                        Text(if (joinRequestsBusy) localizedAppText("Actualisation…") else localizedAppText(localizedAppText("Voir les nouvelles demandes")))
                     }
                     joinRequestsMessage?.let {
                         Text(it, color = if (joinRequestsError) Color(0xFFFCA5A5) else Color(0xFF86EFAC), style = MaterialTheme.typography.bodySmall)
