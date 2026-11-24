@@ -396,7 +396,7 @@ object LandsOfJailOcrParser {
         if (imageWidth > 0 && imageHeight > 0) {
             val topNumbers = textBoxes
                 .filter { it.top <= (imageHeight * 0.20).toInt() }
-                .filter { Regex("""^[0-9][0-9.,\\s]*[kmbKMB]?$""").matches(it.text.trim()) }
+                .filter { Regex("""^[0-9][0-9.,\s]*[kmbKMB]?$""").matches(it.text.trim()) }
                 .sortedBy { it.left }
             val resourceOrder = listOf(
                 "Nourriture (Food)", "Bois (Wood)", "Acier (Steel)",
