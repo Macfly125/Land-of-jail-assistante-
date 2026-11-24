@@ -287,10 +287,30 @@ Stahl
 
     @Test
     fun recognizesRobotNameSplitAcrossTwoOcrLines() {
-        val result = LandsOfJailOcrParser.parseLocalOcrText("Phantom\\nCat\\nLevel 12")
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            """Phantom
+Cat
+Level 12"""
+        )
         assertEquals(1, result.robots.size)
         assertEquals("Phantom Cat", result.robots.single().nom)
         assertEquals("12", result.robots.single().niveau)
+    }
+
+    @Test
+    fun recognizesHeroEquipmentUpgradeScreensInSupportedLanguages() {
+        val samples = listOf(
+            "Hero Equipment\\nEquipment Upgrade\\nMagnet",
+            "Heldenausrüstung\\nAusrüstungsverbesserung\\nMagnet",
+            "Kahraman ekipmanı\\nEkipman geliştirme\\nMıknatıs",
+            "Снаряжение героя\\nУлучшение снаряжения\\nМагнит",
+            "英雄装备\\n装备升级\\n磁铁"
+        )
+        samples.forEach { sample ->
+            val result = ScreenRecognitionEngine.analyze(sample)
+            assertEquals("Écran d'amélioration d'équipement non reconnu : $sample", "equipements", result.category)
+            assertTrue(result.matchedLabels.isNotEmpty())
+        }
     }
 
     @Test
