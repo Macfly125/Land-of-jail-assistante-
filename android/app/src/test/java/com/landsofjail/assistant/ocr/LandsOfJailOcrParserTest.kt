@@ -197,6 +197,15 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun classifiesGoldOnlyResourceScreensAcrossLanguages() {
+        val samples = listOf("Gold", "Altın", "Золото", "金币", "黄金")
+        samples.forEach { sample ->
+            val result = ScreenRecognitionEngine.analyze(sample)
+            assertEquals("L'écran de ressource or doit être reconnu : $sample", "ressources", result.category)
+        }
+    }
+
+    @Test
     fun recognizesChineseOcrWhenWordsHaveNoSpaces() {
         val heroes = ScreenRecognitionEngine.analyze("英雄技能星级")
         assertEquals("heros", heroes.category)
