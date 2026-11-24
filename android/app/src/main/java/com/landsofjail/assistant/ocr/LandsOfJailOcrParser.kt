@@ -173,6 +173,8 @@ object LandsOfJailOcrParser {
                             typeTroupe = catalogEntry?.typeTroupe,
                             categorie = catalogEntry?.rarete,
                             saison = catalogEntry?.saison,
+                            imageUrl = catalogEntry?.portraitUrl,
+                            avatarUrl = catalogEntry?.portraitUrl,
                             wikiUrl = catalogEntry?.sourceUrl,
                             incertain = lvl == null || stars == null || rarity == null,
                             raisonIncertitude = listOfNotNull(
