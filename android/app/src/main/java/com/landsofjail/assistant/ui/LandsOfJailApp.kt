@@ -3275,11 +3275,11 @@ private fun ResourcesScreen(
                                     enabled = targetBuildingLvl < 30
                                 ) { Text(localizedAppText("+1 Niveau")) }
                             }
-                            Text(localizedAppText("${resourceUiText(currentLang, ")prerequisites")} : ${req.prereqs}", fontWeight = FontWeight.Medium)
-                            Text(localizedAppText("${resourceUiText(currentLang, ")food")} : ${formatCompactFr(req.food)}")
-                            Text(localizedAppText("${resourceUiText(currentLang, ")wood")} : ${formatCompactFr(req.wood)}")
-                            Text(localizedAppText("${resourceUiText(currentLang, ")steel")} : ${formatCompactFr(req.steel)}")
-                            Text(localizedAppText("${resourceUiText(currentLang, ")gasoline")} : ${formatCompactFr(req.gasoline)}")
+                            Text("${resourceUiText(currentLang, "prerequisites")} : ${req.prereqs}", fontWeight = FontWeight.Medium)
+                            Text("${resourceUiText(currentLang, "food")} : ${formatCompactFr(req.food)}")
+                            Text("${resourceUiText(currentLang, "wood")} : ${formatCompactFr(req.wood)}")
+                            Text("${resourceUiText(currentLang, "steel")} : ${formatCompactFr(req.steel)}")
+                            Text("${resourceUiText(currentLang, "gasoline")} : ${formatCompactFr(req.gasoline)}")
                             Text(
                                 if (req.verified) resourceUiText(currentLang, "verified_source")
                                 else resourceUiText(currentLang, "estimated_source"),
@@ -4537,7 +4537,7 @@ private fun AllianceScreen(
                         Text(member.playerName, fontWeight = FontWeight.SemiBold)
                         Text(member.rank.labelFor(language), color = Color(0xFFFFB36B), style = MaterialTheme.typography.labelSmall)
                     }
-                    Text(localizedAppText("Puissance : ${member.powerText.ifBlank { ")non renseignée" }}", style = MaterialTheme.typography.bodySmall)
+                    Text(localizedAppText("Puissance : ${member.powerText.ifBlank { localizedAppText("non renseignée") }}"), style = MaterialTheme.typography.bodySmall)
                     if (member.heroSkillSummary.isNotBlank()) Text(localizedAppText("Héros / compétences : ${member.heroSkillSummary}"), style = MaterialTheme.typography.bodySmall)
                     if (member.robotSummary.isNotBlank()) Text(localizedAppText("Robot : ${member.robotSummary}"), style = MaterialTheme.typography.bodySmall)
                     if (cloudCanManageRanks && member.id in cloudMemberIds) {
