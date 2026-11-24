@@ -2229,8 +2229,8 @@ private fun DashboardScreen(
                 ) {
                     RadioButton(selected = role == playerRole, onClick = { onSelectRole(role) })
                     Column {
-                        Text(role.labelFr, fontWeight = FontWeight.Medium)
-                        Text(role.descriptionFr, style = MaterialTheme.typography.bodySmall)
+                        Text(role.labelFor(currentLang), fontWeight = FontWeight.Medium)
+                        Text(role.descriptionFor(currentLang), style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
@@ -3189,7 +3189,7 @@ private fun AdviceScreen(
                 }
             }
             Spacer(Modifier.height(6.dp))
-            Text("Rôle : ${playerRole.labelFr}", style = MaterialTheme.typography.bodySmall)
+            Text(localizedUiText(currentLang, "Rôle : ${playerRole.labelFor(currentLang)}", "Role: ${playerRole.labelFor(currentLang)}", "Rolle: ${playerRole.labelFor(currentLang)}", "Rol: ${playerRole.labelFor(currentLang)}", "Роль: ${playerRole.labelFor(currentLang)}", "角色：${playerRole.labelFor(currentLang)}"), style = MaterialTheme.typography.bodySmall)
             Spacer(Modifier.height(6.dp))
             val heroesWithWarSkills = heroes.count { hero ->
                 hero.competences.any { skill ->
