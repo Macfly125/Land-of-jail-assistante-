@@ -64,7 +64,7 @@ async function discoverPortrait(name) {
         src: attr(tag, 'src') || attr(tag, 'data-src') || attr(tag, 'data-lazy-src')
       })).filter(image =>
         image.alt && (image.alt === wanted || image.alt.includes(wanted)) &&
-        /^https:\/\/img\.lojwiki\.com\/half\/[^\s"'<>]+\.(?:webp|png|jpe?g)(?:\?.*)?$/i.test(image.src)
+        /^https:\/\/img\.lojwiki\.com\/(?:half|heroes)\/[^\s"'<>]+\.(?:webp|png|jpe?g)(?:\?.*)?$/i.test(image.src)
       );
       if (candidates.length) {
         const candidate = candidates[0].src;
