@@ -722,7 +722,7 @@ private enum class AssistantTab {
 }
 
 private enum class ResourceSubTab {
-    INVENTAIRE, ROBOTS, EVENEMENTS, BATIMENTS, HEROS_OBJETS, ROUTINE;
+    INVENTAIRE, ROBOTS, EVENEMENTS, BATIMENTS, HEROS_OBJETS, DEVELOPPEMENTS, ROUTINE;
 
     fun labelFor(lang: AppLanguage): String = when (this) {
         INVENTAIRE -> when (lang) {
@@ -748,6 +748,14 @@ private enum class ResourceSubTab {
             AppLanguage.ZH -> "英雄计算"
             AppLanguage.DE -> "Helden-Rechner"
             AppLanguage.EN -> "Hero Calc"
+        }
+        DEVELOPPEMENTS -> when (lang) {
+            AppLanguage.FR -> "Développements"
+            AppLanguage.TR -> "Gelişim"
+            AppLanguage.RU -> "Развитие"
+            AppLanguage.ZH -> "发展"
+            AppLanguage.DE -> "Entwicklung"
+            AppLanguage.EN -> "Development"
         }
         ROUTINE -> when (lang) {
             AppLanguage.FR -> "Routine Hors-Jeu"
@@ -3352,6 +3360,25 @@ private fun ResourcesScreen(
     var eventDateInput by remember(profileId) { mutableStateOf("") }
     var eventScoreInput by remember(profileId) { mutableStateOf("") }
     var eventNotesInput by remember(profileId) { mutableStateOf("") }
+    val developmentPrefs = remember(context, profileId) {
+        context.getSharedPreferences("development_tracker_" + profileId, Context.MODE_PRIVATE)
+    }
+    var fcBuildingKey by remember(profileId) { mutableStateOf(developmentPrefs.getString("fc_building", "warden_office") ?: "warden_office") }
+    var fcCurrentLevel by remember(profileId) { mutableIntStateOf(developmentPrefs.getInt("fc_current_level", 1).coerceIn(1, 9)) }
+    var fcCurrentProgress by remember(profileId) { mutableIntStateOf(developmentPrefs.getInt("fc_current_progress", 0).coerceIn(0, 4)) }
+    var fcTargetLevel by remember(profileId) { mutableIntStateOf(developmentPrefs.getInt("fc_target_level", 2).coerceIn(2, 10)) }
+    var fcCoresOwned by remember(profileId) { mutableStateOf(developmentPrefs.getString("fc_cores_owned", "0") ?: "0") }
+    var fcAdvancedOwned by remember(profileId) { mutableStateOf(developmentPrefs.getString("fc_advanced_owned", "0") ?: "0") }
+    LaunchedEffect(fcBuildingKey, fcCurrentLevel, fcCurrentProgress, fcTargetLevel, fcCoresOwned, fcAdvancedOwned) {
+        developmentPrefs.edit()
+            .putString("fc_building", fcBuildingKey)
+            .putInt("fc_current_level", fcCurrentLevel)
+            .putInt("fc_current_progress", fcCurrentProgress)
+            .putInt("fc_target_level", fcTargetLevel)
+            .putString("fc_cores_owned", fcCoresOwned)
+            .putString("fc_advanced_owned", fcAdvancedOwned)
+            .apply()
+    }
 
     var routineItems by remember(routinePrefs, routineRevision) {
         mutableStateOf(
@@ -3554,6 +3581,152 @@ private fun ResourcesScreen(
                                     )
                                 }
                                 TextButton(onClick = { onSaveRobots(robots.filterNot { it.id == robot.id }) }) { Text(resourceUiText(currentLang, "remove")) }
+                            }
+                        }
+                    }
+                }
+            }
+
+            ResourceSubTab.DEVELOPPEMENTS -> {
+                val fcCosts = mapOf(
+                    "warden_office" to (listOf(250, 320, 490, 720, 360, 400, 460, 510, 630) to listOf(0, 0, 0, 0, 24, 36, 48, 72, 168)),
+                    "shield_barracks" to (listOf(130, 150, 230, 300, 160, 180, 210, 230, 290) to listOf(0, 0, 0, 0, 10, 15, 22, 32, 75)),
+                    "bomber_barracks" to (listOf(130, 150, 230, 300, 160, 180, 210, 230, 290) to listOf(0, 0, 0, 0, 10, 15, 22, 32, 75)),
+                    "shooter_barracks" to (listOf(130, 150, 230, 300, 160, 180, 210, 230, 290) to listOf(0, 0, 0, 0, 10, 15, 22, 32, 75)),
+                    "comms_center" to (listOf(50, 60, 80, 130, 90, 100, 110, 130, 160) to listOf(0, 0, 0, 0, 5, 8, 12, 17, 41)),
+                    "command_center" to (listOf(50, 60, 80, 130, 70, 80, 90, 100, 130) to listOf(0, 0, 0, 0, 5, 8, 12, 14, 34)),
+                    "medical_station" to (listOf(50, 60, 80, 130, 70, 80, 90, 100, 130) to listOf(0, 0, 0, 0, 5, 8, 12, 14, 34)),
+                    "forticlad_lab" to (listOf(150, 200, 250, 300, 160, 190, 220, 270, 270) to listOf(0, 0, 0, 0, 10, 15, 22, 30, 72))
+                )
+                val buildingLabels = listOf(
+                    "warden_office" to "🏛️ Bureau du directeur",
+                    "shield_barracks" to "🛡️ Caserne Shieldbearer",
+                    "bomber_barracks" to "💥 Caserne Bomber",
+                    "shooter_barracks" to "🎯 Caserne Shooter",
+                    "comms_center" to "📡 Centre de communications",
+                    "command_center" to "🚩 Centre de commandement",
+                    "medical_station" to "➕ Poste médical",
+                    "forticlad_lab" to "🧪 Laboratoire Forticlad"
+                )
+                val selectedCosts = fcCosts[fcBuildingKey] ?: fcCosts.getValue("warden_office")
+                val startStep = (fcCurrentLevel - 1) * 5 + fcCurrentProgress
+                val targetStep = (fcTargetLevel - 1) * 5
+                var requiredCores = 0
+                var requiredAdvanced = 0
+                for (step in startStep until targetStep) {
+                    val levelIndex = (step / 5).coerceIn(0, 8)
+                    requiredCores += selectedCosts.first[levelIndex]
+                    requiredAdvanced += selectedCosts.second[levelIndex]
+                }
+                val ownedCores = fcCoresOwned.toIntOrNull() ?: 0
+                val ownedAdvanced = fcAdvancedOwned.toIntOrNull() ?: 0
+                val missingCores = (requiredCores - ownedCores).coerceAtLeast(0)
+                val missingAdvanced = (requiredAdvanced - ownedAdvanced).coerceAtLeast(0)
+                item {
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Text("🔷 Calculateur Forticlad · 8 bâtiments", fontWeight = FontWeight.Bold)
+                            Text(
+                                localizedUiText(currentLang, "Chaque niveau comporte 5 étapes. Les coûts ci-dessous sont par étape et proviennent des tableaux communautaires GuideLOJ/LOJ Wiki ; vérifie toujours la valeur en jeu avant de dépenser.", "Each level has 5 steps. Costs below are per step and come from community GuideLOJ/LOJ Wiki tables; always verify in-game before spending.", "Jede Stufe hat 5 Schritte. Die Kosten stammen aus Community-Tabellen von GuideLOJ/LOJ Wiki; vor dem Ausgeben im Spiel prüfen.", "Her seviyede 5 aşama vardır. Maliyetler topluluk GuideLOJ/LOJ Wiki tablolarındandır; harcamadan önce oyunda doğrula.", "Каждый уровень состоит из 5 этапов. Стоимость взята из таблиц сообщества GuideLOJ/LOJ Wiki; перед тратой проверьте в игре.", "每级有 5 个阶段。以下每阶段成本来自玩家社区 GuideLOJ/LOJ Wiki 数据；消耗前请在游戏中核对。"),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                items(buildingLabels) { (key, label) ->
+                                    FilterChip(
+                                        selected = fcBuildingKey == key,
+                                        onClick = { fcBuildingKey = key },
+                                        label = { Text(label, maxLines = 1) }
+                                    )
+                                }
+                            }
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Column(Modifier.weight(1f)) {
+                                    Text(resourceUiText(currentLang, "level"), style = MaterialTheme.typography.labelSmall)
+                                    OutlinedTextField(
+                                        value = fcCurrentLevel.toString(),
+                                        onValueChange = { fcCurrentLevel = (it.toIntOrNull() ?: 1).coerceIn(1, 9); if (fcTargetLevel <= fcCurrentLevel) fcTargetLevel = (fcCurrentLevel + 1).coerceAtMost(10) },
+                                        singleLine = true,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
+                                Column(Modifier.weight(1f)) {
+                                    Text(localizedUiText(currentLang, "Étapes terminées (0–4)", "Completed steps (0–4)", "Abgeschlossene Schritte (0–4)", "Tamamlanan aşama (0–4)", "Завершённые этапы (0–4)", "已完成阶段（0–4）"), style = MaterialTheme.typography.labelSmall)
+                                    OutlinedTextField(
+                                        value = fcCurrentProgress.toString(),
+                                        onValueChange = { fcCurrentProgress = (it.toIntOrNull() ?: 0).coerceIn(0, 4) },
+                                        singleLine = true,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
+                                Column(Modifier.weight(1f)) {
+                                    Text(localizedUiText(currentLang, "Niveau cible", "Target level", "Zielstufe", "Hedef seviye", "Целевой уровень", "目标等级"), style = MaterialTheme.typography.labelSmall)
+                                    OutlinedTextField(
+                                        value = fcTargetLevel.toString(),
+                                        onValueChange = { fcTargetLevel = (it.toIntOrNull() ?: (fcCurrentLevel + 1)).coerceIn(fcCurrentLevel + 1, 10) },
+                                        singleLine = true,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
+                            }
+                            OutlinedTextField(
+                                value = fcCoresOwned,
+                                onValueChange = { fcCoresOwned = it.filter(Char::isDigit).take(9) },
+                                label = { Text("🔷 " + localizedUiText(currentLang, "Noyaux Forticlad possédés", "Forticlad Cores owned", "Forticlad-Kerne vorhanden", "Mevcut Forticlad Çekirdekleri", "Ядра Forticlad в наличии", "现有 Forticlad 核心")) },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            OutlinedTextField(
+                                value = fcAdvancedOwned,
+                                onValueChange = { fcAdvancedOwned = it.filter(Char::isDigit).take(9) },
+                                label = { Text("💠 " + localizedUiText(currentLang, "Noyaux Forticlad avancés possédés", "Advanced Forticlad Cores owned", "Erweiterte Forticlad-Kerne vorhanden", "Mevcut Gelişmiş Forticlad Çekirdekleri", "Улучшенные ядра Forticlad в наличии", "现有高级 Forticlad 核心")) },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Divider()
+                            Text(buildingLabels.firstOrNull { it.first == fcBuildingKey }?.second ?: "", fontWeight = FontWeight.SemiBold)
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Card(Modifier.weight(1f), colors = CardDefaults.cardColors(containerColor = Color(0xFF172333))) {
+                                    Column(Modifier.padding(12.dp)) {
+                                        Text("🔷 " + localizedUiText(currentLang, "Noyaux requis", "Cores required", "Benötigte Kerne", "Gerekli çekirdek", "Требуется ядер", "所需核心"), style = MaterialTheme.typography.labelSmall)
+                                        Text(formatCompactFr(requiredCores.toLong()), style = MaterialTheme.typography.titleLarge)
+                                        Text(localizedUiText(currentLang, "Manquants : \${formatCompactFr(missingCores.toLong())}", "Missing: \${formatCompactFr(missingCores.toLong())}", "Fehlend: \${formatCompactFr(missingCores.toLong())}", "Eksik: \${formatCompactFr(missingCores.toLong())}", "Не хватает: \${formatCompactFr(missingCores.toLong())}", "缺少：\${formatCompactFr(missingCores.toLong())}"), style = MaterialTheme.typography.bodySmall)
+                                    }
+                                }
+                                Card(Modifier.weight(1f), colors = CardDefaults.cardColors(containerColor = Color(0xFF172333))) {
+                                    Column(Modifier.padding(12.dp)) {
+                                        Text("💠 " + localizedUiText(currentLang, "Avancés requis", "Advanced required", "Erweiterte benötigt", "Gelişmiş gerekli", "Улучшенных требуется", "所需高级核心"), style = MaterialTheme.typography.labelSmall)
+                                        Text(formatCompactFr(requiredAdvanced.toLong()), style = MaterialTheme.typography.titleLarge)
+                                        Text(localizedUiText(currentLang, "Manquants : \${formatCompactFr(missingAdvanced.toLong())}", "Missing: \${formatCompactFr(missingAdvanced.toLong())}", "Fehlend: \${formatCompactFr(missingAdvanced.toLong())}", "Eksik: \${formatCompactFr(missingAdvanced.toLong())}", "Не хватает: \${formatCompactFr(missingAdvanced.toLong())}", "缺少：\${formatCompactFr(missingAdvanced.toLong())}"), style = MaterialTheme.typography.bodySmall)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                item {
+                    Text(localizedUiText(currentLang, "Autres systèmes à suivre", "Other systems to track", "Weitere Systeme", "Diğer sistemler", "Другие системы", "其他系统"), fontWeight = FontWeight.Bold)
+                }
+                item {
+                    val systems = listOf(
+                        Triple("🛡️", "Arsenal", "Niv. 15 · Équipement héros : EXP, aimants, bobines potentielles et engrenages de précision"),
+                        Triple("🧪", "Laboratoire", "Niv. 9 · Recherches Logistique, Économie et Militaire"),
+                        Triple("🤖", "Hangar d’armure de puissance", "Niv. 25 · Armure du prisonnier, données d’armure, modules et noyaux I–V"),
+                        Triple("🛰️", "Centre cosmique (Cosmos Hub)", "Niv. 20 · Satellites, disques de données et puces"),
+                        Triple("🏰", "Donjon · Bureau et surveillance", "Prisonniers fugitifs / criminels et salles du donjon"),
+                        Triple("⚡", "Station d’énergie Forticlad", "Niv. 30 · Production quotidienne de noyaux Forticlad"),
+                        Triple("🔬", "Laboratoire Forticlad", "Niv. 30 · Technologie Forticlad et Hyperalliage pour les troupes")
+                    )
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        systems.forEach { (icon, name, description) ->
+                            Card(modifier = Modifier.fillMaxWidth()) {
+                                Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                    Text(icon, fontSize = 24.sp)
+                                    Column(Modifier.weight(1f)) {
+                                        Text(name, fontWeight = FontWeight.SemiBold)
+                                        Text(description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    }
+                                }
                             }
                         }
                     }
