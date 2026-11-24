@@ -120,35 +120,35 @@ object GiftCodeRepository {
             }.awaitAll()
         }
         for ((sourceName, result) in downloaded) {
-            val html = result.getOrElse {
-                errors += "$sourceName : ${it.message ?: "source inaccessible"}"
+            val html = result.getOrNull()
+            if (html == null) {
+                errors += "$sourceName : ${result.exceptionOrNull()?.message ?: "source inaccessible"}"
                 continue
             }
-            val checkedDate = Regex                val checkedDate = Regex("(?i)(?:checked|updated|last checked)\\s*[:\\-]?\\s*(?:on\\s*)?([0-9]{1,2}\\s+[A-Za-z]+\\s+20[0-9]{2}|[A-Za-z]+\\s+[0-9]{1,2},?\\s+20[0-9]{2})")
-                    .find(stripTags(html))?.groupValues?.getOrNull(1).orEmpty()
-                val codeMatches = Regex("(?is)<code[^>]*>(.*?)</code>").findAll(html)
-                for (match in codeMatches) {
-                    val code = decodeHtml(stripTags(match.groupValues[1])).trim()
-                    if (!code.matches(Regex("[A-Za-z0-9]{6,20}"))) continue
-                    val key = code.lowercase(Locale.ROOT)
-                    val existing = found[key]
-                    if (existing != null) {
-                        val mergedSource = (existing.source.split(" · ") + sourceName).distinct().joinToString(" · ")
-                        found[key] = existing.copy(source = mergedSource, lastChecked = checkedDate.ifBlank { existing.lastChecked })
-                    } else {
-                        val contextStart = (match.range.first - 220).coerceAtLeast(0)
-                        val contextEnd = (match.range.last + 420).coerceAtMost(html.length)
-                        val nearby = stripTags(html.substring(contextStart, contextEnd)).lowercase(Locale.ROOT)
-                        val looksExpired = nearby.contains("ended codes") || nearby.contains("expired")
-                        found[key] = GiftCodeEntry(
-                            code = code,
-                            status = if (looksExpired) "NEEDS_REVIEW" else "UNVERIFIED",
-                            source = sourceName,
-                            lastChecked = checkedDate,
-                            note = if (looksExpired) "La page mentionne une expiration à proximité ; confirmation nécessaire."
-                                else "Code repéré sur une source communautaire ; à tester dans le jeu."
-                        )
-                    }
+            val checkedDate = Regex("(?i)(?:checked|updated|last checked)\\s*[:\\-]?\\s*(?:on\\s*)?([0-9]{1,2}\\s+[A-Za-z]+\\s+20[0-9]{2}|[A-Za-z]+\\s+[0-9]{1,2},?\\s+20[0-9]{2})")
+                .find(stripTags(html))?.groupValues?.getOrNull(1).orEmpty()
+            val codeMatches = Regex("(?is)<code[^>]*>(.*?)</code>").findAll(html)
+            for (match in codeMatches) {
+                val code = decodeHtml(stripTags(match.groupValues[1])).trim()
+                if (!code.matches(Regex("[A-Za-z0-9]{6,20}"))) continue
+                val key = code.lowercase(Locale.ROOT)
+                val existing = found[key]
+                if (existing != null) {
+                    val mergedSource = (existing.source.split(" · ") + sourceName).distinct().joinToString(" · ")
+                    found[key] = existing.copy(source = mergedSource, lastChecked = checkedDate.ifBlank { existing.lastChecked })
+                } else {
+                    val contextStart = (match.range.first - 220).coerceAtLeast(0)
+                    val contextEnd = (match.range.last + 420).coerceAtMost(html.length)
+                    val nearby = stripTags(html.substring(contextStart, contextEnd)).lowercase(Locale.ROOT)
+                    val looksExpired = nearby.contains("ended codes") || nearby.contains("expired")
+                    found[key] = GiftCodeEntry(
+                        code = code,
+                        status = if (looksExpired) "NEEDS_REVIEW" else "UNVERIFIED",
+                        source = sourceName,
+                        lastChecked = checkedDate,
+                        note = if (looksExpired) "La page mentionne une expiration à proximité ; confirmation nécessaire."
+                            else "Code repéré sur une source communautaire ; à tester dans le jeu."
+                    )
                 }
             }
         }
