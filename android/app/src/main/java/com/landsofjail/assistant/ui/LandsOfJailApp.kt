@@ -504,7 +504,20 @@ private fun localizedAppText(source: String): String {
             "Ta réponse au joueur" to "给玩家的回复", "Réponse enregistrée et visible par le joueur." to "回复已保存，玩家可以查看。",
             "Enregistrement impossible." to "保存失败。", "Enregistrement…" to "正在保存…", "Envoyer la réponse" to "发送回复"
         )
-        AppLanguage.IT -> emptyMap()
+        AppLanguage.IT -> mapOf(
+            "Héros suivis :" to "Eroi seguiti:", "Ressources :" to "Risorse:", "Puissance :" to "Potenza:",
+            "Compétences :" to "Abilità:", "Robot :" to "Robot:", "Rang demandé :" to "Ruolo richiesto:",
+            "À compléter" to "Da completare", "profil(s) suffisamment renseigné(s)" to "profilo/i compilato/i a sufficienza",
+            "à compléter" to "da completare", "Puissance (facultatif)" to "Potenza (facoltativa)", "Rareté / étoiles" to "Rarità / stelle",
+            "Bonus :" to "Bonus:", "Éclats de héros" to "Frammenti eroe", "Départ :" to "Partenza:",
+            "Cible :" to "Obiettivo:", "Requis :" to "Richiesto:", "Manquants :" to "Mancanti:",
+            "Tomes de troupes" to "Manuali delle truppe", "De :" to "Da:", "À :" to "A:",
+            "Composition :" to "Composizione:", "Ratios de troupes" to "Rapporti delle truppe",
+            "À vérifier :" to "Da verificare:", "Session enregistrée :" to "Sessione salvata:",
+            "Source :" to "Fonte:", "Compte joueur :" to "Account giocatore:",
+            "Catégorie" to "Categoria", "Description non disponible" to "Descrizione non disponibile",
+            "Vérification…" to "Verifica…", "Rejoindre avec ce code" to "Unisciti con questo codice"
+        )
     }
     val extraFragments = when (language) {
         AppLanguage.FR -> emptyMap()
@@ -623,7 +636,31 @@ private fun localizedAppText(source: String): String {
             "Actualiser le lien cloud après connexion" to "登录后刷新云端连接",
             "Création…" to "正在创建…", "Génération…" to "正在生成…"
         )
-        AppLanguage.IT -> emptyMap()
+        AppLanguage.IT -> mapOf(
+            "Compte & sauvegarde cloud" to "Account e backup cloud",
+            "Connecte ton compte pour synchroniser ton profil de joueur et tes héros dans l'espace cloud sécurisé." to "Accedi al tuo account per sincronizzare il profilo giocatore e gli eroi nello spazio cloud sicuro.",
+            "Langue de l’application" to "Lingua dell’applicazione",
+            "Adresse e-mail" to "Indirizzo e-mail",
+            "Mot de passe (8 caractères minimum)" to "Password (almeno 8 caratteri)",
+            "Profil joueur et alliance" to "Profilo giocatore e alleanza",
+            "Ces informations sont enregistrées pendant la création du compte. Tu n'auras pas à refaire une inscription dans l'espace Alliance." to "Queste informazioni vengono salvate durante la creazione dell’account. Non dovrai registrarti di nuovo nell’area Alleanza.",
+            "Pseudo dans Land of Jail" to "Nome giocatore su Land of Jail",
+            "Serveur (ex. 311)" to "Server (es. 311)",
+            "Tag de l'alliance" to "Tag dell’alleanza",
+            "Ton rang actuel" to "Il tuo grado attuale",
+            "Choisis R5 uniquement si tu crées un nouvel espace d'alliance. Pour rejoindre une alliance existante, indique ton rang actuel : ta demande sera transmise aux responsables." to "Scegli R5 solo se stai creando un nuovo spazio alleanza. Per unirti a un’alleanza esistente, indica il tuo grado attuale: la richiesta sarà inviata ai responsabili.",
+            "J'ai déjà un compte" to "Ho già un account",
+            "Créer un compte" to "Crea un account",
+            "S'inscrire" to "Registrati",
+            "Se connecter" to "Accedi",
+            "Renvoyer l'e-mail de confirmation" to "Invia di nuovo l’e-mail di conferma",
+            "Actualiser" to "Aggiorna",
+            "Déconnexion" to "Esci",
+            "Session enregistrée :" to "Sessione salvata:",
+            "Les jetons sont chiffrés avec Android Keystore. La synchronisation du profil se lance depuis le formulaire joueur ci-dessous." to "I token sono crittografati con Android Keystore. La sincronizzazione del profilo si avvia dal modulo giocatore qui sotto.",
+            "Compte connecté." to "Account connesso.",
+            "Une erreur est survenue." to "Si è verificato un errore."
+        )
     }
     extraFragments.forEach { (from, to) -> translated = translated.replace(from, to) }
     fragments.forEach { (from, to) -> translated = translated.replace(from, to) }
@@ -669,7 +706,21 @@ private fun resourceUiText(language: AppLanguage, key: String): String {
         AppLanguage.ZH -> 5
         AppLanguage.IT -> 6
     }
-    return translations[key]?.getOrNull(index)
+    val italian = if (language == AppLanguage.IT) mapOf(
+        "power" to "Potenza attuale", "not_captured" to "Non acquisita",
+        "no_resources" to "Nessuna risorsa acquisita per ora.", "robot_inventory" to "Inventario robot del profilo",
+        "robot_name" to "Nome robot", "level" to "Livello", "rarity_stars" to "Rarità / stelle",
+        "power_optional" to "Potenza (facoltativa)", "active_bonuses" to "Bonus attivi / statistiche",
+        "skills_effects" to "Abilità / effetti (facoltativo)", "save_robot" to "Aggiungi / aggiorna robot",
+        "no_robot" to "Nessun robot salvato in questo profilo.", "remove" to "Rimuovi",
+        "event_journal" to "Registro eventi del profilo", "save_result" to "Salva risultato",
+        "no_event" to "Nessun risultato evento salvato per questo profilo.", "prerequisites" to "Prerequisiti",
+        "food" to "Cibo", "wood" to "Legno", "steel" to "Acciaio", "gasoline" to "Benzina",
+        "verified_source" to "Fonte: Wiki / lojxlab verificata", "estimated_source" to "Fonte: stima (da confermare nel gioco)",
+        "start" to "Avvia", "start_cycles" to "Avvia tutti i cicli attivi",
+        "custom_duration" to "Durata personalizzata (minuti)", "duration_range" to "Da 1 a 10.080 minuti (7 giorni)"
+    )[key] else null
+    return italian ?: translations[key]?.getOrNull(index)
         ?: if (language == AppLanguage.IT) translations[key]?.getOrNull(1) else null
         ?: key
 }
