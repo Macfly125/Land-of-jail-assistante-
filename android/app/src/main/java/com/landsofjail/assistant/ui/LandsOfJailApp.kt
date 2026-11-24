@@ -4085,7 +4085,7 @@ private fun AllianceScreen(
                     )
                     if (workspace.ownProfile.playerName.isNotBlank()) {
                         Text(
-                            "Toi : ${workspace.ownProfile.playerName} · ${workspace.ownProfile.rank.labelFr} · ${heroes.size} héros analysés",
+                            "Toi : ${workspace.ownProfile.playerName} · ${workspace.ownProfile.rank.labelFor(currentLang)} · ${heroes.size} héros analysés",
                             color = Color(0xFF34D399),
                             style = MaterialTheme.typography.bodySmall
                         )
@@ -4177,7 +4177,7 @@ private fun AllianceScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(member.playerName, fontWeight = FontWeight.SemiBold)
-                        Text(member.rank.labelFr, color = Color(0xFFFFB36B), style = MaterialTheme.typography.labelSmall)
+                        Text(member.rank.labelFor(currentLang), color = Color(0xFFFFB36B), style = MaterialTheme.typography.labelSmall)
                     }
                     Text("Puissance : ${member.powerText.ifBlank { "non renseignée" }}", style = MaterialTheme.typography.bodySmall)
                     if (member.heroSkillSummary.isNotBlank()) Text("Héros / compétences : ${member.heroSkillSummary}", style = MaterialTheme.typography.bodySmall)
@@ -4339,7 +4339,7 @@ private fun AllianceScreen(
                                 output += "Événement : ${selectedEvent.titleFor(AppLanguage.FR)}"
                                 output += "Effectif analysé : ${roster.size} membre(s)"
                                 leader?.let {
-                                    output += "LEADER proposé : ${it.playerName} (${it.rank.labelFr}) — puissance ${it.powerText.ifBlank { "non renseignée" }}"
+                                    output += "LEADER proposé : ${it.playerName} (${it.rank.labelFor(currentLang)}) — puissance ${it.powerText.ifBlank { "non renseignée" }}"
                                     if (it.heroSkillSummary.isNotBlank()) output += "Capacités du leader : ${it.heroSkillSummary.take(420)}"
                                     if (it.robotSummary.isNotBlank()) output += "Robot du leader : ${it.robotSummary}"
                                 }
