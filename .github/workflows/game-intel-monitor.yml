@@ -1,81 +1,131 @@
-name: Veille automatique Land of Jail
+name: Veille publique Land of Jail
 
 on:
+  schedule:
+    - cron: '30 3 * * *'
+  workflow_dispatch:
   push:
     branches:
       - audit/ameliorations-android
     paths:
       - '.github/workflows/game-intel-monitor.yml'
-      - 'game-intel.ts'
-      - 'server.ts'
-      - 'package.json'
-      - 'package-lock.json'
-  workflow_dispatch:
 
 permissions:
   contents: read
-  actions: write
 
 concurrency:
-  group: land-of-jail-game-intel
-  cancel-in-progress: false
+  group: land-of-jail-public-intel
+  cancel-in-progress: true
 
 jobs:
   scan:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
-      - name: Interroger la veille du jeu
+      - name: Consulter les sources publiques gratuites
         id: scan
-        env:
-          GAME_INTEL_URL: ${{ vars.GAME_INTEL_URL || 'https://ais-pre-5yvyv3v3pqwxalk2bhijpo-717617057104.europe-west2.run.app/api/game-intel' }}
-        run: |
-          set -euo pipefail
-          mkdir -p reports
-          echo "Interrogation de la veille Land of Jail..."
-          HTTP_CODE=$(curl --silent --show-error \
-            --retry 2 --retry-delay 10 --max-time 90 \
-            "${GAME_INTEL_URL}?refresh=1" \
-            -H 'Accept: application/json' \
-            -o reports/game-intel.json -w '%{http_code}')
-          if [ "$HTTP_CODE" = "404" ]; then
-            echo "## Veille Land of Jail : serveur à mettre à jour" >> "$GITHUB_STEP_SUMMARY"
-            echo "Le serveur Cloud Run ne connaît pas encore /api/game-intel. Le déploiement du code serveur est nécessaire avant l'activation de la veille." >> "$GITHUB_STEP_SUMMARY"
-            echo "::warning::Endpoint /api/game-intel absent (HTTP 404)."
-            exit 0
-          fi
-          if [ "$HTTP_CODE" != "200" ]; then
-            echo "::error::La veille a répondu HTTP $HTTP_CODE."
-            cat reports/game-intel.json
-            exit 1
-          fi
-          node --input-type=module <<'NODE'
-          import fs from 'node:fs';
-          const data = JSON.parse(fs.readFileSync('reports/game-intel.json', 'utf8'));
-          const items = Array.isArray(data.items) ? data.items : [];
-          const sources = Array.isArray(data.sources) ? data.sources : [];
-          const lines = [
-            '# Veille Land of Jail',
-            '',
-            `- Vérification : ${data.checkedAt ?? new Date().toISOString()}`,
-            `- Version détectée : ${data.gameVersion ?? 'non communiquée par les sources'}`,
-            `- État : ${data.status ?? 'inconnu'}`,
-            `- Sources disponibles : ${sources.filter(s => s.available).length}/${sources.length}`,
-            `- Changements proposés : ${items.length}`,
-            '',
-            data.message ?? 'Aucun résumé fourni.'
-          ];
-          for (const item of items) {
-            lines.push('', `## ${item.title}`, `- Catégorie : ${item.category}`, `- Statut : ${item.status}`, `- Confiance : ${Math.round((item.confidence ?? 0) * 100)}%`, `- Source : ${item.sourceUrl}`, '', item.summary ?? '');
-          }
-          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join('\n') + '\n');
-          console.log(JSON.stringify({status:data.status, gameVersion:data.gameVersion, changes:items.length, sources:sources.length}));
-          NODE
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const sources = [
+              {
+                id: 'app_store',
+                name: 'Apple App Store (fiche officielle)',
+                url: 'https://itunes.apple.com/lookup?id=6738469826&country=us',
+                kind: 'json'
+              },
+              {
+                id: 'google_play',
+                name: 'Google Play (fiche officielle)',
+                url: 'https://play.google.com/store/apps/details?id=com.justgame.jails&hl=en_US',
+                kind: 'html'
+              },
+              {
+                id: 'lojxlab',
+                name: 'LOJ XLab (guides communautaires)',
+                url: 'https://lojxlab.com/wp-json/wp/v2/posts?per_page=12&orderby=modified&order=desc&_fields=date,modified,link,title,excerpt',
+                kind: 'posts'
+              },
+              {
+                id: 'lojwiki',
+                name: 'LOJ Wiki (base communautaire)',
+                url: 'https://lojwiki.com/',
+                kind: 'html'
+              }
+            ];
+
+            const results = await Promise.all(sources.map(async source => {
+              const controller = new AbortController();
+              const timeout = setTimeout(() => controller.abort(), 12000);
+              try {
+                const response = await fetch(source.url, {
+                  signal: controller.signal,
+                  headers: {
+                    'User-Agent': 'LandsOfJailAssistant-PublicMonitor/1.0',
+                    'Accept': source.kind === 'json' || source.kind === 'posts'
+                      ? 'application/json'
+                      : 'text/html'
+                  }
+                });
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                const body = await response.text();
+                let details = 'Page accessible; aucune donnée structurée extraite.';
+                if (source.kind === 'json') {
+                  const data = JSON.parse(body);
+                  const app = data.results?.[0];
+                  details = app
+                    ? ['Application : ' + (app.trackName || 'non précisée'),
+                       'Version : ' + (app.version || 'non communiquée'),
+                       'Date de publication : ' + (app.currentVersionReleaseDate || 'non communiquée'),
+                       'Notes : ' + (app.releaseNotes || 'aucune note publiée')].join('\n')
+                    : 'Fiche officielle sans résultat exploitable.';
+                } else if (source.kind === 'posts') {
+                  const posts = JSON.parse(body);
+                  details = posts.slice(0, 12).map(post => {
+                    const title = String(post.title?.rendered || 'Sans titre').replace(/<[^>]*>/g, '');
+                    const excerpt = String(post.excerpt?.rendered || '').replace(/<[^>]*>/g, '').replace(/&[^;]+;/g, ' ').trim();
+                    return '- ' + (post.modified || post.date || 'Date inconnue') + ' — ' + title + '\n  ' + (post.link || '') + '\n  ' + excerpt.slice(0, 350);
+                  }).join('\n');
+                  if (!details) details = 'Aucun article récent retourné.';
+                } else {
+                  const title = body.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]?.replace(/\s+/g, ' ').trim();
+                  details = title ? 'Titre de page : ' + title : 'Page accessible; titre non détecté.';
+                }
+                return { ...source, available: true, checkedAt: new Date().toISOString(), details };
+              } catch (error) {
+                return { ...source, available: false, checkedAt: new Date().toISOString(), details: String(error) };
+              } finally {
+                clearTimeout(timeout);
+              }
+            }));
+
+            const report = {
+              checkedAt: new Date().toISOString(),
+              status: results.some(item => item.available) ? 'sources_checked' : 'sources_unavailable',
+              note: 'Veille gratuite des sources publiques. Ce rapport ne prouve pas à lui seul une nouveauté du jeu et ne modifie aucun catalogue.',
+              sources: results
+            };
+            const fs = await import('node:fs/promises');
+            await fs.mkdir('reports', { recursive: true });
+            await fs.writeFile('reports/game-intel-public.json', JSON.stringify(report, null, 2));
+            const lines = [
+              '# Veille publique Land of Jail',
+              '',
+              '- Vérification : ' + report.checkedAt,
+              '- Sources accessibles : ' + results.filter(item => item.available).length + '/' + results.length,
+              '',
+              '> Contrôle des sources uniquement : les nouveautés doivent être vérifiées avant intégration.'
+            ];
+            for (const item of results) {
+              lines.push('', '## ' + (item.available ? '✓ ' : '✗ ') + item.name, '- URL : ' + item.url, '- État : ' + (item.available ? 'accessible' : 'indisponible'), '', item.details);
+            }
+            await core.summary.addRaw(lines.join('\n')).write();
+            core.info('Sources accessibles : ' + results.filter(item => item.available).length + '/' + results.length);
 
       - name: Archiver le rapport de veille
-        if: always() && hashFiles('reports/game-intel.json') != ''
+        if: always() && hashFiles('reports/game-intel-public.json') != ''
         uses: actions/upload-artifact@v4
         with:
-          name: land-of-jail-intel-${{ github.run_number }}
-          path: reports/game-intel.json
+          name: land-of-jail-public-intel-${{ github.run_number }}
+          path: reports/game-intel-public.json
           retention-days: 30
