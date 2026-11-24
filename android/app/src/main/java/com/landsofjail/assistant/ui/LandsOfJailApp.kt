@@ -1519,8 +1519,11 @@ fun LandsOfJailAssistantApp(
         }
     }
 
-    LaunchedEffect(capturedScreenPayload) {
-        if (capturedScreenPayload != null) {
+    DisposableEffect(capturedScreenPayload, lifecycleOwner) {
+        val payload = capturedScreenPayload
+        if (payload != null) {
+            // L'analyse appartient au cycle de vie de l'activité, pas à la composition Compose.
+            lifecycleOwner.lifecycleScope.launch {
             // Ne supprimer la capture persistée qu'après l'enregistrement du résultat.
             // Une annulation liée à la composition doit laisser la capture récupérable.
             var analysisCommitted = false
@@ -1529,17 +1532,17 @@ fun LandsOfJailAssistantApp(
             errorMessage = null
             try {
                 val ocrRaw = runCatching {
-                    LandsOfJailOcrParser.recognizeBitmap(capturedScreenPayload.bitmap)
+                    LandsOfJailOcrParser.recognizeBitmap(payload.bitmap)
                 }.getOrDefault("")
                 singleAnalysisPercent = 50
                 val localExtraction = withContext(Dispatchers.Default) {
                     LandsOfJailOcrParser.parseLocalOcrText(ocrRaw)
                 }
-                val localImageUri = capturedScreenPayload.imageFileUri
+                val localImageUri = payload.imageFileUri
 
                 val result = runCatching {
                     repository.analyzeBase64Screenshot(
-                        imageBase64 = capturedScreenPayload.base64Jpeg,
+                        imageBase64 = payload.base64Jpeg,
                         mimeType = "image/jpeg",
                         imageLabel = localImageUri.ifBlank { "capture-ecran-autorisee.jpg" },
                         playerRole = playerRole,
@@ -1629,6 +1632,10 @@ fun LandsOfJailAssistantApp(
                 isAnalyzing = false
                 singleAnalysisPercent = 0
             }
+            }
+        }
+        onDispose {
+            // Ne pas annuler l'analyse lorsque l'interface se recompose ou passe en arrière-plan.
         }
     }
 
