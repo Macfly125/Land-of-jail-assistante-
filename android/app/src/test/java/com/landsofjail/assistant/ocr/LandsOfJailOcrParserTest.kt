@@ -441,4 +441,18 @@ Aimant"""
             })
         }
     }
+
+    @Test
+    fun classifiesGoldResourceScreensInEnglishTurkishRussianAndChinese() {
+        val samples = listOf(
+            "Gold 1200",
+            "Altın 1200",
+            "Золото 1200",
+            "金币 1200"
+        )
+        samples.forEach { sample ->
+            val result = ScreenRecognitionEngine.analyze(sample)
+            assertEquals("La capture de ressource doit être classée : $sample", "ressources", result.category)
+        }
+    }
 }
