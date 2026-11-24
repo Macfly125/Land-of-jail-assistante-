@@ -9,6 +9,8 @@ on:
       - audit/ameliorations-android
     paths:
       - '.github/workflows/game-intel-monitor.yml'
+      - 'scripts/audit-hero-portraits.mjs'
+      - 'android/app/src/main/java/com/landsofjail/assistant/model/GameModels.kt'
 
 permissions:
   contents: read
@@ -22,6 +24,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+
       - name: Consulter les sources publiques gratuites
         id: scan
         uses: actions/github-script@v7
@@ -122,10 +127,14 @@ jobs:
             await core.summary.addRaw(lines.join('\n')).write();
             core.info('Sources accessibles : ' + results.filter(item => item.available).length + '/' + results.length);
 
-      - name: Archiver le rapport de veille
-        if: always() && hashFiles('reports/game-intel-public.json') != ''
+      - name: Auditer les portraits des 50 héros
+        if: always()
+        run: node scripts/audit-hero-portraits.mjs
+
+      - name: Archiver les rapports de veille et de portraits
+        if: always() && hashFiles('reports/*.json') != ''
         uses: actions/upload-artifact@v4
         with:
-          name: land-of-jail-public-intel-${{ github.run_number }}
-          path: reports/game-intel-public.json
+          name: land-of-jail-audits-${{ github.run_number }}
+          path: reports/*.json
           retention-days: 30
