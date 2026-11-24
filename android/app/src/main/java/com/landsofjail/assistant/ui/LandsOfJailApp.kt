@@ -1235,7 +1235,7 @@ fun LandsOfJailAssistantApp(
             val doneCount = analysisQueue.count { it.status == "done" }
             if (doneCount > 0) {
                 currentTab = AssistantTab.TABLEAU
-                snackbarHostState.showSnackbar("File terminée (100 %) : $doneCount capture(s) analysée(s)")
+                snackbarHostState.showSnackbar(localizedUiText(currentLang, "File terminée (100 %) : $doneCount capture(s) analysée(s)", "Queue complete (100%): $doneCount capture(s) analyzed", "Warteschlange abgeschlossen (100 %): $doneCount Aufnahme(n) analysiert", "Kuyruk tamamlandı (%100): $doneCount ekran görüntüsü analiz edildi", "Очередь завершена (100 %): проанализировано снимков: $doneCount", "队列已完成（100%）：已分析 $doneCount 张截图"))
             }
         } finally {
             isQueueRunning = false
@@ -1311,7 +1311,7 @@ fun LandsOfJailAssistantApp(
                 if (!autoModeStillActive) {
                     currentTab = AssistantTab.TABLEAU
                     snackbarHostState.showSnackbar(
-                        "Capture analysée 100 % (${result.heros.size} héros, ${result.robots.size} robot(s), ${result.ressources.size} ressource(s))"
+                        localizedUiText(currentLang, "Capture analysée 100 % (${result.heros.size} héros, ${result.robots.size} robot(s), ${result.ressources.size} ressource(s))", "Capture analyzed 100% (${result.heros.size} heroes, ${result.robots.size} robot(s), ${result.ressources.size} resource(s))", "Aufnahme zu 100 % analysiert (${result.heros.size} Helden, ${result.robots.size} Roboter, ${result.ressources.size} Ressourcen)", "Ekran görüntüsü %100 analiz edildi (${result.heros.size} kahraman, ${result.robots.size} robot, ${result.ressources.size} kaynak)", "Снимок проанализирован на 100 % (${result.heros.size} героев, ${result.robots.size} роботов, ${result.ressources.size} ресурсов)", "截图已完成 100% 分析（${result.heros.size} 位英雄、${result.robots.size} 个机器人、${result.ressources.size} 项资源）")
                     )
                 }
 
@@ -1326,7 +1326,7 @@ fun LandsOfJailAssistantApp(
                 ).onSuccess { adviceResult = it }
                 isFetchingAdvice = false
             } catch (e: Throwable) {
-                errorMessage = e.message ?: "Erreur pendant l'analyse OCR."
+                errorMessage = e.message ?: localizedUiText(currentLang, "Erreur pendant l'analyse OCR.", "Error during OCR analysis.", "Fehler bei der OCR-Analyse.", "OCR analizi sırasında hata oluştu.", "Ошибка при распознавании текста.", "OCR 分析时出错。")
             } finally {
                 onConsumeCapturedScreen()
                 isAnalyzing = false
@@ -1404,7 +1404,7 @@ fun LandsOfJailAssistantApp(
                                             routineRevision += 1
                                             activeProfileId = profile.id
                                             accountPrefs.edit().putString("active_game_profile_v1", profile.id).commit()
-                                        }.onFailure { errorMessage = "Impossible d'ouvrir ce profil : ${it.message}" }
+                                        }.onFailure { errorMessage = localizedUiText(currentLang, "Impossible d'ouvrir ce profil : ${it.message}", "Could not open this profile: ${it.message}", "Dieses Profil konnte nicht geöffnet werden: ${it.message}", "Bu profil açılamadı: ${it.message}", "Не удалось открыть этот профиль: ${it.message}", "无法打开此档案：${it.message}") }
                                     }
                                     showProfileDialog = false
                                 }) { Text(if (profile.id == activeProfileId) localizedUiText(currentLang, "Actif", "Active", "Aktiv", "Etkin", "Активен", "当前") else localizedUiText(currentLang, "Ouvrir", "Open", "Öffnen", "Aç", "Открыть", "打开")) }
@@ -2036,15 +2036,15 @@ fun LandsOfJailAssistantApp(
                                 result.onSuccess { id ->
                                     if (isInitialR5) {
                                         accountPrefs.edit().putString("cloud_alliance_id", id).apply()
-                                        snackbarHostState.showSnackbar("Espace créé : tu es directement R5, sans validation.")
+                                        snackbarHostState.showSnackbar(localizedUiText(language, "Espace créé : tu es directement R5, sans validation.", "Workspace created: you are R5 immediately, without approval.", "Bereich erstellt: Du bist sofort R5, ohne Bestätigung.", "Alan oluşturuldu: onay gerekmeden doğrudan R5 oldun.", "Пространство создано: вы сразу становитесь R5 без подтверждения.", "空间已创建：你直接成为 R5，无需审核。"))
                                     } else {
-                                        snackbarHostState.showSnackbar("Demande envoyée aux R4/R5 de l'alliance.")
+                                        snackbarHostState.showSnackbar(localizedUiText(language, "Demande envoyée aux R4/R5 de l'alliance.", "Request sent to the alliance R4/R5 officers.", "Anfrage an die R4/R5 der Allianz gesendet.", "İstek ittifakın R4/R5 yetkililerine gönderildi.", "Запрос отправлен офицерам R4/R5 альянса.", "申请已发送给联盟 R4/R5 管理员。"))
                                     }
                                 }.onFailure {
                                     snackbarHostState.showSnackbar(it.message ?: if (isInitialR5) {
-                                        "Création de l'espace R5 impossible. Si l'alliance existe déjà, rejoins-la avec un code d'invitation."
+                                        localizedUiText(language, "Création de l'espace R5 impossible. Si l'alliance existe déjà, rejoins-la avec un code d'invitation.", "Could not create the R5 workspace. If the alliance already exists, join it with an invitation code.", "Der R5-Bereich konnte nicht erstellt werden. Wenn die Allianz bereits besteht, tritt ihr mit einem Einladungscode bei.", "R5 alanı oluşturulamadı. İttifak zaten varsa davet koduyla katıl.", "Не удалось создать пространство R5. Если альянс уже существует, вступите в него по коду приглашения.", "无法创建 R5 空间。如果联盟已存在，请使用邀请码加入。")
                                     } else {
-                                        "Demande non envoyée. Vérifie le compte et le tag."
+                                        localizedUiText(language, "Demande non envoyée. Vérifie le compte et le tag.", "Request not sent. Check the account and alliance tag.", "Anfrage nicht gesendet. Überprüfe das Konto und das Allianz-Tag.", "İstek gönderilmedi. Hesabı ve ittifak etiketini kontrol et.", "Запрос не отправлен. Проверьте аккаунт и тег альянса.", "申请未发送。请检查账号和联盟标签。")
                                     })
                                 }
                             }
@@ -2052,9 +2052,9 @@ fun LandsOfJailAssistantApp(
                             scope.launch {
                                 snackbarHostState.showSnackbar(
                                     if (onboardingRank == AllianceRank.R5) {
-                                        "Profil enregistré. Connecte-toi pour créer l'espace de l'alliance et devenir R5."
+                                        localizedUiText(currentLang, "Profil enregistré. Connecte-toi pour créer l'espace de l'alliance et devenir R5.", "Profile saved. Sign in to create the alliance workspace and become R5.", "Profil gespeichert. Melde dich an, um den Allianzbereich zu erstellen und R5 zu werden.", "Profil kaydedildi. İttifak alanını oluşturup R5 olmak için giriş yap.", "Профиль сохранён. Войдите, чтобы создать пространство альянса и стать R5.", "档案已保存。请登录以创建联盟空间并成为 R5。")
                                     } else {
-                                        "Profil enregistré. Connecte-toi pour transmettre la demande aux officiers."
+                                        localizedUiText(currentLang, "Profil enregistré. Connecte-toi pour transmettre la demande aux officiers.", "Profile saved. Sign in to send the request to the officers.", "Profil gespeichert. Melde dich an, um die Anfrage an die Offiziere zu senden.", "Profil kaydedildi. İsteği yetkililere iletmek için giriş yap.", "Профиль сохранён. Войдите, чтобы отправить запрос офицерам.", "档案已保存。请登录以向管理人员提交申请。")
                                     }
                                 )
                             }
