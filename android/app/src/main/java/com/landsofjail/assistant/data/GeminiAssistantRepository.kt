@@ -492,6 +492,7 @@ class GeminiAssistantRepository(
             AppLanguage.ZH -> "$modeLabel (${playerRole.labelFr}) — $tacticalBase"
             AppLanguage.DE -> "$modeLabel (${playerRole.labelFr}) — $tacticalBase"
             AppLanguage.EN -> "$modeLabel (${playerRole.labelFr}) — $tacticalBase"
+            AppLanguage.IT -> "$modeLabel (${playerRole.labelFr}) — $tacticalBase"
         }
 
         val compText = if (heroNames.isNotEmpty()) {
@@ -502,6 +503,7 @@ class GeminiAssistantRepository(
                 AppLanguage.ZH -> "已检测英雄：${heroNames.joinToString(", ")}。"
                 AppLanguage.DE -> "Erkannte Helden: ${heroNames.joinToString(", ")}."
                 AppLanguage.EN -> "Detected heroes: ${heroNames.joinToString(", ")}."
+                AppLanguage.IT -> "Detected heroes: ${heroNames.joinToString(", ")}."
             }
         } else {
             noHeroesWarning(language)
@@ -524,6 +526,7 @@ class GeminiAssistantRepository(
                         AppLanguage.ZH -> "备用模式：建议来自外部攻略的通用信息，尚未验证是否适用于当前活动、服务器和英雄。请勿将其视为保证最优阵容。"
                         AppLanguage.DE -> "ERSATZMODUS: Allgemeine Hinweise aus externen Guides. Die Eignung für Ihr Event, Ihren Server und Ihre Helden wurde nicht geprüft. Nicht als garantiert optimale Aufstellung verstehen."
                         AppLanguage.EN -> "FALLBACK MODE: Generic advice from external guides. Compatibility with your event, server and heroes has not been verified. Do not treat this as a guaranteed optimal lineup."
+                        AppLanguage.IT -> "FALLBACK MODE: Generic advice from external guides. Compatibility with your event, server and heroes has not been verified. Do not treat this as a guaranteed optimal lineup."
                     }
                 )
                 if (heroNames.isEmpty()) add(noHeroesWarning(language))
@@ -535,6 +538,7 @@ class GeminiAssistantRepository(
                         AppLanguage.ZH -> "备用模式：已保存档案中的机器人，但未分析活动规则前无法可靠排序。"
                         AppLanguage.DE -> "Ersatzmodus: Profil-Roboter sind gespeichert, können ohne Analyse der Eventregeln aber nicht zuverlässig bewertet werden."
                         AppLanguage.EN -> "Fallback mode: profile robots are saved, but cannot be reliably ranked without analyzing the event rules."
+                        AppLanguage.IT -> "Fallback mode: profile robots are saved, but cannot be reliably ranked without analyzing the event rules."
                     }
                 )
             },
@@ -606,6 +610,7 @@ class GeminiAssistantRepository(
         AppLanguage.ZH -> "暂未扫描英雄：请在英雄界面点击「扫描屏幕」。"
         AppLanguage.DE -> "Noch keine Helden gescannt: Tippe auf der Heldenseite auf « Scannen »."
         AppLanguage.EN -> "No heroes scanned yet: tap « Scan screen » on your Heroes screen."
+        AppLanguage.IT -> "No heroes scanned yet: tap « Scan screen » on your Heroes screen."
     }
 
     private fun cleanHtml(input: String): String =
