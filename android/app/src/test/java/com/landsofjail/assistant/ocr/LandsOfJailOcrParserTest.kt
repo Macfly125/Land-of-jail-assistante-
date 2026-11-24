@@ -190,7 +190,7 @@ class LandsOfJailOcrParserTest {
 
     @Test
     fun doesNotMistakeFrenchConjunctionOrForTheGoldResource() {
-        val result = LandsOfJailOcrParser.parseLocalOcrText("Or il faut encore 5M de nourriture")
+        val result = LandsOfJailOcrParser.parseLocalOcrText("Or il faut encore de la nourriture : 5M")
         assertTrue(result.resources.none { it.nom == "Cash / Or" })
         assertTrue(result.resources.any { it.nom == "Nourriture (Food)" })
     }
