@@ -2044,7 +2044,7 @@ fun LandsOfJailAssistantApp(
                                     snackbarHostState.showSnackbar(it.message ?: if (isInitialR5) {
                                         localizedUiText(currentLang, "Création de l'espace R5 impossible. Si l'alliance existe déjà, rejoins-la avec un code d'invitation.", "Could not create the R5 workspace. If the alliance already exists, join it with an invitation code.", "Der R5-Bereich konnte nicht erstellt werden. Wenn die Allianz bereits besteht, tritt ihr mit einem Einladungscode bei.", "R5 alanı oluşturulamadı. İttifak zaten varsa davet koduyla katıl.", "Не удалось создать пространство R5. Если альянс уже существует, вступите в него по коду приглашения.", "无法创建 R5 空间。如果联盟已存在，请使用邀请码加入。")
                                     } else {
-                                        localizedUiText(currentLang, "Demande non envoyée. Vérifie le compte et le tag., "Request not sent. Check the account and alliance tag.", "Anfrage nicht gesendet. Überprüfe das Konto und das Allianz-Tag.", "İstek gönderilmedi. Hesabı ve ittifak etiketini kontrol et.", "Запрос не отправлен. Проверьте аккаунт и тег альянса.", "申请未发送。请检查账号和联盟标签。")
+                                        localizedUiText(currentLang, "Demande non envoyée. Vérifie le compte et le tag.", "Request not sent. Check the account and alliance tag.", "Anfrage nicht gesendet. Überprüfe das Konto und das Allianz-Tag.", "İstek gönderilmedi. Hesabı ve ittifak etiketini kontrol et.", "Запрос не отправлен. Проверьте аккаунт и тег альянса.", "申请未发送。请检查账号和联盟标签。")
                                     })
                                 }
                             }
