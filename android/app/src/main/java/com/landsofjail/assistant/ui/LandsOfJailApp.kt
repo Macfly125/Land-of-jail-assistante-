@@ -1401,19 +1401,25 @@ fun LandsOfJailAssistantApp(
             }
         }.getOrNull()
 
-        val ocrRaw = if (localImage != null) {
+        val ocrResult = if (localImage != null) {
             try {
                 onProgress(20)
-                LandsOfJailOcrParser.recognizeBitmap(localImage)
+                LandsOfJailOcrParser.recognizeBitmapDetailed(localImage)
             } catch (_: Throwable) {
-                ""
+                null
             } finally {
                 localImage.recycle()
             }
-        } else ""
+        } else null
+        val ocrRaw = ocrResult?.text.orEmpty()
 
         val localExtraction = withContext(Dispatchers.Default) {
-            LandsOfJailOcrParser.parseLocalOcrText(ocrRaw)
+            LandsOfJailOcrParser.parseLocalOcrText(
+                ocrRaw,
+                ocrResult?.boxes.orEmpty(),
+                ocrResult?.imageWidth ?: 0,
+                ocrResult?.imageHeight ?: 0
+            )
         }
         onProgress(45)
 
@@ -1586,12 +1592,18 @@ fun LandsOfJailAssistantApp(
             singleAnalysisPercent = 20
             errorMessage = null
             try {
-                val ocrRaw = runCatching {
-                    LandsOfJailOcrParser.recognizeBitmap(payload.bitmap)
-                }.getOrDefault("")
+                val ocrResult = runCatching {
+                    LandsOfJailOcrParser.recognizeBitmapDetailed(payload.bitmap)
+                }.getOrNull()
+                val ocrRaw = ocrResult?.text.orEmpty()
                 singleAnalysisPercent = 50
                 val localExtraction = withContext(Dispatchers.Default) {
-                    LandsOfJailOcrParser.parseLocalOcrText(ocrRaw)
+                    LandsOfJailOcrParser.parseLocalOcrText(
+                        ocrRaw,
+                        ocrResult?.boxes.orEmpty(),
+                        ocrResult?.imageWidth ?: 0,
+                        ocrResult?.imageHeight ?: 0
+                    )
                 }
                 val localImageUri = payload.imageFileUri
 
