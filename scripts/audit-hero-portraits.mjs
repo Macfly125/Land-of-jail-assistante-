@@ -132,5 +132,10 @@ console.log(JSON.stringify({
   portraitsConfigured: report.portraitsConfigured,
   portraitsVerified: report.portraitsVerified,
   portraitsMissing: report.portraitsMissing,
-  newSuggestions: report.newSuggestions
+  newSuggestions: report.newSuggestions,
+  verifiedSuggestions: reportEntries.filter(item => item.suggestionVerified).map(item => ({
+    name: item.name,
+    url: item.suggestedPortraitUrl,
+    source: item.suggestionSource
+  }))
 }));
