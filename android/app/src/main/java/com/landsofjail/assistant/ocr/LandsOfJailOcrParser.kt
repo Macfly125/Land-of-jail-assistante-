@@ -91,7 +91,7 @@ object LandsOfJailOcrParser {
             "Acier (Steel)" to Regex("""(?:acier|steel|fer|iron|stahl|çelik|сталь|钢材)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)?""", RegexOption.IGNORE_CASE),
             "Essence (Gasoline)" to Regex("""(?:essence|gasoline|fuel|p[ée]trole|benzin|бензин|汽油)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)?""", RegexOption.IGNORE_CASE),
             "Diamants (Gems)" to Regex("""(?:diamants?|diamonds?|gemmes?|gems?|diamanten|elmas|алмазы|钻石|宝石)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)?""", RegexOption.IGNORE_CASE),
-            "Cash / Or" to Regex("""(?:cash|gold|g[oö]ld)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)?|^or\s*[:：\-]\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)?""", RegexOption.IGNORE_CASE)
+            "Cash / Or" to Regex("""(?:cash|gold|g[oö]ld|altın|золото|金币|黄金)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)?|^or\s*[:：\-]\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)?""", RegexOption.IGNORE_CASE)
         )
 
         for ((index, line) in lines.withIndex()) {
