@@ -196,9 +196,9 @@ object LandsOfJailOcrParser {
                 val level = Regex("""(?:lv\.?|level|niv\.?|niveau|等级)\s*[:+]?\s*([0-9]{1,3})""", RegexOption.IGNORE_CASE)
                     .find(context)?.groupValues?.get(1)
                     ?: Regex("""(?:^|\s)\+([0-9]{1,3})(?:\s|$)""").find(context)?.groupValues?.get(1).orEmpty()
-                val quality = Regex("""\b(legendary|mythic|epic|rare|common|légendaire|épique|传奇|史诗)\b""", RegexOption.IGNORE_CASE)
+                val quality = Regex("""\b(legendary|mythic|epic|rare|common|légendaire|épique|legendär|episch|selten|efsanevi|destansı|nadir|легендарный|эпический|редкий|обычный|传奇|神话|史诗|稀有)\b""", RegexOption.IGNORE_CASE)
                     .find(context)?.value.orEmpty()
-                val materials = listOf("magnet", "aimant", "potential coil", "precision gear", "equipment part", "материал", "磁铁", "精密齿轮")
+                val materials = listOf("magnet", "aimant", "potential coil", "precision gear", "equipment part", "mıknatıs", "магнит", "магнитная катушка", "материал", "磁铁", "精密齿轮")
                     .firstOrNull { context.contains(it, ignoreCase = true) }.orEmpty()
                 val key = (partName + "-" + level.ifBlank { "?" }).lowercase()
                 if (seenEquipmentKeys.add(key)) equipment.add(
