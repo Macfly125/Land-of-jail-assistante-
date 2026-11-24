@@ -4060,9 +4060,9 @@ private fun AllianceScreen(
         }
         item {
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                Text("Espace Alliance", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                Text(localizedUiText(language, "Espace Alliance", "Alliance Space", "Allianzbereich", "İttifak Alanı", "Пространство альянса", "联盟空间"), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                 Text(
-                    "Ton profil vient de ton compte. Consulte le roster et prépare les événements avec les capacités de tes membres.",
+                    localizedUiText(language, "Ton profil vient de ton compte. Consulte le roster et prépare les événements avec les capacités de tes membres.", "Your profile comes from your account. Check the roster and prepare events using your members’ capabilities.", "Dein Profil stammt aus deinem Konto. Sieh dir die Mitgliederliste an und bereite Events anhand der Fähigkeiten deiner Mitglieder vor.", "Profilin hesabından gelir. Kadroyu incele ve üyelerinin yetenekleriyle etkinliklere hazırlan.", "Ваш профиль связан с аккаунтом. Просматривайте состав и готовьтесь к событиям с учётом возможностей участников.", "你的个人资料来自账号。查看成员名单，并根据成员能力准备活动。"),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -4076,7 +4076,7 @@ private fun AllianceScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Roster de l'alliance", fontWeight = FontWeight.Bold)
+                        Text(localizedUiText(language, "Roster de l'alliance", "Alliance roster", "Allianzmitglieder", "İttifak kadrosu", "Состав альянса", "联盟成员名单"), fontWeight = FontWeight.Bold)
                         Text("${workspace.members.size + if (workspace.ownProfile.playerName.isNotBlank()) 1 else 0} joueur(s)",
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.labelSmall)
@@ -4096,10 +4096,10 @@ private fun AllianceScreen(
                         Button(onClick = { showAddMember = true }, modifier = Modifier.fillMaxWidth()) {
                             Icon(Icons.Outlined.PersonAdd, contentDescription = null)
                             Spacer(Modifier.width(6.dp))
-                            Text("Ajouter un membre au roster")
+                            Text(localizedUiText(language, "Ajouter un membre au roster", "Add a member to the roster", "Mitglied zur Liste hinzufügen", "Kadorya üye ekle", "Добавить участника в состав", "添加联盟成员"))
                         }
                     } else {
-                        Text("Demande à un R4/R5 d'ajouter les profils des membres.", style = MaterialTheme.typography.bodySmall)
+                        Text(localizedUiText(language, "Demande à un R4/R5 d'ajouter les profils des membres.", "Ask an R4/R5 to add member profiles.", "Bitte einen R4/R5, die Mitgliederprofile hinzuzufügen.", "Üye profillerini eklemesi için bir R4/R5'ten yardım iste.", "Попросите R4/R5 добавить профили участников.", "请联系 R4/R5 添加成员资料。"), style = MaterialTheme.typography.bodySmall)
                     }
                     OutlinedButton(
                         onClick = {
@@ -4151,7 +4151,7 @@ private fun AllianceScreen(
                             CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
                             Spacer(Modifier.width(8.dp))
                         }
-                        Text(if (cloudRosterBusy) "Chargement du roster…" else "Actualiser depuis le cloud")
+                        Text(if (cloudRosterBusy) "Chargement du roster…" else localizedUiText(language, "Actualiser depuis le cloud", "Refresh from cloud", "Aus der Cloud aktualisieren", "Buluttan yenile", "Обновить из облака", "从云端刷新"))
                     }
                     cloudRosterMessage?.let {
                         Text(
@@ -4258,9 +4258,9 @@ private fun AllianceScreen(
         item {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                    Text("Simulateur de performance", fontWeight = FontWeight.Bold)
+                    Text(localizedUiText(language, "Simulateur de performance", "Performance simulator", "Leistungssimulator", "Performans simülatörü", "Симулятор эффективности", "战力模拟器"), fontWeight = FontWeight.Bold)
                     Text(
-                        "Compare les profils disponibles et propose une répartition des rôles. Les données manquantes ne sont pas inventées.",
+                        localizedUiText(language, "Compare les profils disponibles et propose une répartition des rôles. Les données manquantes ne sont pas inventées.", "Compares available profiles and suggests role assignments. Missing data is never invented.", "Vergleicht verfügbare Profile und schlägt Rollenverteilungen vor. Fehlende Daten werden nicht erfunden.", "Mevcut profilleri karşılaştırır ve rol dağılımı önerir. Eksik veriler uydurulmaz.", "Сравнивает доступные профили и предлагает распределение ролей. Отсутствующие данные не выдумываются.", "比较现有档案并建议角色分配，不会编造缺失数据。"),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
