@@ -598,3 +598,20 @@ object HeroCatalog {
         HeroCatalogEntry("Minyeon & Taehun", "SR", "S1", "Bomber", sourceUrl = "https://lojwiki.com/fr/heroes/minyeon-and-taehun/", portraitUrl = "https://img.lojwiki.com/heroes/9015182e0dcbf5a9.webp")
     )
 }
+
+/**
+ * Pure selection rules for the Forticlad calculator. Keeping the bounds here
+ * makes the level picker deterministic and directly testable.
+ */
+object ForticladSelection {
+    fun currentLevels(): IntRange = 1..9
+    fun completedSteps(): IntRange = 0..4
+    fun targetLevels(currentLevel: Int): IntRange =
+        (currentLevel.coerceIn(1, 9) + 1)..10
+
+    fun targetAfterCurrentChange(currentLevel: Int, targetLevel: Int): Int {
+        val current = currentLevel.coerceIn(1, 9)
+        return if (targetLevel <= current) (current + 1).coerceAtMost(10)
+        else targetLevel.coerceIn(current + 1, 10)
+    }
+}
