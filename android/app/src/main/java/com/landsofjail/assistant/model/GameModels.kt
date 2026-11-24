@@ -8,7 +8,8 @@ enum class AppLanguage(val code: String, val label: String, val wikiPrefix: Stri
     RU("ru", "RU", "/ru"),
     ZH("zh-CN", "ZH", "/zh-cn"),
     DE("de", "DE", "/de"),
-    EN("en", "EN", "")
+    EN("en", "EN", ""),
+    IT("it", "IT", "/it")
 }
 
 enum class PlayerRole(val labelFr: String, val descriptionFr: String) {
