@@ -1825,7 +1825,6 @@ private fun DashboardScreen(
     gameIntel: GameIntelSnapshot?,
     gameIntelLoading: Boolean,
     gameIntelError: String?,
-    onOpenHistory: () -> Unit,
     onPickImage: () -> Unit
 ) {
     var showCaptureSettings by remember { mutableStateOf(false) }
