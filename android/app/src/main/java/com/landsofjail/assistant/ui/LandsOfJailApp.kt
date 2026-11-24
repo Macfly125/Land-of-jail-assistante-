@@ -3986,12 +3986,12 @@ private fun ResourcesScreen(
                                             Text(fcCurrentLevel.toString())
                                         }
                                         DropdownMenu(expanded = currentLevelMenu, onDismissRequest = { currentLevelMenu = false }) {
-                                            (1..9).forEach { level ->
+                                            ForticladSelection.currentLevels().forEach { level ->
                                                 DropdownMenuItem(
                                                     text = { Text(level.toString()) },
                                                     onClick = {
                                                         fcCurrentLevel = level
-                                                        if (fcTargetLevel <= level) fcTargetLevel = (level + 1).coerceAtMost(10)
+                                                        fcTargetLevel = ForticladSelection.targetAfterCurrentChange(level, fcTargetLevel)
                                                         currentLevelMenu = false
                                                     }
                                                 )
@@ -4006,7 +4006,7 @@ private fun ResourcesScreen(
                                             Text(fcCurrentProgress.toString())
                                         }
                                         DropdownMenu(expanded = currentProgressMenu, onDismissRequest = { currentProgressMenu = false }) {
-                                            (0..4).forEach { progress ->
+                                            ForticladSelection.completedSteps().forEach { progress ->
                                                 DropdownMenuItem(
                                                     text = { Text(progress.toString()) },
                                                     onClick = { fcCurrentProgress = progress; currentProgressMenu = false }
@@ -4022,7 +4022,7 @@ private fun ResourcesScreen(
                                             Text(fcTargetLevel.toString())
                                         }
                                         DropdownMenu(expanded = targetLevelMenu, onDismissRequest = { targetLevelMenu = false }) {
-                                            ((fcCurrentLevel + 1)..10).forEach { level ->
+                                            ForticladSelection.targetLevels(fcCurrentLevel).forEach { level ->
                                                 DropdownMenuItem(
                                                     text = { Text(level.toString()) },
                                                     onClick = { fcTargetLevel = level; targetLevelMenu = false }
