@@ -29,7 +29,7 @@ object GiftCodeRepository {
     const val XLAB_URL = "https://lojxlab.com/promo-codes/"
     const val GUIDE_URL = "https://guideloj.com/en/codes"
     const val DISCORD_URL = "https://discord.gg/YGJqgcGpn"
-    const val REDEEM_URL = "https://www.gamermall.net/"
+    const val REDEEM_URL = "https://www.gamermall.net/global/loj/cdkey"
 
     private val officialCodes = listOf(
         "VIP777", "LOJ3648", "LOJNOW", "LOJ1478",
@@ -52,8 +52,19 @@ object GiftCodeRepository {
         val now = Instant.now().toString()
         val entries = buildList {
             officialCodes.forEach {
+                val rewards = when (it.lowercase(Locale.ROOT)) {
+                    "vip777" -> "3 000 diamants, éclats de héros épiques, pièces d’équipement, coffres de ressources et endurance."
+                    "loj3648" -> "3 000 diamants, 3 éclats légendaires et accélérations de construction, entraînement et recherche."
+                    "lojnow" -> "3 000 diamants, 20 cartes d’approvisionnement avancées, EXP héros, coffres de ressources et accélérations."
+                    "loj1478" -> "3 000 diamants, engrenages de précision, EXP héros, accélérations de marche et coffres de ressources."
+                    "loj777" -> "1 000 diamants, éclats légendaires et accélérations."
+                    "loj888" -> "1 000 diamants, éclats épiques, pièces d’équipement, coffres de ressources et endurance."
+                    "loj5791" -> "1 000 diamants, engrenages de précision, coffres de ressources et accélérations."
+                    else -> "1 000 diamants, cartes d’approvisionnement avancées, coffres de ressources et accélérations."
+                }
                 add(GiftCodeEntry(it, "OFFICIAL_LISTED", "LOJ XLab · Discord officiel #gift-codes",
-                    "21/09/2026", "13/10/2026", note = "Publié par l’équipe du jeu selon LOJ XLab ; date d’expiration non annoncée."))
+                    "21/09/2026", "13/10/2026", reward = rewards,
+                    note = "Publié par l’équipe du jeu selon LOJ XLab ; date d’expiration non annoncée. Récompenses issues des listes communautaires."))
             }
             expiredCodes.forEach { (code, expiry) ->
                 add(GiftCodeEntry(code, "EXPIRED", "LOJ XLab · historique", expiresAt = expiry,
