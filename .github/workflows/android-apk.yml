@@ -17,6 +17,51 @@ on:
       - '.github/workflows/android-apk.yml'
 
 jobs:
+  instrumented-test:
+    name: Test instrumenté Android (émulateur indépendant)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+      - name: Configurer Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Configurer Android SDK et licences
+        timeout-minutes: 8
+        run: |
+          SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
+          SDKMANAGER=$(find "$SDK_ROOT" -name "sdkmanager" -type f 2>/dev/null | head -n 1)
+          if [ -n "$SDKMANAGER" ]; then
+            timeout 120s bash -c 'yes | "$1" --licenses >/dev/null 2>&1' _ "$SDKMANAGER" || true
+            timeout 300s "$SDKMANAGER" "platform-tools" "platforms;android-35" "build-tools;35.0.0" || true
+          else
+            echo "::warning::sdkmanager introuvable ; les tests instrumentés seront ignorés."
+          fi
+      - name: Installer Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+      - name: Tester le démarrage réel sur émulateur Android
+        uses: reactivecircus/android-emulator-runner@v2
+        timeout-minutes: 15
+        continue-on-error: true
+        with:
+          api-level: 32
+          arch: x86_64
+          profile: pixel_2
+          force-avd-creation: true
+          emulator-boot-timeout: 600
+          cores: 2
+          ram-size: 2048
+          heap-size: 512
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot -no-snapshot-save
+          script: cd android && adb wait-for-device && gradle connectedDebugAndroidTest --no-daemon --stacktrace --max-workers=2
+
   build-apk:
     runs-on: ubuntu-24.04
     timeout-minutes: 25
@@ -59,23 +104,6 @@ jobs:
       - name: Exécuter les tests de régression OCR
         working-directory: android
         run: gradle testDebugUnitTest --no-daemon --stacktrace --max-workers=2
-
-      - name: Tester le démarrage réel sur émulateur Android
-        continue-on-error: true
-        uses: reactivecircus/android-emulator-runner@v2
-        timeout-minutes: 15
-        with:
-          api-level: 32
-          arch: x86_64
-          profile: pixel_2
-          force-avd-creation: true
-          emulator-boot-timeout: 600
-          cores: 2
-          ram-size: 2048
-          heap-size: 512
-          disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot -no-snapshot-save
-          script: cd android && adb wait-for-device && gradle connectedDebugAndroidTest --no-daemon --stacktrace --max-workers=2
 
       - name: Préparer la signature Android stable
         id: signing
