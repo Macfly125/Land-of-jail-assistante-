@@ -8,8 +8,8 @@ class ForticladSelectionTest {
     @Test
     fun levelSixRemainsSelectableAndKeepsValidTarget() {
         assertTrue(ForticladSelection.currentLevels().contains(6))
-        assertEquals(7, ForticladSelection.targetAfterCurrentChange(6, 10))
         assertEquals(10, ForticladSelection.targetAfterCurrentChange(6, 10))
+        assertEquals(7, ForticladSelection.targetAfterCurrentChange(6, 5))
     }
 
     @Test
