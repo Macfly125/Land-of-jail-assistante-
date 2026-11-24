@@ -1331,7 +1331,9 @@ fun LandsOfJailAssistantApp(
                     LandsOfJailOcrParser.recognizeBitmap(capturedScreenPayload.bitmap)
                 }.getOrDefault("")
                 singleAnalysisPercent = 50
-                val localExtraction = LandsOfJailOcrParser.parseLocalOcrText(ocrRaw)
+                val localExtraction = withContext(Dispatchers.Default) {
+                    LandsOfJailOcrParser.parseLocalOcrText(ocrRaw)
+                }
                 val localImageUri = capturedScreenPayload.imageFileUri
 
                 val result = runCatching {
