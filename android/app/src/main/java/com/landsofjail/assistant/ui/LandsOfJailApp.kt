@@ -1306,7 +1306,7 @@ fun LandsOfJailAssistantApp(
                             accountPrefs.edit().putString("active_game_profile_v1", id).commit()
                             showProfileDialog = false
                         }
-                    ) { Text(localizedAppText("+ ")) + localizedUiText(currentLang, "Ajouter un profil", "Add a profile", "Profil hinzufügen", "Profil ekle", "Добавить профиль", "添加档案")) }
+                    ) { Text("+ " + localizedUiText(currentLang, "Ajouter un profil", "Add a profile", "Profil hinzufügen", "Profil ekle", "Добавить профиль", "添加档案")) }
                     TextButton(
                         enabled = !isProfileSyncing && !isAnalyzing && !isAutoCapturing,
                         onClick = {
@@ -1837,7 +1837,7 @@ fun LandsOfJailAssistantApp(
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
-                    Text(localizedAppText("Ton rang déclaré")), style = MaterialTheme.typography.labelLarge)
+                    Text(localizedAppText("Ton rang déclaré"), style = MaterialTheme.typography.labelLarge)
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                         items(AllianceRank.entries) { item ->
                             FilterChip(
@@ -2427,7 +2427,7 @@ private fun DashboardScreen(
         }
 
         item {
-            Text(localizedAppText("Rôle du joueur")), fontWeight = FontWeight.SemiBold)
+            Text(localizedAppText("Rôle du joueur"), fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(4.dp))
             PlayerRole.entries.forEach { role ->
                 Row(
@@ -2633,7 +2633,7 @@ private fun HeroesScreen(
                             }
                         }
                     } else {
-                        Text(localizedAppText("Niveau, étoiles et compétences personnels : à scanner ou saisir depuis le jeu.")), style = MaterialTheme.typography.bodySmall)
+                        Text(localizedAppText("Niveau, étoiles et compétences personnels : à scanner ou saisir depuis le jeu."), style = MaterialTheme.typography.bodySmall)
                         TextButton(onClick = { editingHero = onAddHero(entry) }) {
                             Text(localizedUiText(language, "Ajouter à mon profil", "Add to my profile", "Zu meinem Profil hinzufügen", "Profilime ekle", "Добавить в профиль", "添加到我的档案"))
                         }
@@ -2643,7 +2643,7 @@ private fun HeroesScreen(
                     }
                     if (expandedHeroName == entry.nom) {
                         HorizontalDivider()
-                        Text(localizedAppText("Fiche de référence")), fontWeight = FontWeight.SemiBold)
+                        Text(localizedAppText("Fiche de référence"), fontWeight = FontWeight.SemiBold)
                         Text("Rareté : ${entry.rarete} · Saison : ${entry.saison} · Classe : ${entry.typeTroupe}")
                         Text("Source : ${entry.sourceNiveau}")
                         entry.usageWarObserve?.let { Text("Spécialité observée : $it") }
@@ -2662,7 +2662,7 @@ private fun HeroesScreen(
                                         fontWeight = FontWeight.SemiBold
                                     )
                                     Text(skill.description ?: "Description non disponible", style = MaterialTheme.typography.bodySmall)
-                                    if (skill.incertain) Text(localizedAppText("À vérifier")), color = Color(0xFFFBBF24), style = MaterialTheme.typography.labelSmall)
+                                    if (skill.incertain) Text(localizedAppText("À vérifier"), color = Color(0xFFFBBF24), style = MaterialTheme.typography.labelSmall)
                                 }
                             }
                         }
@@ -2691,7 +2691,7 @@ private fun HeroesScreen(
             HeroCatalog.entries.none { it.nom.equals(detected.nom, ignoreCase = true) }
         }
         if (detectedOutsideCatalog.isNotEmpty()) {
-            item { Text(localizedAppText("Autres héros détectés")), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold) }
+            item { Text(localizedAppText("Autres héros détectés"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold) }
             items(detectedOutsideCatalog, key = { "detected-" + it.nom }) { hero ->
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -2746,7 +2746,7 @@ private fun HeroEditDialog(
                     minLines = 3,
                     modifier = Modifier.fillMaxWidth()
                 )
-                Text(localizedAppText("Les corrections manuelles remplacent les valeurs incertaines de la capture.")), style = MaterialTheme.typography.bodySmall)
+                Text(localizedAppText("Les corrections manuelles remplacent les valeurs incertaines de la capture."), style = MaterialTheme.typography.bodySmall)
             }
         },
         confirmButton = {
@@ -2955,7 +2955,7 @@ private fun ResourcesScreen(
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(resourceUiText(currentLang, "robot_inventory"), fontWeight = FontWeight.Bold)
-                            Text(localizedAppText("Ces données sont indépendantes des autres profils. Renseigne les bonus tels qu’ils apparaissent en jeu ; aucune statistique n’est devinée.")), style = MaterialTheme.typography.bodySmall)
+                            Text(localizedAppText("Ces données sont indépendantes des autres profils. Renseigne les bonus tels qu’ils apparaissent en jeu ; aucune statistique n’est devinée."), style = MaterialTheme.typography.bodySmall)
                             OutlinedTextField(robotName, { robotName = it }, label = { Text(resourceUiText(currentLang, "robot_name")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 OutlinedTextField(robotLevel, { robotLevel = it }, label = { Text(resourceUiText(currentLang, "level")) }, modifier = Modifier.weight(1f), singleLine = true)
@@ -3058,7 +3058,7 @@ private fun ResourcesScreen(
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(resourceUiText(currentLang, "event_journal"), fontWeight = FontWeight.Bold)
-                            Text(localizedAppText("Conserve tes résultats, scores et observations pour comparer tes propres performances entre les sessions.")), style = MaterialTheme.typography.bodySmall)
+                            Text(localizedAppText("Conserve tes résultats, scores et observations pour comparer tes propres performances entre les sessions."), style = MaterialTheme.typography.bodySmall)
                             LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                 items(AdviceMode.entries) { event ->
                                     FilterChip(
@@ -3425,7 +3425,7 @@ private fun AdviceScreen(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
             ) {
                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                    Text(localizedAppText("Contrôle des données avant recommandation")), fontWeight = FontWeight.SemiBold)
+                    Text(localizedAppText("Contrôle des données avant recommandation"), fontWeight = FontWeight.SemiBold)
                     Text(
                         "Profil : ${heroes.size} héros · ${heroesWithWarSkills} avec compétence War identifiée · ${robots.size} robots · ${robotsWithDetails} avec bonus ou compétence renseigné.",
                         style = MaterialTheme.typography.bodySmall
@@ -3585,7 +3585,7 @@ private fun AdviceScreen(
                 item {
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text(localizedAppText("Héros du profil — compétences correspondantes")), fontWeight = FontWeight.SemiBold)
+                            Text(localizedAppText("Héros du profil — compétences correspondantes"), fontWeight = FontWeight.SemiBold)
                             Text(
                                 "Sélection fondée sur les compétences reconnues dans ce profil. Ce n’est pas un classement de puissance ni une simulation de combat.",
                                 style = MaterialTheme.typography.bodySmall,
@@ -3609,7 +3609,7 @@ private fun AdviceScreen(
                 item {
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text(localizedAppText("Robots du profil — correspondances à vérifier")), fontWeight = FontWeight.SemiBold)
+                            Text(localizedAppText("Robots du profil — correspondances à vérifier"), fontWeight = FontWeight.SemiBold)
                             Text(
                                 "Sélection basée sur les bonus et compétences que tu as saisis. Ce n’est pas une simulation ni un classement garanti.",
                                 style = MaterialTheme.typography.bodySmall,
@@ -3664,7 +3664,7 @@ private fun AdviceScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(Modifier.padding(14.dp)) {
-                            Text(localizedAppText("AVERTISSEMENT — CONSEILS NON VÉRIFIÉS")), fontWeight = FontWeight.Bold, color = Color(0xFFFF5252))
+                            Text(localizedAppText("AVERTISSEMENT — CONSEILS NON VÉRIFIÉS"), fontWeight = FontWeight.Bold, color = Color(0xFFFF5252))
                             res.informationsIncertaines.forEach { info ->
                                 Text("• $info", color = Color(0xFFFFCDD2))
                             }
@@ -3674,7 +3674,7 @@ private fun AdviceScreen(
             }
 
             item {
-                Text(localizedAppText("Sources Internet, Photos & Dates")), fontWeight = FontWeight.SemiBold)
+                Text(localizedAppText("Sources Internet, Photos & Dates"), fontWeight = FontWeight.SemiBold)
             }
             items(res.sources) { src ->
                 Card(
@@ -3843,7 +3843,7 @@ private fun SupabaseAccountCard() {
             modifier = Modifier.padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(9.dp)
         ) {
-            Text(localizedAppText("Compte & sauvegarde cloud")), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(localizedAppText("Compte & sauvegarde cloud"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Text(
                 "Connecte ton compte pour synchroniser ton profil de joueur et tes héros dans l'espace cloud sécurisé.",
                 style = MaterialTheme.typography.bodySmall,
@@ -3904,8 +3904,8 @@ private fun SupabaseAccountCard() {
                 )
                 if (createAccount) {
                     HorizontalDivider(color = Color(0xFF334155))
-                    Text(localizedAppText("Profil joueur et alliance")), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                    Text(localizedAppText("Ces informations sont enregistrées pendant la création du compte. Tu n'auras pas à refaire une inscription dans l'espace Alliance.")), style = MaterialTheme.typography.bodySmall, color = Color(0xFFB8C3D1))
+                    Text(localizedAppText("Profil joueur et alliance"), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                    Text(localizedAppText("Ces informations sont enregistrées pendant la création du compte. Tu n'auras pas à refaire une inscription dans l'espace Alliance."), style = MaterialTheme.typography.bodySmall, color = Color(0xFFB8C3D1))
                     OutlinedTextField(
                         value = signupPlayerName,
                         onValueChange = { signupPlayerName = it.take(40) },
@@ -3930,7 +3930,7 @@ private fun SupabaseAccountCard() {
                         enabled = !busy,
                         modifier = Modifier.fillMaxWidth()
                     )
-                    Text(localizedAppText("Ton rang actuel")), style = MaterialTheme.typography.labelLarge)
+                    Text(localizedAppText("Ton rang actuel"), style = MaterialTheme.typography.labelLarge)
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                         items(AllianceRank.entries) { rank ->
                             FilterChip(
@@ -3941,7 +3941,7 @@ private fun SupabaseAccountCard() {
                             )
                         }
                     }
-                    Text(localizedAppText("Choisis R5 uniquement si tu crées un nouvel espace d'alliance. Pour rejoindre une alliance existante, indique ton rang actuel : ta demande sera transmise aux responsables.")), style = MaterialTheme.typography.bodySmall, color = Color(0xFFFBBF24))
+                    Text(localizedAppText("Choisis R5 uniquement si tu crées un nouvel espace d'alliance. Pour rejoindre une alliance existante, indique ton rang actuel : ta demande sera transmise aux responsables."), style = MaterialTheme.typography.bodySmall, color = Color(0xFFFBBF24))
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     TextButton(onClick = { createAccount = !createAccount; message = null }, enabled = !busy) {
@@ -4172,7 +4172,7 @@ private fun AllianceScreen(
         item {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(localizedAppText("Demandes d'adhésion · R4 / R5")), fontWeight = FontWeight.Bold)
+                    Text(localizedAppText("Demandes d'adhésion · R4 / R5"), fontWeight = FontWeight.Bold)
                     Text(
                         "Les demandes des joueurs de ton alliance apparaissent ici. Seuls les droits confirmés par un officier sont appliqués.",
                         style = MaterialTheme.typography.bodySmall,
@@ -4458,7 +4458,7 @@ private fun AllianceScreen(
                                 }
                             }
                             if (member.rank == AllianceRank.R5) {
-                                Text(localizedAppText("Le R5 se remplace en nommant un R4.")), style = MaterialTheme.typography.bodySmall)
+                                Text(localizedAppText("Le R5 se remplace en nommant un R4."), style = MaterialTheme.typography.bodySmall)
                             }
                         }
                     }
@@ -4609,7 +4609,7 @@ private fun AllianceScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
                     OutlinedTextField(memberName, { memberName = it }, label = { Text(localizedAppText("Pseudo du joueur")) }, singleLine = true)
                     OutlinedTextField(memberPower, { memberPower = it }, label = { Text(localizedAppText("Puissance (facultatif)")) }, singleLine = true)
-                    Text(localizedAppText("Rang dans l'alliance")), style = MaterialTheme.typography.labelMedium)
+                    Text(localizedAppText("Rang dans l'alliance"), style = MaterialTheme.typography.labelMedium)
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                         items(AllianceRank.entries) { item ->
                             FilterChip(selected = memberRank == item, onClick = { memberRank = item }, label = { Text(item.name) })
@@ -4768,14 +4768,14 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
             modifier = Modifier.padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(9.dp)
         ) {
-            Text(localizedAppText("Alliance partagée en ligne")), fontWeight = FontWeight.Bold)
+            Text(localizedAppText("Alliance partagée en ligne"), fontWeight = FontWeight.Bold)
             Text(
                 "Crée l'espace cloud de ton alliance ou rejoins celui d'un autre joueur avec un code d'invitation. Le rang R5 du créateur est attribué côté serveur.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             if (!signedIn) {
-                Text(localizedAppText("Connecte-toi d'abord dans « Compte & sauvegarde cloud » pour utiliser ces fonctions.")),
+                Text(localizedAppText("Connecte-toi d'abord dans « Compte & sauvegarde cloud » pour utiliser ces fonctions."),
                     color = Color(0xFFFBBF24), style = MaterialTheme.typography.bodySmall)
             } else {
                 if (allianceId.isBlank()) {
@@ -4851,7 +4851,7 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
                             modifier = Modifier.fillMaxWidth()
                         ) { Text(localizedAppText("Actualiser la liste des R4")) }
                         if (r4Members.isEmpty()) {
-                            Text(localizedAppText("Aucun membre R4 disponible dans la liste cloud.")), style = MaterialTheme.typography.bodySmall)
+                            Text(localizedAppText("Aucun membre R4 disponible dans la liste cloud."), style = MaterialTheme.typography.bodySmall)
                         } else {
                             r4Members.forEach { member ->
                                 OutlinedButton(
@@ -5055,14 +5055,14 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(localizedAppText("Proposer une amélioration")), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    Text(localizedAppText("Proposer une amélioration"), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                     Text(
                         "Partage une idée, signale un bug ou propose une amélioration. Tu pourras suivre la réponse du développeur ici.",
                         style = MaterialTheme.typography.bodySmall,
                         color = Color(0xFFB8C3D1)
                     )
                     if (session == null) {
-                        Text(localizedAppText("Connecte-toi à ton compte pour envoyer une proposition.")), color = Color(0xFFFBBF24))
+                        Text(localizedAppText("Connecte-toi à ton compte pour envoyer une proposition."), color = Color(0xFFFBBF24))
                     } else {
                         OutlinedTextField(
                             value = title, onValueChange = { title = it.take(120) },
@@ -5132,7 +5132,7 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
         }
 
         if (session != null && requests.isEmpty() && !loading) {
-            item { Text(localizedAppText("Aucune proposition pour le moment.")), color = MaterialTheme.colorScheme.onSurfaceVariant) }
+            item { Text(localizedAppText("Aucune proposition pour le moment."), color = MaterialTheme.colorScheme.onSurfaceVariant) }
         }
 
         items(requests, key = { it.id }) { item ->
@@ -5159,7 +5159,7 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
                         }
                     }
                     if (item.developerReply.isNotBlank()) {
-                        Text(localizedAppText("Réponse du développeur")), fontWeight = FontWeight.SemiBold, color = Color(0xFFFFC18A))
+                        Text(localizedAppText("Réponse du développeur"), fontWeight = FontWeight.SemiBold, color = Color(0xFFFFC18A))
                         Text(item.developerReply, style = MaterialTheme.typography.bodySmall)
                     }
                     if (isDeveloper) {
