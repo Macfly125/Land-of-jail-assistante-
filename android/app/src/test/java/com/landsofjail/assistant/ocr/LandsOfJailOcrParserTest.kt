@@ -232,6 +232,32 @@ class LandsOfJailOcrParserTest {
 
 
     @Test
+    fun parsesLocalizedResourceNamesAcrossAllSupportedLanguages() {
+        val samples = listOf(
+            "Nahrung: 1200\\nHolz: 2300\\nStahl: 3400",
+            "Yiyecek: 1200\\nOdun: 2300\\nÇelik: 3400",
+            "Еда: 1200\\nДерево: 2300\\nСталь: 3400",
+            "食物：1200\\n木材：2300\\n钢材：3400"
+        )
+        samples.forEach { sample ->
+            val result = LandsOfJailOcrParser.parseLocalOcrText(sample)
+            assertEquals("Les trois ressources doivent être lues : $sample", 3, result.resources.size)
+            assertTrue(result.resources.all { it.quantiteNumerique != null })
+        }
+    }
+
+    @Test
+    fun extractsKnownRobotNameAndExplicitLevelWithoutGuessingStats() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText("Ranger\\nLevel 25")
+        assertEquals("robots", result.detectedCategory)
+        assertEquals(1, result.robots.size)
+        assertEquals("Ranger", result.robots.single().nom)
+        assertEquals("25", result.robots.single().niveau)
+        assertTrue(result.robots.single().bonus.isBlank())
+        assertTrue(result.robots.single().competences.isBlank())
+    }
+
+    @Test
     fun doesNotMistakeFrenchConjunctionOrForTheGoldResource() {
         val result = LandsOfJailOcrParser.parseLocalOcrText("Or il faut encore de la nourriture : 5M")
         assertTrue(result.resources.none { it.nom == "Cash / Or" })
