@@ -393,6 +393,23 @@ Aimant"""
     }
 
     @Test
+    fun recognizesGoldResourceLabelsInTurkishRussianAndChinese() {
+        val samples = listOf(
+            "Altın: 2500",
+            "Золото: 3500",
+            "金币：4500",
+            "黄金：5500"
+        )
+
+        samples.forEach { sample ->
+            val result = LandsOfJailOcrParser.parseLocalOcrText(sample)
+            val gold = result.resources.singleOrNull { it.nom == "Cash / Or" }
+            assertNotNull("L'or doit être reconnu : $sample", gold)
+            assertNotNull("La quantité doit être lue : $sample", gold?.quantiteNumerique)
+        }
+    }
+
+    @Test
     fun doesNotMistakeFrenchConjunctionOrForTheGoldResource() {
         val result = LandsOfJailOcrParser.parseLocalOcrText("Or il faut encore de la nourriture : 5M")
         assertTrue(result.resources.none { it.nom == "Cash / Or" })
