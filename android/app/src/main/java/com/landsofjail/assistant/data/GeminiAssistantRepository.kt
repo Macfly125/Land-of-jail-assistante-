@@ -79,7 +79,8 @@ data class GameIntelSnapshot(
 class GeminiAssistantRepository(
     private val backendBaseUrl: String = ""
 ) {
-    private val hasRemoteBackend: Boolean
+    // Exposé à l'interface pour éviter toute requête réseau quand le mode local-first est actif.
+    val isRemoteBackendEnabled: Boolean
         get() = backendBaseUrl.isNotBlank()
     private val client = OkHttpClient.Builder()
         .connectTimeout(12, TimeUnit.SECONDS)
@@ -152,7 +153,7 @@ class GeminiAssistantRepository(
         playerRole: PlayerRole,
         note: String?
     ): ScreenshotAnalysis = withContext(Dispatchers.IO) {
-        check(hasRemoteBackend) {
+        check(isRemoteBackendEnabled) {
             "Analyse visuelle distante désactivée : la capture sera traitée par le moteur OCR local."
         }
         val payload = buildJsonObject {
@@ -184,7 +185,7 @@ class GeminiAssistantRepository(
 
     suspend fun fetchGameIntel(forceRefresh: Boolean = false): Result<GameIntelSnapshot> = withContext(Dispatchers.IO) {
         runCatching {
-            check(hasRemoteBackend) {
+            check(isRemoteBackendEnabled) {
                 "Veille distante désactivée. Les dernières données enregistrées restent disponibles hors ligne."
             }
             val suffix = if (forceRefresh) "?refresh=1" else ""
