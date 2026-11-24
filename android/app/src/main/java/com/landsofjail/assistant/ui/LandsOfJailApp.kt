@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
@@ -911,7 +912,8 @@ fun LandsOfJailAssistantApp(
                 // Check pending alliance requests when the app starts or returns to foreground.
                 val linkedAllianceId = accountPrefs.getString("cloud_alliance_id", "").orEmpty()
                 if (profileAuth.currentSession() != null && linkedAllianceId.isNotBlank()) {
-                    scope.launch {
+                    // This observer outlives individual recompositions; use the Activity lifecycle scope.
+                    lifecycleOwner.lifecycleScope.launch {
                         profileAuth.fetchPendingAllianceJoinRequests(linkedAllianceId).onSuccess { pending ->
                             val previousIds = accountPrefs.getStringSet("notified_join_request_ids", emptySet()).orEmpty().toSet()
                             val currentIds = pending.map { it.id }.toSet()
