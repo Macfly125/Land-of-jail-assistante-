@@ -32,6 +32,8 @@ class LandsOfJailOcrParserTest {
             val detected = result.heroes.first { it.nom == entry.nom }
             assertNull("Le niveau ne doit pas être inventé pour ${entry.nom}", detected.niveau)
             assertNull("Les étoiles ne doivent pas être inventées pour ${entry.nom}", detected.etoiles)
+            assertEquals("Le portrait du catalogue doit être transmis pour ${entry.nom}", entry.portraitUrl, detected.imageUrl)
+            assertEquals("L'avatar doit reprendre le portrait du catalogue pour ${entry.nom}", entry.portraitUrl, detected.avatarUrl)
         }
     }
 
