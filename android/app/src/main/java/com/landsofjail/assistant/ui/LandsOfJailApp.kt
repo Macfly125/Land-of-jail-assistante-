@@ -75,6 +75,48 @@ private fun localizedUiText(
     AppLanguage.ZH -> zh
 }
 
+
+private fun resourceUiText(language: AppLanguage, key: String): String {
+    val translations = mapOf(
+        "power" to listOf("Puissance actuelle", "Current power", "Aktuelle Macht", "Mevcut güç", "Текущая мощь", "当前战力"),
+        "not_captured" to listOf("Non capturée", "Not captured", "Nicht erfasst", "Yakalanmadı", "Не зафиксировано", "未采集"),
+        "no_resources" to listOf("Aucune ressource capturée pour l’instant.", "No resources captured yet.", "Noch keine Ressourcen erfasst.", "Henüz kaynak kaydedilmedi.", "Ресурсы пока не зафиксированы.", "尚未记录资源。"),
+        "robot_inventory" to listOf("Inventaire des robots du profil", "Profile robot inventory", "Roboterinventar des Profils", "Profil robot envanteri", "Инвентарь роботов профиля", "个人资料机器人库存"),
+        "robot_name" to listOf("Nom du robot", "Robot name", "Robotername", "Robot adı", "Название робота", "机器人名称"),
+        "level" to listOf("Niveau", "Level", "Stufe", "Seviye", "Уровень", "等级"),
+        "rarity_stars" to listOf("Rareté / étoiles", "Rarity / stars", "Seltenheit / Sterne", "Nadirlik / yıldız", "Редкость / звёзды", "稀有度 / 星级"),
+        "power_optional" to listOf("Puissance (facultatif)", "Power (optional)", "Macht (optional)", "Güç (isteğe bağlı)", "Мощь (необязательно)", "战力（可选）"),
+        "active_bonuses" to listOf("Bonus actifs / statistiques", "Active bonuses / stats", "Aktive Boni / Werte", "Aktif bonuslar / istatistikler", "Активные бонусы / характеристики", "生效加成 / 属性"),
+        "skills_effects" to listOf("Compétences / effets (facultatif)", "Skills / effects (optional)", "Fähigkeiten / Effekte (optional)", "Beceriler / etkiler (isteğe bağlı)", "Навыки / эффекты (необязательно)", "技能 / 效果（可选）"),
+        "save_robot" to listOf("Ajouter / mettre à jour le robot", "Add / update robot", "Roboter hinzufügen / aktualisieren", "Robot ekle / güncelle", "Добавить / обновить робота", "添加 / 更新机器人"),
+        "no_robot" to listOf("Aucun robot enregistré dans ce profil.", "No robot saved in this profile.", "Keine Roboter in diesem Profil gespeichert.", "Bu profilde kayıtlı robot yok.", "В этом профиле нет сохранённых роботов.", "此档案尚未保存机器人。"),
+        "remove" to listOf("Retirer", "Remove", "Entfernen", "Kaldır", "Удалить", "移除"),
+        "event_journal" to listOf("Journal des événements du profil", "Profile event log", "Ereignisprotokoll des Profils", "Profil etkinlik günlüğü", "Журнал событий профиля", "个人资料活动记录"),
+        "save_result" to listOf("Enregistrer le résultat", "Save result", "Ergebnis speichern", "Sonucu kaydet", "Сохранить результат", "保存结果"),
+        "no_event" to listOf("Aucun résultat d’événement enregistré pour ce profil.", "No event results saved for this profile.", "Keine Ereignisergebnisse für dieses Profil gespeichert.", "Bu profil için etkinlik sonucu kaydedilmedi.", "Для этого профиля нет сохранённых результатов событий.", "此档案尚无活动结果记录。"),
+        "prerequisites" to listOf("Prérequis", "Prerequisites", "Voraussetzungen", "Ön koşullar", "Требования", "前置条件"),
+        "food" to listOf("Nourriture", "Food", "Nahrung", "Yiyecek", "Еда", "食物"),
+        "wood" to listOf("Bois", "Wood", "Holz", "Odun", "Дерево", "木材"),
+        "steel" to listOf("Acier", "Steel", "Stahl", "Çelik", "Сталь", "钢材"),
+        "gasoline" to listOf("Essence", "Gasoline", "Benzin", "Benzin", "Бензин", "汽油"),
+        "verified_source" to listOf("Source : Wiki / lojxlab vérifié", "Source: verified Wiki / lojxlab", "Quelle: geprüftes Wiki / lojxlab", "Kaynak: doğrulanmış Wiki / lojxlab", "Источник: проверенная Wiki / lojxlab", "来源：已核实 Wiki / lojxlab"),
+        "estimated_source" to listOf("Source : Estimation (à confirmer en jeu)", "Source: estimate (confirm in game)", "Quelle: Schätzung (im Spiel prüfen)", "Kaynak: tahmin (oyunda doğrulayın)", "Источник: оценка (проверьте в игре)", "来源：估算（请在游戏中确认）"),
+        "start" to listOf("Démarrer", "Start", "Starten", "Başlat", "Запустить", "开始"),
+        "start_cycles" to listOf("Démarrer tous les cycles actifs", "Start all active cycles", "Alle aktiven Zyklen starten", "Tüm etkin döngüleri başlat", "Запустить все активные циклы", "启动所有启用的计时器"),
+        "custom_duration" to listOf("Durée personnalisée (minutes)", "Custom duration (minutes)", "Benutzerdefinierte Dauer (Minuten)", "Özel süre (dakika)", "Своя длительность (минуты)", "自定义时长（分钟）"),
+        "duration_range" to listOf("De 1 à 10 080 minutes (7 jours)", "From 1 to 10,080 minutes (7 days)", "Von 1 bis 10.080 Minuten (7 Tage)", "1–10.080 dakika (7 gün)", "От 1 до 10 080 минут (7 дней)", "1 至 10,080 分钟（7 天）")
+    )
+    val index = when (language) {
+        AppLanguage.FR -> 0
+        AppLanguage.EN -> 1
+        AppLanguage.DE -> 2
+        AppLanguage.TR -> 3
+        AppLanguage.RU -> 4
+        AppLanguage.ZH -> 5
+    }
+    return translations[key]?.get(index) ?: key
+}
+
 private enum class AssistantTab {
     TABLEAU, HEROS, RESSOURCES, CONSEILS, ALLIANCE, HISTORIQUE, AMELIORATIONS;
 
@@ -2610,7 +2652,7 @@ private fun HeroEditDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(name, { name = it }, label = { Text("Nom du héros") }, singleLine = true)
-                OutlinedTextField(level, { level = it }, label = { Text("Niveau") }, singleLine = true)
+                OutlinedTextField(level, { level = it }, label = { Text(resourceUiText(currentLang, "level")) }, singleLine = true)
                 OutlinedTextField(rarity, { rarity = it }, label = { Text("Rareté") }, singleLine = true)
                 OutlinedTextField(stars, { stars = it }, label = { Text("Étoiles") }, singleLine = true)
                 OutlinedTextField(power, { power = it }, label = { Text("Puissance") }, singleLine = true)
@@ -2829,16 +2871,16 @@ private fun ResourcesScreen(
                 item {
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("Inventaire des robots du profil", fontWeight = FontWeight.Bold)
+                            Text(resourceUiText(currentLang, "robot_inventory"), fontWeight = FontWeight.Bold)
                             Text("Ces données sont indépendantes des autres profils. Renseigne les bonus tels qu’ils apparaissent en jeu ; aucune statistique n’est devinée.", style = MaterialTheme.typography.bodySmall)
-                            OutlinedTextField(robotName, { robotName = it }, label = { Text("Nom du robot") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(robotName, { robotName = it }, label = { Text(resourceUiText(currentLang, "robot_name")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                OutlinedTextField(robotLevel, { robotLevel = it }, label = { Text("Niveau") }, modifier = Modifier.weight(1f), singleLine = true)
-                                OutlinedTextField(robotRarity, { robotRarity = it }, label = { Text("Rareté / étoiles") }, modifier = Modifier.weight(1f), singleLine = true)
+                                OutlinedTextField(robotLevel, { robotLevel = it }, label = { Text(resourceUiText(currentLang, "level")) }, modifier = Modifier.weight(1f), singleLine = true)
+                                OutlinedTextField(robotRarity, { robotRarity = it }, label = { Text(resourceUiText(currentLang, "rarity_stars")) }, modifier = Modifier.weight(1f), singleLine = true)
                             }
-                            OutlinedTextField(robotPower, { robotPower = it }, label = { Text("Puissance (facultatif)") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-                            OutlinedTextField(robotBonus, { robotBonus = it }, label = { Text("Bonus actifs / statistiques") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
-                            OutlinedTextField(robotSkills, { robotSkills = it }, label = { Text("Compétences / effets (facultatif)") }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+                            OutlinedTextField(robotPower, { robotPower = it }, label = { Text(resourceUiText(currentLang, "power_optional")) }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                            OutlinedTextField(robotBonus, { robotBonus = it }, label = { Text(resourceUiText(currentLang, "active_bonuses")) }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+                            OutlinedTextField(robotSkills, { robotSkills = it }, label = { Text(resourceUiText(currentLang, "skills_effects")) }, modifier = Modifier.fillMaxWidth(), minLines = 2)
                             Button(
                                 enabled = robotName.isNotBlank(),
                                 onClick = {
@@ -2882,12 +2924,12 @@ private fun ResourcesScreen(
                                     robotPower = ""; robotBonus = ""; robotSkills = ""
                                 },
                                 modifier = Modifier.fillMaxWidth()
-                            ) { Text("Ajouter / mettre à jour le robot") }
+                            ) { Text(resourceUiText(currentLang, "save_robot")) }
                         }
                     }
                 }
                 if (robots.isEmpty()) {
-                    item { Text("Aucun robot enregistré dans ce profil.", style = MaterialTheme.typography.bodySmall) }
+                    item { Text(resourceUiText(currentLang, "no_robot")), style = MaterialTheme.typography.bodySmall) }
                 } else {
                     items(robots, key = { it.id }) { robot ->
                         Card(modifier = Modifier.fillMaxWidth()) {
@@ -2921,7 +2963,7 @@ private fun ResourcesScreen(
                                         style = MaterialTheme.typography.bodySmall
                                     )
                                 }
-                                TextButton(onClick = { onSaveRobots(robots.filterNot { it.id == robot.id }) }) { Text("Retirer") }
+                                TextButton(onClick = { onSaveRobots(robots.filterNot { it.id == robot.id }) }) { Text(resourceUiText(currentLang, "remove")) }
                             }
                         }
                     }
@@ -2932,7 +2974,7 @@ private fun ResourcesScreen(
                 item {
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("Journal des événements du profil", fontWeight = FontWeight.Bold)
+                            Text(resourceUiText(currentLang, "event_journal"), fontWeight = FontWeight.Bold)
                             Text("Conserve tes résultats, scores et observations pour comparer tes propres performances entre les sessions.", style = MaterialTheme.typography.bodySmall)
                             LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                 items(AdviceMode.entries) { event ->
@@ -2965,12 +3007,12 @@ private fun ResourcesScreen(
                                     eventDateInput = ""; eventScoreInput = ""; eventNotesInput = ""
                                 },
                                 modifier = Modifier.fillMaxWidth()
-                            ) { Text("Enregistrer le résultat") }
+                            ) { Text(resourceUiText(currentLang, "save_result")) }
                         }
                     }
                 }
                 if (eventRecords.isEmpty()) {
-                    item { Text("Aucun résultat d’événement enregistré pour ce profil.", style = MaterialTheme.typography.bodySmall) }
+                    item { Text(resourceUiText(currentLang, "no_event")), style = MaterialTheme.typography.bodySmall) }
                 } else {
                     items(eventRecords.sortedByDescending { it.updatedAtIso }, key = { it.id }) { record ->
                         Card(modifier = Modifier.fillMaxWidth()) {
@@ -3010,14 +3052,14 @@ private fun ResourcesScreen(
                                     enabled = targetBuildingLvl < 30
                                 ) { Text("+1 Niveau") }
                             }
-                            Text("Prérequis : ${req.prereqs}", fontWeight = FontWeight.Medium)
-                            Text("Nourriture : ${formatCompactFr(req.food)}")
-                            Text("Bois : ${formatCompactFr(req.wood)}")
-                            Text("Acier : ${formatCompactFr(req.steel)}")
-                            Text("Essence : ${formatCompactFr(req.gasoline)}")
+                            Text("${resourceUiText(currentLang, "prerequisites")} : ${req.prereqs}", fontWeight = FontWeight.Medium)
+                            Text("${resourceUiText(currentLang, "food")} : ${formatCompactFr(req.food)}")
+                            Text("${resourceUiText(currentLang, "wood")} : ${formatCompactFr(req.wood)}")
+                            Text("${resourceUiText(currentLang, "steel")} : ${formatCompactFr(req.steel)}")
+                            Text("${resourceUiText(currentLang, "gasoline")} : ${formatCompactFr(req.gasoline)}")
                             Text(
-                                if (req.verified) "Source : Wiki / lojxlab vérifié"
-                                else "Source : Estimation (à confirmer en jeu)",
+                                if (req.verified) resourceUiText(currentLang, "verified_source")
+                                else resourceUiText(currentLang, "estimated_source"),
                                 color = if (req.verified) Color(0xFF34D399) else Color(0xFFFBBF24),
                                 style = MaterialTheme.typography.bodySmall
                             )
@@ -3168,8 +3210,8 @@ private fun ResourcesScreen(
                                         if (item.id == task.id) item.copy(durationInput = value.filter { ch -> ch.isDigit() }.take(5)) else item
                                     }
                                 },
-                                label = { Text("Durée personnalisée (minutes)") },
-                                supportingText = { Text("De 1 à 10 080 minutes (7 jours)") },
+                                label = { Text(resourceUiText(currentLang, "custom_duration")) },
+                                supportingText = { Text(resourceUiText(currentLang, "duration_range")) },
                                 singleLine = true,
                                 modifier = Modifier.fillMaxWidth()
                             )
@@ -3217,7 +3259,7 @@ private fun ResourcesScreen(
                                         }
                                     }
                                 }) {
-                                    Text("Démarrer")
+                                    Text(resourceUiText(currentLang, "start"))
                                 }
                             }
                         }
@@ -4483,7 +4525,7 @@ private fun AllianceScreen(
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
                     OutlinedTextField(memberName, { memberName = it }, label = { Text("Pseudo du joueur") }, singleLine = true)
-                    OutlinedTextField(memberPower, { memberPower = it }, label = { Text("Puissance (facultatif)") }, singleLine = true)
+                    OutlinedTextField(memberPower, { memberPower = it }, label = { Text(resourceUiText(currentLang, "power_optional")) }, singleLine = true)
                     Text("Rang dans l'alliance", style = MaterialTheme.typography.labelMedium)
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                         items(AllianceRank.entries) { item ->
