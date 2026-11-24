@@ -300,11 +300,24 @@ Level 12"""
     @Test
     fun recognizesHeroEquipmentUpgradeScreensInSupportedLanguages() {
         val samples = listOf(
-            "Hero Equipment\\nEquipment Upgrade\\nMagnet",
-            "Heldenausrüstung\\nAusrüstungsverbesserung\\nMagnet",
-            "Kahraman ekipmanı\\nEkipman geliştirme\\nMıknatıs",
-            "Снаряжение героя\\nУлучшение снаряжения\\nМагнит",
-            "英雄装备\\n装备升级\\n磁铁"
+            """Hero Equipment
+Equipment Upgrade
+Magnet""",
+            """Heldenausrüstung
+Ausrüstungsverbesserung
+Magnet""",
+            """Kahraman ekipmanı
+Ekipman geliştirme
+Mıknatıs""",
+            """Снаряжение героя
+Улучшение снаряжения
+Магнит""",
+            """英雄装备
+装备升级
+磁铁""",
+            """Équipement du héros
+Amélioration d'équipement
+Aimant"""
         )
         samples.forEach { sample ->
             val result = ScreenRecognitionEngine.analyze(sample)
