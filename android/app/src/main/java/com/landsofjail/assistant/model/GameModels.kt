@@ -251,7 +251,7 @@ enum class AdviceMode(
             AppLanguage.ZH -> "将英雄碎片、技能书、军械材料与大型建筑升级留到活动窗口再集中使用。"
             AppLanguage.DE -> "Splitter, Skillbücher, Ausrüstungsmaterialien und große Ausbauten für Event-Tage aufsparen."
             AppLanguage.EN -> "Save hero shards, skill books, Arsenal materials and long upgrades exclusively for event milestone days."
-        },
+        }
         GORILLA_LEGION -> when (lang) {
             AppLanguage.FR -> "Vérifie le boss et le bonus affichés en jeu : le bonus du jour est amplifié de +1000 %. Seuls les compétences de héros, l'équipement exclusif et ce bonus comptent. Ratio communauté de départ : 0 % Shieldbearers / 10 % Bombers / 90 % Shooters ; compare plusieurs rapports et ajuste selon le boss."
             AppLanguage.TR -> "Oyunda gösterilen gorili ve günlük bonusu kontrol edin: günün bonusu +%1000 artırılır. Yalnızca kahraman becerileri, özel ekipman ve günlük bonus etkilidir. Topluluk başlangıç oranı: %0 Shieldbearer / %10 Bomber / %90 Shooter; savaş raporlarını karşılaştırıp gorile göre ayarlayın."
