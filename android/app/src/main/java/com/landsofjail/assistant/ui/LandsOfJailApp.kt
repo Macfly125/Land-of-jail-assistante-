@@ -85,6 +85,11 @@ private fun localizedUiText(
 private fun localizedCaptureCategory(language: AppLanguage, raw: String): String = when (raw.lowercase()) {
     "heros", "heroes" -> localizedUiText(language, "Héros", "Heroes", "Helden", "Kahramanlar", "Герои", "英雄")
     "robots" -> localizedUiText(language, "Robots", "Robots", "Roboter", "Robotlar", "Роботы", "机器人")
+    "power_armor" -> localizedUiText(language, "Hangar d’armure de puissance", "Power Armor Hangar", "Power-Armor-Hangar", "Güç Zırhı Hangarı", "Ангар силовой брони", "动力装甲机库")
+    "forticlad_lab" -> localizedUiText(language, "Laboratoire Forticlad", "Forticlad Lab", "Forticlad-Labor", "Forticlad Laboratuvarı", "Лаборатория Forticlad", "Forticlad 实验室")
+    "lab" -> localizedUiText(language, "Laboratoire", "Lab", "Labor", "Laboratuvar", "Лаборатория", "实验室")
+    "cosmos_hub" -> localizedUiText(language, "Centre cosmique", "Cosmos Hub", "Kosmos-Zentrum", "Kozmos Merkezi", "Космический центр", "宇宙中心")
+    "dungeon" -> localizedUiText(language, "Donjon", "Dungeon", "Verlies", "Zindan", "Подземелье", "地牢")
     "equipements", "equipment", "gear" -> localizedUiText(language, "Amélioration d'équipements", "Equipment upgrades", "Ausrüstungsverbesserung", "Ekipman geliştirme", "Улучшение снаряжения", "装备升级")
     "ressources", "resources" -> localizedUiText(language, "Ressources", "Resources", "Ressourcen", "Kaynaklar", "Ресурсы", "资源")
     "batiments", "buildings" -> localizedUiText(language, "Bâtiments", "Buildings", "Gebäude", "Binalar", "Здания", "建筑")
