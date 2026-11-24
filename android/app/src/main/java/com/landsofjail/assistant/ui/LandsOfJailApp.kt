@@ -4773,7 +4773,7 @@ private fun AllianceScreen(
                             CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
                             Spacer(Modifier.width(8.dp))
                         }
-                        Text(if (cloudRosterBusy) "Chargement du roster…" else localizedUiText(language, "Actualiser depuis le cloud", "Refresh from cloud", "Aus der Cloud aktualisieren", "Buluttan yenile", "Обновить из облака", "从云端刷新"))
+                        Text(if (cloudRosterBusy) localizedUiText(language, "Chargement de la liste…", "Loading roster…", "Liste wird geladen…", "Liste yükleniyor…", "Загрузка списка…", "正在加载成员列表…") else localizedUiText(language, "Actualiser depuis le cloud", "Refresh from cloud", "Aus der Cloud aktualisieren", "Buluttan yenile", "Обновить из облака", "从云端刷新"))
                     }
                     cloudRosterMessage?.let {
                         Text(
