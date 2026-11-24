@@ -2182,7 +2182,6 @@ fun LandsOfJailAssistantApp(
                 when (currentTab) {
                     AssistantTab.TABLEAU -> DashboardScreen(
                         currentLang = currentLang,
-                        onChangeLang = { currentLang = it },
                         hasUsagePermission = hasUsagePermission,
                         hasOverlayPermission = hasOverlayPermission,
                         alwaysKeepOverlay = alwaysKeepOverlay,
@@ -2272,7 +2271,6 @@ fun LandsOfJailAssistantApp(
                         heroes = heroes,
                         robots = robots,
                         currentLang = currentLang,
-                        onChangeLang = { currentLang = it },
                         selectedMode = selectedAdviceMode,
                         onSelectMode = {
                             selectedAdviceMode = it
@@ -2300,6 +2298,7 @@ fun LandsOfJailAssistantApp(
                     )
                     AssistantTab.ALLIANCE -> AllianceScreen(
                         language = currentLang,
+                        onChangeLanguage = { currentLang = it },
                         workspace = allianceWorkspace,
                         heroes = heroes,
                         robots = robots,
@@ -2472,7 +2471,6 @@ private fun LanguageSelectorRow(
 @Composable
 private fun DashboardScreen(
     currentLang: AppLanguage,
-    onChangeLang: (AppLanguage) -> Unit,
     hasUsagePermission: Boolean,
     hasOverlayPermission: Boolean,
     alwaysKeepOverlay: Boolean,
@@ -2511,11 +2509,6 @@ private fun DashboardScreen(
     val allPermissionsGranted = hasUsagePermission && hasOverlayPermission
 
     LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        item {
-            Spacer(Modifier.height(6.dp))
-            LanguageSelectorRow(currentLang = currentLang, onChangeLang = onChangeLang)
-        }
-
         // Carte capture & autorisations (les autorisations disparaissent dès qu'elles sont accordées)
         item {
             Card(modifier = Modifier.fillMaxWidth()) {
@@ -4294,7 +4287,6 @@ private fun AdviceScreen(
     heroes: List<HeroRecord>,
     robots: List<RobotRecord>,
     currentLang: AppLanguage,
-    onChangeLang: (AppLanguage) -> Unit,
     selectedMode: AdviceMode,
     onSelectMode: (AdviceMode) -> Unit,
     playerRole: PlayerRole,
@@ -4306,8 +4298,7 @@ private fun AdviceScreen(
     LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item {
             Spacer(Modifier.height(6.dp))
-            LanguageSelectorRow(currentLang = currentLang, onChangeLang = onChangeLang)
-            Spacer(Modifier.height(6.dp))
+             Spacer(Modifier.height(6.dp))
             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(AdviceMode.entries) { mode ->
                     FilterChip(
@@ -4740,7 +4731,7 @@ private fun HistoryScreen(
 
 
 @Composable
-private fun SupabaseAccountCard() {
+private fun SupabaseAccountCard(onChangeLanguage: (AppLanguage) -> Unit) {
     val currentLang = LocalAssistantLanguage.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -4816,6 +4807,8 @@ private fun SupabaseAccountCard() {
                     ) { Text(localizedAppText(localizedAppText("Déconnexion"))) }
                 }
             } else {
+                Text(localizedUiText(currentLang, "Langue de l’application", "App language", "App-Sprache", "Uygulama dili", "Язык приложения", "应用语言"), style = MaterialTheme.typography.labelLarge)
+                LanguageSelectorRow(currentLang = currentLang, onChangeLang = onChangeLanguage)
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it.trim() },
@@ -4991,6 +4984,7 @@ private fun SupabaseAccountCard() {
 @Composable
 private fun AllianceScreen(
     language: AppLanguage,
+    onChangeLanguage: (AppLanguage) -> Unit,
     workspace: AllianceWorkspace,
     heroes: List<HeroRecord>,
     robots: List<RobotRecord>,
@@ -5098,7 +5092,7 @@ private fun AllianceScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp),
         contentPadding = PaddingValues(bottom = 20.dp)
     ) {
-        item { SupabaseAccountCard() }
+        item { SupabaseAccountCard(onChangeLanguage = onChangeLanguage) }
         item { AllianceCloudControls(server = server, allianceName = allianceName) }
         item {
             Card(modifier = Modifier.fillMaxWidth()) {
