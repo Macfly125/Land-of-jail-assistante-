@@ -667,6 +667,7 @@ private fun resourceUiText(language: AppLanguage, key: String): String {
         AppLanguage.TR -> 3
         AppLanguage.RU -> 4
         AppLanguage.ZH -> 5
+        AppLanguage.IT -> 6
     }
     return translations[key]?.getOrNull(index)
         ?: if (language == AppLanguage.IT) translations[key]?.getOrNull(1) else null
@@ -684,6 +685,7 @@ private enum class AssistantTab {
             AppLanguage.ZH -> "主页"
             AppLanguage.DE -> "Start"
             AppLanguage.EN -> "Home"
+            AppLanguage.IT -> "Home"
         }
         HEROS -> when (lang) {
             AppLanguage.FR -> "Héros"
@@ -692,6 +694,7 @@ private enum class AssistantTab {
             AppLanguage.ZH -> "英雄"
             AppLanguage.DE -> "Helden"
             AppLanguage.EN -> "Heroes"
+            AppLanguage.IT -> "Heroes"
         }
         RESSOURCES -> when (lang) {
             AppLanguage.FR -> "Ressources"
@@ -700,6 +703,7 @@ private enum class AssistantTab {
             AppLanguage.ZH -> "资源"
             AppLanguage.DE -> "Ressourc."
             AppLanguage.EN -> "Resources"
+            AppLanguage.IT -> "Resources"
         }
         CONSEILS -> when (lang) {
             AppLanguage.FR -> "Événements"
@@ -708,6 +712,7 @@ private enum class AssistantTab {
             AppLanguage.ZH -> "活动"
             AppLanguage.DE -> "Events"
             AppLanguage.EN -> "Events"
+            AppLanguage.IT -> "Events"
         }
         ALLIANCE -> when (lang) {
             AppLanguage.FR -> "Alliance"
@@ -716,6 +721,7 @@ private enum class AssistantTab {
             AppLanguage.ZH -> "联盟"
             AppLanguage.DE -> "Allianz"
             AppLanguage.EN -> "Alliance"
+            AppLanguage.IT -> "Alliance"
         }
         HISTORIQUE -> when (lang) {
             AppLanguage.FR -> "Historique"
@@ -724,6 +730,7 @@ private enum class AssistantTab {
             AppLanguage.ZH -> "记录"
             AppLanguage.DE -> "Verlauf"
             AppLanguage.EN -> "History"
+            AppLanguage.IT -> "History"
         }
         AMELIORATIONS -> when (lang) {
             AppLanguage.FR -> "Idées"
@@ -732,6 +739,7 @@ private enum class AssistantTab {
             AppLanguage.ZH -> "建议"
             AppLanguage.DE -> "Ideen"
             AppLanguage.EN -> "Ideas"
+            AppLanguage.IT -> "Ideas"
         }
     }
 }
@@ -747,6 +755,7 @@ private enum class ResourceSubTab {
             AppLanguage.ZH -> "库存"
             AppLanguage.DE -> "Inventar"
             AppLanguage.EN -> "Inventory"
+            AppLanguage.IT -> "Inventory"
         }
         BATIMENTS -> when (lang) {
             AppLanguage.FR -> "Calcul Bâtiments"
@@ -755,6 +764,7 @@ private enum class ResourceSubTab {
             AppLanguage.ZH -> "建筑计算"
             AppLanguage.DE -> "Gebäude"
             AppLanguage.EN -> "Buildings Calc"
+            AppLanguage.IT -> "Buildings Calc"
         }
         HEROS_OBJETS -> when (lang) {
             AppLanguage.FR -> "Calcul Héros"
@@ -763,6 +773,7 @@ private enum class ResourceSubTab {
             AppLanguage.ZH -> "英雄计算"
             AppLanguage.DE -> "Helden-Rechner"
             AppLanguage.EN -> "Hero Calc"
+            AppLanguage.IT -> "Hero Calc"
         }
         DEVELOPPEMENTS -> when (lang) {
             AppLanguage.FR -> "Développements"
@@ -771,6 +782,7 @@ private enum class ResourceSubTab {
             AppLanguage.ZH -> "发展"
             AppLanguage.DE -> "Entwicklung"
             AppLanguage.EN -> "Development"
+            AppLanguage.IT -> "Development"
         }
         ROUTINE -> when (lang) {
             AppLanguage.FR -> "Routine Hors-Jeu"
@@ -779,6 +791,7 @@ private enum class ResourceSubTab {
             AppLanguage.ZH -> "离线循环"
             AppLanguage.DE -> "Offline-Routine"
             AppLanguage.EN -> "Offline Routine"
+            AppLanguage.IT -> "Offline Routine"
         }
         ROBOTS -> when (lang) {
             AppLanguage.FR -> "Robots"
@@ -787,6 +800,7 @@ private enum class ResourceSubTab {
             AppLanguage.ZH -> "机器人"
             AppLanguage.DE -> "Roboter"
             AppLanguage.EN -> "Robots"
+            AppLanguage.IT -> "Robots"
         }
         EVENEMENTS -> when (lang) {
             AppLanguage.FR -> "Suivi événements"
@@ -795,6 +809,7 @@ private enum class ResourceSubTab {
             AppLanguage.ZH -> "活动记录"
             AppLanguage.DE -> "Eventverlauf"
             AppLanguage.EN -> "Event tracking"
+            AppLanguage.IT -> "Event tracking"
         }
     }
 }
@@ -2065,6 +2080,7 @@ fun LandsOfJailAssistantApp(
                                     AppLanguage.ZH -> "扫描"
                                     AppLanguage.DE -> "Scannen"
                                     AppLanguage.EN -> "Scan"
+                                    AppLanguage.IT -> "Scan"
                                 },
                                 maxLines = 1,
                                 fontSize = 12.sp
@@ -2175,6 +2191,7 @@ fun LandsOfJailAssistantApp(
                             AppLanguage.ZH -> "OCR 截图分析进度：$pct%"
                             AppLanguage.DE -> "OCR-Analyse läuft: $pct %"
                             AppLanguage.EN -> "OCR screen analysis: $pct%"
+                            AppLanguage.IT -> "OCR screen analysis: $pct%"
                         },
                         style = MaterialTheme.typography.bodySmall
                     )
@@ -2536,6 +2553,7 @@ private fun DashboardScreen(
                                     AppLanguage.ZH -> "截图与检测已就绪"
                                     AppLanguage.DE -> "Erfassung & Erkennung bereit"
                                     AppLanguage.EN -> "Capture & Detection Ready"
+                                    AppLanguage.IT -> "Capture & Detection Ready"
                                 }
                             } else {
                                 when (currentLang) {
@@ -2545,6 +2563,7 @@ private fun DashboardScreen(
                                     AppLanguage.ZH -> "需要初始授权"
                                     AppLanguage.DE -> "Einmalige Einrichtung"
                                     AppLanguage.EN -> "Required Setup (once)"
+                                    AppLanguage.IT -> "Required Setup (once)"
                                 }
                             },
                             fontWeight = FontWeight.SemiBold
@@ -2637,6 +2656,7 @@ private fun DashboardScreen(
                                         AppLanguage.ZH -> "游戏内启动"
                                         AppLanguage.DE -> "Im Spiel starten"
                                         AppLanguage.EN -> "Start on Game"
+                                        AppLanguage.IT -> "Start on Game"
                                     }
                                 )
                             }
@@ -2650,6 +2670,7 @@ private fun DashboardScreen(
                                         AppLanguage.ZH -> "停止检测"
                                         AppLanguage.DE -> "Stoppen"
                                         AppLanguage.EN -> "Stop detection"
+                                        AppLanguage.IT -> "Stop detection"
                                     }
                                 )
                             }
@@ -2674,6 +2695,7 @@ private fun DashboardScreen(
                                     AppLanguage.ZH -> "扫描屏幕"
                                     AppLanguage.DE -> "Bildschirm scannen"
                                     AppLanguage.EN -> "Scan screen"
+                                    AppLanguage.IT -> "Scan screen"
                                 }
                             )
                         }
@@ -2686,6 +2708,7 @@ private fun DashboardScreen(
                                     AppLanguage.ZH -> "导入图片"
                                     AppLanguage.DE -> "Bild wählen"
                                     AppLanguage.EN -> "Import image"
+                                    AppLanguage.IT -> "Import image"
                                 }
                             )
                         }
@@ -2704,6 +2727,7 @@ private fun DashboardScreen(
                                     AppLanguage.ZH -> "自动分析"
                                     AppLanguage.DE -> "Automatische Analyse"
                                     AppLanguage.EN -> "Automatic analysis"
+                                    AppLanguage.IT -> "Automatic analysis"
                                 },
                                 fontWeight = FontWeight.SemiBold
                             )
@@ -2715,6 +2739,7 @@ private fun DashboardScreen(
                                     AppLanguage.ZH -> "仅在游戏位于前台时截图和分析。"
                                     AppLanguage.DE -> "Aufnahme und Analyse nur bei geöffnetem Spiel."
                                     AppLanguage.EN -> "Capture and analyze only while the game is in the foreground."
+                                    AppLanguage.IT -> "Capture and analyze only while the game is in the foreground."
                                 },
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -2730,6 +2755,7 @@ private fun DashboardScreen(
                                         AppLanguage.ZH -> "停止"
                                         AppLanguage.DE -> "Stoppen"
                                         AppLanguage.EN -> "Stop"
+                                        AppLanguage.IT -> "Stop"
                                     }
                                 )
                             }
@@ -2756,6 +2782,7 @@ private fun DashboardScreen(
                                                         AppLanguage.ZH -> "${seconds} 秒"
                                                         AppLanguage.DE -> "${seconds} Sekunden"
                                                         AppLanguage.EN -> "${seconds} seconds"
+                                                        AppLanguage.IT -> "${seconds} seconds"
                                                     }
                                                 )
                                             },
@@ -2779,6 +2806,7 @@ private fun DashboardScreen(
                                         AppLanguage.ZH -> "开始"
                                         AppLanguage.DE -> "Start"
                                         AppLanguage.EN -> "Start"
+                                        AppLanguage.IT -> "Start"
                                     }
                                 )
                             }
@@ -2792,6 +2820,7 @@ private fun DashboardScreen(
                             AppLanguage.ZH -> if (!isMonitoringRunning || !hasUsagePermission) "请先启用游戏检测和使用情况访问权限。" else if (isAutoCapturing) "已启用：一次只运行一个分析；相似画面会跳过。为避免数据混合，当前配置已锁定。" else "目标间隔：10–60 秒。分析不会重叠，每次都会使用 AI 配额。"
                             AppLanguage.DE -> if (!isMonitoringRunning || !hasUsagePermission) "Aktiviere zuerst die Spielerkennung und den Nutzungszugriff." else if (isAutoCapturing) "Aktiv: immer nur eine Analyse; nahezu identische Bildschirme werden übersprungen. Das Profil bleibt gesperrt, damit keine Daten vermischt werden." else "Zielintervall: 10–60 s. Analysen überlappen sich nicht und nutzen das KI-Kontingent."
                             AppLanguage.EN -> if (!isMonitoringRunning || !hasUsagePermission) "Enable game detection and usage access first." else if (isAutoCapturing) "Active: one analysis at a time; near-identical screens are skipped. The profile stays locked to prevent data mixing." else "Target interval: 10–60 s. Analyses never overlap; each uses network and AI quota."
+                            AppLanguage.IT -> if (!isMonitoringRunning || !hasUsagePermission) "Enable game detection and usage access first." else if (isAutoCapturing) "Active: one analysis at a time; near-identical screens are skipped. The profile stays locked to prevent data mixing." else "Target interval: 10–60 s. Analyses never overlap; each uses network and AI quota."
                         },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -2865,6 +2894,7 @@ private fun DashboardScreen(
                                 when (currentLang) {
                                     AppLanguage.FR -> "$label : requis ${required} · disponible ${available?.toLong()?.toString() ?: "à confirmer"} · manque ${shortage?.toString() ?: "inconnu"}${if (stock?.incertain == true) " (lecture à confirmer)" else ""}"
                                     AppLanguage.EN -> "$label: required ${required} · available ${available?.toLong()?.toString() ?: "unconfirmed"} · shortfall ${shortage?.toString() ?: "unknown"}${if (stock?.incertain == true) " (verify reading)" else ""}"
+                                    AppLanguage.IT -> "$label: required ${required} · available ${available?.toLong()?.toString() ?: "unconfirmed"} · shortfall ${shortage?.toString() ?: "unknown"}${if (stock?.incertain == true) " (verify reading)" else ""}"
                                     AppLanguage.DE -> "$label: benötigt ${required} · vorhanden ${available?.toLong()?.toString() ?: "unbestätigt"} · fehlend ${shortage?.toString() ?: "unbekannt"}"
                                     AppLanguage.TR -> "$label: gereken ${required} · mevcut ${available?.toLong()?.toString() ?: "doğrulanmadı"} · eksik ${shortage?.toString() ?: "bilinmiyor"}"
                                     AppLanguage.RU -> "$label: нужно ${required} · есть ${available?.toLong()?.toString() ?: "не подтверждено"} · не хватает ${shortage?.toString() ?: "неизвестно"}"
@@ -4170,6 +4200,7 @@ private fun ResourcesScreen(
                                 AppLanguage.ZH -> "启动所有已启用计时器"
                                 AppLanguage.DE -> "Alle aktiven Zyklen starten"
                                 AppLanguage.EN -> "Start All Active Cycles"
+                                AppLanguage.IT -> "Start All Active Cycles"
                             }
                         )
                     }
@@ -4389,6 +4420,7 @@ private fun AdviceScreen(
                             AppLanguage.ZH -> "正在搜索攻略与图片…"
                             AppLanguage.DE -> "Suche Guides & Fotos…"
                             AppLanguage.EN -> "Searching Internet & photos…"
+                            AppLanguage.IT -> "Searching Internet & photos…"
                         }
                     } else {
                         when (currentLang) {
@@ -4398,6 +4430,7 @@ private fun AdviceScreen(
                             AppLanguage.ZH -> "获取网络攻略与图片"
                             AppLanguage.DE -> "Internet-Guides & Fotos abrufen"
                             AppLanguage.EN -> "Get Internet Guides & Photos"
+                            AppLanguage.IT -> "Get Internet Guides & Photos"
                         }
                     }
                 )
@@ -4419,6 +4452,7 @@ private fun AdviceScreen(
                             AppLanguage.ZH -> "攻略图片"
                             AppLanguage.DE -> "Fotos aus Guides"
                             AppLanguage.EN -> "Photos from Internet Guides"
+                            AppLanguage.IT -> "Photos from Internet Guides"
                         },
                         fontWeight = FontWeight.SemiBold
                     )
