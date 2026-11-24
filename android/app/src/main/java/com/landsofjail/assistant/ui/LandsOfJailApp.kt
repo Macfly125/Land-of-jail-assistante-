@@ -1537,7 +1537,7 @@ fun LandsOfJailAssistantApp(
                                             restoreRoutineState(active.id, snapshot.routineState, clearWhenEmpty = snapshot.schemaVersion != null && snapshot.schemaVersion >= 2)
                                             routineRevision += 1
                                         }
-                                        snackbarHostState.showSnackbar(localizedAppText("Synchronisation terminée. Aucune sauvegarde distante n’a été supprimée."))
+                                        snackbarHostState.showSnackbar(localizedUiText(currentLang, "Synchronisation terminée. Aucune sauvegarde distante n’a été supprimée.", "Sync complete. No remote backup was deleted.", "Synchronisierung abgeschlossen. Kein Remote-Backup wurde gelöscht.", "Senkronizasyon tamamlandı. Hiçbir uzak yedek silinmedi.", "Синхронизация завершена. Ни одна удалённая резервная копия не удалена.", "同步完成。没有删除任何远程备份。"))
                                     } catch (error: Exception) {
                                         errorMessage = "Synchronisation interrompue : ${error.message ?: "erreur inconnue"}. La copie locale de secours est conservée."
                                     } finally {
