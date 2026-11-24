@@ -53,7 +53,6 @@ object GiftCodeRepository {
     private val unverifiedCodes = listOf("RuStore777", "HeartofWar777", "R8K3L7T5", "C5F2R9A1")
 
     fun initialSnapshot(): GiftCodeSnapshot {
-        val now = Instant.now().toString()
         val entries = buildList {
             officialCodes.forEach {
                 val rewards = when (it.lowercase(Locale.ROOT)) {
@@ -67,8 +66,8 @@ object GiftCodeRepository {
                     else -> "1 000 diamants, cartes d’approvisionnement avancées, coffres de ressources et accélérations."
                 }
                 add(GiftCodeEntry(it, "OFFICIAL_LISTED", "LOJ XLab · Discord officiel #gift-codes",
-                    "21/09/2026", "13/10/2026", reward = rewards,
-                    note = "Publié par l’équipe du jeu selon LOJ XLab ; date d’expiration non annoncée. Récompenses issues des listes communautaires."))
+                    "21/09/2026", "01/11/2026", reward = rewards,
+                    note = "Publié le 21/09/2026 selon LOJ XLab ; testé en jeu le 13/10/2026 et page revérifiée le 01/11/2026. Aucune date d’expiration annoncée. Récompenses issues des listes communautaires."))
             }
             expiredCodes.forEach { (code, expiry) ->
                 add(GiftCodeEntry(code, "EXPIRED", "LOJ XLab · historique", expiresAt = expiry,
@@ -99,7 +98,7 @@ object GiftCodeRepository {
                     note = "Code listé par un site tiers, sans validation officielle.")
             ).forEach { add(it) }
         }
-        return GiftCodeSnapshot(now, entries = entries)
+        return GiftCodeSnapshot(entries = entries)
     }
 
     suspend fun refresh(previous: GiftCodeSnapshot): GiftCodeSnapshot {
