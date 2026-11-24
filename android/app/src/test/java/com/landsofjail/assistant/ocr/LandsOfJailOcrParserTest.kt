@@ -181,6 +181,38 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun recognizesResourceScreensInGermanTurkishRussianAndChinese() {
+        val samples = listOf(
+            "Nahrung\\nHolz\\nStahl",
+            "Yiyecek\\nOdun\\nÇelik",
+            "Еда\\nДерево\\nСталь",
+            "食物\\n木材\\n钢材"
+        )
+
+        samples.forEach { sample ->
+            val result = ScreenRecognitionEngine.analyze(sample)
+            assertEquals("Capture de ressources non reconnue : $sample", "ressources", result.category)
+            assertTrue("Confiance trop faible pour : $sample", result.confidence >= 0.8f)
+        }
+    }
+
+    @Test
+    fun recognizesHeroScreensInGermanTurkishRussianAndChinese() {
+        val samples = listOf(
+            "Helden\\nFähigkeiten\\nSterne",
+            "Kahramanlar\\nBeceriler\\nYıldızlar",
+            "Герои\\nНавыки\\nЗвёзды",
+            "英雄\\n技能\\n星级"
+        )
+
+        samples.forEach { sample ->
+            val result = ScreenRecognitionEngine.analyze(sample)
+            assertEquals("Capture de héros non reconnue : $sample", "heros", result.category)
+            assertTrue("Confiance trop faible pour : $sample", result.confidence >= 0.8f)
+        }
+    }
+
+    @Test
     fun doesNotClaimVisualRecognitionFromOcrAlone() {
         val result = ScreenRecognitionEngine.analyze("Level 18")
         assertEquals("ocr_local", result.category)
