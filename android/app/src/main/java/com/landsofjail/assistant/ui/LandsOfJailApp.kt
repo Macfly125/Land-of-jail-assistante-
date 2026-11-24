@@ -3392,7 +3392,11 @@ private fun ResourcesScreen(
     var gearMagnetsOwned by remember(profileId) { mutableStateOf(developmentPrefs.getString("gear_magnets", "0") ?: "0") }
     var gearCoilsOwned by remember(profileId) { mutableStateOf(developmentPrefs.getString("gear_coils", "0") ?: "0") }
     var gearPrecisionOwned by remember(profileId) { mutableStateOf(developmentPrefs.getString("gear_precision", "0") ?: "0") }
-    LaunchedEffect(fcBuildingKey, fcCurrentLevel, fcCurrentProgress, fcTargetLevel, fcCoresOwned, fcAdvancedOwned, gearFromTier, gearToTier, gearExpOwned, gearMagnetsOwned, gearCoilsOwned, gearPrecisionOwned) {
+    var armorCoreTier by remember(profileId) { mutableIntStateOf(developmentPrefs.getInt("armor_core_tier", 1).coerceIn(1, 5)) }
+    var armorCoreModule by remember(profileId) { mutableStateOf(developmentPrefs.getString("armor_core_module", "Solo") ?: "Solo") }
+    var armorCoreModulesCount by remember(profileId) { mutableIntStateOf(developmentPrefs.getInt("armor_core_modules_count", 1).coerceIn(1, 3)) }
+    var armorCoreChipsOwned by remember(profileId) { mutableStateOf(developmentPrefs.getString("armor_core_chips", "0") ?: "0") }
+    LaunchedEffect(fcBuildingKey, fcCurrentLevel, fcCurrentProgress, fcTargetLevel, fcCoresOwned, fcAdvancedOwned, gearFromTier, gearToTier, gearExpOwned, gearMagnetsOwned, gearCoilsOwned, gearPrecisionOwned, armorCoreTier, armorCoreModule, armorCoreModulesCount, armorCoreChipsOwned) {
         developmentPrefs.edit()
             .putString("fc_building", fcBuildingKey)
             .putInt("fc_current_level", fcCurrentLevel)
@@ -3406,6 +3410,10 @@ private fun ResourcesScreen(
             .putString("gear_magnets", gearMagnetsOwned)
             .putString("gear_coils", gearCoilsOwned)
             .putString("gear_precision", gearPrecisionOwned)
+            .putInt("armor_core_tier", armorCoreTier)
+            .putString("armor_core_module", armorCoreModule)
+            .putInt("armor_core_modules_count", armorCoreModulesCount)
+            .putString("armor_core_chips", armorCoreChipsOwned)
             .apply()
     }
 
@@ -3776,6 +3784,42 @@ private fun ResourcesScreen(
                             Text("🧲 Aimants : \${formatCompactFr(requiredMagnets.toLong())} · \${localizedUiText(currentLang, "manquants", "missing", "fehlend", "eksik", "не хватает", "缺少")} \${formatCompactFr((requiredMagnets - ownedMagnets).coerceAtLeast(0).toLong())}")
                             Text("🌀 Bobines : \${formatCompactFr(requiredCoils.toLong())} · \${localizedUiText(currentLang, "manquantes", "missing", "fehlend", "eksik", "не хватает", "缺少")} \${formatCompactFr((requiredCoils - ownedCoils).coerceAtLeast(0).toLong())}")
                             Text(localizedUiText(currentLang, "Réforme complète 0→20 : 11 000 aimants + 4 200 engrenages de précision. Ton stock : \${formatCompactFr(ownedMagnets.toLong())} aimants et \${formatCompactFr(ownedPrecision.toLong())} engrenages.", "Full reform 0→20: 11,000 Magnets + 4,200 Precision Gears. Your stock: \${formatCompactFr(ownedMagnets.toLong())} Magnets and \${formatCompactFr(ownedPrecision.toLong())} Gears.", "Vollständige Reform 0→20: 11.000 Magnete + 4.200 Präzisionszahnräder. Bestand: \${formatCompactFr(ownedMagnets.toLong())} Magnete und \${formatCompactFr(ownedPrecision.toLong())} Zahnräder.", "Tam reform 0→20: 11.000 Mıknatıs + 4.200 Hassas Dişli. Stok: \${formatCompactFr(ownedMagnets.toLong())} Mıknatıs ve \${formatCompactFr(ownedPrecision.toLong())} Dişli.", "Полная перековка 0→20: 11 000 магнитов + 4 200 точных шестерён. В наличии: \${formatCompactFr(ownedMagnets.toLong())} магнитов и \${formatCompactFr(ownedPrecision.toLong())} шестерён.", "完整重铸 0→20：11,000 磁铁 + 4,200 精密齿轮。库存：\${formatCompactFr(ownedMagnets.toLong())} 磁铁、\${formatCompactFr(ownedPrecision.toLong())} 齿轮。"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
+                }
+                item {
+                    val chipsPerTier = listOf(3640, 7180, 19320, 36360, 49960)
+                    val requiredChips = chipsPerTier[armorCoreTier - 1] * armorCoreModulesCount
+                    val ownedChips = armorCoreChipsOwned.toIntOrNull() ?: 0
+                    val missingChips = (requiredChips - ownedChips).coerceAtLeast(0)
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("🤖 " + localizedUiText(currentLang, "Hangar · Noyaux d’armure I–V", "Hangar · Armor Cores I–V", "Hangar · Rüstungskerne I–V", "Hangar · Zırh Çekirdekleri I–V", "Ангар · Ядра брони I–V", "机库 · 装甲核心 I–V"), fontWeight = FontWeight.Bold)
+                            Text(localizedUiText(currentLang, "Planifie les puces pour un module de noyau Solo, Formation ou Barrière. Le coût affiché est celui d’un module complet du palier choisi.", "Plan chips for a Solo, Formation or Barrier Core module. The displayed cost is for one complete module at the selected tier.", "Plane Chips für ein Solo-, Formations- oder Barriere-Kernmodul. Die Kosten gelten für ein vollständiges Modul der gewählten Stufe.", "Solo, Formasyon veya Bariyer Çekirdek modülü için çipleri planla. Gösterilen maliyet seçilen kademedeki bir tam modül içindir.", "Планируйте чипы для модулей «Соло», «Формирование» или «Барьер». Указана стоимость одного полного модуля выбранного уровня.", "规划单人、编队或屏障核心模块所需芯片。显示的是所选等级单个完整模块的成本。"), style = MaterialTheme.typography.bodySmall)
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                items(listOf("Solo", "Formation", "Barrier")) { module ->
+                                    FilterChip(selected = armorCoreModule == module, onClick = { armorCoreModule = module }, label = {
+                                        Text(when (module) {
+                                            "Solo" -> localizedUiText(currentLang, "单人".takeIf { currentLang == AppLanguage.ZH } ?: "Solo", "Solo", "Solo", "Solo", "Соло", "单人")
+                                            "Formation" -> localizedUiText(currentLang, "Formation", "Formation", "Formation", "Formasyon", "Формирование", "编队")
+                                            else -> localizedUiText(currentLang, "Barrière", "Barrier", "Barriere", "Bariyer", "Барьер", "屏障")
+                                        })
+                                    })
+                                }
+                            }
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Column(Modifier.weight(1f)) {
+                                    Text(localizedUiText(currentLang, "Noyau I–V", "Core I–V", "Kern I–V", "Çekirdek I–V", "Ядро I–V", "核心 I–V"), style = MaterialTheme.typography.labelSmall)
+                                    OutlinedTextField(armorCoreTier.toString(), { armorCoreTier = (it.toIntOrNull() ?: 1).coerceIn(1, 5) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                                }
+                                Column(Modifier.weight(1f)) {
+                                    Text(localizedUiText(currentLang, "Nombre de modules", "Number of modules", "Anzahl Module", "Modül sayısı", "Количество модулей", "模块数量"), style = MaterialTheme.typography.labelSmall)
+                                    OutlinedTextField(armorCoreModulesCount.toString(), { armorCoreModulesCount = (it.toIntOrNull() ?: 1).coerceIn(1, 3) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                                }
+                            }
+                            OutlinedTextField(armorCoreChipsOwned, { armorCoreChipsOwned = it.filter(Char::isDigit).take(10) }, label = { Text("🔹 " + localizedUiText(currentLang, "Puces de noyau possédées", "Core Chips owned", "Kernchips vorhanden", "Mevcut Çekirdek Çipleri", "Чипы ядра в наличии", "现有核心芯片")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                            Divider()
+                            Text(localizedUiText(currentLang, "Coût : \${formatCompactFr(requiredChips.toLong())} puces · Manquantes : \${formatCompactFr(missingChips.toLong())}", "Cost: \${formatCompactFr(requiredChips.toLong())} chips · Missing: \${formatCompactFr(missingChips.toLong())}", "Kosten: \${formatCompactFr(requiredChips.toLong())} Chips · Fehlend: \${formatCompactFr(missingChips.toLong())}", "Maliyet: \${formatCompactFr(requiredChips.toLong())} çip · Eksik: \${formatCompactFr(missingChips.toLong())}", "Стоимость: \${formatCompactFr(requiredChips.toLong())} чипов · Не хватает: \${formatCompactFr(missingChips.toLong())}", "成本：\${formatCompactFr(requiredChips.toLong())} 芯片 · 缺少：\${formatCompactFr(missingChips.toLong())}"), fontWeight = FontWeight.SemiBold)
                         }
                     }
                 }
