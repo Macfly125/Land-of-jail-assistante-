@@ -89,31 +89,65 @@ private fun localizedUiText(
 
 
 
-private fun localizedCaptureCategory(language: AppLanguage, raw: String): String = when (raw.lowercase()) {
-    "heros", "heroes" -> localizedUiText(language, "Héros", "Heroes", "Helden", "Kahramanlar", "Герои", "英雄")
-    "robots" -> localizedUiText(language, "Robots", "Robots", "Roboter", "Robotlar", "Роботы", "机器人")
-    "power_armor" -> localizedUiText(language, "Hangar d’armure de puissance", "Power Armor Hangar", "Power-Armor-Hangar", "Güç Zırhı Hangarı", "Ангар силовой брони", "动力装甲机库")
-    "forticlad_lab" -> localizedUiText(language, "Laboratoire Forticlad", "Forticlad Lab", "Forticlad-Labor", "Forticlad Laboratuvarı", "Лаборатория Forticlad", "Forticlad 实验室")
-    "lab" -> localizedUiText(language, "Laboratoire", "Lab", "Labor", "Laboratuvar", "Лаборатория", "实验室")
-    "cosmos_hub" -> localizedUiText(language, "Centre cosmique", "Cosmos Hub", "Kosmos-Zentrum", "Kozmos Merkezi", "Космический центр", "宇宙中心")
-    "dungeon" -> localizedUiText(language, "Donjon", "Dungeon", "Verlies", "Zindan", "Подземелье", "地牢")
-    "equipements", "equipment", "gear" -> localizedUiText(language, "Amélioration d'équipements", "Equipment upgrades", "Ausrüstungsverbesserung", "Ekipman geliştirme", "Улучшение снаряжения", "装备升级")
-    "ressources", "resources" -> localizedUiText(language, "Ressources", "Resources", "Ressourcen", "Kaynaklar", "Ресурсы", "资源")
-    "batiments", "buildings" -> localizedUiText(language, "Bâtiments", "Buildings", "Gebäude", "Binalar", "Здания", "建筑")
-    "troupes", "troops" -> localizedUiText(language, "Troupes", "Troops", "Truppen", "Birlikler", "Войска", "部队")
-    "profil", "profile" -> localizedUiText(language, "Profil", "Profile", "Profil", "Profil", "Профиль", "个人资料")
-    "gorilla_legion" -> localizedUiText(language, "Légion de Gorilla", "Gorilla Legion", "Gorilla-Legion", "Goril Lejyonu", "Легион горилл", "大猩猩军团")
-    "trial_cage" -> localizedUiText(language, "Cage d’essai", "Trial Cage", "Prüfungskäfig", "Deneme Kafesi", "Испытательная клетка", "试炼笼")
-    "crystal_clash" -> localizedUiText(language, "Conflit cristallin", "Crystal Clash", "Kristallkonflikt", "Kristal Çatışması", "Кристальная битва", "水晶冲突")
-    "sandsea_conquest" -> localizedUiText(language, "Conquête de sable", "Sandsea Conquest", "Sandmeer-Eroberung", "Kum Denizi Fethi", "Покорение песчаного моря", "沙海征服")
-    "svs" -> localizedUiText(language, "SvS", "SvS", "SvS", "SvS", "SvS", "SvS")
-    "turmoil_surge" -> localizedUiText(language, "Vague de chaos", "Turmoil Surge", "Chaoswelle", "Kaos Dalgası", "Волна хаоса", "混乱浪潮")
-    "gold_hunter" -> localizedUiText(language, "Chasseur d’or", "Gold Hunter", "Goldjäger", "Altın Avcısı", "Золотой охотник", "黄金猎人")
-    else -> localizedUiText(language, "Autre capture", "Other capture", "Andere Aufnahme", "Diğer yakalama", "Другая запись", "其他截图")
+internal fun localizedCaptureCategory(language: AppLanguage, raw: String): String {
+    val key = raw.lowercase()
+    if (language == AppLanguage.IT) return when (key) {
+        "heros", "heroes" -> "Eroi"
+        "robots" -> "Robot"
+        "power_armor" -> "Hangar armature potenziate"
+        "forticlad_lab" -> "Laboratorio Forticlad"
+        "lab" -> "Laboratorio"
+        "cosmos_hub" -> "Centro cosmico"
+        "dungeon" -> "Prigione"
+        "equipements", "equipment", "gear" -> "Miglioramento equipaggiamento"
+        "ressources", "resources" -> "Risorse"
+        "batiments", "buildings" -> "Edifici"
+        "troupes", "troops" -> "Truppe"
+        "profil", "profile" -> "Profilo"
+        "gorilla_legion" -> "Legione dei Gorilla"
+        "trial_cage" -> "Gabbia di prova"
+        "crystal_clash" -> "Scontro cristallino"
+        "sandsea_conquest" -> "Conquista del Mare di Sabbia"
+        "svs" -> "SvS"
+        "turmoil_surge" -> "Ondata di caos"
+        "gold_hunter" -> "Cacciatore d'oro"
+        else -> "Altra schermata"
+    }
+    return when (key) {
+        "heros", "heroes" -> localizedUiText(language, "Héros", "Heroes", "Helden", "Kahramanlar", "Герои", "英雄")
+        "robots" -> localizedUiText(language, "Robots", "Robots", "Roboter", "Robotlar", "Роботы", "机器人")
+        "power_armor" -> localizedUiText(language, "Hangar d’armure de puissance", "Power Armor Hangar", "Power-Armor-Hangar", "Güç Zırhı Hangarı", "Ангар силовой брони", "动力装甲机库")
+        "forticlad_lab" -> localizedUiText(language, "Laboratoire Forticlad", "Forticlad Lab", "Forticlad-Labor", "Forticlad Laboratuvarı", "Лаборатория Forticlad", "Forticlad 实验室")
+        "lab" -> localizedUiText(language, "Laboratoire", "Lab", "Labor", "Laboratuvar", "Лаборатория", "实验室")
+        "cosmos_hub" -> localizedUiText(language, "Centre cosmique", "Cosmos Hub", "Kosmos-Zentrum", "Kozmos Merkezi", "Космический центр", "宇宙中心")
+        "dungeon" -> localizedUiText(language, "Donjon", "Dungeon", "Verlies", "Zindan", "Подземелье", "地牢")
+        "equipements", "equipment", "gear" -> localizedUiText(language, "Amélioration d'équipements", "Equipment upgrades", "Ausrüstungsverbesserung", "Ekipman geliştirme", "Улучшение снаряжения", "装备升级")
+        "ressources", "resources" -> localizedUiText(language, "Ressources", "Resources", "Ressourcen", "Kaynaklar", "Ресурсы", "资源")
+        "batiments", "buildings" -> localizedUiText(language, "Bâtiments", "Buildings", "Gebäude", "Binalar", "Здания", "建筑")
+        "troupes", "troops" -> localizedUiText(language, "Troupes", "Troops", "Truppen", "Birlikler", "Войска", "部队")
+        "profil", "profile" -> localizedUiText(language, "Profil", "Profile", "Profil", "Profil", "Профиль", "个人资料")
+        "gorilla_legion" -> localizedUiText(language, "Légion de Gorilla", "Gorilla Legion", "Gorilla-Legion", "Goril Lejyonu", "Легион горилл", "大猩猩军团")
+        "trial_cage" -> localizedUiText(language, "Cage d’essai", "Trial Cage", "Prüfungskäfig", "Deneme Kafesi", "Испытательная клетка", "试炼笼")
+        "crystal_clash" -> localizedUiText(language, "Conflit cristallin", "Crystal Clash", "Kristallkonflikt", "Kristal Çatışması", "Кристальная битва", "水晶冲突")
+        "sandsea_conquest" -> localizedUiText(language, "Conquête de sable", "Sandsea Conquest", "Sandmeer-Eroberung", "Kum Denizi Fethi", "Покорение песчаного моря", "沙海征服")
+        "svs" -> "SvS"
+        "turmoil_surge" -> localizedUiText(language, "Vague de chaos", "Turmoil Surge", "Chaoswelle", "Kaos Dalgası", "Волна хаоса", "混乱浪潮")
+        "gold_hunter" -> localizedUiText(language, "Chasseur d’or", "Gold Hunter", "Goldjäger", "Altın Avcısı", "Золотой охотник", "黄金猎人")
+        else -> localizedUiText(language, "Autre capture", "Other capture", "Andere Aufnahme", "Diğer yakalama", "Другая запись", "其他截图")
+    }
 }
 
-private fun localizedResourceName(language: AppLanguage, raw: String): String {
+internal fun localizedResourceName(language: AppLanguage, raw: String): String {
     val key = raw.lowercase()
+    if (language == AppLanguage.IT) return when {
+        key.contains("nourriture") || key.contains("food") -> "Cibo"
+        key.contains("bois") || key.contains("wood") -> "Legno"
+        key.contains("acier") || key.contains("steel") -> "Acciaio"
+        key.contains("essence") || key.contains("gasoline") -> "Benzina"
+        key.contains("diamant") || key.contains("gem") -> "Diamanti"
+        key.contains("cash") || key == "or" || key.contains("gold") || key.contains("altın") || key.contains("золото") || key.contains("金币") || key.contains("黄金") -> "Oro"
+        else -> raw
+    }
     return when {
         key.contains("nourriture") || key.contains("food") -> localizedUiText(language, "Nourriture", "Food", "Nahrung", "Yiyecek", "Еда", "食物")
         key.contains("bois") || key.contains("wood") -> localizedUiText(language, "Bois", "Wood", "Holz", "Odun", "Дерево", "木材")
@@ -125,23 +159,17 @@ private fun localizedResourceName(language: AppLanguage, raw: String): String {
     }
 }
 
-private fun resourceIcon(raw: String): String {
-    val key = raw.lowercase()
-    return when {
-        key.contains("nourriture") || key.contains("food") || key.contains("vivres") -> "🍖"
-        key.contains("bois") || key.contains("wood") -> "🪵"
-        key.contains("acier") || key.contains("steel") || key.contains("iron") -> "⚙️"
-        key.contains("essence") || key.contains("gasoline") || key.contains("fuel") -> "⛽"
-        key.contains("diamant") || key.contains("gem") -> "💎"
-        key.contains("gold") || key.contains("or") || key.contains("cash") -> "🪙"
-        key.contains("forticlad") -> "🔷"
-        key.contains("hyperalloy") || key.contains("hyperalliage") -> "🧩"
-        else -> "📦"
-    }
-}
-
-private fun localizedEquipmentPiece(language: AppLanguage, raw: String): String {
+internal fun localizedEquipmentPiece(language: AppLanguage, raw: String): String {
     val key = raw.lowercase().trim()
+    if (language == AppLanguage.IT) return when {
+        key.contains("arme") || key.contains("weapon") -> "Arma"
+        key.contains("armure") || key.contains("armor") -> "Armatura"
+        key.contains("casque") || key.contains("helmet") || key.contains("helm") -> "Elmo"
+        key.contains("gant") || key.contains("glove") -> "Guanti"
+        key.contains("botte") || key.contains("boot") || key == "bot" -> "Stivali"
+        key.contains("accessoire") || key.contains("accessory") -> "Accessorio"
+        else -> raw
+    }
     return when {
         key.contains("arme") || key.contains("weapon") || key.contains("waffe") || key.contains("silah") || key.contains("оруж") || key.contains("武器") ->
             localizedUiText(language, "Arme", "Weapon", "Waffe", "Silah", "Оружие", "武器")
@@ -162,40 +190,34 @@ private fun localizedEquipmentPiece(language: AppLanguage, raw: String): String 
 private fun localizedCaptureSummary(item: ScreenshotAnalysis, language: AppLanguage): String {
     val parts = buildList {
         item.puissance?.puissanceTotaleTexte?.takeIf { it.isNotBlank() }?.let {
-            add(localizedUiText(language, "Puissance : $it", "Power: $it", "Macht: $it", "Güç: $it", "Мощь: $it", "战力：$it"))
+            add(if (language == AppLanguage.IT) "Potenza: $it" else localizedUiText(language, "Puissance : $it", "Power: $it", "Macht: $it", "Güç: $it", "Мощь: $it", "战力：$it"))
         }
         if (item.ressources.isNotEmpty()) {
             val values = item.ressources.joinToString(" · ") {
                 "${localizedResourceName(language, it.nom)}: ${it.quantiteTexte}"
             }
-            add(localizedUiText(language, "Ressources : $values", "Resources: $values", "Ressourcen: $values", "Kaynaklar: $values", "Ресурсы: $values", "资源：$values"))
+            add(if (language == AppLanguage.IT) "Risorse: $values" else localizedUiText(language, "Ressources : $values", "Resources: $values", "Ressourcen: $values", "Kaynaklar: $values", "Ресурсы: $values", "资源：$values"))
         }
         if (item.heros.isNotEmpty()) {
             val names = item.heros.take(4).joinToString(", ") { it.nom }
-            add(localizedUiText(language, "Héros : $names", "Heroes: $names", "Helden: $names", "Kahramanlar: $names", "Герои: $names", "英雄：$names"))
+            add(if (language == AppLanguage.IT) "Eroi: $names" else localizedUiText(language, "Héros : $names", "Heroes: $names", "Helden: $names", "Kahramanlar: $names", "Герои: $names", "英雄：$names"))
         }
         if (item.robots.isNotEmpty()) {
             val names = item.robots.take(3).joinToString(", ") { it.nom }
-            add(localizedUiText(language, "Robots : $names", "Robots: $names", "Roboter: $names", "Robotlar: $names", "Роботы: $names", "机器人：$names"))
+            add(if (language == AppLanguage.IT) "Robot: $names" else localizedUiText(language, "Robots : $names", "Robots: $names", "Roboter: $names", "Robotlar: $names", "Роботы: $names", "机器人：$names"))
         }
         if (item.equipements.isNotEmpty()) {
             val details = item.equipements.take(4).joinToString(", ") {
                 if (it.niveau.isNotBlank()) "${localizedEquipmentPiece(language, it.piece)} ${localizedUiText(language, "Niv.", "Lv.", "Stufe", "Sv.", "Ур.", "等级")} ${it.niveau}" else localizedEquipmentPiece(language, it.piece)
             }
-            add(localizedUiText(
-                language,
-                "Équipements : $details",
-                "Equipment: $details",
-                "Ausrüstung: $details",
-                "Ekipman: $details",
-                "Снаряжение: $details",
-                "装备：$details"
-            ))
+            add(if (language == AppLanguage.IT) "Equipaggiamento: $details" else localizedUiText(language, "Équipements : $details", "Equipment: $details", "Ausrüstung: $details", "Ekipman: $details", "Снаряжение: $details", "装备：$details"))
         }
     }
     return parts.takeIf { it.isNotEmpty() }?.joinToString(" · ")
-        ?: localizedUiText(language, "Aucune valeur lue avec certitude ; vérification de la capture nécessaire.", "No values read with confidence; screenshot review is needed.", "Keine Werte sicher gelesen; Screenshot muss geprüft werden.", "Hiçbir değer güvenle okunamadı; ekran görüntüsü kontrol edilmeli.", "Не удалось уверенно прочитать значения; снимок нужно проверить.", "未能可靠读取数值；需要检查截图。")
+        ?: if (language == AppLanguage.IT) "Nessun valore letto con certezza; verifica lo screenshot."
+        else localizedUiText(language, "Aucune valeur lue avec certitude ; vérification de la capture nécessaire.", "No values read with confidence; screenshot review is needed.", "Keine Werte sicher gelesen; Screenshot muss geprüft werden.", "Hiçbir değer güvenle okunamadı; ekran görüntüsü kontrol edilmeli.", "Не удалось уверенно прочитать значения; снимок нужно проверить.", "未能可靠读取数值。")
 }
+
 
 private val LocalAssistantLanguage = staticCompositionLocalOf { AppLanguage.FR }
 
