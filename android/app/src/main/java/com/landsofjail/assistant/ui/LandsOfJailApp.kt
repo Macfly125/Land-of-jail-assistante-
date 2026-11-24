@@ -69,7 +69,8 @@ private fun localizedUiText(
     de: String,
     tr: String,
     ru: String,
-    zh: String
+    zh: String,
+    it: String = en
 ): String = when (language) {
     AppLanguage.FR -> fr
     AppLanguage.EN -> en
@@ -77,6 +78,7 @@ private fun localizedUiText(
     AppLanguage.TR -> tr
     AppLanguage.RU -> ru
     AppLanguage.ZH -> zh
+    AppLanguage.IT -> it
 }
 
 
@@ -204,6 +206,7 @@ private fun localizedAppText(source: String): String {
         AppLanguage.TR -> 3
         AppLanguage.RU -> 4
         AppLanguage.ZH -> 5
+        AppLanguage.IT -> 6
     }
     val dictionary = mapOf(
         "Annuler" to listOf("Annuler", "Cancel", "Abbrechen", "İptal", "Отмена", "取消"),
@@ -351,7 +354,9 @@ private fun localizedAppText(source: String): String {
         "Héros et compétences War (copier les infos)" to listOf("Héros et compétences War (copier les infos)", "War heroes and skills (copy details)", "Kriegshelden und Fähigkeiten (Infos kopieren)", "Savaş kahramanları ve becerileri (bilgileri kopyala)", "Боевые герои и навыки (скопировать данные)", "战争英雄与技能（复制信息）"),
         "Actualiser le lien cloud après connexion" to listOf("Actualiser le lien cloud après connexion", "Refresh cloud link after signing in", "Cloud-Verknüpfung nach der Anmeldung aktualisieren", "Giriş yaptıktan sonra bulut bağlantısını yenile", "Обновить связь с облаком после входа", "登录后刷新云端关联"),
     )
-    var translated = dictionary[source]?.get(index) ?: source
+    var translated = dictionary[source]?.getOrNull(index)
+        ?: if (language == AppLanguage.IT) dictionary[source]?.getOrNull(1) else null
+        ?: source
     val fragments = when (language) {
         AppLanguage.FR -> emptyMap()
         AppLanguage.EN -> mapOf(
@@ -499,6 +504,7 @@ private fun localizedAppText(source: String): String {
             "Ta réponse au joueur" to "给玩家的回复", "Réponse enregistrée et visible par le joueur." to "回复已保存，玩家可以查看。",
             "Enregistrement impossible." to "保存失败。", "Enregistrement…" to "正在保存…", "Envoyer la réponse" to "发送回复"
         )
+        AppLanguage.IT -> emptyMap()
     }
     val extraFragments = when (language) {
         AppLanguage.FR -> emptyMap()
@@ -617,6 +623,7 @@ private fun localizedAppText(source: String): String {
             "Actualiser le lien cloud après connexion" to "登录后刷新云端连接",
             "Création…" to "正在创建…", "Génération…" to "正在生成…"
         )
+        AppLanguage.IT -> emptyMap()
     }
     extraFragments.forEach { (from, to) -> translated = translated.replace(from, to) }
     fragments.forEach { (from, to) -> translated = translated.replace(from, to) }
@@ -661,7 +668,9 @@ private fun resourceUiText(language: AppLanguage, key: String): String {
         AppLanguage.RU -> 4
         AppLanguage.ZH -> 5
     }
-    return translations[key]?.get(index) ?: key
+    return translations[key]?.getOrNull(index)
+        ?: if (language == AppLanguage.IT) translations[key]?.getOrNull(1) else null
+        ?: key
 }
 
 private enum class AssistantTab {
