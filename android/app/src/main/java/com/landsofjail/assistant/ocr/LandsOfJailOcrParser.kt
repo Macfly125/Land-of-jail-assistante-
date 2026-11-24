@@ -9,6 +9,15 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
+data class OcrTextBox(val text: String, val left: Int, val top: Int, val right: Int, val bottom: Int)
+
+data class OcrRecognition(
+    val text: String,
+    val boxes: List<OcrTextBox>,
+    val imageWidth: Int,
+    val imageHeight: Int
+)
+
 data class LocalOcrExtraction(
     val rawText: String,
     val detectedCategory: String,
@@ -46,6 +55,28 @@ object LandsOfJailOcrParser {
         "Terry Bogard" to listOf("Terry")
     )
 
+    suspend fun recognizeBitmapDetailed(bitmap: Bitmap): OcrRecognition = suspendCancellableCoroutine { cont ->
+        val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+        val image = InputImage.fromBitmap(bitmap, 0)
+        cont.invokeOnCancellation { recognizer.close() }
+        recognizer.process(image)
+            .addOnSuccessListener { result ->
+                recognizer.close()
+                val boxes = result.textBlocks.flatMap { block ->
+                    block.lines.mapNotNull { line ->
+                        line.boundingBox?.let { rect ->
+                            OcrTextBox(line.text, rect.left, rect.top, rect.right, rect.bottom)
+                        }
+                    }
+                }
+                if (cont.isActive) cont.resume(OcrRecognition(result.text, boxes, bitmap.width, bitmap.height))
+            }
+            .addOnFailureListener { err ->
+                recognizer.close()
+                if (cont.isActive) cont.resumeWithException(err)
+            }
+    }
+
     suspend fun recognizeBitmap(bitmap: Bitmap): String = suspendCancellableCoroutine { cont ->
         val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
         val image = InputImage.fromBitmap(bitmap, 0)
@@ -65,7 +96,12 @@ object LandsOfJailOcrParser {
      * Analyse OCR locale complète (puissance, QG/Prison, héros, ressources, type d'écran)
      * permettant un affichage immédiat dans l'appli même hors-ligne ou sans backend.
      */
-    fun parseLocalOcrText(rawText: String): LocalOcrExtraction {
+    fun parseLocalOcrText(
+        rawText: String,
+        textBoxes: List<OcrTextBox> = emptyList(),
+        imageWidth: Int = 0,
+        imageHeight: Int = 0
+    ): LocalOcrExtraction {
         val lines = rawText.lines().map { it.trim() }.filter { it.isNotEmpty() }
         val lowerFull = rawText.lowercase()
         val uncertain = mutableListOf<UncertainItem>()
@@ -352,6 +388,37 @@ object LandsOfJailOcrParser {
 
         if (power != null && power?.niveauPrisonOuQG == null && wardenLevel != null) {
             power = power?.copy(niveauPrisonOuQG = wardenLevel)
+        }
+
+        // La barre de ressources du jeu affiche les quantités dans un ordre horizontal stable.
+        // Quand les icônes ne produisent aucun texte OCR, on associe prudemment les nombres
+        // de la rangée supérieure à cet ordre, avec un statut incertain à confirmer.
+        if (imageWidth > 0 && imageHeight > 0) {
+            val topNumbers = textBoxes
+                .filter { it.top <= (imageHeight * 0.20).toInt() }
+                .filter { Regex("""^[0-9][0-9.,\\s]*[kmbKMB]?$""").matches(it.text.trim()) }
+                .sortedBy { it.left }
+            val resourceOrder = listOf(
+                "Nourriture (Food)", "Bois (Wood)", "Acier (Steel)",
+                "Essence (Gasoline)", "Diamants (Gems)", "Cash / Or"
+            )
+            if (topNumbers.size >= 4) {
+                topNumbers.take(resourceOrder.size).forEachIndexed { index, box ->
+                    val name = resourceOrder[index]
+                    if (seenResKeys.add(name)) {
+                        val quantity = box.text.trim()
+                        resources.add(
+                            ResourceRecord(
+                                nom = name,
+                                quantiteTexte = quantity,
+                                quantiteNumerique = parseCompactNumeric(quantity),
+                                incertain = true,
+                                raisonIncertitude = "Valeur associée à la position de l'icône dans la barre supérieure ; confirmer visuellement."
+                            )
+                        )
+                    }
+                }
+            }
         }
 
         val screenRecognition = ScreenRecognitionEngine.analyze(rawText)
