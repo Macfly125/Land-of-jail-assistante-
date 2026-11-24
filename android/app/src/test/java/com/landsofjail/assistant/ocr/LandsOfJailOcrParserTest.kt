@@ -59,6 +59,23 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun recognizesGorillaLegionEventAcrossAllSupportedLanguages() {
+        val samples = listOf(
+            "Gorilla Legion\nGorilla Warlord",
+            "Légion de Gorilla\nGorille sage",
+            "Gorilla-Legion\nGorilla-Kriegsherr",
+            "Goril Lejyonu\nGoril Savaş Lordu",
+            "Легион горилл\nГорилла военачальник",
+            "大猩猩军团\n猩猩军团"
+        )
+        samples.forEach { sample ->
+            val result = ScreenRecognitionEngine.analyze(sample)
+            assertEquals("Événement Gorilla non reconnu : $sample", "gorilla_legion", result.category)
+            assertTrue(result.matchedLabels.isNotEmpty())
+        }
+    }
+
+    @Test
     fun identifiesTrialCageScreens() {
         val result = LandsOfJailOcrParser.parseLocalOcrText("Trial Cage\nDamage ranking")
 
