@@ -4127,6 +4127,7 @@ private fun HistoryScreen(
     analyses: List<ScreenshotAnalysis>,
     onClearHistory: () -> Unit
 ) {
+    val currentLang = LocalAssistantLanguage.current
     var showClearConfirmation by remember { mutableStateOf(false) }
 
     if (showClearConfirmation) {
