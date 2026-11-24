@@ -19,6 +19,23 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun recognizesEveryCanonicalHeroNameWithoutInventingPlayerStats() {
+        val entries = com.landsofjail.assistant.model.HeroCatalog.entries
+        assertEquals(50, entries.size)
+
+        entries.forEach { entry ->
+            val result = LandsOfJailOcrParser.parseLocalOcrText(entry.nom)
+            assertTrue(
+                "Le héros du catalogue n'est pas reconnu : ${entry.nom}",
+                result.heroes.any { it.nom == entry.nom }
+            )
+            val detected = result.heroes.first { it.nom == entry.nom }
+            assertNull("Le niveau ne doit pas être inventé pour ${entry.nom}", detected.niveau)
+            assertNull("Les étoiles ne doivent pas être inventées pour ${entry.nom}", detected.etoiles)
+        }
+    }
+
+    @Test
     fun parsesGroupedPowerWithoutTreatingThousandsAsDecimals() {
         val result = LandsOfJailOcrParser.parseLocalOcrText("Puissance : 8,450,120")
 
