@@ -17,7 +17,8 @@ data class LocalOcrExtraction(
     val resources: List<ResourceRecord>,
     val heroes: List<HeroRecord>,
     val robots: List<RobotRecord> = emptyList(),
-    val uncertainItems: List<UncertainItem>
+    val uncertainItems: List<UncertainItem>,
+    val equipment: List<EquipmentRecord> = emptyList()
 )
 
 object LandsOfJailOcrParser {
@@ -71,6 +72,8 @@ object LandsOfJailOcrParser {
         val resources = mutableListOf<ResourceRecord>()
         val heroes = mutableListOf<HeroRecord>()
         val robots = mutableListOf<RobotRecord>()
+        val equipment = mutableListOf<EquipmentRecord>()
+        val seenEquipmentKeys = mutableSetOf<String>()
         val seenRobotKeys = mutableSetOf<String>()
         val knownRobotNames = listOf("Musashimaru", "Phantom Cat", "Ranger", "Infercore", "Hercules α", "Hercules Alpha", "Halo", "Light Cone", "Atlax", "Yokozuna", "Bastion", "Pluto")
         val seenHeroKeys = mutableSetOf<String>()
@@ -174,6 +177,42 @@ object LandsOfJailOcrParser {
                         source = "ocr_local"
                     ))
                 }
+            }
+
+            // Équipements de héros : ne remplir que les valeurs réellement visibles dans l'OCR.
+            val equipmentPartLabels = mapOf(
+                "Arme" to listOf("weapon", "arme", "waffe", "silah", "оружие", "武器"),
+                "Armure" to listOf("armor", "armour", "armure", "rüstung", "zırh", "броня", "护甲"),
+                "Casque" to listOf("helmet", "casque", "helm", "miğfer", "шлем", "头盔"),
+                "Gants" to listOf("gloves", "gants", "handschuhe", "eldiven", "перчатки", "手套"),
+                "Bottes" to listOf("boots", "bottes", "stiefel", "bot", "сапоги", "靴子"),
+                "Accessoire" to listOf("accessory", "accessoire", "zubehör", "aksesuar", "аксессуар", "配件")
+            )
+            val normalizedEquipmentLine = normalizeHeroText(line)
+            for ((partName, aliases) in equipmentPartLabels) {
+                if (aliases.none { alias -> normalizedEquipmentLine == normalizeHeroText(alias) ||
+                        normalizedEquipmentLine.startsWith(normalizeHeroText(alias) + " ") }) continue
+                val context = lines.subList(index, minOf(lines.size, index + 4)).joinToString(" ")
+                val level = Regex("""(?:lv\.?|level|niv\.?|niveau|等级)\s*[:+]?\s*([0-9]{1,3})""", RegexOption.IGNORE_CASE)
+                    .find(context)?.groupValues?.get(1)
+                    ?: Regex("""(?:^|\s)\+([0-9]{1,3})(?:\s|$)""").find(context)?.groupValues?.get(1).orEmpty()
+                val quality = Regex("""\b(legendary|mythic|epic|rare|common|légendaire|épique|传奇|史诗)\b""", RegexOption.IGNORE_CASE)
+                    .find(context)?.value.orEmpty()
+                val materials = listOf("magnet", "aimant", "potential coil", "precision gear", "equipment part", "материал", "磁铁", "精密齿轮")
+                    .firstOrNull { context.contains(it, ignoreCase = true) }.orEmpty()
+                val key = (partName + "-" + level.ifBlank { "?" }).lowercase()
+                if (seenEquipmentKeys.add(key)) equipment.add(
+                    EquipmentRecord(
+                        id = key.replace(' ', '_'),
+                        piece = partName,
+                        niveau = level,
+                        qualite = quality,
+                        materiaux = materials,
+                        texteObserve = context.take(220),
+                        incertain = level.isBlank(),
+                        raisonIncertitude = if (level.isBlank()) "Pièce repérée, niveau non lu explicitement" else null
+                    )
+                )
             }
 
             // Héros connus du jeu détectés dans la ligne
@@ -317,6 +356,7 @@ object LandsOfJailOcrParser {
         val screenRecognition = ScreenRecognitionEngine.analyze(rawText)
         val detectedCategory = when {
             screenRecognition.category != "ocr_local" -> screenRecognition.category
+            equipment.isNotEmpty() -> "equipements"
             heroes.isNotEmpty() -> "heros"
             robots.isNotEmpty() -> "robots"
             resources.isNotEmpty() -> "ressources"
@@ -331,6 +371,14 @@ object LandsOfJailOcrParser {
                     raison = "Classification OCR de confiance ${screenRecognition.confidence}; vérification visuelle recommandée."
                 )
             )
+        }
+
+        if (screenRecognition.category == "equipements" && equipment.isEmpty()) {
+            uncertain.add(UncertainItem(
+                champ = "Équipement",
+                valeurObservee = "Écran d'amélioration d'équipement détecté",
+                raison = "Les pièces, niveaux et matériaux ne sont pas encore lisibles avec certitude dans ce texte OCR."
+            ))
         }
 
         if (screenRecognition.category == "robots" && robots.isEmpty()) {
@@ -372,7 +420,8 @@ object LandsOfJailOcrParser {
             resources = resources,
             heroes = heroes,
             robots = robots,
-            uncertainItems = uncertain
+            uncertainItems = uncertain,
+            equipment = equipment
         )
     }
 
