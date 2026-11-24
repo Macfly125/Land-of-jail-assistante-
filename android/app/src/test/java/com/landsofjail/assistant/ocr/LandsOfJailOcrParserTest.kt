@@ -76,6 +76,23 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun gorillaLegionIsAvailableAsAnEventAdvisorInAllSixLanguages() {
+        val mode = com.landsofjail.assistant.model.AdviceMode.GORILLA_LEGION
+        assertEquals("gorilla_legion", mode.apiId)
+        listOf(
+            com.landsofjail.assistant.model.AppLanguage.FR,
+            com.landsofjail.assistant.model.AppLanguage.EN,
+            com.landsofjail.assistant.model.AppLanguage.DE,
+            com.landsofjail.assistant.model.AppLanguage.TR,
+            com.landsofjail.assistant.model.AppLanguage.RU,
+            com.landsofjail.assistant.model.AppLanguage.ZH
+        ).forEach { language ->
+            assertTrue(mode.titleFor(language).isNotBlank())
+            assertTrue(mode.briefFor(language).isNotBlank())
+        }
+    }
+
+    @Test
     fun identifiesTrialCageScreens() {
         val result = LandsOfJailOcrParser.parseLocalOcrText("Trial Cage\nDamage ranking")
 
