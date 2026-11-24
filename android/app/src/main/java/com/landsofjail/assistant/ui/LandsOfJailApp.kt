@@ -1453,7 +1453,7 @@ fun LandsOfJailAssistantApp(
                         enabled = !isProfileSyncing && !isAnalyzing && !isAutoCapturing,
                         onClick = {
                             if (profileAuth.currentSession() == null) {
-                                errorMessage = "Connecte-toi à ton compte dans l’onglet Compte avant la synchronisation."
+                                errorMessage = localizedUiText(currentLang, "Connecte-toi à ton compte dans l’onglet Compte avant la synchronisation.", "Sign in to your account in the Account tab before syncing.", "Melde dich vor der Synchronisierung im Konto-Tab an.", "Eşitlemeden önce Hesap sekmesinden hesabına giriş yap.", "Перед синхронизацией войдите в аккаунт на вкладке «Аккаунт».", "同步前，请先在“账户”选项卡登录。")
                             } else {
                                 scope.launch {
                                     isProfileSyncing = true
@@ -1539,7 +1539,7 @@ fun LandsOfJailAssistantApp(
                                         }
                                         snackbarHostState.showSnackbar(localizedUiText(currentLang, "Synchronisation terminée. Aucune sauvegarde distante n’a été supprimée.", "Sync complete. No remote backup was deleted.", "Synchronisierung abgeschlossen. Kein Remote-Backup wurde gelöscht.", "Senkronizasyon tamamlandı. Hiçbir uzak yedek silinmedi.", "Синхронизация завершена. Ни одна удалённая резервная копия не удалена.", "同步完成。没有删除任何远程备份。"))
                                     } catch (error: Exception) {
-                                        errorMessage = "Synchronisation interrompue : ${error.message ?: "erreur inconnue"}. La copie locale de secours est conservée."
+                                        errorMessage = localizedUiText(currentLang, "Synchronisation interrompue : ${error.message ?: "erreur inconnue"}. La copie locale de secours est conservée.", "Sync interrupted: ${error.message ?: "unknown error"}. The local backup is preserved.", "Synchronisierung unterbrochen: ${error.message ?: "unbekannter Fehler"}. Die lokale Sicherung bleibt erhalten.", "Eşitleme kesildi: ${error.message ?: "bilinmeyen hata"}. Yerel yedek korundu.", "Синхронизация прервана: ${error.message ?: "неизвестная ошибка"}. Локальная резервная копия сохранена.", "同步中断：${error.message ?: "未知错误"}。本地备份已保留。")
                                     } finally {
                                         isProfileSyncing = false
                                     }
@@ -1606,7 +1606,7 @@ fun LandsOfJailAssistantApp(
                                 activeProfileId = next.id
                                 accountPrefs.edit().putString("active_game_profile_v1", next.id).commit()
                                 localProfiles = localProfiles.filterNot { it.id == target.id }
-                            }.onFailure { errorMessage = "Suppression impossible : ${it.message}" }
+                            }.onFailure { errorMessage = localizedUiText(currentLang, "Suppression impossible : ${it.message}", "Could not delete: ${it.message}", "Löschen nicht möglich: ${it.message}", "Silinemedi: ${it.message}", "Не удалось удалить: ${it.message}", "无法删除：${it.message}") }
                         } else {
                             localProfiles = localProfiles.filterNot { it.id == target.id }
                         }
@@ -3953,6 +3953,7 @@ private fun HistoryScreen(
 
 @Composable
 private fun SupabaseAccountCard() {
+    val currentLang = LocalAssistantLanguage.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val auth = remember(context) { SupabaseAuthRepository(context) }
@@ -4004,8 +4005,8 @@ private fun SupabaseAccountCard() {
                             scope.launch {
                                 busy = true
                                 auth.refreshSession()
-                                    .onSuccess { session = it; message = "Session actualisée."; isError = false }
-                                    .onFailure { message = it.message ?: "Actualisation impossible."; isError = true }
+                                    .onSuccess { session = it; message = localizedUiText(currentLang, "Session actualisée.", "Session refreshed.", "Sitzung aktualisiert.", "Oturum yenilendi.", "Сеанс обновлён.", "会话已刷新。"); isError = false }
+                                    .onFailure { message = it.message ?: localizedUiText(currentLang, "Actualisation impossible.", "Refresh failed.", "Aktualisierung fehlgeschlagen.", "Yenileme başarısız.", "Не удалось обновить.", "刷新失败。"); isError = true }
                                 busy = false
                             }
                         },
@@ -4017,8 +4018,8 @@ private fun SupabaseAccountCard() {
                             scope.launch {
                                 busy = true
                                 auth.signOut()
-                                    .onSuccess { session = null; message = "Déconnexion effectuée."; isError = false }
-                                    .onFailure { message = it.message ?: "Déconnexion impossible."; isError = true }
+                                    .onSuccess { session = null; message = localizedUiText(currentLang, "Déconnexion effectuée.", "Signed out.", "Abgemeldet.", "Oturum kapatıldı.", "Вы вышли из аккаунта.", "已退出登录。"); isError = false }
+                                    .onFailure { message = it.message ?: localizedUiText(currentLang, "Déconnexion impossible.", "Could not sign out.", "Abmelden nicht möglich.", "Oturum kapatılamadı.", "Не удалось выйти из аккаунта.", "无法退出登录。"); isError = true }
                                 busy = false
                             }
                         },
@@ -4144,17 +4145,17 @@ private fun SupabaseAccountCard() {
                                         registration.onSuccess { id ->
                                             if (isInitialR5) {
                                                 profilePrefs.edit().putString("cloud_alliance_id", id).apply()
-                                                message = "Compte connecté. Espace créé : tu es directement R5."
+                                                message = localizedUiText(currentLang, "Compte connecté. Espace créé : tu es directement R5.", "Account connected. Workspace created: you are now R5.", "Konto verbunden. Bereich erstellt: Du bist jetzt R5.", "Hesap bağlandı. Alan oluşturuldu: artık R5'sin.", "Аккаунт подключён. Пространство создано: теперь вы R5.", "账户已连接。空间已创建：你现在是 R5。")
                                             } else {
-                                                message = "Compte connecté. Demande envoyée aux R4/R5 de ${savedAlliance.allianceName}."
+                                                message = localizedUiText(currentLang, "Compte connecté. Demande envoyée aux R4/R5 de ${savedAlliance.allianceName}.", "Account connected. Request sent to the R4/R5 officers of ${savedAlliance.allianceName}.", "Konto verbunden. Anfrage an die R4/R5-Offiziere von ${savedAlliance.allianceName} gesendet.", "Hesap bağlandı. ${savedAlliance.allianceName} ittifakının R4/R5 yetkililerine istek gönderildi.", "Аккаунт подключён. Запрос отправлен офицерам R4/R5 альянса ${savedAlliance.allianceName}.", "账户已连接。申请已发送给 ${savedAlliance.allianceName} 联盟的 R4/R5 管理员。")
                                             }
                                         }.onFailure {
-                                            message = "Compte connecté. Profil conservé ; inscription d'alliance impossible : ${it.message ?: "vérifie le serveur et le tag"}"
+                                            message = localizedUiText(currentLang, "Compte connecté. Profil conservé ; inscription d'alliance impossible : ${it.message ?: "vérifie le serveur et le tag"}", "Account connected. Profile saved; alliance registration failed: ${it.message ?: "check the server and tag"}", "Konto verbunden. Profil gespeichert; Allianzregistrierung fehlgeschlagen: ${it.message ?: "Server und Tag prüfen"}", "Hesap bağlandı. Profil korundu; ittifak kaydı başarısız: ${it.message ?: "sunucuyu ve etiketi kontrol et"}", "Аккаунт подключён. Профиль сохранён; не удалось зарегистрировать альянс: ${it.message ?: "проверьте сервер и тег"}", "账户已连接。档案已保留；联盟注册失败：${it.message ?: "请检查服务器和标签"}")
                                             isError = true
                                         }
                                     }
                                 }.onFailure {
-                                    message = it.message ?: "Une erreur est survenue."
+                                    message = it.message ?: localizedUiText(currentLang, "Une erreur est survenue.", "An error occurred.", "Ein Fehler ist aufgetreten.", "Bir hata oluştu.", "Произошла ошибка.", "发生错误。")
                                     isError = true
                                 }
                                 busy = false
@@ -4856,6 +4857,7 @@ private fun notifyAllianceJoinRequests(context: Context, count: Int) {
 
 @Composable
 private fun AllianceCloudControls(server: String, allianceName: String) {
+    val currentLang = LocalAssistantLanguage.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val auth = remember(context) { SupabaseAuthRepository(context) }
@@ -4938,11 +4940,11 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
                                     .onSuccess { id ->
                                         allianceId = id
                                         prefs.edit().putString("cloud_alliance_id", id).apply()
-                                        message = "Alliance créée en ligne. Tu es enregistré comme R5."
+                                        message = localizedUiText(currentLang, "Alliance créée en ligne. Tu es enregistré comme R5.", "Alliance created online. You are registered as R5.", "Allianz online erstellt. Du bist als R5 registriert.", "İttifak çevrimiçi oluşturuldu. R5 olarak kaydedildin.", "Альянс создан онлайн. Вы зарегистрированы как R5.", "联盟已在线创建。你已登记为 R5。")
                                         isError = false
                                     }
                                     .onFailure {
-                                        message = it.message ?: "Création impossible."
+                                        message = it.message ?: localizedUiText(currentLang, "Création impossible.", "Could not create.", "Erstellen nicht möglich.", "Oluşturulamadı.", "Не удалось создать.", "无法创建。")
                                         isError = true
                                     }
                                 busy = false
@@ -5018,11 +5020,11 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
                                 auth.createAllianceInvite(allianceId, 105)
                                     .onSuccess {
                                         inviteCode = it
-                                        message = "Code créé. Transmets-le uniquement aux membres de ton alliance."
+                                        message = localizedUiText(currentLang, "Code créé. Transmets-le uniquement aux membres de ton alliance.", "Code created. Share it only with members of your alliance.", "Code erstellt. Teile ihn nur mit Mitgliedern deiner Allianz.", "Kod oluşturuldu. Yalnızca ittifak üyelerinle paylaş.", "Код создан. Передавайте его только участникам своего альянса.", "邀请码已创建。请仅与联盟成员分享。")
                                         isError = false
                                     }
                                     .onFailure {
-                                        message = it.message ?: "Création du code impossible."
+                                        message = it.message ?: localizedUiText(currentLang, "Création du code impossible.", "Could not create the code.", "Code konnte nicht erstellt werden.", "Kod oluşturulamadı.", "Не удалось создать код.", "无法创建邀请码。")
                                         isError = true
                                     }
                                 busy = false
@@ -5058,11 +5060,11 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
                                     allianceId = id
                                     prefs.edit().putString("cloud_alliance_id", id).apply()
                                     inviteCode = ""
-                                    message = "Invitation acceptée. Ton compte a rejoint l'alliance."
+                                    message = localizedUiText(currentLang, "Invitation acceptée. Ton compte a rejoint l'alliance.", "Invitation accepted. Your account has joined the alliance.", "Einladung angenommen. Dein Konto ist der Allianz beigetreten.", "Davet kabul edildi. Hesabın ittifaka katıldı.", "Приглашение принято. Ваш аккаунт вступил в альянс.", "邀请已接受。你的账户已加入联盟。")
                                     isError = false
                                 }
                                 .onFailure {
-                                    message = it.message ?: "Invitation refusée."
+                                    message = it.message ?: localizedUiText(currentLang, "Invitation refusée.", "Invitation declined.", "Einladung abgelehnt.", "Davet reddedildi.", "Приглашение отклонено.", "邀请已拒绝。")
                                     isError = true
                                 }
                             busy = false
@@ -5119,6 +5121,7 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
 
 @Composable
 private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
+    val currentLang = LocalAssistantLanguage.current
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val prefs = remember(context) { context.getSharedPreferences("lands_of_jail_account_v1", Context.MODE_PRIVATE) }
@@ -5153,7 +5156,7 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
                     }
                 }
                 requests = updated
-            }.onFailure { message = it.message ?: "Chargement des propositions impossible."; isError = true }
+            }.onFailure { message = it.message ?: localizedUiText(currentLang, "Chargement des propositions impossible.", "Could not load suggestions.", "Vorschläge konnten nicht geladen werden.", "Öneriler yüklenemedi.", "Не удалось загрузить предложения.", "无法加载建议。"); isError = true }
             loading = false
         }
     }
@@ -5243,11 +5246,11 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
                                     ).onSuccess {
                                         title = ""
                                         description = ""
-                                        message = "Proposition envoyée. Tu recevras la réponse dans cette rubrique."
+                                        message = localizedUiText(currentLang, "Proposition envoyée. Tu recevras la réponse dans cette rubrique.", "Suggestion sent. You will receive the response in this section.", "Vorschlag gesendet. Du erhältst die Antwort in diesem Bereich.", "Öneri gönderildi. Yanıtı bu bölümde alacaksın.", "Предложение отправлено. Ответ появится в этом разделе.", "建议已发送。你将在此栏目收到回复。")
                                         isError = false
                                         refresh()
                                     }.onFailure {
-                                        message = it.message ?: "Envoi impossible."
+                                        message = it.message ?: localizedUiText(currentLang, "Envoi impossible.", "Could not send.", "Senden nicht möglich.", "Gönderilemedi.", "Не удалось отправить.", "无法发送。")
                                         isError = true
                                     }
                                     sending = false
@@ -5350,13 +5353,13 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
                             reviewBusy = true
                             auth.reviewAppImprovement(item.id, status, reply)
                                 .onSuccess {
-                                    message = "Réponse enregistrée et visible par le joueur."
+                                    message = localizedUiText(currentLang, "Réponse enregistrée et visible par le joueur.", "Reply saved and visible to the player.", "Antwort gespeichert und für den Spieler sichtbar.", "Yanıt kaydedildi ve oyuncu tarafından görülebilir.", "Ответ сохранён и виден игроку.", "回复已保存，玩家可以查看。")
                                     isError = false
                                     selected = null
                                     refresh()
                                 }
                                 .onFailure {
-                                    message = it.message ?: "Enregistrement impossible."
+                                    message = it.message ?: localizedUiText(currentLang, "Enregistrement impossible.", "Could not save.", "Speichern nicht möglich.", "Kaydedilemedi.", "Не удалось сохранить.", "无法保存。")
                                     isError = true
                                 }
                             reviewBusy = false
