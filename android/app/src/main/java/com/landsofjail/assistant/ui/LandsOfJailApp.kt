@@ -4537,7 +4537,8 @@ private fun AllianceScreen(
                         Text(member.playerName, fontWeight = FontWeight.SemiBold)
                         Text(member.rank.labelFor(language), color = Color(0xFFFFB36B), style = MaterialTheme.typography.labelSmall)
                     }
-                    Text(localizedAppText("Puissance : ${member.powerText.ifBlank { localizedAppText("non renseignée") }}"), style = MaterialTheme.typography.bodySmall)
+                    val memberPowerLabel = localizedAppText("Puissance :") + " " + member.powerText.ifBlank { localizedAppText("non renseignée") }
+                    Text(memberPowerLabel, style = MaterialTheme.typography.bodySmall)
                     if (member.heroSkillSummary.isNotBlank()) Text(localizedAppText("Héros / compétences : ${member.heroSkillSummary}"), style = MaterialTheme.typography.bodySmall)
                     if (member.robotSummary.isNotBlank()) Text(localizedAppText("Robot : ${member.robotSummary}"), style = MaterialTheme.typography.bodySmall)
                     if (cloudCanManageRanks && member.id in cloudMemberIds) {
