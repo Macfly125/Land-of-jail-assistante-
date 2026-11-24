@@ -181,6 +181,17 @@ enum class AdviceMode(
         labelZh = "黄金猎人",
         labelDe = "Goldjäger",
         labelEn = "Gold Hunter"
+    ),
+    GORILLA_LEGION(
+        apiId = "gorilla_legion",
+        searchKeyword = "gorilla legion",
+        wikiSlugs = listOf("/events/gorilla-legion/", "/events/"),
+        labelFr = "Légion de Gorilla",
+        labelTr = "Goril Lejyonu",
+        labelRu = "Легион горилл",
+        labelZh = "大猩猩军团",
+        labelDe = "Gorilla-Legion",
+        labelEn = "Gorilla Legion"
     );
 
     fun titleFor(lang: AppLanguage): String = when (lang) {
@@ -240,6 +251,14 @@ enum class AdviceMode(
             AppLanguage.ZH -> "将英雄碎片、技能书、军械材料与大型建筑升级留到活动窗口再集中使用。"
             AppLanguage.DE -> "Splitter, Skillbücher, Ausrüstungsmaterialien und große Ausbauten für Event-Tage aufsparen."
             AppLanguage.EN -> "Save hero shards, skill books, Arsenal materials and long upgrades exclusively for event milestone days."
+        },
+        GORILLA_LEGION -> when (lang) {
+            AppLanguage.FR -> "Vérifie le boss et le bonus affichés en jeu : le bonus du jour est amplifié de +1000 %. Seuls les compétences de héros, l'équipement exclusif et ce bonus comptent. Ratio communauté de départ : 0 % Shieldbearers / 10 % Bombers / 90 % Shooters ; compare plusieurs rapports et ajuste selon le boss."
+            AppLanguage.TR -> "Oyunda gösterilen gorili ve günlük bonusu kontrol edin: günün bonusu +%1000 artırılır. Yalnızca kahraman becerileri, özel ekipman ve günlük bonus etkilidir. Topluluk başlangıç oranı: %0 Shieldbearer / %10 Bomber / %90 Shooter; savaş raporlarını karşılaştırıp gorile göre ayarlayın."
+            AppLanguage.RU -> "Проверьте босса и дневной бонус в игре: бонус дня усилен на +1000 %. Учитываются только навыки героев, эксклюзивное снаряжение и бонус дня. Стартовая доля сообщества: 0 % Shieldbearers / 10 % Bombers / 90 % Shooters; сравнивайте несколько боевых отчётов и меняйте состав под босса."
+            AppLanguage.ZH -> "先确认游戏内显示的首领和每日加成：当日加成额外提高 1000%。只有英雄技能、专属装备和当日加成生效。社区起始比例：Shieldbearers 0% / Bombers 10% / Shooters 90%；比较多次战报，再按首领调整。"
+            AppLanguage.DE -> "Prüfe den angezeigten Gorilla und Tagesbonus im Spiel: Der Tagesbonus wird um +1000 % verstärkt. Es zählen nur Heldenfähigkeiten, exklusive Ausrüstung und der Tagesbonus. Community-Startverhältnis: 0 % Shieldbearers / 10 % Bombers / 90 % Shooters; mehrere Kampfberichte vergleichen und je Boss anpassen."
+            AppLanguage.EN -> "Check the in-game boss and daily bonus: that day's bonus is amplified by +1000%. Only hero skills, exclusive equipment and the daily bonus count. Community starting ratio: 0% Shieldbearers / 10% Bombers / 90% Shooters; compare several battle reports and adjust for the boss."
         }
     }
 }
