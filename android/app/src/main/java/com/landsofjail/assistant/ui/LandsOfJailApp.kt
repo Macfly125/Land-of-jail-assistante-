@@ -3691,33 +3691,61 @@ private fun ResourcesScreen(
                                     )
                                 }
                             }
+                            var currentLevelMenu by remember { mutableStateOf(false) }
+                            var currentProgressMenu by remember { mutableStateOf(false) }
+                            var targetLevelMenu by remember { mutableStateOf(false) }
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Column(Modifier.weight(1f)) {
                                     Text(resourceUiText(currentLang, "level"), style = MaterialTheme.typography.labelSmall)
-                                    OutlinedTextField(
-                                        value = fcCurrentLevel.toString(),
-                                        onValueChange = { fcCurrentLevel = (it.toIntOrNull() ?: 1).coerceIn(1, 9); if (fcTargetLevel <= fcCurrentLevel) fcTargetLevel = (fcCurrentLevel + 1).coerceAtMost(10) },
-                                        singleLine = true,
-                                        modifier = Modifier.fillMaxWidth()
-                                    )
+                                    Box {
+                                        OutlinedButton(onClick = { currentLevelMenu = true }, modifier = Modifier.fillMaxWidth()) {
+                                            Text(fcCurrentLevel.toString())
+                                        }
+                                        DropdownMenu(expanded = currentLevelMenu, onDismissRequest = { currentLevelMenu = false }) {
+                                            (1..9).forEach { level ->
+                                                DropdownMenuItem(
+                                                    text = { Text(level.toString()) },
+                                                    onClick = {
+                                                        fcCurrentLevel = level
+                                                        if (fcTargetLevel <= level) fcTargetLevel = (level + 1).coerceAtMost(10)
+                                                        currentLevelMenu = false
+                                                    }
+                                                )
+                                            }
+                                        }
+                                    }
                                 }
                                 Column(Modifier.weight(1f)) {
                                     Text(localizedUiText(currentLang, "Étapes terminées (0–4)", "Completed steps (0–4)", "Abgeschlossene Schritte (0–4)", "Tamamlanan aşama (0–4)", "Завершённые этапы (0–4)", "已完成阶段（0–4）"), style = MaterialTheme.typography.labelSmall)
-                                    OutlinedTextField(
-                                        value = fcCurrentProgress.toString(),
-                                        onValueChange = { fcCurrentProgress = (it.toIntOrNull() ?: 0).coerceIn(0, 4) },
-                                        singleLine = true,
-                                        modifier = Modifier.fillMaxWidth()
-                                    )
+                                    Box {
+                                        OutlinedButton(onClick = { currentProgressMenu = true }, modifier = Modifier.fillMaxWidth()) {
+                                            Text(fcCurrentProgress.toString())
+                                        }
+                                        DropdownMenu(expanded = currentProgressMenu, onDismissRequest = { currentProgressMenu = false }) {
+                                            (0..4).forEach { progress ->
+                                                DropdownMenuItem(
+                                                    text = { Text(progress.toString()) },
+                                                    onClick = { fcCurrentProgress = progress; currentProgressMenu = false }
+                                                )
+                                            }
+                                        }
+                                    }
                                 }
                                 Column(Modifier.weight(1f)) {
                                     Text(localizedUiText(currentLang, "Niveau cible", "Target level", "Zielstufe", "Hedef seviye", "Целевой уровень", "目标等级"), style = MaterialTheme.typography.labelSmall)
-                                    OutlinedTextField(
-                                        value = fcTargetLevel.toString(),
-                                        onValueChange = { fcTargetLevel = (it.toIntOrNull() ?: (fcCurrentLevel + 1)).coerceIn(fcCurrentLevel + 1, 10) },
-                                        singleLine = true,
-                                        modifier = Modifier.fillMaxWidth()
-                                    )
+                                    Box {
+                                        OutlinedButton(onClick = { targetLevelMenu = true }, modifier = Modifier.fillMaxWidth()) {
+                                            Text(fcTargetLevel.toString())
+                                        }
+                                        DropdownMenu(expanded = targetLevelMenu, onDismissRequest = { targetLevelMenu = false }) {
+                                            ((fcCurrentLevel + 1)..10).forEach { level ->
+                                                DropdownMenuItem(
+                                                    text = { Text(level.toString()) },
+                                                    onClick = { fcTargetLevel = level; targetLevelMenu = false }
+                                                )
+                                            }
+                                        }
+                                    }
                                 }
                             }
                             OutlinedTextField(
