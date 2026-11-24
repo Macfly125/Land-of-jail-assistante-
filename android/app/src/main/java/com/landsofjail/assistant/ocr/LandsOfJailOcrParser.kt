@@ -134,7 +134,7 @@ object LandsOfJailOcrParser {
 
             // Robots connus : ne créer une fiche que si le nom exact est lisible.
             for (robotName in knownRobotNames) {
-                val normalizedLine = normalizeHeroText(line)
+                val normalizedLine = " ${normalizeHeroText(line)} "
                 val normalizedRobot = normalizeHeroText(robotName)
                 if (normalizedLine.contains(" $normalizedRobot ") && seenRobotKeys.add(normalizedRobot)) {
                     val context = lines.subList(index, minOf(lines.size, index + 4)).joinToString(" ")
