@@ -31,7 +31,8 @@ data class GiftCodeSnapshot(
 
 object GiftCodeRepository {
     const val XLAB_URL = "https://lojxlab.com/promo-codes/"
-    const val GUIDE_URL = "https://guideloj.com/en/codes"
+    const val GUIDE_URL = "https://guideloj.com/fr/codes"
+    const val GUIDE_HOME_URL = "https://guideloj.com/fr/home"
     const val DISCORD_URL = "https://discord.gg/YGJqgcGpn"
     const val REDEEM_URL = "https://www.gamermall.net/global/loj/cdkey"
 
@@ -56,14 +57,14 @@ object GiftCodeRepository {
         val entries = buildList {
             officialCodes.forEach {
                 val rewards = when (it.lowercase(Locale.ROOT)) {
-                    "vip777" -> "3 000 diamants, éclats de héros épiques, pièces d’équipement, coffres de ressources et endurance."
-                    "loj3648" -> "3 000 diamants, 3 éclats légendaires et accélérations de construction, entraînement et recherche."
-                    "lojnow" -> "3 000 diamants, 20 cartes d’approvisionnement avancées, EXP héros, coffres de ressources et accélérations."
-                    "loj1478" -> "3 000 diamants, engrenages de précision, EXP héros, accélérations de marche et coffres de ressources."
-                    "loj777" -> "1 000 diamants, éclats légendaires et accélérations."
-                    "loj888" -> "1 000 diamants, éclats épiques, pièces d’équipement, coffres de ressources et endurance."
-                    "loj5791" -> "1 000 diamants, engrenages de précision, coffres de ressources et accélérations."
-                    else -> "1 000 diamants, cartes d’approvisionnement avancées, coffres de ressources et accélérations."
+                    "vip777" -> "3 000 diamants, 10 fragments de héros épiques, 30 pièces d’équipement (100 EXP), 50 coffres de ressources au choix II et 30 objets d’endurance (10)."
+                    "loj3648" -> "3 000 diamants, 3 fragments de héros légendaires et 4 accélérateurs (1 h) de construction, d’entraînement et de recherche."
+                    "lojnow" -> "3 000 diamants, 20 cartes de ravitaillement avancées, 10 objets d’EXP héros (10 000), 30 coffres de ressources au choix II et 5 accélérateurs universels (1 h)."
+                    "loj1478" -> "3 000 diamants, 10 équipements de précision, 10 objets d’EXP héros (10 000), 5 accélérateurs de marche II et 30 coffres de ressources au choix II."
+                    "loj777" -> "1 000 diamants, 2 fragments de héros légendaires, 2 accélérateurs (1 h) de construction, d’entraînement et de recherche."
+                    "loj888" -> "1 000 diamants, 5 fragments de héros épiques, 5 pièces d’équipement (100 EXP), 10 coffres de ressources au choix II et 15 objets d’endurance (10)."
+                    "loj5791" -> "1 000 diamants, 3 équipements de précision, 10 coffres de ressources au choix II et 5 accélérateurs universels (1 h)."
+                    else -> "1 000 diamants, 5 cartes de ravitaillement avancées, 10 coffres de ressources au choix II et 3 accélérateurs universels (1 h)."
                 }
                 add(GiftCodeEntry(it, "OFFICIAL_LISTED", "LOJ XLab · Discord officiel #gift-codes",
                     "21/09/2026", "01/11/2026", reward = rewards,
@@ -109,7 +110,8 @@ object GiftCodeRepository {
 
         val sources = listOf(
             "LOJ XLab" to XLAB_URL,
-            "GuideLOJ" to GUIDE_URL,
+            "GuideLOJ FR · codes" to GUIDE_URL,
+            "GuideLOJ FR · accueil" to GUIDE_HOME_URL,
             "Pocket Gamer" to "https://www.pocketgamer.com/lands-of-jail/codes/",
             "MrGuider" to "https://www.mrguider.org/codes/lands-of-jail-codes/"
         )
@@ -124,7 +126,7 @@ object GiftCodeRepository {
                 errors += "$sourceName : ${result.exceptionOrNull()?.message ?: "source inaccessible"}"
                 continue
             }
-            val checkedDate = Regex("(?i)(?:checked|updated|last checked)\\s*[:\\-]?\\s*(?:on\\s*)?([0-9]{1,2}\\s+[A-Za-z]+\\s+20[0-9]{2}|[A-Za-z]+\\s+[0-9]{1,2},?\\s+20[0-9]{2})")
+            val checkedDate = Regex("(?i)(?:last checked|checked|updated|derni[eè]re v[eé]rification|derni[eè]re mise [àa] jour|mis[e] [àa] jour)\\s*[:\\-]?\\s*(?:on\\s*)?([0-9]{1,2}[./-][0-9]{1,2}[./-]20[0-9]{2}|[0-9]{1,2}\\s+[A-Za-zÀ-ÿ]+\\s+20[0-9]{2}|[A-Za-zÀ-ÿ]+\\s+[0-9]{1,2},?\\s+20[0-9]{2})")
                 .find(stripTags(html))?.groupValues?.getOrNull(1).orEmpty()
             val codeMatches = Regex("(?is)<code[^>]*>(.*?)</code>").findAll(html)
             for (match in codeMatches) {
@@ -134,7 +136,7 @@ object GiftCodeRepository {
                 val existing = found[key]
                 if (existing != null) {
                     val mergedSource = (existing.source.split(" · ") + sourceName).distinct().joinToString(" · ")
-                    found[key] = existing.copy(source = mergedSource, lastChecked = checkedDate.ifBlank { existing.lastChecked })
+                    found[key] = existing.copy(source = mergedSource, lastChecked = newerDate(existing.lastChecked, checkedDate))
                 } else {
                     val contextStart = (match.range.first - 220).coerceAtLeast(0)
                     val contextEnd = (match.range.last + 420).coerceAtMost(html.length)
@@ -167,6 +169,26 @@ object GiftCodeRepository {
         } else {
             GiftCodeSnapshot(updatedAt = now, sourceErrors = errors, entries = merged)
         }
+    }
+
+    private fun newerDate(existing: String, candidate: String): String {
+        if (candidate.isBlank()) return existing
+        if (existing.isBlank()) return candidate
+        fun millis(value: String): Long? = runCatching {
+            val patterns = listOf(
+                java.time.format.DateTimeFormatter.ofPattern("d/M/yyyy", Locale.FRENCH),
+                java.time.format.DateTimeFormatter.ofPattern("d.M.yyyy", Locale.FRENCH),
+                java.time.format.DateTimeFormatter.ofPattern("d-M-yyyy", Locale.FRENCH),
+                java.time.format.DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.ENGLISH),
+                java.time.format.DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.ENGLISH)
+            )
+            patterns.firstNotNullOfOrNull { pattern ->
+                runCatching { java.time.LocalDate.parse(value.trim(), pattern).toEpochDay() }.getOrNull()
+            }
+        }.getOrNull()
+        val oldValue = millis(existing)
+        val newValue = millis(candidate)
+        return if (oldValue != null && newValue != null && newValue > oldValue) candidate else existing
     }
 
     private fun fetch(address: String): String {
