@@ -3611,14 +3611,14 @@ private fun ResourcesScreen(
                     "forticlad_lab" to (listOf(150, 200, 250, 300, 160, 190, 220, 270, 270) to listOf(0, 0, 0, 0, 10, 15, 22, 30, 72))
                 )
                 val buildingLabels = listOf(
-                    "warden_office" to "🏛️ Bureau du directeur",
-                    "shield_barracks" to "🛡️ Caserne Shieldbearer",
-                    "bomber_barracks" to "💥 Caserne Bomber",
-                    "shooter_barracks" to "🎯 Caserne Shooter",
-                    "comms_center" to "📡 Centre de communications",
-                    "command_center" to "🚩 Centre de commandement",
-                    "medical_station" to "➕ Poste médical",
-                    "forticlad_lab" to "🧪 Laboratoire Forticlad"
+                    "warden_office" to "🏛️ " + localizedUiText(currentLang, "Bureau du directeur", "Warden Office", "Direktorbüro", "Müdür Ofisi", "Кабинет надзирателя", "典狱长办公室"),
+                    "shield_barracks" to "🛡️ " + localizedUiText(currentLang, "Caserne Shieldbearer", "Shieldbearer Barracks", "Schildträger-Kaserne", "Kalkanlı Kışlası", "Казарма щитоносцев", "盾卫兵营"),
+                    "bomber_barracks" to "💥 " + localizedUiText(currentLang, "Caserne Bomber", "Bomber Barracks", "Bomber-Kaserne", "Bombacı Kışlası", "Казарма бомбардировщиков", "轰炸兵营"),
+                    "shooter_barracks" to "🎯 " + localizedUiText(currentLang, "Caserne Shooter", "Shooter Barracks", "Schützen-Kaserne", "Nişancı Kışlası", "Казарма стрелков", "射手兵营"),
+                    "comms_center" to "📡 " + localizedUiText(currentLang, "Centre de communications", "Communication Center", "Kommunikationszentrum", "İletişim Merkezi", "Центр связи", "通讯中心"),
+                    "command_center" to "🚩 " + localizedUiText(currentLang, "Centre de commandement", "Command Center", "Kommandozentrale", "Komuta Merkezi", "Командный центр", "指挥中心"),
+                    "medical_station" to "➕ " + localizedUiText(currentLang, "Poste médical", "Medical Station", "Sanitätsstation", "Sağlık İstasyonu", "Медицинский пункт", "医疗站"),
+                    "forticlad_lab" to "🧪 " + localizedUiText(currentLang, "Laboratoire Forticlad", "Forticlad Lab", "Forticlad-Labor", "Forticlad Laboratuvarı", "Лаборатория Forticlad", "Forticlad 实验室")
                 )
                 val selectedCosts = fcCosts[fcBuildingKey] ?: fcCosts.getValue("warden_office")
                 val startStep = (fcCurrentLevel - 1) * 5 + fcCurrentProgress
@@ -3637,7 +3637,7 @@ private fun ResourcesScreen(
                 item {
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Text("🔷 Calculateur Forticlad · 8 bâtiments", fontWeight = FontWeight.Bold)
+                            Text("🔷 " + localizedUiText(currentLang, "Calculateur Forticlad · 8 bâtiments", "Forticlad calculator · 8 buildings", "Forticlad-Rechner · 8 Gebäude", "Forticlad hesaplayıcı · 8 bina", "Калькулятор Forticlad · 8 зданий", "Forticlad 计算器 · 8 栋建筑"), fontWeight = FontWeight.Bold)
                             Text(
                                 localizedUiText(currentLang, "Chaque niveau comporte 5 étapes. Les coûts ci-dessous sont par étape et proviennent des tableaux communautaires GuideLOJ/LOJ Wiki ; vérifie toujours la valeur en jeu avant de dépenser.", "Each level has 5 steps. Costs below are per step and come from community GuideLOJ/LOJ Wiki tables; always verify in-game before spending.", "Jede Stufe hat 5 Schritte. Die Kosten stammen aus Community-Tabellen von GuideLOJ/LOJ Wiki; vor dem Ausgeben im Spiel prüfen.", "Her seviyede 5 aşama vardır. Maliyetler topluluk GuideLOJ/LOJ Wiki tablolarındandır; harcamadan önce oyunda doğrula.", "Каждый уровень состоит из 5 этапов. Стоимость взята из таблиц сообщества GuideLOJ/LOJ Wiki; перед тратой проверьте в игре.", "每级有 5 个阶段。以下每阶段成本来自玩家社区 GuideLOJ/LOJ Wiki 数据；消耗前请在游戏中核对。"),
                                 style = MaterialTheme.typography.bodySmall,
@@ -3721,13 +3721,13 @@ private fun ResourcesScreen(
                 }
                 item {
                     val systems = listOf(
-                        Triple("🛡️", "Arsenal", "Niv. 15 · Équipement héros : EXP, aimants, bobines potentielles et engrenages de précision"),
-                        Triple("🧪", "Laboratoire", "Niv. 9 · Recherches Logistique, Économie et Militaire"),
-                        Triple("🤖", "Hangar d’armure de puissance", "Niv. 25 · Armure du prisonnier, données d’armure, modules et noyaux I–V"),
-                        Triple("🛰️", "Centre cosmique (Cosmos Hub)", "Niv. 20 · Satellites, disques de données et puces"),
-                        Triple("🏰", "Donjon · Bureau et surveillance", "Prisonniers fugitifs / criminels et salles du donjon"),
-                        Triple("⚡", "Station d’énergie Forticlad", "Niv. 30 · Production quotidienne de noyaux Forticlad"),
-                        Triple("🔬", "Laboratoire Forticlad", "Niv. 30 · Technologie Forticlad et Hyperalliage pour les troupes")
+                        Triple("🛡️", localizedUiText(currentLang, "Arsenal", "Arsenal", "Arsenal", "Cephanelik", "Арсенал", "军械库"), localizedUiText(currentLang, "Niv. 15 · Équipement héros : EXP, aimants, bobines potentielles et engrenages de précision", "Lv. 15 · Hero equipment: EXP, Magnets, Potential Coils and Precision Gears", "Stufe 15 · Heldenausrüstung: EXP, Magnete, Potenzialspulen und Präzisionszahnräder", "Sv. 15 · Kahraman ekipmanı: EXP, Mıknatıs, Potansiyel Bobin ve Hassas Dişli", "Ур. 15 · Снаряжение героев: опыт, магниты, потенциальные катушки и точные шестерни", "15级 · 英雄装备：经验、磁铁、潜能线圈和精密齿轮")),
+                        Triple("🧪", localizedUiText(currentLang, "Laboratoire", "Lab", "Labor", "Laboratuvar", "Лаборатория", "实验室"), localizedUiText(currentLang, "Niv. 9 · Recherches Logistique, Économie et Militaire", "Lv. 9 · Logistics, Economy and Military research", "Stufe 9 · Forschung in Logistik, Wirtschaft und Militär", "Sv. 9 · Lojistik, Ekonomi ve Askerî araştırmalar", "Ур. 9 · Исследования логистики, экономики и военного дела", "9级 · 后勤、经济和军事研究")),
+                        Triple("🤖", localizedUiText(currentLang, "Hangar d’armure de puissance", "Power Armor Hangar", "Power-Armor-Hangar", "Güç Zırhı Hangarı", "Ангар силовой брони", "动力装甲机库"), localizedUiText(currentLang, "Niv. 25 · Armure du prisonnier, données d’armure, modules et noyaux I–V", "Lv. 25 · Prisoner Armor, Armor Data, modules and Core I–V", "Stufe 25 · Gefangenenrüstung, Rüstungsdaten, Module und Kerne I–V", "Sv. 25 · Mahkûm Zırhı, zırh verisi, modüller ve Çekirdek I–V", "Ур. 25 · Броня заключённого, данные брони, модули и ядра I–V", "25级 · 囚犯动力装甲、装甲数据、模块和核心 I–V")),
+                        Triple("🛰️", localizedUiText(currentLang, "Centre cosmique (Cosmos Hub)", "Cosmos Hub", "Kosmos-Zentrum", "Kozmos Merkezi", "Космический центр", "宇宙中心"), localizedUiText(currentLang, "Niv. 20 · Satellites, disques de données et puces", "Lv. 20 · Satellites, Data Disks and chips", "Stufe 20 · Satelliten, Datendisks und Chips", "Sv. 20 · Uydular, Veri Diskleri ve çipler", "Ур. 20 · Спутники, диски данных и чипы", "20级 · 卫星、数据盘和芯片")),
+                        Triple("🏰", localizedUiText(currentLang, "Donjon · Bureau et surveillance", "Dungeon · Office and Surveillance", "Verlies · Büro und Überwachung", "Zindan · Ofis ve Gözetim", "Подземелье · офис и наблюдение", "地牢 · 办公室与监控"), localizedUiText(currentLang, "Suivi des prisonniers fugitifs et criminels, avec les salles du donjon", "Track fugitive and criminal prisoners and dungeon rooms", "Flüchtige und kriminelle Gefangene sowie Verliesräume verfolgen", "Kaçak ve suçlu mahkûmları ve zindan odalarını takip et", "Учёт беглых и преступных заключённых и помещений подземелья", "追踪逃犯、罪犯囚犯及地牢房间")),
+                        Triple("⚡", localizedUiText(currentLang, "Station d’énergie Forticlad", "Forticlad Energy Station", "Forticlad-Energiestation", "Forticlad Enerji İstasyonu", "Энергостанция Forticlad", "Forticlad 能源站"), localizedUiText(currentLang, "Niv. 30 · Production quotidienne de noyaux Forticlad", "Lv. 30 · Daily Forticlad Core supply", "Stufe 30 · Tägliche Versorgung mit Forticlad-Kernen", "Sv. 30 · Günlük Forticlad Çekirdeği üretimi", "Ур. 30 · Ежедневная выдача ядер Forticlad", "30级 · 每日供应 Forticlad 核心")),
+                        Triple("🔬", localizedUiText(currentLang, "Laboratoire Forticlad", "Forticlad Lab", "Forticlad-Labor", "Forticlad Laboratuvarı", "Лаборатория Forticlad", "Forticlad 实验室"), localizedUiText(currentLang, "Niv. 30 · Technologie Forticlad et Hyperalliage pour les troupes", "Lv. 30 · Forticlad Technology and Hyperalloy for troops", "Stufe 30 · Forticlad-Technologie und Hyperlegierung für Truppen", "Sv. 30 · Birlikler için Forticlad Teknolojisi ve Hiperalaşım", "Ур. 30 · Технология Forticlad и гиперсплав для войск", "30级 · 部队 Forticlad 科技和超合金"))
                     )
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         systems.forEach { (icon, name, description) ->
