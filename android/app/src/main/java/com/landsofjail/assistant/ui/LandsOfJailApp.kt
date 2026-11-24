@@ -378,6 +378,125 @@ private fun localizedAppText(source: String): String {
             "Enregistrement impossible." to "保存失败。", "Enregistrement…" to "正在保存…", "Envoyer la réponse" to "发送回复"
         )
     }
+    val extraFragments = when (language) {
+        AppLanguage.FR -> emptyMap()
+        AppLanguage.EN -> mapOf(
+            "Lands of Jail détecté au premier plan." to "Lands of Jail detected in the foreground.",
+            "héros référencés" to "heroes listed", " héros suivis sur ton compte" to " heroes tracked on your account",
+            "Champs précis à vérifier :" to "Specific fields to verify:", "Champs à vérifier :" to "Fields to verify:",
+            "Équipement" to "Equipment", "Type à confirmer" to "Type to confirm", "Incertain" to "Uncertain",
+            "Rareté :" to "Rarity:", "Saison :" to "Season:", "Classe :" to "Class:",
+            "Puissance actuelle :" to "Current power:", "Non capturée" to "Not captured",
+            "affichage tronqué" to "truncated display",
+            "Règle d'or dès Niv. 9 : gardez le Centre de communications à Niv." to "Golden rule from Lv. 9: keep the Communications Center at Lv.",
+            "Total 1★→5★ : 1 075 éclats (+10 recrutement). Seuil 4★ recommandé : 475 éclats." to "Total 1★→5★: 1,075 shards (+10 recruitment). Recommended 4★ threshold: 475 shards.",
+            "Héros du profil — compétences correspondantes" to "Profile heroes — matching skills",
+            "Robots du profil — correspondances à vérifier" to "Profile robots — matches to verify",
+            "Mot de passe (8 caractères minimum)" to "Password (at least 8 characters)",
+            "Profil :" to "Profile:", " avec compétence War identifiée · " to " with identified War skill · ",
+            " héros · " to " heroes · ", " robots · " to " robots · ",
+            " avec bonus ou compétence renseigné." to " with a bonus or skill recorded.",
+            "Toi :" to "You:", " héros analysés" to " heroes analyzed",
+            "Mise à jour…" to "Updating…",
+            "Les profils synchronisés sont chargés depuis le cloud selon les droits de visibilité du rang dans l'alliance. Les ajouts manuels effectués ici restent enregistrés localement sur cet appareil." to "Synced profiles are loaded from the cloud according to alliance-rank visibility permissions. Manual additions made here remain stored locally on this device.",
+            "Héros et compétences War (copier les infos)" to "Heroes and War skills (paste information)",
+            "Actualiser le lien cloud après connexion" to "Refresh the cloud link after signing in",
+            "Création…" to "Creating…", "Génération…" to "Generating…"
+        )
+        AppLanguage.DE -> mapOf(
+            "Lands of Jail détecté au premier plan." to "Lands of Jail im Vordergrund erkannt.",
+            "héros référencés" to "Helden im Katalog", " héros suivis sur ton compte" to " Helden in deinem Konto verfolgt",
+            "Champs précis à vérifier :" to "Zu prüfende Felder:", "Champs à vérifier :" to "Zu prüfende Felder:",
+            "Équipement" to "Ausrüstung", "Type à confirmer" to "Typ bestätigen", "Incertain" to "Unsicher",
+            "Rareté :" to "Seltenheit:", "Saison :" to "Saison:", "Classe :" to "Klasse:",
+            "Puissance actuelle :" to "Aktuelle Macht:", "Non capturée" to "Nicht erfasst",
+            "affichage tronqué" to "abgeschnittene Anzeige",
+            "Règle d'or dès Niv. 9 : gardez le Centre de communications à Niv." to "Goldene Regel ab Stufe 9: Kommunikationszentrum auf Stufe halten",
+            "Total 1★→5★ : 1 075 éclats (+10 recrutement). Seuil 4★ recommandé : 475 éclats." to "Gesamt 1★→5★: 1.075 Splitter (+10 Rekrutierungen). Empfohlene 4★-Schwelle: 475 Splitter.",
+            "Héros du profil — compétences correspondantes" to "Profilhelden — passende Fähigkeiten",
+            "Robots du profil — correspondances à vérifier" to "Profil-Roboter — Übereinstimmungen prüfen",
+            "Mot de passe (8 caractères minimum)" to "Passwort (mindestens 8 Zeichen)",
+            "Profil :" to "Profil:", " avec compétence War identifiée · " to " mit erkannter War-Fähigkeit · ",
+            " héros · " to " Helden · ", " robots · " to " Roboter · ",
+            " avec bonus ou compétence renseigné." to " mit eingetragenem Bonus oder Fähigkeit.",
+            "Toi :" to "Du:", " héros analysés" to " analysierte Helden",
+            "Mise à jour…" to "Wird aktualisiert…",
+            "Les profils synchronisés sont chargés depuis le cloud selon les droits de visibilité du rang dans l'alliance. Les ajouts manuels effectués ici restent enregistrés localement sur cet appareil." to "Synchronisierte Profile werden gemäß den Sichtbarkeitsrechten des Allianzrangs aus der Cloud geladen. Manuelle Ergänzungen bleiben lokal auf diesem Gerät gespeichert.",
+            "Héros et compétences War (copier les infos)" to "Helden und War-Fähigkeiten (Informationen einfügen)",
+            "Actualiser le lien cloud après connexion" to "Cloud-Verknüpfung nach der Anmeldung aktualisieren",
+            "Création…" to "Wird erstellt…", "Génération…" to "Wird generiert…"
+        )
+        AppLanguage.TR -> mapOf(
+            "Lands of Jail détecté au premier plan." to "Lands of Jail ön planda algılandı.",
+            "héros référencés" to "kayıtlı kahraman", " héros suivis sur ton compte" to " hesabında takip edilen kahraman",
+            "Champs précis à vérifier :" to "Kontrol edilecek alanlar:", "Champs à vérifier :" to "Kontrol edilecek alanlar:",
+            "Équipement" to "Ekipman", "Type à confirmer" to "Doğrulanacak tür", "Incertain" to "Belirsiz",
+            "Rareté :" to "Nadirlik:", "Saison :" to "Sezon:", "Classe :" to "Sınıf:",
+            "Puissance actuelle :" to "Mevcut güç:", "Non capturée" to "Yakalanmadı",
+            "affichage tronqué" to "kesilmiş görüntü",
+            "Règle d'or dès Niv. 9 : gardez le Centre de communications à Niv." to "9. seviyeden itibaren altın kural: İletişim Merkezi seviyesini şu düzeyde tutun:",
+            "Total 1★→5★ : 1 075 éclats (+10 recrutement). Seuil 4★ recommandé : 475 éclats." to "Toplam 1★→5★: 1.075 parça (+10 işe alım). Önerilen 4★ eşiği: 475 parça.",
+            "Héros du profil — compétences correspondantes" to "Profil kahramanları — eşleşen beceriler",
+            "Robots du profil — correspondances à vérifier" to "Profil robotları — kontrol edilecek eşleşmeler",
+            "Mot de passe (8 caractères minimum)" to "Şifre (en az 8 karakter)",
+            "Profil :" to "Profil:", " avec compétence War identifiée · " to " tanımlanan War becerisiyle · ",
+            " héros · " to " kahraman · ", " robots · " to " robot · ",
+            " avec bonus ou compétence renseigné." to " bonusu veya becerisi girilmiş.",
+            "Toi :" to "Sen:", " héros analysés" to " analiz edilen kahraman",
+            "Mise à jour…" to "Güncelleniyor…",
+            "Les profils synchronisés sont chargés depuis le cloud selon les droits de visibilité du rang dans l'alliance. Les ajouts manuels effectués ici restent enregistrés localement sur cet appareil." to "Senkronize profiller, ittifak rütbesinin görünürlük izinlerine göre buluttan yüklenir. Burada manuel eklenenler bu cihazda yerel olarak saklanır.",
+            "Héros et compétences War (copier les infos)" to "Kahramanlar ve War becerileri (bilgileri yapıştır)",
+            "Actualiser le lien cloud après connexion" to "Giriş yaptıktan sonra bulut bağlantısını yenile",
+            "Création…" to "Oluşturuluyor…", "Génération…" to "Oluşturuluyor…"
+        )
+        AppLanguage.RU -> mapOf(
+            "Lands of Jail détecté au premier plan." to "Игра Lands of Jail обнаружена на переднем плане.",
+            "héros référencés" to "героев в каталоге", " héros suivis sur ton compte" to " героев отслеживается в вашем аккаунте",
+            "Champs précis à vérifier :" to "Поля для проверки:", "Champs à vérifier :" to "Поля для проверки:",
+            "Équipement" to "Снаряжение", "Type à confirmer" to "Тип требует подтверждения", "Incertain" to "Не подтверждено",
+            "Rareté :" to "Редкость:", "Saison :" to "Сезон:", "Classe :" to "Класс:",
+            "Puissance actuelle :" to "Текущая мощь:", "Non capturée" to "Не захвачено",
+            "affichage tronqué" to "текст обрезан",
+            "Règle d'or dès Niv. 9 : gardez le Centre de communications à Niv." to "Главное правило с 9-го уровня: держите Центр связи на уровне",
+            "Total 1★→5★ : 1 075 éclats (+10 recrutement). Seuil 4★ recommandé : 475 éclats." to "Всего 1★→5★: 1 075 осколков (+10 наймов). Рекомендуемый порог 4★: 475 осколков.",
+            "Héros du profil — compétences correspondantes" to "Герои профиля — подходящие навыки",
+            "Robots du profil — correspondances à vérifier" to "Роботы профиля — совпадения для проверки",
+            "Mot de passe (8 caractères minimum)" to "Пароль (не менее 8 символов)",
+            "Profil :" to "Профиль:", " avec compétence War identifiée · " to " с определённым навыком War · ",
+            " héros · " to " героев · ", " robots · " to " роботов · ",
+            " avec bonus ou compétence renseigné." to " с указанным бонусом или навыком.",
+            "Toi :" to "Вы:", " héros analysés" to " проанализированных героев",
+            "Mise à jour…" to "Обновление…",
+            "Les profils synchronisés sont chargés depuis le cloud selon les droits de visibilité du rang dans l'alliance. Les ajouts manuels effectués ici restent enregistrés localement sur cet appareil." to "Синхронизированные профили загружаются из облака с учётом прав видимости ранга в альянсе. Ручные добавления остаются на этом устройстве.",
+            "Héros et compétences War (copier les infos)" to "Герои и навыки War (вставьте данные)",
+            "Actualiser le lien cloud après connexion" to "Обновить связь с облаком после входа",
+            "Création…" to "Создание…", "Génération…" to "Генерация…"
+        )
+        AppLanguage.ZH -> mapOf(
+            "Lands of Jail détecté au premier plan." to "已检测到 Lands of Jail 正在前台运行。",
+            "héros référencés" to "名英雄已收录", " héros suivis sur ton compte" to " 名英雄已在你的账号中追踪",
+            "Champs précis à vérifier :" to "需要核对的字段：", "Champs à vérifier :" to "需要核对的字段：",
+            "Équipement" to "装备", "Type à confirmer" to "待确认类型", "Incertain" to "不确定",
+            "Rareté :" to "稀有度：", "Saison :" to "赛季：", "Classe :" to "类别：",
+            "Puissance actuelle :" to "当前战力：", "Non capturée" to "未截图",
+            "affichage tronqué" to "显示内容被截断",
+            "Règle d'or dès Niv. 9 : gardez le Centre de communications à Niv." to "9级起的重要规则：通讯中心保持在以下等级：",
+            "Total 1★→5★ : 1 075 éclats (+10 recrutement). Seuil 4★ recommandé : 475 éclats." to "1★升至5★总计：1,075碎片（另加10次招募）。推荐4★门槛：475碎片。",
+            "Héros du profil — compétences correspondantes" to "档案英雄 — 对应技能",
+            "Robots du profil — correspondances à vérifier" to "档案机器人 — 待核对匹配项",
+            "Mot de passe (8 caractères minimum)" to "密码（至少8个字符）",
+            "Profil :" to "档案：", " avec compétence War identifiée · " to " 已识别 War 技能 · ",
+            " héros · " to " 名英雄 · ", " robots · " to " 个机器人 · ",
+            " avec bonus ou compétence renseigné." to " 已填写加成或技能。",
+            "Toi :" to "你：", " héros analysés" to " 名已分析英雄",
+            "Mise à jour…" to "正在更新…",
+            "Les profils synchronisés sont chargés depuis le cloud selon les droits de visibilité du rang dans l'alliance. Les ajouts manuels effectués ici restent enregistrés localement sur cet appareil." to "同步的档案会根据联盟职位的可见权限从云端加载。此处手动添加的内容仍保存在本设备上。",
+            "Héros et compétences War (copier les infos)" to "英雄和 War 技能（粘贴信息）",
+            "Actualiser le lien cloud après connexion" to "登录后刷新云端连接",
+            "Création…" to "正在创建…", "Génération…" to "正在生成…"
+        )
+    }
+    extraFragments.forEach { (from, to) -> translated = translated.replace(from, to) }
     fragments.forEach { (from, to) -> translated = translated.replace(from, to) }
     return translated
 }
