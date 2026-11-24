@@ -62,13 +62,19 @@ jobs:
 
       - name: Tester le démarrage réel sur émulateur Android
         uses: reactivecircus/android-emulator-runner@v2
+        timeout-minutes: 15
         with:
           api-level: 32
           arch: x86_64
           profile: pixel_2
+          force-avd-creation: true
+          emulator-boot-timeout: 600
+          cores: 2
+          ram-size: 2048
+          heap-size: 512
           disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: cd android && gradle connectedDebugAndroidTest --no-daemon --stacktrace --max-workers=2
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot -no-snapshot-save
+          script: cd android && adb wait-for-device && gradle connectedDebugAndroidTest --no-daemon --stacktrace --max-workers=2
 
       - name: Préparer la signature Android stable
         id: signing
