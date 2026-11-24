@@ -1544,7 +1544,7 @@ fun LandsOfJailAssistantApp(
                                 }
                             }
                         }
-                    ) { Text(if (isProfileSyncing) "Synchronisation…" else "Synchroniser avec le cloud") }
+                    ) { Text(if (isProfileSyncing) localizedAppText("Synchronisation…") else localizedAppText("Synchroniser avec le cloud")) }
                 }
             },
             confirmButton = { TextButton(onClick = { showProfileDialog = false }) { Text(localizedUiText(currentLang, "Fermer", "Close", "Schließen", "Kapat", "Закрыть", "关闭")) } }
@@ -2733,7 +2733,7 @@ private fun HeroesScreen(
                                 Text(localizedUiText(language, "Modifier mon héros", "Edit my hero", "Meinen Helden bearbeiten", "Kahramanımı düzenle", "Изменить героя", "编辑我的英雄"))
                             }
                             TextButton(onClick = { expandedHeroName = if (expandedHeroName == entry.nom) null else entry.nom }) {
-                                Text(if (expandedHeroName == entry.nom) "Masquer la fiche" else "Fiche complète")
+                                Text(if (expandedHeroName == entry.nom) localizedAppText("Masquer la fiche") else localizedAppText("Fiche complète"))
                             }
                         }
                         if (!hero.rarete.isNullOrBlank() && !hero.rarete.equals(entry.rarete, true)) {
@@ -2778,7 +2778,7 @@ private fun HeroesScreen(
                             Text(localizedUiText(language, "Ajouter à mon profil", "Add to my profile", "Zu meinem Profil hinzufügen", "Profilime ekle", "Добавить в профиль", "添加到我的档案"))
                         }
                         TextButton(onClick = { expandedHeroName = if (expandedHeroName == entry.nom) null else entry.nom }) {
-                            Text(if (expandedHeroName == entry.nom) "Masquer la fiche" else "Voir la fiche complète")
+                            Text(if (expandedHeroName == entry.nom) localizedAppText("Masquer la fiche") else localizedAppText("Voir la fiche complète"))
                         }
                     }
                     if (expandedHeroName == entry.nom) {
@@ -2801,7 +2801,7 @@ private fun HeroesScreen(
                                         "${skill.type.uppercase()} · ${skill.nom} · Niv. ${skill.niveau}",
                                         fontWeight = FontWeight.SemiBold
                                     )
-                                    Text(skill.description ?: "Description non disponible", style = MaterialTheme.typography.bodySmall)
+                                    Text(skill.description ?: localizedAppText("Description non disponible"), style = MaterialTheme.typography.bodySmall)
                                     if (skill.incertain) Text(localizedAppText("À vérifier"), color = Color(0xFFFBBF24), style = MaterialTheme.typography.labelSmall)
                                 }
                             }
@@ -3687,7 +3687,7 @@ private fun AdviceScreen(
                 item {
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                            Text(res.troopRatioTitle ?: "Ratios de troupes", fontWeight = FontWeight.SemiBold)
+                            Text(res.troopRatioTitle ?: localizedAppText("Ratios de troupes"), fontWeight = FontWeight.SemiBold)
                             Text(
                                 "Ratios de référence : vérifie toujours les consignes du chef et les règles affichées dans l’événement.",
                                 style = MaterialTheme.typography.bodySmall,
@@ -4085,7 +4085,7 @@ private fun SupabaseAccountCard() {
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     TextButton(onClick = { createAccount = !createAccount; message = null }, enabled = !busy) {
-                        Text(if (createAccount) "J'ai déjà un compte" else "Créer un compte")
+                        Text(if (createAccount) localizedAppText("J'ai déjà un compte") else localizedAppText("Créer un compte"))
                     }
                     Spacer(Modifier.weight(1f))
                     Button(
@@ -4164,7 +4164,7 @@ private fun SupabaseAccountCard() {
                         if (busy) {
                             CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
                         } else {
-                            Text(if (createAccount) "S'inscrire" else "Se connecter")
+                            Text(if (createAccount) localizedAppText("S'inscrire") else localizedAppText("Se connecter"))
                         }
                     }
                 }
@@ -4351,7 +4351,7 @@ private fun AllianceScreen(
                         if (joinRequestsBusy) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
                         else Icon(Icons.Outlined.NotificationsActive, contentDescription = null)
                         Spacer(Modifier.width(7.dp))
-                        Text(if (joinRequestsBusy) "Actualisation…" else "Voir les nouvelles demandes")
+                        Text(if (joinRequestsBusy) localizedAppText("Actualisation…") else localizedAppText("Voir les nouvelles demandes"))
                     }
                     joinRequestsMessage?.let {
                         Text(it, color = if (joinRequestsError) Color(0xFFFCA5A5) else Color(0xFF86EFAC), style = MaterialTheme.typography.bodySmall)
@@ -4552,7 +4552,7 @@ private fun AllianceScreen(
                                     enabled = rankChangeBusyFor == null,
                                     modifier = Modifier.heightIn(min = 36.dp)
                                 ) {
-                                    Text(if (rankChangeBusyFor == member.id) "Mise à jour…" else "Changer le rang · ${member.rank.name}")
+                                    Text(if (rankChangeBusyFor == member.id) localizedAppText("Mise à jour…") else localizedAppText("Changer le rang · ${member.rank.name}"))
                                 }
                                 DropdownMenu(
                                     expanded = expandedRankMenuFor == member.id,
@@ -4947,7 +4947,7 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
                         },
                         enabled = !busy && server.isNotBlank() && allianceName.isNotBlank(),
                         modifier = Modifier.fillMaxWidth()
-                    ) { Text(if (busy) "Création…" else "Créer cette alliance dans le cloud") }
+                    ) { Text(if (busy) localizedAppText("Création…") else localizedAppText("Créer cette alliance dans le cloud")) }
                 } else {
                     Text(localizedAppText("Alliance cloud liée : $allianceId"), style = MaterialTheme.typography.bodySmall)
                     if (myCloudRank.isNotBlank()) {
@@ -5027,7 +5027,7 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
                         },
                         enabled = !busy,
                         modifier = Modifier.fillMaxWidth()
-                    ) { Text(if (busy) "Génération…" else "Générer un code d'invitation (105 membres max.)") }
+                    ) { Text(if (busy) localizedAppText("Génération…") else localizedAppText("Générer un code d'invitation (105 membres max.)")) }
                 }
                 if (inviteCode.isNotBlank()) {
                     OutlinedTextField(
@@ -5067,7 +5067,7 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
                     },
                     enabled = !busy && inviteInput.isNotBlank(),
                     modifier = Modifier.fillMaxWidth()
-                ) { Text(if (busy) "Vérification…" else "Rejoindre avec ce code") }
+                ) { Text(if (busy) localizedAppText("Vérification…") else localizedAppText("Rejoindre avec ce code")) }
             }
             message?.let {
                 Text(it, color = if (isError) Color(0xFFFCA5A5) else Color(0xFF86EFAC),
@@ -5105,7 +5105,7 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
                         }
                     },
                     enabled = !transferBusy
-                ) { Text(if (transferBusy) "Transfert…" else "Confirmer le transfert") }
+                ) { Text(if (transferBusy) localizedAppText("Transfert…") else localizedAppText("Confirmer le transfert")) }
             },
             dismissButton = {
                 TextButton(onClick = { selectedR4 = null }, enabled = !transferBusy) { Text(localizedAppText("Annuler")) }
@@ -5213,7 +5213,7 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
                         var expanded by remember { mutableStateOf(false) }
                         Box {
                             OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) {
-                                Text(categoryLabels[category] ?: "Catégorie")
+                                Text(categoryLabels[category] ?: localizedAppText("Catégorie"))
                             }
                             DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                                 categoryLabels.forEach { (key, label) ->
@@ -5264,7 +5264,7 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
 
         item {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(if (isDeveloper) "Toutes les propositions · Développeur" else "Mes propositions", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                Text(if (isDeveloper) localizedAppText("Toutes les propositions · Développeur") else localizedAppText("Mes propositions"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                 TextButton(onClick = { refresh() }, enabled = !loading) {
                     if (loading) CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp) else Text(localizedAppText("Actualiser"))
                 }
@@ -5360,7 +5360,7 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
                         }
                     },
                     enabled = !reviewBusy
-                ) { Text(if (reviewBusy) "Enregistrement…" else "Envoyer la réponse") }
+                ) { Text(if (reviewBusy) localizedAppText("Enregistrement…") else localizedAppText("Envoyer la réponse")) }
             },
             dismissButton = {
                 TextButton(onClick = { selected = null }, enabled = !reviewBusy) { Text(localizedAppText("Annuler")) }
