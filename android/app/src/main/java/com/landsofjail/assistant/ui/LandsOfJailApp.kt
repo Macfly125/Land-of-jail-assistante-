@@ -2299,7 +2299,7 @@ fun LandsOfJailAssistantApp(
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        localizedAppText(localizedAppText("Renseigne ton identité dans Land of Jail. Ces informations seront enregistrées sur cet appareil et pourront être transmises aux officiers de ton alliance après connexion."),
+                        localizedAppText("Renseigne ton identité dans Land of Jail. Ces informations seront enregistrées sur cet appareil et pourront être transmises aux officiers de ton alliance après connexion."),
                         style = MaterialTheme.typography.bodySmall
                     )
                     OutlinedTextField(
