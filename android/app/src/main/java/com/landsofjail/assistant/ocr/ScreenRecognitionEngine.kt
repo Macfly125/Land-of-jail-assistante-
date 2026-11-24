@@ -16,7 +16,7 @@ data class ScreenRecognitionResult(
 
 object ScreenRecognitionEngine {
     private val dictionaries = linkedMapOf(
-        "trial_cage" to listOf("trial cage", "cage", "damage ranking", "damage dealt", "dégâts infligés", "versuchskäfig", "schadensrangliste", "verursachter schaden", "deneme kafesi", "verilen hasar", "испытательная клетка", "нанесенный урон", "试炼笼", "造成伤害"),
+        "trial_cage" to listOf("trial cage", "cage", "damage ranking", "damage dealt", "dégâts infligés", "versuchskäfig", "prüfungskäfig", "schadensrangliste", "verursachter schaden", "deneme kafesi", "deneme kafesi", "verilen hasar", "испытательная клетка", "нанесенный урон", "试炼笼", "造成伤害"),
         "crystal_clash" to listOf("crystal clash", "ironhold", "ironprison", "energy hub", "crystal prison", "kristallkonflikt", "kristallkampf", "kristal çatışması", "kristal savaşı", "кристальная битва", "кристальное столкновение", "水晶冲突", "水晶争夺"),
         "sandsea_conquest" to listOf("sandsea", "vessel station", "lighthouse", "phare", "fuel", "sandmeer", "schiffsstation", "leuchtturm", "kum denizi", "gemi istasyonu", "deniz feneri", "песчаное море", "станция судов", "маяк", "沙海", "船只站", "灯塔"),
         "svs" to listOf("supreme honor", "svs", "war preparation", "préparation de guerre", "kriegsvorbereitung", "kriegsvorbereitungen", "savaş hazırlığı", "savaş hazırlıkları", "подготовка к войне", "战前准备", "战争准备"),
