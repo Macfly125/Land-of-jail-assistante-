@@ -2368,7 +2368,7 @@ private fun HeroesScreen(
     LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Catalogue des héros", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                Text(localizedUiText(language, "Catalogue des héros", "Hero catalogue", "Heldenkatalog", "Kahraman kataloğu", "Каталог героев", "英雄目录"), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                 Text(
                     "${HeroCatalog.entries.size} héros référencés · ${heroes.size} héros suivis sur ton compte",
                     style = MaterialTheme.typography.bodySmall,
@@ -2376,7 +2376,7 @@ private fun HeroesScreen(
                 )
                 Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
                     Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("Progression de ton profil héros", fontWeight = FontWeight.SemiBold)
+                        Text(localizedUiText(language, "Progression de ton profil héros", "Hero profile progress", "Fortschritt deines Heldenprofils", "Kahraman profil ilerlemesi", "Прогресс профиля героев", "英雄档案进度"), fontWeight = FontWeight.SemiBold)
                         Text("$verifiedHeroes profil(s) suffisamment renseigné(s) · $heroesToComplete à compléter")
                         LinearProgressIndicator(
                             progress = { if (heroes.isEmpty()) 0f else verifiedHeroes.toFloat() / heroes.size.toFloat() },
@@ -2392,7 +2392,7 @@ private fun HeroesScreen(
                 OutlinedTextField(
                     value = search,
                     onValueChange = { search = it },
-                    label = { Text("Rechercher un héros") },
+                    label = { Text(localizedUiText(language, "Rechercher un héros", "Search heroes", "Helden suchen", "Kahraman ara", "Поиск героев", "搜索英雄")) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -2420,7 +2420,7 @@ private fun HeroesScreen(
             )
         }
         items(visibleHeroes, key = { it.nom }) { entry ->
-            val hero = profileByName[entry.nom.lowercase()]
+            val hero = profileByName[entry.nom.trim().lowercase()]
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                     Row(
@@ -2444,7 +2444,7 @@ private fun HeroesScreen(
                         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             Text(entry.nom, fontWeight = FontWeight.SemiBold)
                             Text(
-                                if (hero != null) "Profil détecté" else "Catalogue",
+                                if (hero != null) localizedUiText(language, "Profil détecté", "Profile detected", "Profil erkannt", "Profil algılandı", "Профиль обнаружен", "已识别档案") else localizedUiText(language, "Catalogue", "Catalogue", "Katalog", "Katalog", "Каталог", "目录"),
                                 color = if (hero != null) Color(0xFF34D399) else MaterialTheme.colorScheme.onSurfaceVariant,
                                 style = MaterialTheme.typography.labelSmall
                             )
@@ -2465,7 +2465,7 @@ private fun HeroesScreen(
                         )
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                             TextButton(onClick = { editingHero = hero }) {
-                                Text("Modifier mon héros")
+                                Text(localizedUiText(language, "Modifier mon héros", "Edit my hero", "Meinen Helden bearbeiten", "Kahramanımı düzenle", "Изменить героя", "编辑我的英雄"))
                             }
                             TextButton(onClick = { expandedHeroName = if (expandedHeroName == entry.nom) null else entry.nom }) {
                                 Text(if (expandedHeroName == entry.nom) "Masquer la fiche" else "Fiche complète")
@@ -2510,7 +2510,7 @@ private fun HeroesScreen(
                     } else {
                         Text("Niveau, étoiles et compétences personnels : à scanner ou saisir depuis le jeu.", style = MaterialTheme.typography.bodySmall)
                         TextButton(onClick = { editingHero = onAddHero(entry) }) {
-                            Text("Ajouter à mon profil")
+                            Text(localizedUiText(language, "Ajouter à mon profil", "Add to my profile", "Zu meinem Profil hinzufügen", "Profilime ekle", "Добавить в профиль", "添加到我的档案"))
                         }
                         TextButton(onClick = { expandedHeroName = if (expandedHeroName == entry.nom) null else entry.nom }) {
                             Text(if (expandedHeroName == entry.nom) "Masquer la fiche" else "Voir la fiche complète")
