@@ -63,6 +63,26 @@ object GiftCodeRepository {
                 add(GiftCodeEntry(it, "UNVERIFIED", "LOJ XLab · autres sites",
                     note = "Non publié dans la liste officielle ; disponibilité non confirmée."))
             }
+            listOf(
+                GiftCodeEntry("LOJCANDY49", "NEEDS_REVIEW", "Pocket Gamer / MrGuider",
+                    firstSeen = "31/10/2025", expiresAt = "02/11/2025",
+                    note = "Sources contradictoires : une liste récente le dit actif, une autre indique une ancienne expiration. À tester."),
+                GiftCodeEntry("GuZQdq1KnWQJMx", "UNVERIFIED", "Pocket Gamer · 22/11/2026",
+                    firstSeen = "22/11/2026", note = "Récompenses annoncées : 9 000 diamants, 7 éclats légendaires et accélérations. Non confirmé par l’équipe du jeu."),
+                GiftCodeEntry("WELOJAIL111", "UNVERIFIED", "Pocket Gamer · 22/11/2026",
+                    firstSeen = "22/11/2026", note = "Récompenses annoncées : cartes d’approvisionnement, diamants et pièces d’équipement. Non confirmé officiellement."),
+                GiftCodeEntry("JAILGIFT2025", "UNVERIFIED", "Pocket Gamer · 22/11/2026",
+                    firstSeen = "22/11/2026", note = "Code cité par un site tiers ; validité à vérifier."),
+                GiftCodeEntry("VUBhpc4ec7cNwP", "EXPIRED", "MrGuider · 30/10/2026",
+                    firstSeen = "30/10/2026", expiresAt = "02/11/2026",
+                    note = "Expiration publiée au 2 novembre 2026, heure serveur non précisée."),
+                GiftCodeEntry("KOF777", "UNVERIFIED", "MrGuider",
+                    note = "Code listé par un site tiers, sans validation officielle."),
+                GiftCodeEntry("KOF888", "UNVERIFIED", "MrGuider",
+                    note = "Code listé par un site tiers, sans validation officielle."),
+                GiftCodeEntry("KOF1234", "UNVERIFIED", "MrGuider",
+                    note = "Code listé par un site tiers, sans validation officielle.")
+            ).forEach { add(it) }
         }
         return GiftCodeSnapshot(now, entries = entries)
     }
@@ -75,7 +95,9 @@ object GiftCodeRepository {
 
         val sources = listOf(
             "LOJ XLab" to XLAB_URL,
-            "GuideLOJ" to GUIDE_URL
+            "GuideLOJ" to GUIDE_URL,
+            "Pocket Gamer" to "https://www.pocketgamer.com/lands-of-jail/codes/",
+            "MrGuider" to "https://www.mrguider.org/codes/lands-of-jail-codes/"
         )
         for ((sourceName, url) in sources) {
             try {
