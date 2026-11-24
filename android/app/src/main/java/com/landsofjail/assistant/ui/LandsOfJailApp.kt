@@ -2929,7 +2929,7 @@ private fun ResourcesScreen(
                     }
                 }
                 if (robots.isEmpty()) {
-                    item { Text(resourceUiText(currentLang, "no_robot")), style = MaterialTheme.typography.bodySmall) }
+                    item { Text(resourceUiText(currentLang, "no_robot"), style = MaterialTheme.typography.bodySmall) }
                 } else {
                     items(robots, key = { it.id }) { robot ->
                         Card(modifier = Modifier.fillMaxWidth()) {
@@ -3012,7 +3012,7 @@ private fun ResourcesScreen(
                     }
                 }
                 if (eventRecords.isEmpty()) {
-                    item { Text(resourceUiText(currentLang, "no_event")), style = MaterialTheme.typography.bodySmall) }
+                    item { Text(resourceUiText(currentLang, "no_event"), style = MaterialTheme.typography.bodySmall) }
                 } else {
                     items(eventRecords.sortedByDescending { it.updatedAtIso }, key = { it.id }) { record ->
                         Card(modifier = Modifier.fillMaxWidth()) {
