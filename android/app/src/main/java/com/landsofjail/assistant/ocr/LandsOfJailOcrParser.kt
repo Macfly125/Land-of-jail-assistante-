@@ -84,7 +84,7 @@ object LandsOfJailOcrParser {
             "Acier (Steel)" to Regex("""(?:acier|steel|fer|iron)\s*[:\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)""", RegexOption.IGNORE_CASE),
             "Essence (Gasoline)" to Regex("""(?:essence|gasoline|fuel|p[ée]trole)\s*[:\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)""", RegexOption.IGNORE_CASE),
             "Diamants (Gems)" to Regex("""(?:diamants?|diamonds?|gemmes?|gems?)\s*[:\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)""", RegexOption.IGNORE_CASE),
-            "Cash / Or" to Regex("""(?:cash|gold|or)\s*[:\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)""", RegexOption.IGNORE_CASE)
+            "Cash / Or" to Regex("""(?:cash|gold)\s*[:\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)|^or\s*[:\-]\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)""", RegexOption.IGNORE_CASE)
         )
 
         for ((index, line) in lines.withIndex()) {
@@ -114,15 +114,15 @@ object LandsOfJailOcrParser {
                 if (seenResKeys.contains(resLabel)) continue
                 val match = regex.find(line)
                 if (match != null) {
-                    val qtyText = match.groupValues[1].trim()
+                    val qtyText = match.groupValues.drop(1).firstOrNull { it.isNotBlank() }?.trim() ?: continue
                     seenResKeys.add(resLabel)
                     resources.add(
                         ResourceRecord(
                             nom = resLabel,
                             quantiteTexte = qtyText,
                             quantiteNumerique = parseCompactNumeric(qtyText),
-                            incertain = qtyText.contains("k", true) || qtyText.contains("m", true),
-                            raisonIncertitude = "Valeur OCR locale abrégée"
+                            incertain = qtyText.contains(Regex("[kmb]$", RegexOption.IGNORE_CASE)) || parseCompactNumeric(qtyText) == null,
+                            raisonIncertitude = if (qtyText.contains(Regex("[kmb]$", RegexOption.IGNORE_CASE))) "Valeur OCR locale abrégée" else if (parseCompactNumeric(qtyText) == null) "Valeur numérique non interprétable" else null
                         )
                     )
                 }
