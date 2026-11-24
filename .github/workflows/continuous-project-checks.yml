@@ -67,6 +67,24 @@ jobs:
             exit 1
           fi
 
+      - name: Configurer Node.js pour l'audit des portraits
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Auditer les portraits du catalogue
+        run: node scripts/audit-hero-portraits.mjs
+
+      - name: Publier le rapport des portraits
+        if: always() && hashFiles('reports/hero-portrait-audit.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: hero-portrait-audit
+          path: |
+            reports/hero-portrait-audit.json
+            reports/hero-portrait-audit.md
+          retention-days: 14
+
       - name: Installer Gradle et mettre en cache les dépendances
         uses: gradle/actions/setup-gradle@v4
         with:
