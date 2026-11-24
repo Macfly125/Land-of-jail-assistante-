@@ -345,6 +345,38 @@ Magnet"""
     }
 
     @Test
+    fun extractsEquipmentPieceAndLevelAcrossAllSupportedLanguages() {
+        val samples = listOf(
+            """Weapon
+Level 18
+Magnet""",
+            """Waffe
+Stufe 18
+Magnet""",
+            """Silah
+Seviye 18
+Mıknatıs""",
+            """Оружие
+Уровень 18
+Магнит""",
+            """武器
+等级 18
+磁铁""",
+            """Arme
+Niv. 18
+Aimant"""
+        )
+
+        samples.forEach { sample ->
+            val result = LandsOfJailOcrParser.parseLocalOcrText(sample)
+            assertEquals("La pièce d'équipement doit être extraite : $sample", 1, result.equipment.size)
+            assertEquals("18", result.equipment.single().niveau)
+            assertFalse(result.equipment.single().incertain)
+            assertTrue(result.equipment.single().materiaux.isNotBlank())
+        }
+    }
+
+    @Test
     fun doesNotMistakeFrenchConjunctionOrForTheGoldResource() {
         val result = LandsOfJailOcrParser.parseLocalOcrText("Or il faut encore de la nourriture : 5M")
         assertTrue(result.resources.none { it.nom == "Cash / Or" })
