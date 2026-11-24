@@ -83,12 +83,12 @@ object LandsOfJailOcrParser {
         val wardenRegex = Regex("""(?:warden\s*office|bureau\s*du\s*directeur|prison|qg|hq)\s*(?:niv\.?|lv\.?|level)?\s*([0-9]+)""", RegexOption.IGNORE_CASE)
 
         val resourcePatterns = listOf(
-            "Nourriture (Food)" to Regex("""(?:nourriture|food|vivres|nahrung|yiyecek|еда|食物)\\s*[:：\\-]?\\s*([0-9]+(?:[.,][0-9]+)?\\s*[kmbKMB]?)""", RegexOption.IGNORE_CASE),
-            "Bois (Wood)" to Regex("""(?:bois|wood|lumber|holz|odun|дерево|木材)\\s*[:：\\-]?\\s*([0-9]+(?:[.,][0-9]+)?\\s*[kmbKMB]?)""", RegexOption.IGNORE_CASE),
-            "Acier (Steel)" to Regex("""(?:acier|steel|fer|iron|stahl|çelik|сталь|钢材)\\s*[:：\\-]?\\s*([0-9]+(?:[.,][0-9]+)?\\s*[kmbKMB]?)""", RegexOption.IGNORE_CASE),
-            "Essence (Gasoline)" to Regex("""(?:essence|gasoline|fuel|p[ée]trole|benzin|бензин|汽油)\\s*[:：\\-]?\\s*([0-9]+(?:[.,][0-9]+)?\\s*[kmbKMB]?)""", RegexOption.IGNORE_CASE),
-            "Diamants (Gems)" to Regex("""(?:diamants?|diamonds?|gemmes?|gems?|diamanten|elmas|алмазы|钻石|宝石)\\s*[:：\\-]?\\s*([0-9]+(?:[.,][0-9]+)?\\s*[kmbKMB]?)""", RegexOption.IGNORE_CASE),
-            "Cash / Or" to Regex("""(?:cash|gold|g[oö]ld)\\s*[:：\\-]?\\s*([0-9]+(?:[.,][0-9]+)?\\s*[kmbKMB]?)|^or\\s*[:：\\-]\\s*([0-9]+(?:[.,][0-9]+)?\\s*[kmbKMB]?)""", RegexOption.IGNORE_CASE)
+            "Nourriture (Food)" to Regex("""(?:nourriture|food|vivres|nahrung|yiyecek|еда|食物)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)""", RegexOption.IGNORE_CASE),
+            "Bois (Wood)" to Regex("""(?:bois|wood|lumber|holz|odun|дерево|木材)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)""", RegexOption.IGNORE_CASE),
+            "Acier (Steel)" to Regex("""(?:acier|steel|fer|iron|stahl|çelik|сталь|钢材)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)""", RegexOption.IGNORE_CASE),
+            "Essence (Gasoline)" to Regex("""(?:essence|gasoline|fuel|p[ée]trole|benzin|бензин|汽油)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)""", RegexOption.IGNORE_CASE),
+            "Diamants (Gems)" to Regex("""(?:diamants?|diamonds?|gemmes?|gems?|diamanten|elmas|алмазы|钻石|宝石)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)""", RegexOption.IGNORE_CASE),
+            "Cash / Or" to Regex("""(?:cash|gold|g[oö]ld)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)|^or\s*[:：\-]\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)""", RegexOption.IGNORE_CASE)
         )
 
         for ((index, line) in lines.withIndex()) {
@@ -138,13 +138,13 @@ object LandsOfJailOcrParser {
                 val normalizedRobot = normalizeHeroText(robotName)
                 if (normalizedLine.contains(" $normalizedRobot ") && seenRobotKeys.add(normalizedRobot)) {
                     val context = lines.subList(index, minOf(lines.size, index + 4)).joinToString(" ")
-                    val level = Regex("""(?:lv\\.?|level|niv\\.?|niveau)\\s*([0-9]{1,3})""", RegexOption.IGNORE_CASE)
+                    val level = Regex("""(?:lv\.?|level|niv\.?|niveau)\s*([0-9]{1,3})""", RegexOption.IGNORE_CASE)
                         .find(context)?.groupValues?.get(1)
-                    val powerText = Regex("""(?:power|puissance|atk|attack)\\s*[:：]?\\s*([0-9]+(?:[.,][0-9]+)?\\s*%?)""", RegexOption.IGNORE_CASE)
+                    val powerText = Regex("""(?:power|puissance|atk|attack)\s*[:：]?\s*([0-9]+(?:[.,][0-9]+)?\s*%?)""", RegexOption.IGNORE_CASE)
                         .find(context)?.groupValues?.get(1)?.trim().orEmpty()
-                    val bonusText = Regex("""(?:bonus|buff|boost|bonus troop|troop bonus)\\s*[:：]?\\s*([^,;。]{3,70})""", RegexOption.IGNORE_CASE)
+                    val bonusText = Regex("""(?:bonus|buff|boost|bonus troop|troop bonus)\s*[:：]?\s*([^,;。]{3,70})""", RegexOption.IGNORE_CASE)
                         .find(context)?.groupValues?.get(1)?.trim().orEmpty()
-                    val skillText = Regex("""(?:skill|skills|comp[ée]tence|comp[ée]tences|core)\\s*[:：]?\\s*([^,;。]{3,90})""", RegexOption.IGNORE_CASE)
+                    val skillText = Regex("""(?:skill|skills|comp[ée]tence|comp[ée]tences|core)\s*[:：]?\s*([^,;。]{3,90})""", RegexOption.IGNORE_CASE)
                         .find(context)?.groupValues?.get(1)?.trim().orEmpty()
                     val hasDetails = level != null || powerText.isNotBlank() || bonusText.isNotBlank() || skillText.isNotBlank()
                     robots.add(RobotRecord(
