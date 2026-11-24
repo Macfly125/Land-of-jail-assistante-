@@ -5,6 +5,7 @@ on:
     branches:
       - audit/ameliorations-android
     paths:
+      - 'scripts/audit-hero-portraits.mjs'
       - 'android/**'
       - 'server.ts'
       - 'game-intel.ts'
