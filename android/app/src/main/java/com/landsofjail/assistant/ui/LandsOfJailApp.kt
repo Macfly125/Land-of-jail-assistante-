@@ -112,6 +112,21 @@ private fun localizedResourceName(language: AppLanguage, raw: String): String {
     }
 }
 
+private fun resourceIcon(raw: String): String {
+    val key = raw.lowercase()
+    return when {
+        key.contains("nourriture") || key.contains("food") || key.contains("vivres") -> "🍖"
+        key.contains("bois") || key.contains("wood") -> "🪵"
+        key.contains("acier") || key.contains("steel") || key.contains("iron") -> "⚙️"
+        key.contains("essence") || key.contains("gasoline") || key.contains("fuel") -> "⛽"
+        key.contains("diamant") || key.contains("gem") -> "💎"
+        key.contains("gold") || key.contains("or") || key.contains("cash") -> "🪙"
+        key.contains("forticlad") -> "🔷"
+        key.contains("hyperalloy") || key.contains("hyperalliage") -> "🧩"
+        else -> "📦"
+    }
+}
+
 private fun localizedEquipmentPiece(language: AppLanguage, raw: String): String {
     val key = raw.lowercase().trim()
     return when {
@@ -3414,7 +3429,13 @@ private fun ResourcesScreen(
                     items(resources) { res ->
                         Card(modifier = Modifier.fillMaxWidth()) {
                             Column(Modifier.padding(14.dp)) {
-                                Text("${localizedResourceName(currentLang, res.nom)} : ${res.quantiteTexte}", fontWeight = FontWeight.Medium)
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                    Text(resourceIcon(res.nom), fontSize = 26.sp)
+                                    Column(Modifier.weight(1f)) {
+                                        Text(localizedResourceName(currentLang, res.nom), fontWeight = FontWeight.Medium)
+                                        Text(res.quantiteTexte, style = MaterialTheme.typography.titleMedium)
+                                    }
+                                }
                                 if (res.incertain) {
                                     Text(
                                         localizedUiText(currentLang, "Incertain : ${res.raisonIncertitude ?: "affichage tronqué"}", "Uncertain: ${res.raisonIncertitude ?: "truncated display"}", "Unsicher: ${res.raisonIncertitude ?: "Anzeige abgeschnitten"}", "Belirsiz: ${res.raisonIncertitude ?: "görüntü kesildi"}", "Неточно: ${res.raisonIncertitude ?: "данные обрезаны"}", "不确定：${res.raisonIncertitude ?: "显示内容被截断"}"),
@@ -3495,7 +3516,15 @@ private fun ResourcesScreen(
                     items(robots, key = { it.id }) { robot ->
                         Card(modifier = Modifier.fillMaxWidth()) {
                             Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Text(robot.nom, fontWeight = FontWeight.SemiBold)
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                    Text("🤖", fontSize = 28.sp)
+                                    Column(Modifier.weight(1f)) {
+                                        Text(robot.nom, fontWeight = FontWeight.SemiBold)
+                                        if (robot.niveau.isNotBlank()) {
+                                            Text(localizedUiText(currentLang, "Niveau ${robot.niveau}", "Level ${robot.niveau}", "Stufe ${robot.niveau}", "Seviye ${robot.niveau}", "Уровень ${robot.niveau}", "等级 ${robot.niveau}"), style = MaterialTheme.typography.bodySmall)
+                                        }
+                                    }
+                                }
                                 val meta = listOf(robot.niveau.takeIf { it.isNotBlank() }?.let { localizedUiText(currentLang, "Niv. $it", "Lv. $it", "Stufe $it", "Sv. $it", "Ур. $it", "等级 $it") }, robot.rarete, robot.puissance.takeIf { it.isNotBlank() }?.let { localizedUiText(currentLang, "Puissance $it", "Power $it", "Macht $it", "Güç $it", "Мощь $it", "战力 $it") }).filterNotNull()
                                 if (meta.isNotEmpty()) Text(meta.joinToString(" · "), style = MaterialTheme.typography.bodySmall)
                                 if (robot.bonus.isNotBlank()) Text(localizedUiText(currentLang, "Bonus : ${robot.bonus}", "Bonus: ${robot.bonus}", "Bonus: ${robot.bonus}", "Bonus: ${robot.bonus}", "Бонус: ${robot.bonus}", "加成：${robot.bonus}"), style = MaterialTheme.typography.bodySmall)
@@ -5299,17 +5328,17 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
                         Divider()
                         Text(
                             if (isAppDeveloper && myCloudRank == "R4") {
-                                "Privilèges développeur · Gestion R5"
+                                localizedUiText(currentLang, "Privilèges développeur · Gestion R5", "Developer privileges · R5 management", "Entwicklerrechte · R5-Verwaltung", "Geliştirici ayrıcalıkları · R5 yönetimi", "Права разработчика · управление R5", "开发者权限 · R5 管理")
                             } else {
-                                "Transférer le poste de R5"
+                                localizedUiText(currentLang, "Transférer le poste de R5", "Transfer R5 leadership", "R5-Führung übertragen", "R5 liderliğini devret", "Передать руководство R5", "转让 R5 职位")
                             },
                             fontWeight = FontWeight.SemiBold
                         )
                         Text(
                             if (isAppDeveloper && myCloudRank == "R4") {
-                                "Ton rang d'alliance reste R4. En tant que développeur unique de l'application, tu peux aussi gérer les fonctions R5. Choisis un membre R4 pour lui transférer le poste R5."
+                                localizedUiText(currentLang, "Ton rang d'alliance reste R4. En tant que développeur unique de l'application, tu peux aussi gérer les fonctions R5. Choisis un membre R4 pour lui transférer le poste R5.", "Your alliance rank remains R4. As the app's sole developer, you can also manage R5 functions. Choose an R4 member to transfer R5 leadership to them.", "Dein Allianzrang bleibt R4. Als alleiniger App-Entwickler kannst du auch R5-Funktionen verwalten. Wähle ein R4-Mitglied, dem du die R5-Führung überträgst.", "İttifak rütben R4 olarak kalır. Uygulamanın tek geliştiricisi olarak R5 işlevlerini de yönetebilirsin. R5 liderliğini devretmek için bir R4 üyesi seç.", "Ваш ранг в альянсе останется R4. Как единственный разработчик приложения, вы также можете управлять функциями R5. Выберите участника R4 для передачи руководства.", "你的联盟职位仍为 R4。作为应用唯一开发者，你也可以管理 R5 功能。选择一名 R4 成员，将 R5 职位转交给他。")
                             } else {
-                                "Choisis un membre déjà R4. Après confirmation, il deviendra R5 et ton compte passera R4."
+                                localizedUiText(currentLang, "Choisis un membre déjà R4. Après confirmation, il deviendra R5 et ton compte passera R4.", "Choose an existing R4 member. After confirmation, they become R5 and your account moves to R4.", "Wähle ein bestehendes R4-Mitglied. Nach der Bestätigung wird es R5 und dein Konto wechselt zu R4.", "Mevcut bir R4 üyesi seç. Onaydan sonra R5 olur ve hesabın R4'e geçer.", "Выберите действующего участника R4. После подтверждения он станет R5, а ваш аккаунт перейдёт на R4.", "选择一名现有 R4 成员。确认后，该成员将成为 R5，你的账号将变为 R4。")
                             },
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -5320,10 +5349,10 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
                                     transferBusy = true
                                     auth.fetchAllianceRoster(allianceId).onSuccess { roster ->
                                         r4Members = roster.filter { it.rank == AllianceRank.R4 }
-                                        transferMessage = "Liste des R4 actualisée."
+                                        transferMessage = localizedUiText(currentLang, "Liste des R4 actualisée.", "R4 list refreshed.", "R4-Liste aktualisiert.", "R4 listesi yenilendi.", "Список R4 обновлён.", "R4 列表已刷新。")
                                         transferError = false
                                     }.onFailure {
-                                        transferMessage = it.message ?: "Chargement des R4 impossible."
+                                        transferMessage = it.message ?: localizedUiText(currentLang, "Chargement des R4 impossible.", "Could not load R4 members.", "R4-Mitglieder konnten nicht geladen werden.", "R4 üyeleri yüklenemedi.", "Не удалось загрузить участников R4.", "无法加载 R4 成员。")
                                         transferError = true
                                     }
                                     transferBusy = false
@@ -5421,9 +5450,9 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
     selectedR4?.let { candidate ->
         AlertDialog(
             onDismissRequest = { if (!transferBusy) selectedR4 = null },
-            title = { Text(localizedAppText(localizedAppText("Confirmer le transfert du R5"))) },
+            title = { Text(localizedUiText(currentLang, "Confirmer le transfert du R5", "Confirm R5 leadership transfer", "Übertragung der R5-Führung bestätigen", "R5 liderlik devrini onayla", "Подтвердить передачу руководства R5", "确认转让 R5 职位")) },
             text = {
-                Text(localizedAppText(localizedAppText("Confirmer que ${candidate.playerName} devient R5 ? Ton propre rang passera automatiquement à R4.")))
+                Text(localizedUiText(currentLang, "Confirmer que ${candidate.playerName} devient R5 ? Ton propre rang passera automatiquement à R4.", "Confirm that ${candidate.playerName} becomes R5? Your rank will automatically move to R4.", "Bestätigen, dass ${candidate.playerName} R5 wird? Dein Rang wechselt automatisch zu R4.", " ${candidate.playerName} R5 olsun mu? Senin rütben otomatik olarak R4'e düşecek.", "Подтвердить, что ${candidate.playerName} станет R5? Ваш ранг автоматически изменится на R4.", "确认让 ${candidate.playerName} 成为 R5？你的职位将自动变为 R4。"))
             },
             confirmButton = {
                 Button(
@@ -5435,12 +5464,12 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
                                 .onSuccess {
                                     myCloudRank = "R4"
                                     r4Members = emptyList()
-                                    transferMessage = "Transfert effectué. ${candidate.playerName} est le nouveau R5."
+                                    transferMessage = localizedUiText(currentLang, "Transfert effectué. ${candidate.playerName} est le nouveau R5.", "Transfer complete. ${candidate.playerName} is the new R5.", "Übertragung abgeschlossen. ${candidate.playerName} ist der neue R5.", "Devir tamamlandı. Yeni R5: ${candidate.playerName}.", "Передача завершена. ${candidate.playerName} теперь R5.", "转让完成。${candidate.playerName} 现在是新的 R5。")
                                     transferError = false
                                     selectedR4 = null
                                 }
                                 .onFailure {
-                                    transferMessage = it.message ?: "Transfert impossible."
+                                    transferMessage = it.message ?: localizedUiText(currentLang, "Transfert impossible.", "Transfer failed.", "Übertragung fehlgeschlagen.", "Devir başarısız.", "Не удалось передать руководство.", "转让失败。")
                                     transferError = true
                                 }
                             transferBusy = false
