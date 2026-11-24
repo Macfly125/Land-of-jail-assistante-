@@ -305,6 +305,47 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun topBarFallbackUsesOneAlignedRowAndIgnoresLowerPanelNumbers() {
+        val boxes = listOf(
+            OcrTextBox("1.2M", 40, 50, 95, 82),
+            OcrTextBox("850K", 160, 52, 215, 84),
+            OcrTextBox("42M", 280, 49, 335, 81),
+            OcrTextBox("3.4M", 400, 51, 455, 83),
+            OcrTextBox("120", 520, 50, 575, 82),
+            OcrTextBox("7.8M", 640, 52, 695, 84),
+            OcrTextBox("999", 100, 420, 150, 452),
+            OcrTextBox("888", 220, 900, 270, 932)
+        )
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            rawText = "Main screen",
+            textBoxes = boxes,
+            imageWidth = 900,
+            imageHeight = 1600
+        )
+        assertEquals(6, result.resources.size)
+        assertEquals(listOf("1.2M", "850K", "42M", "3.4M", "120", "7.8M"), result.resources.map { it.quantiteTexte })
+    }
+
+    @Test
+    fun doesNotMixPositionGuessesWithResourcesAlreadyReadByName() {
+        val boxes = listOf(
+            OcrTextBox("1.2M", 40, 50, 95, 82),
+            OcrTextBox("850K", 160, 50, 215, 82),
+            OcrTextBox("42M", 280, 50, 335, 82),
+            OcrTextBox("3.4M", 400, 50, 455, 82)
+        )
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            rawText = "Food: 5000",
+            textBoxes = boxes,
+            imageWidth = 900,
+            imageHeight = 1600
+        )
+        assertEquals(1, result.resources.size)
+        assertEquals("Nourriture (Food)", result.resources.single().nom)
+        assertEquals(5000.0, result.resources.single().quantiteNumerique ?: 0.0, 0.1)
+    }
+
+    @Test
     fun readsResourceQuantitiesOnTheLineAfterTheirLabels() {
         val result = LandsOfJailOcrParser.parseLocalOcrText(
             """Nahrung
