@@ -2358,14 +2358,12 @@ private fun HeroesScreen(
         hero.niveauTexte.isBlank() || hero.etoiles.isNullOrBlank() ||
             hero.puissanceHero.isNullOrBlank() || hero.competences.isEmpty()
     }
-    val matchingHeroes = remember(search, selectedClass, heroes) {
+    val visibleHeroes = remember(search, selectedClass, heroes) {
         HeroCatalog.entries.filter { entry ->
             (search.isBlank() || entry.nom.contains(search.trim(), ignoreCase = true)) &&
                 (selectedClass == "Tous" || entry.typeTroupe == selectedClass)
-        }
+        }.sortedByDescending { entry -> profileByName.containsKey(entry.nom.trim().lowercase()) }
     }
-    val detectedCatalogHeroes = matchingHeroes.filter { profileByName.containsKey(it.nom.trim().lowercase()) }
-    val remainingCatalogHeroes = matchingHeroes.filterNot { profileByName.containsKey(it.nom.trim().lowercase()) }
 
     LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item {
@@ -2414,15 +2412,14 @@ private fun HeroesScreen(
                 )
             }
         }
-        if (detectedCatalogHeroes.isNotEmpty()) {
-            item {
-                Text(
-                    localizedUiText(language, "Profils détectés sur tes captures", "Profiles detected in your screenshots", "In Screenshots erkannte Profile", "Ekran görüntülerinde algılanan profiller", "Профили, обнаруженные на снимках", "截图中识别到的英雄档案"),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-            items(detectedCatalogHeroes, key = { "detected-${it.nom}" }) { entry ->
+        item {
+            Text(
+                localizedUiText(language, "Profils détectés en priorité · Catalogue complet ensuite", "Detected profiles first · Full catalogue below", "Erkannte Profile zuerst · Vollständiger Katalog darunter", "Önce algılanan profiller · Ardından tam katalog", "Сначала обнаруженные профили · Затем полный каталог", "优先显示已识别档案 · 下方为完整目录"),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        items(visibleHeroes, key = { it.nom }) { entry ->
             val hero = profileByName[entry.nom.lowercase()]
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
@@ -2560,18 +2557,7 @@ private fun HeroesScreen(
                 }
             }
         }
-        }
-        if (remainingCatalogHeroes.isNotEmpty()) {
-            item {
-                Text(
-                    localizedUiText(language, "Catalogue complet", "Full catalogue", "Vollständiger Katalog", "Tam katalog", "Полный каталог", "完整英雄目录"),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-            items(remainingCatalogHeroes, key = { it.nom }) { entry ->
-        }
-        if (detectedCatalogHeroes.isEmpty() && remainingCatalogHeroes.isEmpty()) {
+        if (visibleHeroes.isEmpty()) {
             item {
                 Text(localizedUiText(language, "Aucun héros ne correspond à cette recherche.", "No heroes match this search.", "Keine Helden entsprechen dieser Suche.", "Bu aramayla eşleşen kahraman yok.", "Герои не найдены.", "没有符合此搜索的英雄。"))
             }
