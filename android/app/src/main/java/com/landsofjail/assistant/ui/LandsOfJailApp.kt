@@ -3398,7 +3398,12 @@ private fun ResourcesScreen(
     var armorCoreChipsOwned by remember(profileId) { mutableStateOf(developmentPrefs.getString("armor_core_chips", "0") ?: "0") }
     var hyperalloyOwned by remember(profileId) { mutableStateOf(developmentPrefs.getString("hyperalloy_owned", "0") ?: "0") }
     var hyperalloyPlan by remember(profileId) { mutableStateOf(developmentPrefs.getString("hyperalloy_plan", "bastion") ?: "bastion") }
-    LaunchedEffect(fcBuildingKey, fcCurrentLevel, fcCurrentProgress, fcTargetLevel, fcCoresOwned, fcAdvancedOwned, gearFromTier, gearToTier, gearExpOwned, gearMagnetsOwned, gearCoilsOwned, gearPrecisionOwned, armorCoreTier, armorCoreModule, armorCoreModulesCount, armorCoreChipsOwned, hyperalloyOwned, hyperalloyPlan) {
+    var satelliteRarity by remember(profileId) { mutableStateOf(developmentPrefs.getString("satellite_rarity", "SSR") ?: "SSR") }
+    var satelliteCurrentMilestone by remember(profileId) { mutableIntStateOf(developmentPrefs.getInt("satellite_current", 0).coerceIn(0, 80)) }
+    var satelliteTargetMilestone by remember(profileId) { mutableIntStateOf(developmentPrefs.getInt("satellite_target", 10).coerceIn(10, 90)) }
+    var satelliteDisksOwned by remember(profileId) { mutableStateOf(developmentPrefs.getString("satellite_disks", "0") ?: "0") }
+    var satelliteCoinsOwned by remember(profileId) { mutableStateOf(developmentPrefs.getString("satellite_coins", "0") ?: "0") }
+    LaunchedEffect(fcBuildingKey, fcCurrentLevel, fcCurrentProgress, fcTargetLevel, fcCoresOwned, fcAdvancedOwned, gearFromTier, gearToTier, gearExpOwned, gearMagnetsOwned, gearCoilsOwned, gearPrecisionOwned, armorCoreTier, armorCoreModule, armorCoreModulesCount, armorCoreChipsOwned, hyperalloyOwned, hyperalloyPlan, satelliteRarity, satelliteCurrentMilestone, satelliteTargetMilestone, satelliteDisksOwned, satelliteCoinsOwned) {
         developmentPrefs.edit()
             .putString("fc_building", fcBuildingKey)
             .putInt("fc_current_level", fcCurrentLevel)
@@ -3418,6 +3423,11 @@ private fun ResourcesScreen(
             .putString("armor_core_chips", armorCoreChipsOwned)
             .putString("hyperalloy_owned", hyperalloyOwned)
             .putString("hyperalloy_plan", hyperalloyPlan)
+            .putString("satellite_rarity", satelliteRarity)
+            .putInt("satellite_current", satelliteCurrentMilestone)
+            .putInt("satellite_target", satelliteTargetMilestone)
+            .putString("satellite_disks", satelliteDisksOwned)
+            .putString("satellite_coins", satelliteCoinsOwned)
             .apply()
     }
 
@@ -3856,6 +3866,61 @@ private fun ResourcesScreen(
                             OutlinedTextField(hyperalloyOwned, { hyperalloyOwned = it.filter(Char::isDigit).take(9) }, label = { Text("🧩 " + localizedUiText(currentLang, "Hyperalliage possédé", "Hyperalloy owned", "Hyperlegierung vorhanden", "Mevcut Hiperalaşım", "Гиперсплав в наличии", "现有超合金")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                             Divider()
                             Text(localizedUiText(currentLang, "Requis : ${formatCompactFr(hyperalloyRequired.toLong())} · Manquant : ${formatCompactFr(hyperalloyMissing.toLong())}", "Required: ${formatCompactFr(hyperalloyRequired.toLong())} · Missing: ${formatCompactFr(hyperalloyMissing.toLong())}", "Benötigt: ${formatCompactFr(hyperalloyRequired.toLong())} · Fehlend: ${formatCompactFr(hyperalloyMissing.toLong())}", "Gerekli: ${formatCompactFr(hyperalloyRequired.toLong())} · Eksik: ${formatCompactFr(hyperalloyMissing.toLong())}", "Требуется: ${formatCompactFr(hyperalloyRequired.toLong())} · Не хватает: ${formatCompactFr(hyperalloyMissing.toLong())}", "需要：${formatCompactFr(hyperalloyRequired.toLong())} · 缺少：${formatCompactFr(hyperalloyMissing.toLong())}"), fontWeight = FontWeight.SemiBold)
+                        }
+                    }
+                }
+                item {
+                    val satelliteBands = when (satelliteRarity) {
+                        "R" -> listOf(1565 to 10, 2840 to 20, 4730 to 40, 7480 to 60)
+                        "SR" -> listOf(1740 to 20, 3125 to 40, 5205 to 60, 8225 to 100, 12350 to 150, 17565 to 200)
+                        else -> listOf(1785 to 30, 3180 to 60, 5310 to 100, 8380 to 150, 12555 to 210, 17820 to 280, 24130 to 360, 29025 to 450, 32855 to 500)
+                    }
+                    val satelliteMax = satelliteBands.size * 10
+                    val satelliteStart = satelliteCurrentMilestone.coerceIn(0, satelliteMax - 10) / 10
+                    val satelliteEnd = satelliteTargetMilestone.coerceIn((satelliteStart + 1) * 10, satelliteMax) / 10
+                    val satelliteRange = satelliteBands.subList(satelliteStart, satelliteEnd)
+                    val requiredDisks = satelliteRange.sumOf { it.first }
+                    val requiredPlanetCoins = satelliteRange.sumOf { it.second }
+                    val missingDisks = (requiredDisks - (satelliteDisksOwned.toIntOrNull() ?: 0)).coerceAtLeast(0)
+                    val missingCoins = (requiredPlanetCoins - (satelliteCoinsOwned.toIntOrNull() ?: 0)).coerceAtLeast(0)
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("🛰️ " + localizedUiText(currentLang, "Cosmos Hub · Calculateur de satellites", "Cosmos Hub · Satellite calculator", "Kosmos-Zentrum · Satellitenrechner", "Kozmos Merkezi · Uydu hesaplayıcı", "Космический центр · Калькулятор спутников", "宇宙中心 · 卫星计算器"), fontWeight = FontWeight.Bold)
+                            Text(localizedUiText(currentLang, "Calcule les disques de données et pièces planétaires pour les paliers de 10 niveaux. Les coûts R, SR et SSR sont issus des tableaux communautaires XLab ; les niveaux intermédiaires ne sont pas calculés.", "Calculate Data Disks and Planet Coins for 10-level milestones. R, SR and SSR costs come from community XLab tables; intermediate levels are not calculated.", "Berechne Datendisks und Planet-Münzen für 10-Level-Meilensteine. R-, SR- und SSR-Kosten stammen aus Community-XLab-Tabellen; Zwischenstufen werden nicht berechnet.", "10 seviyelik aşamalar için Veri Diski ve Gezegen Parası hesapla. R, SR ve SSR maliyetleri topluluk XLab tablolarından alınmıştır; ara seviyeler hesaplanmaz.", "Рассчитайте диски данных и планетные монеты для этапов по 10 уровней. Стоимость R, SR и SSR взята из таблиц сообщества XLab; промежуточные уровни не рассчитываются.", "计算每 10 级阶段所需的数据盘和行星币。R、SR、SSR 成本来自社区 XLab 表格；不计算中间等级。"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                items(listOf("R", "SR", "SSR")) { rarity ->
+                                    FilterChip(selected = satelliteRarity == rarity, onClick = {
+                                        satelliteRarity = rarity
+                                        val maxLevel = when (rarity) { "R" -> 40; "SR" -> 60; else -> 90 }
+                                        satelliteCurrentMilestone = satelliteCurrentMilestone.coerceAtMost(maxLevel - 10)
+                                        satelliteTargetMilestone = satelliteTargetMilestone.coerceIn(satelliteCurrentMilestone + 10, maxLevel)
+                                    }, label = { Text(rarity) })
+                                }
+                            }
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Column(Modifier.weight(1f)) {
+                                    Text(localizedUiText(currentLang, "Palier actuel", "Current milestone", "Aktueller Meilenstein", "Mevcut aşama", "Текущий этап", "当前阶段"), style = MaterialTheme.typography.labelSmall)
+                                    OutlinedTextField(value = satelliteCurrentMilestone.toString(), onValueChange = {
+                                        val maxLevel = when (satelliteRarity) { "R" -> 40; "SR" -> 60; else -> 90 }
+                                        satelliteCurrentMilestone = ((it.toIntOrNull() ?: 0).coerceIn(0, maxLevel - 10) / 10) * 10
+                                        if (satelliteTargetMilestone <= satelliteCurrentMilestone) satelliteTargetMilestone = satelliteCurrentMilestone + 10
+                                    }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                                }
+                                Column(Modifier.weight(1f)) {
+                                    Text(localizedUiText(currentLang, "Palier cible", "Target milestone", "Ziel-Meilenstein", "Hedef aşama", "Целевой этап", "目标阶段"), style = MaterialTheme.typography.labelSmall)
+                                    OutlinedTextField(value = satelliteTargetMilestone.toString(), onValueChange = {
+                                        val maxLevel = when (satelliteRarity) { "R" -> 40; "SR" -> 60; else -> 90 }
+                                        satelliteTargetMilestone = ((it.toIntOrNull() ?: satelliteCurrentMilestone + 10).coerceIn(satelliteCurrentMilestone + 10, maxLevel) / 10) * 10
+                                    }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                                }
+                            }
+                            OutlinedTextField(satelliteDisksOwned, { satelliteDisksOwned = it.filter(Char::isDigit).take(10) }, label = { Text("💿 " + localizedUiText(currentLang, "Disques de données possédés", "Data Disks owned", "Datendisks vorhanden", "Mevcut Veri Diskleri", "Диски данных в наличии", "现有数据盘")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(satelliteCoinsOwned, { satelliteCoinsOwned = it.filter(Char::isDigit).take(10) }, label = { Text("🪙 " + localizedUiText(currentLang, "Pièces planétaires possédées", "Planet Coins owned", "Planet-Münzen vorhanden", "Mevcut Gezegen Paraları", "Планетные монеты в наличии", "现有行星币")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                            Divider()
+                            Text(localizedUiText(currentLang, "À réunir pour cette plage", "Required for this range", "Für diesen Bereich benötigt", "Bu aralık için gereken", "Требуется для этого диапазона", "此范围所需"), fontWeight = FontWeight.SemiBold)
+                            Text("💿 " + localizedUiText(currentLang, "Disques : ", "Disks: ", "Disks: ", "Disk: ", "Диски: ", "数据盘：") + formatCompactFr(requiredDisks.toLong()) + " · " + localizedUiText(currentLang, "manquants", "missing", "fehlend", "eksik", "не хватает", "缺少") + " " + formatCompactFr(missingDisks.toLong()))
+                            Text("🪙 " + localizedUiText(currentLang, "Pièces planétaires : ", "Planet Coins: ", "Planet-Münzen: ", "Gezegen Parası: ", "Планетные монеты: ", "行星币：") + formatCompactFr(requiredPlanetCoins.toLong()) + " · " + localizedUiText(currentLang, "manquantes", "missing", "fehlend", "eksik", "не хватает", "缺少") + " " + formatCompactFr(missingCoins.toLong()))
+                            Text(localizedUiText(currentLang, "Repère documenté : un satellite SSR du niveau 0 au niveau 90 demande 135 040 disques et 2 140 pièces planétaires selon la somme des paliers publiés.", "Documented reference: one SSR satellite from level 0 to 90 requires 135,040 disks and 2,140 Planet Coins when summing the published milestones.", "Dokumentierter Richtwert: Ein SSR-Satellit von Stufe 0 bis 90 benötigt laut Summe der veröffentlichten Meilensteine 135.040 Disks und 2.140 Planet-Münzen.", "Belgelenen referans: yayımlanan aşamaların toplamına göre 0–90 SSR uydu için 135.040 disk ve 2.140 Gezegen Parası gerekir.", "Справочный показатель: для SSR-спутника с 0 до 90 требуется 135 040 дисков и 2 140 планетных монет по сумме опубликованных этапов.", "参考数据：根据已发布阶段汇总，SSR 卫星从 0 升至 90 需要 135,040 数据盘和 2,140 行星币。"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }
