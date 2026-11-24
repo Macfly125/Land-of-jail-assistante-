@@ -694,7 +694,7 @@ private enum class AssistantTab {
             AppLanguage.ZH -> "英雄"
             AppLanguage.DE -> "Helden"
             AppLanguage.EN -> "Heroes"
-            AppLanguage.IT -> "Heroes"
+            AppLanguage.IT -> "Eroi"
         }
         RESSOURCES -> when (lang) {
             AppLanguage.FR -> "Ressources"
@@ -703,7 +703,7 @@ private enum class AssistantTab {
             AppLanguage.ZH -> "资源"
             AppLanguage.DE -> "Ressourc."
             AppLanguage.EN -> "Resources"
-            AppLanguage.IT -> "Resources"
+            AppLanguage.IT -> "Risorse"
         }
         CONSEILS -> when (lang) {
             AppLanguage.FR -> "Événements"
@@ -712,7 +712,7 @@ private enum class AssistantTab {
             AppLanguage.ZH -> "活动"
             AppLanguage.DE -> "Events"
             AppLanguage.EN -> "Events"
-            AppLanguage.IT -> "Events"
+            AppLanguage.IT -> "Eventi"
         }
         ALLIANCE -> when (lang) {
             AppLanguage.FR -> "Alliance"
@@ -721,7 +721,7 @@ private enum class AssistantTab {
             AppLanguage.ZH -> "联盟"
             AppLanguage.DE -> "Allianz"
             AppLanguage.EN -> "Alliance"
-            AppLanguage.IT -> "Alliance"
+            AppLanguage.IT -> "Alleanza"
         }
         HISTORIQUE -> when (lang) {
             AppLanguage.FR -> "Historique"
@@ -730,7 +730,7 @@ private enum class AssistantTab {
             AppLanguage.ZH -> "记录"
             AppLanguage.DE -> "Verlauf"
             AppLanguage.EN -> "History"
-            AppLanguage.IT -> "History"
+            AppLanguage.IT -> "Cronologia"
         }
         AMELIORATIONS -> when (lang) {
             AppLanguage.FR -> "Idées"
@@ -739,7 +739,7 @@ private enum class AssistantTab {
             AppLanguage.ZH -> "建议"
             AppLanguage.DE -> "Ideen"
             AppLanguage.EN -> "Ideas"
-            AppLanguage.IT -> "Ideas"
+            AppLanguage.IT -> "Idee"
         }
     }
 }
@@ -755,7 +755,7 @@ private enum class ResourceSubTab {
             AppLanguage.ZH -> "库存"
             AppLanguage.DE -> "Inventar"
             AppLanguage.EN -> "Inventory"
-            AppLanguage.IT -> "Inventory"
+            AppLanguage.IT -> "Inventario"
         }
         BATIMENTS -> when (lang) {
             AppLanguage.FR -> "Calcul Bâtiments"
@@ -764,7 +764,7 @@ private enum class ResourceSubTab {
             AppLanguage.ZH -> "建筑计算"
             AppLanguage.DE -> "Gebäude"
             AppLanguage.EN -> "Buildings Calc"
-            AppLanguage.IT -> "Buildings Calc"
+            AppLanguage.IT -> "Calcolo edifici"
         }
         HEROS_OBJETS -> when (lang) {
             AppLanguage.FR -> "Calcul Héros"
@@ -773,7 +773,7 @@ private enum class ResourceSubTab {
             AppLanguage.ZH -> "英雄计算"
             AppLanguage.DE -> "Helden-Rechner"
             AppLanguage.EN -> "Hero Calc"
-            AppLanguage.IT -> "Hero Calc"
+            AppLanguage.IT -> "Calcolo eroi"
         }
         DEVELOPPEMENTS -> when (lang) {
             AppLanguage.FR -> "Développements"
@@ -782,7 +782,7 @@ private enum class ResourceSubTab {
             AppLanguage.ZH -> "发展"
             AppLanguage.DE -> "Entwicklung"
             AppLanguage.EN -> "Development"
-            AppLanguage.IT -> "Development"
+            AppLanguage.IT -> "Sviluppo"
         }
         ROUTINE -> when (lang) {
             AppLanguage.FR -> "Routine Hors-Jeu"
@@ -791,7 +791,7 @@ private enum class ResourceSubTab {
             AppLanguage.ZH -> "离线循环"
             AppLanguage.DE -> "Offline-Routine"
             AppLanguage.EN -> "Offline Routine"
-            AppLanguage.IT -> "Offline Routine"
+            AppLanguage.IT -> "Routine offline"
         }
         ROBOTS -> when (lang) {
             AppLanguage.FR -> "Robots"
@@ -800,7 +800,7 @@ private enum class ResourceSubTab {
             AppLanguage.ZH -> "机器人"
             AppLanguage.DE -> "Roboter"
             AppLanguage.EN -> "Robots"
-            AppLanguage.IT -> "Robots"
+            AppLanguage.IT -> "Robot"
         }
         EVENEMENTS -> when (lang) {
             AppLanguage.FR -> "Suivi événements"
@@ -809,7 +809,7 @@ private enum class ResourceSubTab {
             AppLanguage.ZH -> "活动记录"
             AppLanguage.DE -> "Eventverlauf"
             AppLanguage.EN -> "Event tracking"
-            AppLanguage.IT -> "Event tracking"
+            AppLanguage.IT -> "Monitoraggio eventi"
         }
     }
 }
@@ -4850,7 +4850,7 @@ private fun SupabaseAccountCard(onChangeLanguage: (AppLanguage) -> Unit) {
                     ) { Text(localizedAppText(localizedAppText("Déconnexion"))) }
                 }
             } else {
-                Text(localizedUiText(currentLang, "Langue de l’application", "App language", "App-Sprache", "Uygulama dili", "Язык приложения", "应用语言"), style = MaterialTheme.typography.labelLarge)
+                Text(localizedUiText(currentLang, "Langue de l’application", "App language", "App-Sprache", "Uygulama dili", "Язык приложения", "应用语言", "Lingua dell’app"), style = MaterialTheme.typography.labelLarge)
                 LanguageSelectorRow(currentLang = currentLang, onChangeLang = onChangeLanguage)
                 OutlinedTextField(
                     value = email,
