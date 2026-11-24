@@ -81,7 +81,7 @@ async function discoverPortrait(name) {
 const reportEntries = [];
 for (const entry of entries) {
   const current = await verifyPortrait(entry.portraitUrl);
-  const discovered = current.ok || entry.portraitUrl ? null : await discoverPortrait(entry.name);
+  const discovered = current.ok ? null : await discoverPortrait(entry.name);
   reportEntries.push({
     name: entry.name,
     currentPortraitUrl: entry.portraitUrl,
