@@ -1072,10 +1072,10 @@ fun LandsOfJailAssistantApp(
         if (showProfileDialog) {
         AlertDialog(
             onDismissRequest = { showProfileDialog = false },
-            title = { Text("Profils Land of Jail") },
+            title = { Text("Profils de jeu") },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Chaque profil conserve séparément ses héros, robots, ressources, puissance, événements, minuteries et historique.")
+                    Text("Chaque profil conserve séparément ses héros, robots, ressources, puissance, événements, minuteries et historique. Renomme-les selon le personnage ou le compte pour les retrouver facilement.")
                     localProfiles.forEach { profile ->
                         Column(modifier = Modifier.fillMaxWidth()) {
                             Text(
@@ -1554,11 +1554,12 @@ fun LandsOfJailAssistantApp(
                         currentPower = currentPower,
                         heroesCount = heroes.size,
                         resourcesCount = resources.size,
-                        latestAnalysis = analyses.firstOrNull(),
+                        heroes = heroes,
+                        resources = resources,
+                        robots = robots,
                         gameIntel = gameIntel,
                         gameIntelLoading = gameIntelLoading,
                         gameIntelError = gameIntelError,
-                        onOpenHistory = { currentTab = AssistantTab.HISTORIQUE },
                         onPickImage = { imagePicker.launch("image/*") }
                     )
                     AssistantTab.HEROS -> HeroesScreen(
@@ -1818,7 +1819,9 @@ private fun DashboardScreen(
     currentPower: PowerMetric?,
     heroesCount: Int,
     resourcesCount: Int,
-    latestAnalysis: ScreenshotAnalysis?,
+    heroes: List<HeroRecord>,
+    resources: List<ResourceRecord>,
+    robots: List<RobotRecord>,
     gameIntel: GameIntelSnapshot?,
     gameIntelLoading: Boolean,
     gameIntelError: String?,
@@ -2117,48 +2120,47 @@ private fun DashboardScreen(
             }
         }
 
-        // Dernière capture analysée (aperçu visuel immédiat + OCR)
-        if (latestAnalysis != null) {
-            item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF161E2E))
-                ) {
-                    Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                "Dernière capture (${latestAnalysis.typeCapture})",
-                                fontWeight = FontWeight.SemiBold,
-                                color = Color(0xFFF59E0B)
-                            )
-                            TextButton(onClick = onOpenHistory) {
-                                Text("Historique")
-                            }
-                        }
-                        if (latestAnalysis.imageUriString.isNotBlank()) {
-                            AsyncImage(
-                                model = latestAnalysis.imageUriString,
-                                contentDescription = latestAnalysis.resumeCapture,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(160.dp)
-                                    .clip(RoundedCornerShape(12.dp))
-                            )
-                        }
-                        Text(
-                            latestAnalysis.resumeCapture,
-                            style = MaterialTheme.typography.bodySmall
-                        )
+        // Objectifs calculés à partir des données réellement enregistrées pour ce profil.
+        val heroesToComplete = heroes.filter { hero -> hero.niveauTexte.isBlank() || hero.etoiles.isNullOrBlank() || hero.puissanceHero.isNullOrBlank() || hero.competences.isEmpty() }
+        val currentWardenLevel = currentPower?.niveauPrisonOuQG?.filter(Char::isDigit)?.toIntOrNull()
+        val nextWardenRequirement = currentWardenLevel?.let { current -> WARDEN_LEVELS_TABLE.firstOrNull { requirement -> requirement.level == current + 1 } }
+
+        item {
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                    Text("Objectifs à atteindre", fontWeight = FontWeight.Bold)
+                    Text("Les priorités sont calculées à partir des informations de ton profil. Une donnée absente n'est pas considérée comme acquise.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (currentWardenLevel == null) {
+                        Text("• Niveau du QG / prison à mesurer", fontWeight = FontWeight.SemiBold)
+                        Text("À faire : importer une capture de ton bâtiment principal pour identifier le niveau et calculer la prochaine amélioration.", style = MaterialTheme.typography.bodySmall)
+                    } else if (nextWardenRequirement != null) {
+                        Text("• Objectif bâtiment : niveau ${nextWardenRequirement.level}", fontWeight = FontWeight.SemiBold)
+                        Text("Prérequis : ${nextWardenRequirement.prereqs}", style = MaterialTheme.typography.bodySmall)
+                        val costs = listOf("Nourriture" to nextWardenRequirement.food, "Bois" to nextWardenRequirement.wood, "Acier" to nextWardenRequirement.steel, "Essence" to nextWardenRequirement.gasoline).filter { it.second > 0L }.joinToString(" · ") { "${it.first} : ${it.second}" }
+                        if (costs.isNotBlank()) Text("Ressources nécessaires : $costs", style = MaterialTheme.typography.bodySmall)
+                        if (!nextWardenRequirement.verified) Text("Coût / prérequis estimé : à confirmer dans le jeu.", color = Color(0xFFFBBF24), style = MaterialTheme.typography.bodySmall)
+                    } else if (currentWardenLevel >= 30) {
+                        Text("• Objectif bâtiment : niveau maximum actuellement référencé (30).", style = MaterialTheme.typography.bodySmall)
+                    } else {
+                        Text("• Prochaine amélioration du QG : données de prérequis non référencées pour le niveau ${currentWardenLevel + 1}.", style = MaterialTheme.typography.bodySmall)
                     }
+                    if (heroesToComplete.isNotEmpty()) {
+                        Text("• Héros à compléter : ${heroesToComplete.size}", fontWeight = FontWeight.SemiBold)
+                        Text(heroesToComplete.take(4).joinToString(" · ") { hero -> val missing = buildList { if (hero.niveauTexte.isBlank()) add("niveau"); if (hero.etoiles.isNullOrBlank()) add("étoiles"); if (hero.puissanceHero.isNullOrBlank()) add("puissance"); if (hero.competences.isEmpty()) add("compétences") }; "${hero.nom} (${missing.joinToString(", ")})" }, style = MaterialTheme.typography.bodySmall)
+                        Text("À faire : ouvrir Héros, puis compléter les champs manquants avec les captures du jeu.", style = MaterialTheme.typography.bodySmall)
+                    }
+                    if (resources.isEmpty()) {
+                        Text("• Inventaire à renseigner", fontWeight = FontWeight.SemiBold)
+                        Text("À faire : importer une capture de l'inventaire des ressources pour comparer tes stocks aux prochains coûts.", style = MaterialTheme.typography.bodySmall)
+                    }
+                    if (robots.isEmpty()) {
+                        Text("• Profil robot à renseigner", fontWeight = FontWeight.SemiBold)
+                        Text("À faire : importer les écrans du robot, de ses bonus et de ses compétences.", style = MaterialTheme.typography.bodySmall)
+                    }
+                    if (heroesToComplete.isEmpty() && resources.isNotEmpty() && robots.isNotEmpty() && currentWardenLevel != null) Text("Les principales données du profil sont renseignées. Consulte Événements et Conseils pour définir tes prochains objectifs tactiques.", color = Color(0xFF34D399), style = MaterialTheme.typography.bodySmall)
                 }
             }
         }
-
         // Résumé du compte
         item {
             Card(modifier = Modifier.fillMaxWidth()) {
@@ -2245,7 +2247,7 @@ private fun HeroesScreen(
         HeroCatalog.entries.filter { entry ->
             (search.isBlank() || entry.nom.contains(search.trim(), ignoreCase = true)) &&
                 (selectedClass == "Tous" || entry.typeTroupe == selectedClass)
-        }
+        }.sortedByDescending { entry -> profileByName.containsKey(entry.nom.trim().lowercase()) }
     }
 
     LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -4026,168 +4028,10 @@ private fun AllianceScreen(
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
                 Text("Espace Alliance", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                 Text(
-                    "Inscris ton profil de jeu et rassemble les capacités de tes membres pour préparer les événements.",
+                    "Ton profil vient de ton compte. Consulte le roster et prépare les événements avec les capacités de tes membres.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-            }
-        }
-        item {
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                    Text("Inscription du joueur", fontWeight = FontWeight.Bold)
-                    OutlinedTextField(
-                        value = playerName,
-                        onValueChange = { playerName = it },
-                        label = { Text("Pseudo dans le jeu") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    OutlinedTextField(
-                        value = server,
-                        onValueChange = { server = it.filter(Char::isDigit).take(6) },
-                        label = { Text("Serveur (ex. 311)") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    OutlinedTextField(
-                        value = allianceName,
-                        onValueChange = { allianceName = it },
-                        label = { Text("Nom / tag de l'alliance") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    OutlinedTextField(
-                        value = ownRobotSummary,
-                        onValueChange = { ownRobotSummary = it },
-                        label = { Text("Ton robot / bonus actif (facultatif)") },
-                        minLines = 2,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Text("Ton rang dans le jeu", style = MaterialTheme.typography.labelLarge)
-                    LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        items(AllianceRank.entries) { item ->
-                            FilterChip(
-                                selected = rank == item,
-                                onClick = { rank = item },
-                                label = { Text(item.labelFr) }
-                            )
-                        }
-                    }
-                    Button(
-                        onClick = {
-                            val profile = AlliancePlayerProfile(
-                                id = workspace.ownProfile.id.ifBlank { UUID.randomUUID().toString() },
-                                playerName = playerName.trim(),
-                                server = server.trim(),
-                                allianceName = allianceName.trim(),
-                                rank = rank,
-                                powerText = currentPowerText.ifBlank { workspace.ownProfile.powerText },
-                                heroSkillSummary = ownHeroSummary,
-                                robotSummary = ownRobotSummary.trim(),
-                                updatedAtIso = Instant.now().toString()
-                            )
-                            onSaveWorkspace(workspace.copy(
-                                server = server.trim(),
-                                allianceName = allianceName.trim(),
-                                ownProfile = profile
-                            ))
-                        },
-                        enabled = playerName.isNotBlank() && server.isNotBlank() && allianceName.isNotBlank(),
-                        modifier = Modifier.fillMaxWidth()
-                    ) { Text("Enregistrer mon inscription") }
-                    OutlinedButton(
-                        onClick = {
-                            if (cloudAuth.currentSession() == null) {
-                                cloudSyncMessage = "Connecte-toi à ton compte cloud avant de synchroniser."
-                                cloudSyncError = true
-                            } else {
-                                val profile = AlliancePlayerProfile(
-                                    id = workspace.ownProfile.id.ifBlank { UUID.randomUUID().toString() },
-                                    playerName = playerName.trim(),
-                                    server = server.trim(),
-                                    allianceName = allianceName.trim(),
-                                    rank = rank,
-                                    powerText = currentPowerText.ifBlank { workspace.ownProfile.powerText },
-                                    heroSkillSummary = ownHeroSummary,
-                                    robotSummary = ownRobotSummary.trim(),
-                                    updatedAtIso = Instant.now().toString()
-                                )
-                                onSaveWorkspace(workspace.copy(
-                                    server = server.trim(),
-                                    allianceName = allianceName.trim(),
-                                    ownProfile = profile
-                                ))
-                                scope.launch {
-                                    cloudSyncBusy = true
-                                    cloudSyncMessage = null
-                                    cloudAuth.syncPlayerProfile(profile, heroes)
-                                        .onSuccess {
-                                            cloudSyncMessage = "Profil et ${heroes.size} héros synchronisés avec ton compte."
-                                            cloudSyncError = false
-                                        }
-                                        .onFailure {
-                                            cloudSyncMessage = it.message ?: "Synchronisation impossible."
-                                            cloudSyncError = true
-                                        }
-                                    cloudSyncBusy = false
-                                }
-                            }
-                        },
-                        enabled = !cloudSyncBusy && playerName.isNotBlank() && server.isNotBlank() && allianceName.isNotBlank(),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        if (cloudSyncBusy) {
-                            CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
-                            Spacer(Modifier.width(8.dp))
-                        }
-                        Text(if (cloudSyncBusy) "Synchronisation…" else "Synchroniser mon profil et mes héros")
-                    }
-                    OutlinedButton(
-                        onClick = {
-                            if (cloudAuth.currentSession() == null) {
-                                joinRequestMessage = "Crée d'abord ton compte ou connecte-toi pour envoyer la demande."
-                            } else {
-                                scope.launch {
-                                    joinRequestBusy = true
-                                    joinRequestMessage = null
-                                    cloudAuth.submitAllianceJoinRequest(server, allianceName, playerName, rank.name)
-                                        .onSuccess {
-                                            joinRequestMessage = "Demande envoyée aux R4/R5 de l'alliance. Ton rang sera activé après leur validation."
-                                            joinRequestError = false
-                                        }
-                                        .onFailure {
-                                            joinRequestMessage = it.message ?: "Envoi de la demande impossible."
-                                            joinRequestError = true
-                                        }
-                                    joinRequestBusy = false
-                                }
-                            }
-                        },
-                        enabled = !joinRequestBusy && playerName.isNotBlank() && server.isNotBlank() && allianceName.isNotBlank(),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        if (joinRequestBusy) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
-                        Spacer(Modifier.width(7.dp))
-                        Text(if (joinRequestBusy) "Envoi…" else "Demander à rejoindre cette alliance")
-                    }
-                    joinRequestMessage?.let {
-                        Text(it, color = if (joinRequestError) Color(0xFFFCA5A5) else Color(0xFF86EFAC), style = MaterialTheme.typography.bodySmall)
-                    }
-                    cloudSyncMessage?.let {
-                        Text(
-                            it,
-                            color = if (cloudSyncError) Color(0xFFFCA5A5) else Color(0xFF86EFAC),
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                    Text(
-                        if (isOfficer) "Rang déclaré R4/R5 : gestion du roster et simulations activées sur cet appareil. Vérification du rang requise pour l’espace cloud partagé."
-                        else "Rang déclaré R1/R2/R3 : tu peux enregistrer ton profil. La gestion du roster et les simulations sont réservées aux R4/R5.",
-                        color = if (isOfficer) Color(0xFF34D399) else Color(0xFFFBBF24),
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
             }
         }
         item {
