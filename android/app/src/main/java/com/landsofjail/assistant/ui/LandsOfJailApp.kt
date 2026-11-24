@@ -5438,20 +5438,20 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
     }
 
     val categoryLabels = mapOf(
-        "bug" to "Bug / problème",
-        "idea" to "Nouvelle idée",
-        "game_data" to "Données du jeu",
-        "interface" to "Interface",
-        "performance" to "Performance",
-        "other" to "Autre"
+        "bug" to localizedUiText(currentLang, "Bug / problème", "Bug / issue", "Fehler / Problem", "Hata / sorun", "Ошибка / проблема", "错误 / 问题"),
+        "idea" to localizedUiText(currentLang, "Nouvelle idée", "New idea", "Neue Idee", "Yeni fikir", "Новая идея", "新想法"),
+        "game_data" to localizedUiText(currentLang, "Données du jeu", "Game data", "Spieldaten", "Oyun verileri", "Данные игры", "游戏数据"),
+        "interface" to localizedUiText(currentLang, "Interface", "Interface", "Oberfläche", "Arayüz", "Интерфейс", "界面"),
+        "performance" to localizedUiText(currentLang, "Performance", "Performance", "Leistung", "Performans", "Производительность", "性能"),
+        "other" to localizedUiText(currentLang, "Autre", "Other", "Sonstiges", "Diğer", "Другое", "其他")
     )
     val statusLabels = mapOf(
-        "pending" to "En attente",
-        "accepted" to "Acceptée",
-        "rejected" to "Refusée",
-        "needs_info" to "Précisions demandées",
-        "in_progress" to "En développement",
-        "implemented" to "Installée dans l'application"
+        "pending" to localizedUiText(currentLang, "En attente", "Pending", "Ausstehend", "Beklemede", "Ожидает", "待处理"),
+        "accepted" to localizedUiText(currentLang, "Acceptée", "Accepted", "Angenommen", "Kabul edildi", "Принято", "已接受"),
+        "rejected" to localizedUiText(currentLang, "Refusée", "Rejected", "Abgelehnt", "Reddedildi", "Отклонено", "已拒绝"),
+        "needs_info" to localizedUiText(currentLang, "Précisions demandées", "More information needed", "Weitere Informationen erforderlich", "Ek bilgi gerekli", "Требуется уточнение", "需要补充信息"),
+        "in_progress" to localizedUiText(currentLang, "En développement", "In progress", "In Entwicklung", "Geliştiriliyor", "В разработке", "开发中"),
+        "implemented" to localizedUiText(currentLang, "Installée dans l'application", "Implemented in the app", "In der App umgesetzt", "Uygulamaya eklendi", "Добавлено в приложение", "已在应用中实现")
     )
 
     LazyColumn(
