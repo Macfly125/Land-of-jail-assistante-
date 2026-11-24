@@ -19,6 +19,7 @@ android {
         applicationId = "com.landsofjail.assistant"
         minSdk = 26
         targetSdk = 35
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         versionCode = providers.gradleProperty("VERSION_CODE").orElse("1").get().toInt()
         versionName = providers.gradleProperty("VERSION_NAME").orElse("1.1.0").get()
     }
@@ -83,4 +84,10 @@ dependencies {
     implementation("com.google.mlkit:text-recognition:16.0.1")
 
     testImplementation("junit:junit:4.13.2")
+
+    // Tests instrumentés : vérifie le démarrage réel de l’activité dans un émulateur Android.
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.test:runner:1.6.2")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
