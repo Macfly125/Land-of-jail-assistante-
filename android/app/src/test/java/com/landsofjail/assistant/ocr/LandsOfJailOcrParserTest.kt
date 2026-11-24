@@ -251,11 +251,11 @@ class LandsOfJailOcrParserTest {
     @Test
     fun classifiesNewDevelopmentScreensWithoutConfusingTheirCategories() {
         val cases = listOf(
-            "Power Armor Hangar\\nSolo Module" to "power_armor",
-            "Forticlad Lab\\nHyperalloy" to "forticlad_lab",
-            "Logistics Technology\\nEconomy Technology" to "lab",
-            "Cosmos Hub\\nSatellite\\nData Disk" to "cosmos_hub",
-            "Dungeon Office\\nSurveillance Room\\nFelons" to "dungeon"
+            "Power Armor Hangar\nSolo Module" to "power_armor",
+            "Forticlad Lab\nHyperalloy" to "forticlad_lab",
+            "Logistics Technology\nEconomy Technology" to "lab",
+            "Cosmos Hub\nSatellite\nData Disk" to "cosmos_hub",
+            "Dungeon Office\nSurveillance Room\nFelons" to "dungeon"
         )
         cases.forEach { (sample, expected) ->
             assertEquals("Mauvaise catégorie pour : $sample", expected, ScreenRecognitionEngine.analyze(sample).category)
