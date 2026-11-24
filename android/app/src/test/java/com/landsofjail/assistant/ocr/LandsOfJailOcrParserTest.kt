@@ -16,6 +16,10 @@ class LandsOfJailOcrParserTest {
         assertEquals(entries.size, entries.map { it.nom.lowercase() }.distinct().size)
         val franAndPike = entries.first { it.nom == "Fran & Pike" }
         assertTrue(franAndPike.portraitUrl?.contains("7d74a030adb8f3e8.webp") == true)
+        assertTrue("Au moins 32 portraits doivent être renseignés", entries.count { !it.portraitUrl.isNullOrBlank() } >= 32)
+        assertTrue(entries.first { it.nom == "Tormund" }.portraitUrl?.endsWith("e8e153e31561afad.webp") == true)
+        assertTrue(entries.first { it.nom == "Lunarl" }.portraitUrl?.endsWith("852918d66fdf283d.webp") == true)
+        assertTrue(entries.first { it.nom == "Sawyer" }.portraitUrl?.endsWith("37fbe6e7af9872d3.webp") == true)
     }
 
     @Test
