@@ -94,6 +94,8 @@ private fun localizedAppText(source: String): String {
     }
     val dictionary = mapOf(
         "Annuler" to listOf("Annuler", "Cancel", "Abbrechen", "İptal", "Отмена", "取消"),
+        "Synchronisation terminée. Aucune sauvegarde distante n’a été supprimée." to listOf("Synchronisation terminée. Aucune sauvegarde distante n’a été supprimée.", "Sync complete. No remote backup was deleted.", "Synchronisierung abgeschlossen. Kein Remote-Backup wurde gelöscht.", "Senkronizasyon tamamlandı. Hiçbir uzak yedek silinmedi.", "Синхронизация завершена. Ни одна удалённая резервная копия не удалена.", "同步完成。没有删除任何远程备份。"),
+        "Réglages capture" to listOf("Réglages capture", "Capture settings", "Aufnahmeeinstellungen", "Yakalama ayarları", "Настройки захвата", "捕获设置"),
         "Fermer la file (100 %)" to listOf("Fermer la file (100 %)", "Close queue (100%)", "Warteschlange schließen (100 %)", "Kuyruğu kapat (%100)", "Закрыть очередь (100 %)", "关闭队列（100%）"),
         "Bienvenue · Inscription joueur" to listOf("Bienvenue · Inscription joueur", "Welcome · Player registration", "Willkommen · Spielerregistrierung", "Hoş geldiniz · Oyuncu kaydı", "Добро пожаловать · Регистрация игрока", "欢迎 · 玩家注册"),
         "Renseigne ton identité dans Land of Jail. Ces informations seront enregistrées sur cet appareil et pourront être transmises aux officiers de ton alliance après connexion." to listOf("Renseigne ton identité dans Land of Jail. Ces informations seront enregistrées sur cet appareil et pourront être transmises aux officiers de ton alliance après connexion.", "Enter your Land of Jail identity. This information is saved on this device and can be shared with your alliance officers after you sign in.", "Gib deine Land-of-Jail-Spielerdaten ein. Diese Informationen werden auf diesem Gerät gespeichert und können nach der Anmeldung an deine Allianz-Offiziere weitergegeben werden.", "Land of Jail oyuncu bilgilerini gir. Bu bilgiler cihazda saklanır ve giriş yaptıktan sonra ittifak yetkilileriyle paylaşılabilir.", "Укажите данные игрока Land of Jail. Они сохранятся на устройстве и после входа могут быть переданы офицерам альянса.", "填写你的 Land of Jail 玩家信息。这些信息会保存在此设备上，登录后可分享给联盟官员。"),
@@ -1535,7 +1537,7 @@ fun LandsOfJailAssistantApp(
                                             restoreRoutineState(active.id, snapshot.routineState, clearWhenEmpty = snapshot.schemaVersion != null && snapshot.schemaVersion >= 2)
                                             routineRevision += 1
                                         }
-                                        snackbarHostState.showSnackbar("Synchronisation terminée. Aucune sauvegarde distante n’a été supprimée.")
+                                        snackbarHostState.showSnackbar(localizedAppText("Synchronisation terminée. Aucune sauvegarde distante n’a été supprimée."))
                                     } catch (error: Exception) {
                                         errorMessage = "Synchronisation interrompue : ${error.message ?: "erreur inconnue"}. La copie locale de secours est conservée."
                                     } finally {
@@ -2175,7 +2177,7 @@ private fun DashboardScreen(
                             ) {
                                 Icon(
                                     Icons.Outlined.Settings,
-                                    contentDescription = "Réglages capture"
+                                    contentDescription = localizedAppText("Réglages capture")
                                 )
                             }
                         }
