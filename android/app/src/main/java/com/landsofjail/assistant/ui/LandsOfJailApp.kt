@@ -159,6 +159,21 @@ internal fun localizedResourceName(language: AppLanguage, raw: String): String {
     }
 }
 
+private fun resourceIcon(raw: String): String {
+    val key = raw.lowercase()
+    return when {
+        key.contains("nourriture") || key.contains("food") || key.contains("vivres") -> "🍖"
+        key.contains("bois") || key.contains("wood") -> "🪵"
+        key.contains("acier") || key.contains("steel") || key.contains("iron") -> "⚙️"
+        key.contains("essence") || key.contains("gasoline") || key.contains("fuel") -> "⛽"
+        key.contains("diamant") || key.contains("gem") -> "💎"
+        key.contains("gold") || key.contains("or") || key.contains("cash") -> "🪙"
+        key.contains("forticlad") -> "🔷"
+        key.contains("hyperalloy") || key.contains("hyperalliage") -> "🧩"
+        else -> "📦"
+    }
+}
+
 internal fun localizedEquipmentPiece(language: AppLanguage, raw: String): String {
     val key = raw.lowercase().trim()
     if (language == AppLanguage.IT) return when {
@@ -208,7 +223,7 @@ private fun localizedCaptureSummary(item: ScreenshotAnalysis, language: AppLangu
         }
         if (item.equipements.isNotEmpty()) {
             val details = item.equipements.take(4).joinToString(", ") {
-                if (it.niveau.isNotBlank()) "${localizedEquipmentPiece(language, it.piece)} ${localizedUiText(language, "Niv.", "Lv.", "Stufe", "Sv.", "Ур.", "等级")} ${it.niveau}" else localizedEquipmentPiece(language, it.piece)
+                if (it.niveau.isNotBlank()) "${localizedEquipmentPiece(language, it.piece)} ${if (language == AppLanguage.IT) "Liv." else localizedUiText(language, "Niv.", "Lv.", "Stufe", "Sv.", "Ур.", "等级")} ${it.niveau}" else localizedEquipmentPiece(language, it.piece)
             }
             add(if (language == AppLanguage.IT) "Equipaggiamento: $details" else localizedUiText(language, "Équipements : $details", "Equipment: $details", "Ausrüstung: $details", "Ekipman: $details", "Снаряжение: $details", "装备：$details"))
         }
