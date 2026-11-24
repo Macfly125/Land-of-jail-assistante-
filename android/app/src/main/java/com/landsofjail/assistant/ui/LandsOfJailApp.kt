@@ -47,6 +47,11 @@ import com.landsofjail.assistant.capture.CapturedScreenPayload
 import com.landsofjail.assistant.capture.ScreenCaptureConsentActivity
 import com.landsofjail.assistant.data.GeminiAssistantRepository
 import com.landsofjail.assistant.data.GameIntelSnapshot
+import com.landsofjail.assistant.data.GiftCodeRepository
+import com.landsofjail.assistant.data.GiftCodeSnapshot
+import com.landsofjail.assistant.data.GiftCodeEntry
+import android.content.ClipboardManager
+import android.content.ClipData
 import com.landsofjail.assistant.data.SupabaseAuthRepository
 import com.landsofjail.assistant.model.*
 import com.landsofjail.assistant.ocr.LandsOfJailOcrParser
@@ -726,7 +731,7 @@ private fun resourceUiText(language: AppLanguage, key: String): String {
 }
 
 private enum class AssistantTab {
-    TABLEAU, HEROS, RESSOURCES, CONSEILS, ALLIANCE, HISTORIQUE, AMELIORATIONS;
+    TABLEAU, HEROS, RESSOURCES, CONSEILS, ALLIANCE, HISTORIQUE, AMELIORATIONS, CODES;
 
     fun titleFor(lang: AppLanguage): String = when (this) {
         TABLEAU -> when (lang) {
@@ -782,6 +787,15 @@ private enum class AssistantTab {
             AppLanguage.DE -> "Verlauf"
             AppLanguage.EN -> "History"
             AppLanguage.IT -> "Cronologia"
+        }
+        CODES -> when (lang) {
+            AppLanguage.FR -> "Codes"
+            AppLanguage.EN -> "Codes"
+            AppLanguage.DE -> "Codes"
+            AppLanguage.TR -> "Kodlar"
+            AppLanguage.RU -> "Коды"
+            AppLanguage.ZH -> "兑换码"
+            AppLanguage.IT -> "Codici"
         }
         AMELIORATIONS -> when (lang) {
             AppLanguage.FR -> "Idées"
@@ -959,6 +973,28 @@ fun LandsOfJailAssistantApp(
             .apply()
     }
     var currentTab by remember { mutableStateOf(AssistantTab.TABLEAU) }
+    val giftCodePrefs = remember(context) { context.getSharedPreferences("gift_codes_cache_v1", Context.MODE_PRIVATE) }
+    var giftCodeSnapshot by remember {
+        mutableStateOf(runCatching {
+            accountJson.decodeFromString<GiftCodeSnapshot>(giftCodePrefs.getString("snapshot", "") ?: "")
+        }.getOrElse { GiftCodeRepository.initialSnapshot() })
+    }
+    var giftCodesRefreshing by remember { mutableStateOf(false) }
+    LaunchedEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_START && !giftCodesRefreshing) {
+                scope.launch {
+                    giftCodesRefreshing = true
+                    val refreshed = withContext(Dispatchers.IO) { GiftCodeRepository.refresh(giftCodeSnapshot) }
+                    giftCodeSnapshot = refreshed
+                    giftCodePrefs.edit().putString("snapshot", accountJson.encodeToString(refreshed)).apply()
+                    giftCodesRefreshing = false
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        kotlinx.coroutines.awaitCancellation()
+    }
     var playerRole by remember { mutableStateOf(PlayerRole.POLYVALENT_F2P) }
     var packageFilter by remember { mutableStateOf(UsageStatsDetector.DEFAULT_GAME_PACKAGE_KEYWORD) }
     var alwaysKeepOverlay by remember { mutableStateOf(true) }
@@ -2156,6 +2192,7 @@ fun LandsOfJailAssistantApp(
                             AssistantTab.ALLIANCE -> Icons.Outlined.Groups
                             AssistantTab.HISTORIQUE -> Icons.Outlined.History
                             AssistantTab.AMELIORATIONS -> Icons.Outlined.Lightbulb
+                            AssistantTab.CODES -> Icons.Outlined.CardGiftcard
                         }
                         NavigationBarItem(
                             selected = currentTab == tab,
@@ -2383,6 +2420,22 @@ fun LandsOfJailAssistantApp(
                         onSaveWorkspace = { allianceWorkspace = it }
                     )
                     AssistantTab.AMELIORATIONS -> ImprovementRequestsScreen(auth = profileAuth)
+                    AssistantTab.CODES -> GiftCodesScreen(
+                        language = currentLang,
+                        snapshot = giftCodeSnapshot,
+                        refreshing = giftCodesRefreshing,
+                        onRefresh = {
+                            scope.launch {
+                                if (!giftCodesRefreshing) {
+                                    giftCodesRefreshing = true
+                                    val refreshed = withContext(Dispatchers.IO) { GiftCodeRepository.refresh(giftCodeSnapshot) }
+                                    giftCodeSnapshot = refreshed
+                                    giftCodePrefs.edit().putString("snapshot", accountJson.encodeToString(refreshed)).apply()
+                                    giftCodesRefreshing = false
+                                }
+                            }
+                        }
+                    )
                     AssistantTab.HISTORIQUE -> HistoryScreen(analyses, onClearHistory = {
                             analyses.forEach { analysis ->
                                 if (analysis.imageUriString.startsWith("file:")) {
