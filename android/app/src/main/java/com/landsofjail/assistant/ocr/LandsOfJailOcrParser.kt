@@ -120,7 +120,7 @@ object LandsOfJailOcrParser {
                 if (match != null) {
                     val inlineQuantity = match.groupValues.drop(1).firstOrNull { it.isNotBlank() }?.trim()
                     val nextLineQuantity = lines.getOrNull(index + 1)?.let { candidate ->
-                        Regex("""^\\s*([0-9][0-9.,\\s]*[kmbKMB]?)\\s*$""", RegexOption.IGNORE_CASE)
+                        Regex("""^\s*([0-9][0-9.,\s]*[kmbKMB]?)\s*$""", RegexOption.IGNORE_CASE)
                             .find(candidate)?.groupValues?.get(1)?.trim()
                     }
                     val qtyText = inlineQuantity ?: nextLineQuantity ?: continue
