@@ -247,6 +247,22 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun readsResourceQuantitiesOnTheLineAfterTheirLabels() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            """Nahrung
+1200
+Holz
+2300
+Stahl
+3400"""
+        )
+        assertEquals(3, result.resources.size)
+        assertTrue(result.resources.any { it.nom == "Nourriture (Food)" && it.quantiteNumerique == 1200.0 })
+        assertTrue(result.resources.any { it.nom == "Bois (Wood)" && it.quantiteNumerique == 2300.0 })
+        assertTrue(result.resources.any { it.nom == "Acier (Steel)" && it.quantiteNumerique == 3400.0 })
+    }
+
+    @Test
     fun extractsKnownRobotNameAndExplicitLevelWithoutGuessingStats() {
         val result = LandsOfJailOcrParser.parseLocalOcrText("Ranger\\nLevel 25")
         assertEquals("robots", result.detectedCategory)
