@@ -28,6 +28,17 @@ class GiftCodeRepositoryTest {
         assertEquals("UNVERIFIED", unverified?.status)
     }
 
+
+    @Test
+    fun frenchGuideLojIsRegisteredAsThePrimaryGuideSource() {
+        assertEquals("https://guideloj.com/fr/codes", GiftCodeRepository.GUIDE_URL)
+        assertEquals("https://guideloj.com/fr/home", GiftCodeRepository.GUIDE_HOME_URL)
+        val snapshot = GiftCodeRepository.initialSnapshot()
+        val code = snapshot.entries.first { it.code == "loj3579" }
+        assertTrue(code.reward.contains("5 cartes de ravitaillement avancées"))
+        assertTrue(code.reward.contains("3 accélérateurs universels"))
+    }
+
     @Test
     fun catalogPreservesCaseSensitiveCodesAndContradictoryReports() {
         val snapshot = GiftCodeRepository.initialSnapshot()
