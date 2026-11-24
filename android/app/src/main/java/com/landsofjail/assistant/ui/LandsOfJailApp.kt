@@ -131,6 +131,20 @@ private fun localizedCaptureSummary(item: ScreenshotAnalysis, language: AppLangu
             val names = item.robots.take(3).joinToString(", ") { it.nom }
             add(localizedUiText(language, "Robots : $names", "Robots: $names", "Roboter: $names", "Robotlar: $names", "Роботы: $names", "机器人：$names"))
         }
+        if (item.equipements.isNotEmpty()) {
+            val details = item.equipements.take(4).joinToString(", ") {
+                if (it.niveau.isNotBlank()) "${it.piece} Niv. ${it.niveau}" else it.piece
+            }
+            add(localizedUiText(
+                language,
+                "Équipements : $details",
+                "Equipment: $details",
+                "Ausrüstung: $details",
+                "Ekipman: $details",
+                "Снаряжение: $details",
+                "装备：$details"
+            ))
+        }
     }
     return parts.takeIf { it.isNotEmpty() }?.joinToString(" · ")
         ?: localizedUiText(language, "Aucune valeur lue avec certitude ; vérification de la capture nécessaire.", "No values read with confidence; screenshot review is needed.", "Keine Werte sicher gelesen; Screenshot muss geprüft werden.", "Hiçbir değer güvenle okunamadı; ekran görüntüsü kontrol edilmeli.", "Не удалось уверенно прочитать значения; снимок нужно проверить.", "未能可靠读取数值；需要检查截图。")
