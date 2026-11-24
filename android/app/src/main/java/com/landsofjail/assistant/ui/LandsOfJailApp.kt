@@ -51,6 +51,7 @@ import com.landsofjail.assistant.model.*
 import com.landsofjail.assistant.ocr.LandsOfJailOcrParser
 import com.landsofjail.assistant.service.GameForegroundMonitorService
 import com.landsofjail.assistant.service.UsageStatsDetector
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -1313,6 +1314,9 @@ fun LandsOfJailAssistantApp(
 
     LaunchedEffect(capturedScreenPayload) {
         if (capturedScreenPayload != null) {
+            // Ne supprimer la capture persistée qu'après l'enregistrement du résultat.
+            // Une annulation liée à la composition doit laisser la capture récupérable.
+            var analysisCommitted = false
             isAnalyzing = true
             singleAnalysisPercent = 20
             errorMessage = null
@@ -1371,6 +1375,7 @@ fun LandsOfJailAssistantApp(
 
                 singleAnalysisPercent = 100
                 mergeNewAnalysis(result)
+                analysisCommitted = true
                 AdviceMode.entries.firstOrNull { it.apiId == result.typeCapture }?.let {
                     selectedAdviceMode = it
                 }
@@ -1393,10 +1398,13 @@ fun LandsOfJailAssistantApp(
                     robots = robots
                 ).onSuccess { adviceResult = it }
                 isFetchingAdvice = false
+            } catch (e: CancellationException) {
+                // La capture reste dans le stockage local : elle sera restaurée à la reprise.
+                throw e
             } catch (e: Throwable) {
                 errorMessage = e.message ?: localizedUiText(currentLang, "Erreur pendant l'analyse OCR.", "Error during OCR analysis.", "Fehler bei der OCR-Analyse.", "OCR analizi sırasında hata oluştu.", "Ошибка при распознавании текста.", "OCR 分析时出错。")
             } finally {
-                onConsumeCapturedScreen()
+                if (analysisCommitted) onConsumeCapturedScreen()
                 isAnalyzing = false
                 singleAnalysisPercent = 0
             }
