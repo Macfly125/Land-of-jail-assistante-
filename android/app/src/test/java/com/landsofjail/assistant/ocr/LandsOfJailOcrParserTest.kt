@@ -187,4 +187,19 @@ class LandsOfJailOcrParserTest {
         assertTrue(result.needsVisualConfirmation)
     }
 
+
+    @Test
+    fun doesNotMistakeFrenchConjunctionOrForTheGoldResource() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText("Or il faut encore 5M de nourriture")
+        assertTrue(result.resources.none { it.nom == "Cash / Or" })
+        assertTrue(result.resources.any { it.nom == "Nourriture (Food)" })
+    }
+
+    @Test
+    fun recognizesExplicitFrenchGoldLabelAndMarksBillionSuffixAsCompact() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText("Or: 2B")
+        val gold = result.resources.single { it.nom == "Cash / Or" }
+        assertEquals(2_000_000_000.0, gold.quantiteNumerique ?: 0.0, 0.1)
+        assertTrue(gold.incertain)
+    }
 }
