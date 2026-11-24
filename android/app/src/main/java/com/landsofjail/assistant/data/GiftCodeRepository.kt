@@ -5,6 +5,10 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.time.Instant
 import java.util.Locale
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 
 @Serializable
 data class GiftCodeEntry(
@@ -110,10 +114,17 @@ object GiftCodeRepository {
             "Pocket Gamer" to "https://www.pocketgamer.com/lands-of-jail/codes/",
             "MrGuider" to "https://www.mrguider.org/codes/lands-of-jail-codes/"
         )
-        for ((sourceName, url) in sources) {
-            try {
-                val html = fetch(url)
-                val checkedDate = Regex("(?i)(?:checked|updated|last checked)\\s*[:\\-]?\\s*(?:on\\s*)?([0-9]{1,2}\\s+[A-Za-z]+\\s+20[0-9]{2}|[A-Za-z]+\\s+[0-9]{1,2},?\\s+20[0-9]{2})")
+        val downloaded = coroutineScope {
+            sources.map { (sourceName, url) ->
+                async(Dispatchers.IO) { sourceName to runCatching { fetch(url) } }
+            }.awaitAll()
+        }
+        for ((sourceName, result) in downloaded) {
+            val html = result.getOrElse {
+                errors += "$sourceName : ${it.message ?: "source inaccessible"}"
+                continue
+            }
+            val checkedDate = Regex                val checkedDate = Regex("(?i)(?:checked|updated|last checked)\\s*[:\\-]?\\s*(?:on\\s*)?([0-9]{1,2}\\s+[A-Za-z]+\\s+20[0-9]{2}|[A-Za-z]+\\s+[0-9]{1,2},?\\s+20[0-9]{2})")
                     .find(stripTags(html))?.groupValues?.getOrNull(1).orEmpty()
                 val codeMatches = Regex("(?is)<code[^>]*>(.*?)</code>").findAll(html)
                 for (match in codeMatches) {
@@ -133,15 +144,12 @@ object GiftCodeRepository {
                             code = code,
                             status = if (looksExpired) "NEEDS_REVIEW" else "UNVERIFIED",
                             source = sourceName,
-                            firstSeen = checkedDate,
                             lastChecked = checkedDate,
                             note = if (looksExpired) "La page mentionne une expiration à proximité ; confirmation nécessaire."
                                 else "Code repéré sur une source communautaire ; à tester dans le jeu."
                         )
                     }
                 }
-            } catch (error: Exception) {
-                errors += "$sourceName : ${error.message ?: "source inaccessible"}"
             }
         }
 
