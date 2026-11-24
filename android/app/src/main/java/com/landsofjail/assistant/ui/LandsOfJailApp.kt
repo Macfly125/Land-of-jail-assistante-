@@ -112,6 +112,25 @@ private fun localizedResourceName(language: AppLanguage, raw: String): String {
     }
 }
 
+private fun localizedEquipmentPiece(language: AppLanguage, raw: String): String {
+    val key = raw.lowercase().trim()
+    return when {
+        key.contains("arme") || key.contains("weapon") || key.contains("waffe") || key.contains("silah") || key.contains("оруж") || key.contains("武器") ->
+            localizedUiText(language, "Arme", "Weapon", "Waffe", "Silah", "Оружие", "武器")
+        key.contains("armure") || key.contains("armor") || key.contains("rüstung") || key.contains("zırh") || key.contains("брон") || key.contains("护甲") ->
+            localizedUiText(language, "Armure", "Armor", "Rüstung", "Zırh", "Броня", "护甲")
+        key.contains("casque") || key.contains("helmet") || key.contains("helm") || key.contains("miğfer") || key.contains("шлем") || key.contains("头盔") ->
+            localizedUiText(language, "Casque", "Helmet", "Helm", "Miğfer", "Шлем", "头盔")
+        key.contains("gant") || key.contains("glove") || key.contains("handschuh") || key.contains("eldiven") || key.contains("перчат") || key.contains("手套") ->
+            localizedUiText(language, "Gants", "Gloves", "Handschuhe", "Eldiven", "Перчатки", "手套")
+        key.contains("botte") || key.contains("boot") || key.contains("stiefel") || key == "bot" || key.contains("сапог") || key.contains("靴") ->
+            localizedUiText(language, "Bottes", "Boots", "Stiefel", "Bot", "Сапоги", "靴子")
+        key.contains("accessoire") || key.contains("accessory") || key.contains("zubehör") || key.contains("aksesuar") || key.contains("аксессуар") || key.contains("配件") ->
+            localizedUiText(language, "Accessoire", "Accessory", "Zubehör", "Aksesuar", "Аксессуар", "配件")
+        else -> raw
+    }
+}
+
 private fun localizedCaptureSummary(item: ScreenshotAnalysis, language: AppLanguage): String {
     val parts = buildList {
         item.puissance?.puissanceTotaleTexte?.takeIf { it.isNotBlank() }?.let {
@@ -133,7 +152,7 @@ private fun localizedCaptureSummary(item: ScreenshotAnalysis, language: AppLangu
         }
         if (item.equipements.isNotEmpty()) {
             val details = item.equipements.take(4).joinToString(", ") {
-                if (it.niveau.isNotBlank()) "${it.piece} Niv. ${it.niveau}" else it.piece
+                if (it.niveau.isNotBlank()) "${localizedEquipmentPiece(language, it.piece)} ${localizedUiText(language, "Niv.", "Lv.", "Stufe", "Sv.", "Ур.", "等级")} ${it.niveau}" else localizedEquipmentPiece(language, it.piece)
             }
             add(localizedUiText(
                 language,
