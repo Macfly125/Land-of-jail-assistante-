@@ -687,6 +687,20 @@ class GameForegroundMonitorService : Service() {
         }
     }
 
+    /** Reads the same language preference as the Compose UI so system notifications and overlay controls match the app. */
+    private fun serviceText(fr: String, en: String, de: String, tr: String, ru: String, zh: String): String {
+        val languageCode = getSharedPreferences("lands_of_jail_account_v1", Context.MODE_PRIVATE)
+            .getString("app_language_code", "fr")
+        return when (languageCode) {
+            "en" -> en
+            "de" -> de
+            "tr" -> tr
+            "ru" -> ru
+            "zh-CN" -> zh
+            else -> fr
+        }
+    }
+
     private fun showAnalyzePromptNotification() {
         val analyzeIntent = Intent(this, ScreenCaptureConsentActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
@@ -700,12 +714,12 @@ class GameForegroundMonitorService : Service() {
 
         val notification = NotificationCompat.Builder(this, CHANNEL_PROMPT_ID)
             .setSmallIcon(android.R.drawable.ic_menu_camera)
-            .setContentTitle("Lands of Jail détecté au premier plan")
-            .setContentText("Appuyez sur « Analyser l’écran » pour lancer une capture ponctuelle autorisée.")
+            .setContentTitle(serviceText("Lands of Jail détecté au premier plan", "Land of Jail detected in foreground", "Land of Jail im Vordergrund erkannt", "Land of Jail ön planda algılandı", "Land of Jail обнаружена на переднем плане", "检测到 Land of Jail 正在前台运行"))
+            .setContentText(serviceText("Appuyez sur « Analyser l’écran » pour lancer une capture ponctuelle autorisée.", "Tap “Analyze screen” to take an authorized one-time capture.", "Tippe auf „Bildschirm analysieren“, um eine erlaubte Einzelaufnahme zu erstellen.", "İzin verilen tek seferlik ekran görüntüsü için “Ekranı analiz et” seçeneğine dokun.", "Нажмите «Анализировать экран», чтобы выполнить разрешённый разовый снимок.", "点击“分析屏幕”以执行一次经授权的截图。"))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
-            .addAction(0, "Analyser l’écran", analyzePendingIntent)
-            .addAction(0, "Arrêter la détection", buildStopPendingIntent())
+            .addAction(0, serviceText("Analyser l’écran", "Analyze screen", "Bildschirm analysieren", "Ekranı analiz et", "Анализировать экран", "分析屏幕"), analyzePendingIntent)
+            .addAction(0, serviceText("Arrêter la détection", "Stop detection", "Erkennung stoppen", "Algılamayı durdur", "Остановить обнаружение", "停止检测"), buildStopPendingIntent())
             .build()
 
         val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -739,7 +753,7 @@ class GameForegroundMonitorService : Service() {
         }
 
         val analyzeBtn = Button(this).apply {
-            text = "Analyser l’écran"
+            text = serviceText("Analyser l’écran", "Analyze screen", "Bildschirm analysieren", "Ekranı analiz et", "Анализировать экран", "分析屏幕")
             textSize = 12f
             isAllCaps = false
             setBackgroundColor(0xFFF59E0B.toInt())
@@ -851,16 +865,16 @@ class GameForegroundMonitorService : Service() {
             .setContentIntent(openAppIntent)
         if (_isAutoCapturing.value) {
             builder
-                .setContentTitle("Analyse automatique active")
-                .setContentText("Intervalle cible ${autoCaptureIntervalMillis / 1000}s; une analyse à la fois, uniquement en jeu.")
-                .addAction(0, "Arrêter l’analyse auto", buildStopAutoCapturePendingIntent())
-                .addAction(0, "Arrêter la détection", buildStopPendingIntent())
+                .setContentTitle(serviceText("Analyse automatique active", "Automatic analysis active", "Automatische Analyse aktiv", "Otomatik analiz etkin", "Автоматический анализ включён", "自动分析已启用"))
+                .setContentText(serviceText("Intervalle cible ${autoCaptureIntervalMillis / 1000}s; une analyse à la fois, uniquement en jeu.", "Target interval ${autoCaptureIntervalMillis / 1000}s; one analysis at a time, only in-game.", "Zielintervall ${autoCaptureIntervalMillis / 1000}s; jeweils eine Analyse, nur im Spiel.", "Hedef aralık ${autoCaptureIntervalMillis / 1000}s; aynı anda tek analiz, yalnızca oyun içinde.", "Целевой интервал ${autoCaptureIntervalMillis / 1000} с; только один анализ за раз и только в игре.", "目标间隔 ${autoCaptureIntervalMillis / 1000} 秒；一次只分析一项，且仅在游戏中。"))
+                .addAction(0, serviceText("Arrêter l’analyse auto", "Stop auto analysis", "Automatische Analyse stoppen", "Otomatik analizi durdur", "Остановить автоанализ", "停止自动分析"), buildStopAutoCapturePendingIntent())
+                .addAction(0, serviceText("Arrêter la détection", "Stop detection", "Erkennung stoppen", "Algılamayı durdur", "Остановить обнаружение", "停止检测"), buildStopPendingIntent())
         } else {
             builder
-                .setContentTitle("Lands of Jail Assistant actif")
-                .setContentText("Bouton prêt. Aucune capture sans votre accord.")
+                .setContentTitle(serviceText("Lands of Jail Assistant actif", "Land of Jail Assistant active", "Land of Jail Assistant aktiv", "Land of Jail Assistant etkin", "Land of Jail Assistant активен", "Land of Jail Assistant 已启用"))
+                .setContentText(serviceText("Bouton prêt. Aucune capture sans votre accord.", "Button ready. No capture without your consent.", "Schaltfläche bereit. Keine Aufnahme ohne deine Zustimmung.", "Düğme hazır. Onayınız olmadan ekran görüntüsü alınmaz.", "Кнопка готова. Съёмка выполняется только с вашего разрешения.", "按钮已就绪。未经你同意不会进行截图。"))
                 .addAction(0, "Analyser l’écran", analyzeIntent)
-                .addAction(0, "Arrêter la détection", buildStopPendingIntent())
+                .addAction(0, serviceText("Arrêter la détection", "Stop detection", "Erkennung stoppen", "Algılamayı durdur", "Остановить обнаружение", "停止检测"), buildStopPendingIntent())
         }
         return builder.build()
     }
@@ -921,14 +935,14 @@ class GameForegroundMonitorService : Service() {
             nm.createNotificationChannel(
                 NotificationChannel(
                     CHANNEL_MONITOR_ID,
-                    "Détection du jeu",
+                    serviceText("Détection du jeu", "Game detection", "Spielerkennung", "Oyun algılama", "Обнаружение игры", "游戏检测"),
                     NotificationManager.IMPORTANCE_LOW
                 )
             )
             nm.createNotificationChannel(
                 NotificationChannel(
                     CHANNEL_PROMPT_ID,
-                    "Bouton Analyser l’écran",
+                    serviceText("Bouton Analyser l’écran", "Analyze screen button", "Schaltfläche „Bildschirm analysieren“", "Ekranı analiz et düğmesi", "Кнопка «Анализировать экран»", "分析屏幕按钮"),
                     NotificationManager.IMPORTANCE_HIGH
                 )
             )
