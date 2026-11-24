@@ -310,6 +310,20 @@ Stahl
         assertEquals(12500.0, result.resources.single().quantiteNumerique ?: 0.0, 0.1)
     }
 
+
+    @Test
+    fun readsRobotLevelsInTurkishRussianAndChinese() {
+        val samples = listOf(
+            "Ranger\\nSeviye 27" to "27",
+            "Ranger\\nУровень 28" to "28",
+            "Ranger\\n等级 29" to "29"
+        )
+        samples.forEach { (sample, expectedLevel) ->
+            val robot = LandsOfJailOcrParser.parseLocalOcrText(sample).robots.single()
+            assertEquals(expectedLevel, robot.niveau)
+        }
+    }
+
     @Test
     fun recognizesRobotNameSplitAcrossTwoOcrLines() {
         val result = LandsOfJailOcrParser.parseLocalOcrText(
