@@ -158,7 +158,7 @@ class LandsOfJailOcrParserTest {
     @Test
     fun recognizesBuildingScreensSeparatelyFromResources() {
         val result = ScreenRecognitionEngine.analyze(
-            "Warden Office Level 18\\nUpgrade building\\nRequired resources"
+            "Warden Office Level 18\nUpgrade building\nRequired resources"
         )
         assertEquals("batiments", result.category)
         assertTrue(result.confidence >= 0.8f)
@@ -176,17 +176,17 @@ class LandsOfJailOcrParserTest {
 
     @Test
     fun distinguishesHeroAndResourceScreensFromBuildingScreens() {
-        assertEquals("heros", ScreenRecognitionEngine.analyze("Heroes\\nSkills\\nStars").category)
-        assertEquals("ressources", ScreenRecognitionEngine.analyze("Food\\nWood\\nSteel").category)
+        assertEquals("heros", ScreenRecognitionEngine.analyze("Heroes\nSkills\nStars").category)
+        assertEquals("ressources", ScreenRecognitionEngine.analyze("Food\nWood\nSteel").category)
     }
 
     @Test
     fun recognizesResourceScreensInGermanTurkishRussianAndChinese() {
         val samples = listOf(
-            "Nahrung\\nHolz\\nStahl",
-            "Yiyecek\\nOdun\\nÇelik",
-            "Еда\\nДерево\\nСталь",
-            "食物\\n木材\\n钢材"
+            "Nahrung\nHolz\nStahl",
+            "Yiyecek\nOdun\nÇelik",
+            "Еда\nДерево\nСталь",
+            "食物\n木材\n钢材"
         )
 
         samples.forEach { sample ->
@@ -219,10 +219,10 @@ class LandsOfJailOcrParserTest {
     @Test
     fun recognizesHeroScreensInGermanTurkishRussianAndChinese() {
         val samples = listOf(
-            "Helden\\nFähigkeiten\\nSterne",
-            "Kahramanlar\\nBeceriler\\nYıldızlar",
-            "Герои\\nНавыки\\nЗвёзды",
-            "英雄\\n技能\\n星级"
+            "Helden\nFähigkeiten\nSterne",
+            "Kahramanlar\nBeceriler\nYıldızlar",
+            "Герои\nНавыки\nЗвёзды",
+            "英雄\n技能\n星级"
         )
 
         samples.forEach { sample ->
@@ -235,11 +235,11 @@ class LandsOfJailOcrParserTest {
     @Test
     fun recognizesGameEventScreensAcrossSupportedLanguages() {
         val samples = listOf(
-            "Trial Cage\\nDamage dealt",
-            "Prüfungskäfig\\nVerursachter Schaden",
-            "Deneme Kafesi\\nVerilen hasar",
-            "Испытательная клетка\\nНанесенный урон",
-            "试炼笼\\n造成伤害"
+            "Trial Cage\nDamage dealt",
+            "Prüfungskäfig\nVerursachter Schaden",
+            "Deneme Kafesi\nVerilen hasar",
+            "Испытательная клетка\nНанесенный урон",
+            "试炼笼\n造成伤害"
         )
         samples.forEach { sample ->
             val result = ScreenRecognitionEngine.analyze(sample)
@@ -259,10 +259,10 @@ class LandsOfJailOcrParserTest {
     @Test
     fun parsesLocalizedResourceNamesAcrossAllSupportedLanguages() {
         val samples = listOf(
-            "Nahrung: 1200\\nHolz: 2300\\nStahl: 3400",
-            "Yiyecek: 1200\\nOdun: 2300\\nÇelik: 3400",
-            "Еда: 1200\\nДерево: 2300\\nСталь: 3400",
-            "食物：1200\\n木材：2300\\n钢材：3400"
+            "Nahrung: 1200\nHolz: 2300\nStahl: 3400",
+            "Yiyecek: 1200\nOdun: 2300\nÇelik: 3400",
+            "Еда: 1200\nДерево: 2300\nСталь: 3400",
+            "食物：1200\n木材：2300\n钢材：3400"
         )
         samples.forEach { sample ->
             val result = LandsOfJailOcrParser.parseLocalOcrText(sample)
@@ -289,7 +289,7 @@ Stahl
 
     @Test
     fun extractsKnownRobotNameAndExplicitLevelWithoutGuessingStats() {
-        val result = LandsOfJailOcrParser.parseLocalOcrText("Ranger\\nLevel 25")
+        val result = LandsOfJailOcrParser.parseLocalOcrText("Ranger\nLevel 25")
         assertEquals("robots", result.detectedCategory)
         assertEquals(1, result.robots.size)
         assertEquals("Ranger", result.robots.single().nom)
@@ -314,9 +314,9 @@ Stahl
     @Test
     fun readsRobotLevelsInTurkishRussianAndChinese() {
         val samples = listOf(
-            "Ranger\\nSeviye 27" to "27",
-            "Ranger\\nУровень 28" to "28",
-            "Ranger\\n等级 29" to "29"
+            "Ranger\nSeviye 27" to "27",
+            "Ranger\nУровень 28" to "28",
+            "Ranger\n等级 29" to "29"
         )
         samples.forEach { (sample, expectedLevel) ->
             val robot = LandsOfJailOcrParser.parseLocalOcrText(sample).robots.single()
