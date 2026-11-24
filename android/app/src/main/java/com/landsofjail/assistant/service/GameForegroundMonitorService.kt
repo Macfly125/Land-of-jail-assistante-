@@ -873,7 +873,7 @@ class GameForegroundMonitorService : Service() {
             builder
                 .setContentTitle(serviceText("Lands of Jail Assistant actif", "Land of Jail Assistant active", "Land of Jail Assistant aktiv", "Land of Jail Assistant etkin", "Land of Jail Assistant активен", "Land of Jail Assistant 已启用"))
                 .setContentText(serviceText("Bouton prêt. Aucune capture sans votre accord.", "Button ready. No capture without your consent.", "Schaltfläche bereit. Keine Aufnahme ohne deine Zustimmung.", "Düğme hazır. Onayınız olmadan ekran görüntüsü alınmaz.", "Кнопка готова. Съёмка выполняется только с вашего разрешения.", "按钮已就绪。未经你同意不会进行截图。"))
-                .addAction(0, "Analyser l’écran", analyzeIntent)
+                .addAction(0, serviceText("Analyser l’écran", "Analyze screen", "Bildschirm analysieren", "Ekranı analiz et", "Анализировать экран", "分析屏幕"), analyzeIntent)
                 .addAction(0, serviceText("Arrêter la détection", "Stop detection", "Erkennung stoppen", "Algılamayı durdur", "Остановить обнаружение", "停止检测"), buildStopPendingIntent())
         }
         return builder.build()
