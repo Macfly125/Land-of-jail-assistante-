@@ -2652,7 +2652,7 @@ private fun HeroEditDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(name, { name = it }, label = { Text("Nom du héros") }, singleLine = true)
-                OutlinedTextField(level, { level = it }, label = { Text(resourceUiText(currentLang, "level")) }, singleLine = true)
+                OutlinedTextField(level, { level = it }, label = { Text("Niveau") }, singleLine = true)
                 OutlinedTextField(rarity, { rarity = it }, label = { Text("Rareté") }, singleLine = true)
                 OutlinedTextField(stars, { stars = it }, label = { Text("Étoiles") }, singleLine = true)
                 OutlinedTextField(power, { power = it }, label = { Text("Puissance") }, singleLine = true)
@@ -4525,7 +4525,7 @@ private fun AllianceScreen(
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
                     OutlinedTextField(memberName, { memberName = it }, label = { Text("Pseudo du joueur") }, singleLine = true)
-                    OutlinedTextField(memberPower, { memberPower = it }, label = { Text(resourceUiText(currentLang, "power_optional")) }, singleLine = true)
+                    OutlinedTextField(memberPower, { memberPower = it }, label = { Text("Puissance (facultatif)") }, singleLine = true)
                     Text("Rang dans l'alliance", style = MaterialTheme.typography.labelMedium)
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                         items(AllianceRank.entries) { item ->
