@@ -23,7 +23,7 @@ enum class PlayerRole(val labelFr: String, val descriptionFr: String) {
         LEADER_RALLIEMENT -> when (language) {
             AppLanguage.FR -> labelFr
             AppLanguage.EN -> "Rally Leader"
-            AppLanguage.IT -> "Rally Leader"
+            AppLanguage.IT -> "Capo della spedizione"
             AppLanguage.DE -> "Rallye-Anführer"
             AppLanguage.TR -> "Ralli Lideri"
             AppLanguage.RU -> "Лидер сбора"
@@ -32,7 +32,7 @@ enum class PlayerRole(val labelFr: String, val descriptionFr: String) {
         ASSAUT_DPS -> when (language) {
             AppLanguage.FR -> labelFr
             AppLanguage.EN -> "Assault / DPS"
-            AppLanguage.IT -> "Assault / DPS"
+            AppLanguage.IT -> "Assalto / DPS"
             AppLanguage.DE -> "Angriff / DPS"
             AppLanguage.TR -> "Taarruz / DPS"
             AppLanguage.RU -> "Штурм / урон"
@@ -41,7 +41,7 @@ enum class PlayerRole(val labelFr: String, val descriptionFr: String) {
         DEFENSEUR_GARNISON -> when (language) {
             AppLanguage.FR -> labelFr
             AppLanguage.EN -> "Defender / Garrison"
-            AppLanguage.IT -> "Defender / Garrison"
+            AppLanguage.IT -> "Difensore / Guarnigione"
             AppLanguage.DE -> "Verteidiger / Garnison"
             AppLanguage.TR -> "Savunma / Garnizon"
             AppLanguage.RU -> "Защита / гарнизон"
@@ -50,7 +50,7 @@ enum class PlayerRole(val labelFr: String, val descriptionFr: String) {
         SOUTIEN_CONTROLE -> when (language) {
             AppLanguage.FR -> labelFr
             AppLanguage.EN -> "Support / Control"
-            AppLanguage.IT -> "Support / Control"
+            AppLanguage.IT -> "Supporto / Controllo"
             AppLanguage.DE -> "Unterstützung / Kontrolle"
             AppLanguage.TR -> "Destek / Kontrol"
             AppLanguage.RU -> "Поддержка / контроль"
@@ -71,7 +71,7 @@ enum class PlayerRole(val labelFr: String, val descriptionFr: String) {
         LEADER_RALLIEMENT -> when (language) {
             AppLanguage.FR -> descriptionFr
             AppLanguage.EN -> "Optimizes rally capacity and group damage."
-            AppLanguage.IT -> "Optimizes rally capacity and group damage."
+            AppLanguage.IT -> "Ottimizza la capienza delle spedizioni e i danni di gruppo."
             AppLanguage.DE -> "Optimiert Rallye-Kapazität und Gruppenschaden."
             AppLanguage.TR -> "Ralli kapasitesini ve grup hasarını artırır."
             AppLanguage.RU -> "Повышает вместимость сбора и групповой урон."
@@ -80,7 +80,7 @@ enum class PlayerRole(val labelFr: String, val descriptionFr: String) {
         ASSAUT_DPS -> when (language) {
             AppLanguage.FR -> descriptionFr
             AppLanguage.EN -> "Maximizes raw damage in skirmishes and duels."
-            AppLanguage.IT -> "Maximizes raw damage in skirmishes and duels."
+            AppLanguage.IT -> "Massimizza i danni diretti negli scontri e nei duelli."
             AppLanguage.DE -> "Maximiert direkten Schaden in Gefechten und Duellen."
             AppLanguage.TR -> "Çatışma ve düellolarda ham hasarı en üst düzeye çıkarır."
             AppLanguage.RU -> "Максимизирует прямой урон в стычках и дуэлях."
@@ -89,7 +89,7 @@ enum class PlayerRole(val labelFr: String, val descriptionFr: String) {
         DEFENSEUR_GARNISON -> when (language) {
             AppLanguage.FR -> descriptionFr
             AppLanguage.EN -> "Protects the base with tanks, shields and counterattacks."
-            AppLanguage.IT -> "Protects the base with tanks, shields and counterattacks."
+            AppLanguage.IT -> "Protegge la base con unità resistenti, scudi e contrattacchi."
             AppLanguage.DE -> "Schützt die Basis mit Tanks, Schilden und Gegenangriffen."
             AppLanguage.TR -> "Tanklar, kalkanlar ve karşı saldırılarla üssü korur."
             AppLanguage.RU -> "Защищает базу танками, щитами и контратаками."
@@ -98,7 +98,7 @@ enum class PlayerRole(val labelFr: String, val descriptionFr: String) {
         SOUTIEN_CONTROLE -> when (language) {
             AppLanguage.FR -> descriptionFr
             AppLanguage.EN -> "Provides healing, damage reduction and control effects."
-            AppLanguage.IT -> "Provides healing, damage reduction and control effects."
+            AppLanguage.IT -> "Fornisce cure, riduzione dei danni ed effetti di controllo."
             AppLanguage.DE -> "Bietet Heilung, Schadensminderung und Kontrolleffekte."
             AppLanguage.TR -> "İyileştirme, hasar azaltma ve kontrol etkileri sağlar."
             AppLanguage.RU -> "Обеспечивает лечение, снижение урона и контроль."
@@ -107,7 +107,7 @@ enum class PlayerRole(val labelFr: String, val descriptionFr: String) {
         POLYVALENT_F2P -> when (language) {
             AppLanguage.FR -> descriptionFr
             AppLanguage.EN -> "Balances progression with strict resource management."
-            AppLanguage.IT -> "Balances progression with strict resource management."
+            AppLanguage.IT -> "Bilancia la progressione con una gestione rigorosa delle risorse."
             AppLanguage.DE -> "Gleicht den Fortschritt durch striktes Ressourcenmanagement aus."
             AppLanguage.TR -> "Dengeli ilerleme ve sıkı kaynak yönetimi sağlar."
             AppLanguage.RU -> "Обеспечивает сбалансированное развитие и строгую экономию ресурсов."
@@ -294,7 +294,7 @@ enum class AllianceRank(val labelFr: String) {
         R5 -> when (language) {
             AppLanguage.FR -> labelFr
             AppLanguage.EN -> "R5 · Leader"
-            AppLanguage.IT -> "R5 · Leader"
+            AppLanguage.IT -> "R5 · Capo"
             AppLanguage.DE -> "R5 · Anführer"
             AppLanguage.TR -> "R5 · Lider"
             AppLanguage.RU -> "R5 · Лидер"
@@ -303,7 +303,7 @@ enum class AllianceRank(val labelFr: String) {
         R4 -> when (language) {
             AppLanguage.FR -> labelFr
             AppLanguage.EN -> "R4 · Officer"
-            AppLanguage.IT -> "R4 · Officer"
+            AppLanguage.IT -> "R4 · Ufficiale"
             AppLanguage.DE -> "R4 · Offizier"
             AppLanguage.TR -> "R4 · Subay"
             AppLanguage.RU -> "R4 · Офицер"
