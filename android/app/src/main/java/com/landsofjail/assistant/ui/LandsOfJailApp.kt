@@ -3341,7 +3341,7 @@ private fun ResourcesScreen(
                     items(resources) { res ->
                         Card(modifier = Modifier.fillMaxWidth()) {
                             Column(Modifier.padding(14.dp)) {
-                                Text(localizedAppText(localizedAppText("${res.nom} : ${res.quantiteTexte}")), fontWeight = FontWeight.Medium)
+                                Text("${localizedResourceName(currentLang, res.nom)} : ${res.quantiteTexte}", fontWeight = FontWeight.Medium)
                                 if (res.incertain) {
                                     Text(
                                         localizedAppText("Incertain : ${res.raisonIncertitude ?: "affichage tronqué"}"),
@@ -3423,13 +3423,13 @@ private fun ResourcesScreen(
                         Card(modifier = Modifier.fillMaxWidth()) {
                             Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                 Text(robot.nom, fontWeight = FontWeight.SemiBold)
-                                val meta = listOf(robot.niveau.takeIf { it.isNotBlank() }?.let { "Niv. $it" }, robot.rarete, robot.puissance.takeIf { it.isNotBlank() }?.let { "Puissance $it" }).filterNotNull()
+                                val meta = listOf(robot.niveau.takeIf { it.isNotBlank() }?.let { localizedUiText(currentLang, "Niv. $it", "Lv. $it", "Stufe $it", "Sv. $it", "Ур. $it", "等级 $it") }, robot.rarete, robot.puissance.takeIf { it.isNotBlank() }?.let { localizedUiText(currentLang, "Puissance $it", "Power $it", "Macht $it", "Güç $it", "Мощь $it", "战力 $it") }).filterNotNull()
                                 if (meta.isNotEmpty()) Text(meta.joinToString(" · "), style = MaterialTheme.typography.bodySmall)
                                 if (robot.bonus.isNotBlank()) Text(localizedAppText(localizedAppText("Bonus : ${robot.bonus}")), style = MaterialTheme.typography.bodySmall)
                                 if (robot.competences.isNotBlank()) Text(localizedAppText(localizedAppText("Compétences : ${robot.competences}")), style = MaterialTheme.typography.bodySmall)
                                 if (robot.incertain) {
                                     Text(
-                                        robot.raisonIncertitude?.takeIf { it.isNotBlank() } ?: "Données détectées à vérifier sur l’écran du jeu.",
+                                        robot.raisonIncertitude?.takeIf { it.isNotBlank() }?.let { localizedUiText(currentLang, "Nom du robot reconnu, niveau non lu explicitement", "Robot name recognized; level not read explicitly", "Robotername erkannt; Stufe nicht eindeutig gelesen", "Robot adı tanındı; seviye açıkça okunamadı", "Название робота распознано, уровень не прочитан", "已识别机器人名称，但未明确读取等级") } ?: localizedUiText(currentLang, "Données détectées à vérifier sur l’écran du jeu.", "Detected data must be checked against the game screen.", "Erkannte Daten müssen im Spiel überprüft werden.", "Algılanan veriler oyun ekranında doğrulanmalı.", "Распознанные данные нужно проверить по экрану игры.", "识别的数据需要与游戏画面核对。"),
                                         color = Color(0xFFFBBF24),
                                         style = MaterialTheme.typography.bodySmall
                                     )
