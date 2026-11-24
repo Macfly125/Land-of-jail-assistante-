@@ -107,7 +107,7 @@ private fun localizedResourceName(language: AppLanguage, raw: String): String {
         key.contains("acier") || key.contains("steel") -> localizedUiText(language, "Acier", "Steel", "Stahl", "Çelik", "Сталь", "钢材")
         key.contains("essence") || key.contains("gasoline") -> localizedUiText(language, "Essence", "Gasoline", "Benzin", "Benzin", "Бензин", "汽油")
         key.contains("diamant") || key.contains("gem") -> localizedUiText(language, "Diamants", "Gems", "Diamanten", "Elmas", "Алмазы", "钻石")
-        key.contains("cash") || key.contains("or") || key.contains("gold") -> localizedUiText(language, "Or", "Gold", "Gold", "Altın", "Золото", "金币")
+        key.contains("cash") || key == "or" || key.contains("gold") || key.contains("altın") || key.contains("золото") || key.contains("金币") || key.contains("黄金") -> localizedUiText(language, "Or", "Gold", "Gold", "Altın", "Золото", "金币")
         else -> raw
     }
 }
