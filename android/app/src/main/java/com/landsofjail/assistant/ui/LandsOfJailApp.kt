@@ -1655,6 +1655,7 @@ fun LandsOfJailAssistantApp(
                         }
                     )
                     AssistantTab.ALLIANCE -> AllianceScreen(
+                        language = currentLang,
                         workspace = allianceWorkspace,
                         heroes = heroes,
                         robots = robots,
@@ -3842,6 +3843,7 @@ private fun SupabaseAccountCard() {
 
 @Composable
 private fun AllianceScreen(
+    language: AppLanguage,
     workspace: AllianceWorkspace,
     heroes: List<HeroRecord>,
     robots: List<RobotRecord>,
@@ -4085,7 +4087,7 @@ private fun AllianceScreen(
                     )
                     if (workspace.ownProfile.playerName.isNotBlank()) {
                         Text(
-                            "Toi : ${workspace.ownProfile.playerName} · ${workspace.ownProfile.rank.labelFor(currentLang)} · ${heroes.size} héros analysés",
+                            "Toi : ${workspace.ownProfile.playerName} · ${workspace.ownProfile.rank.labelFor(language)} · ${heroes.size} héros analysés",
                             color = Color(0xFF34D399),
                             style = MaterialTheme.typography.bodySmall
                         )
@@ -4177,7 +4179,7 @@ private fun AllianceScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(member.playerName, fontWeight = FontWeight.SemiBold)
-                        Text(member.rank.labelFor(currentLang), color = Color(0xFFFFB36B), style = MaterialTheme.typography.labelSmall)
+                        Text(member.rank.labelFor(language), color = Color(0xFFFFB36B), style = MaterialTheme.typography.labelSmall)
                     }
                     Text("Puissance : ${member.powerText.ifBlank { "non renseignée" }}", style = MaterialTheme.typography.bodySmall)
                     if (member.heroSkillSummary.isNotBlank()) Text("Héros / compétences : ${member.heroSkillSummary}", style = MaterialTheme.typography.bodySmall)
@@ -4267,7 +4269,7 @@ private fun AllianceScreen(
                             FilterChip(
                                 selected = selectedEvent == event,
                                 onClick = { selectedEvent = event; simulation = emptyList() },
-                                label = { Text(event.titleFor(AppLanguage.FR), maxLines = 1) }
+                                label = { Text(event.titleFor(language), maxLines = 1) }
                             )
                         }
                     }
@@ -4336,10 +4338,10 @@ private fun AllianceScreen(
                                         matchedTags + (power(member).coerceAtMost(9_999_999_999L) / 1_000_000_000L).toInt()
                                     }
                                 val output = mutableListOf<String>()
-                                output += "Événement : ${selectedEvent.titleFor(AppLanguage.FR)}"
+                                output += "Événement : ${selectedEvent.titleFor(language)}"
                                 output += "Effectif analysé : ${roster.size} membre(s)"
                                 leader?.let {
-                                    output += "LEADER proposé : ${it.playerName} (${it.rank.labelFor(currentLang)}) — puissance ${it.powerText.ifBlank { "non renseignée" }}"
+                                    output += "LEADER proposé : ${it.playerName} (${it.rank.labelFor(language)}) — puissance ${it.powerText.ifBlank { "non renseignée" }}"
                                     if (it.heroSkillSummary.isNotBlank()) output += "Capacités du leader : ${it.heroSkillSummary.take(420)}"
                                     if (it.robotSummary.isNotBlank()) output += "Robot du leader : ${it.robotSummary}"
                                 }
