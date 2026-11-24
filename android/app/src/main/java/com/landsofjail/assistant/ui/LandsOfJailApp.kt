@@ -1614,7 +1614,7 @@ fun LandsOfJailAssistantApp(
                     deletingProfileId = null
                 }) { Text(localizedUiText(currentLang, "Supprimer", "Delete", "Löschen", "Sil", "Удалить", "删除")) }
             },
-            dismissButton = { TextButton(onClick = { deletingProfileId = null }) { Text(localizedAppText("Annuler")) } }
+            dismissButton = { TextButton(onClick = { deletingProfileId = null }) { Text(localizedAppText(localizedAppText("Annuler"))) } }
         )
     }
 
@@ -1769,7 +1769,7 @@ fun LandsOfJailAssistantApp(
                             )
                             if (!isQueueRunning) {
                                 TextButton(onClick = { analysisQueue = emptyList() }) {
-                                    Text(localizedAppText("Fermer la file (100 %)"))
+                                    Text(localizedAppText(localizedAppText("Fermer la file (100 %)")))
                                 }
                             }
                         }
@@ -1951,7 +1951,7 @@ fun LandsOfJailAssistantApp(
                 showAllianceOnboarding = false
                 accountPrefs.edit().putBoolean("alliance_onboarding_completed_v1", true).apply()
             },
-            title = { Text(localizedAppText("Bienvenue · Inscription joueur")) },
+            title = { Text(localizedAppText(localizedAppText("Bienvenue · Inscription joueur"))) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
@@ -1961,25 +1961,25 @@ fun LandsOfJailAssistantApp(
                     OutlinedTextField(
                         value = onboardingPlayerName,
                         onValueChange = { onboardingPlayerName = it.take(40) },
-                        label = { Text(localizedAppText("Pseudo dans le jeu")) },
+                        label = { Text(localizedAppText(localizedAppText("Pseudo dans le jeu"))) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
                     OutlinedTextField(
                         value = onboardingServer,
                         onValueChange = { onboardingServer = it.filter(Char::isDigit).take(6) },
-                        label = { Text(localizedAppText("Serveur (ex. 311)")) },
+                        label = { Text(localizedAppText(localizedAppText("Serveur (ex. 311)"))) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
                     OutlinedTextField(
                         value = onboardingAllianceTag,
                         onValueChange = { onboardingAllianceTag = it.take(12) },
-                        label = { Text(localizedAppText("Initiales / tag de l'alliance")) },
+                        label = { Text(localizedAppText(localizedAppText("Initiales / tag de l'alliance"))) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
-                    Text(localizedAppText("Ton rang déclaré"), style = MaterialTheme.typography.labelLarge)
+                    Text(localizedAppText(localizedAppText("Ton rang déclaré")), style = MaterialTheme.typography.labelLarge)
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                         items(AllianceRank.entries) { item ->
                             FilterChip(
@@ -2061,7 +2061,7 @@ fun LandsOfJailAssistantApp(
                         }
                     },
                     enabled = onboardingPlayerName.isNotBlank() && onboardingServer.isNotBlank() && onboardingAllianceTag.isNotBlank()
-                ) { Text(localizedAppText("Enregistrer et continuer")) }
+                ) { Text(localizedAppText(localizedAppText("Enregistrer et continuer"))) }
             },
             dismissButton = {
                 TextButton(
@@ -2069,7 +2069,7 @@ fun LandsOfJailAssistantApp(
                         showAllianceOnboarding = false
                         accountPrefs.edit().putBoolean("alliance_onboarding_completed_v1", true).apply()
                     }
-                ) { Text(localizedAppText("Plus tard")) }
+                ) { Text(localizedAppText(localizedAppText("Plus tard"))) }
             }
         )
     }
@@ -2177,7 +2177,7 @@ private fun DashboardScreen(
                             ) {
                                 Icon(
                                     Icons.Outlined.Settings,
-                                    contentDescription = localizedAppText("Réglages capture")
+                                    contentDescription = localizedAppText(localizedAppText("Réglages capture"))
                                 )
                             }
                         }
@@ -2192,7 +2192,7 @@ private fun DashboardScreen(
                                 fontWeight = FontWeight.Medium
                             )
                             Button(onClick = onOpenUsageSettings) {
-                                Text(localizedAppText("Autoriser Statistiques d'utilisation"))
+                                Text(localizedAppText(localizedAppText("Autoriser Statistiques d'utilisation")))
                             }
                         } else {
                             Text(
@@ -2209,7 +2209,7 @@ private fun DashboardScreen(
                                 fontWeight = FontWeight.Medium
                             )
                             Button(onClick = onOpenOverlaySettings) {
-                                Text(localizedAppText("Autoriser affichage par-dessus les applis"))
+                                Text(localizedAppText(localizedAppText("Autoriser affichage par-dessus les applis")))
                             }
                         } else {
                             Text(
@@ -2569,7 +2569,7 @@ private fun DashboardScreen(
         }
 
         item {
-            Text(localizedAppText("Rôle du joueur"), fontWeight = FontWeight.SemiBold)
+            Text(localizedAppText(localizedAppText("Rôle du joueur")), fontWeight = FontWeight.SemiBold)
             Spacer(Modifier.height(4.dp))
             PlayerRole.entries.forEach { role ->
                 Row(
@@ -2775,7 +2775,7 @@ private fun HeroesScreen(
                             }
                         }
                     } else {
-                        Text(localizedAppText("Niveau, étoiles et compétences personnels : à scanner ou saisir depuis le jeu."), style = MaterialTheme.typography.bodySmall)
+                        Text(localizedAppText(localizedAppText("Niveau, étoiles et compétences personnels : à scanner ou saisir depuis le jeu.")), style = MaterialTheme.typography.bodySmall)
                         TextButton(onClick = { editingHero = onAddHero(entry) }) {
                             Text(localizedUiText(language, "Ajouter à mon profil", "Add to my profile", "Zu meinem Profil hinzufügen", "Profilime ekle", "Добавить в профиль", "添加到我的档案"))
                         }
@@ -2785,7 +2785,7 @@ private fun HeroesScreen(
                     }
                     if (expandedHeroName == entry.nom) {
                         HorizontalDivider()
-                        Text(localizedAppText("Fiche de référence"), fontWeight = FontWeight.SemiBold)
+                        Text(localizedAppText(localizedAppText("Fiche de référence")), fontWeight = FontWeight.SemiBold)
                         Text(localizedAppText("Rareté : ${entry.rarete} · Saison : ${entry.saison} · Classe : ${entry.typeTroupe}"))
                         Text(localizedAppText("Source : ${entry.sourceNiveau}"))
                         entry.usageWarObserve?.let { Text(localizedAppText("Spécialité observée : $it")) }
@@ -2804,12 +2804,12 @@ private fun HeroesScreen(
                                         fontWeight = FontWeight.SemiBold
                                     )
                                     Text(skill.description ?: localizedAppText("Description non disponible"), style = MaterialTheme.typography.bodySmall)
-                                    if (skill.incertain) Text(localizedAppText("À vérifier"), color = Color(0xFFFBBF24), style = MaterialTheme.typography.labelSmall)
+                                    if (skill.incertain) Text(localizedAppText(localizedAppText("À vérifier")), color = Color(0xFFFBBF24), style = MaterialTheme.typography.labelSmall)
                                 }
                             }
                         }
                         TextButton(onClick = { uriHandler.openUri(entry.sourceUrl) }) {
-                            Text(localizedAppText("Consulter la source du catalogue"))
+                            Text(localizedAppText(localizedAppText("Consulter la source du catalogue")))
                         }
                     }
                     entry.usageWarObserve?.let {
@@ -2833,13 +2833,13 @@ private fun HeroesScreen(
             HeroCatalog.entries.none { it.nom.equals(detected.nom, ignoreCase = true) }
         }
         if (detectedOutsideCatalog.isNotEmpty()) {
-            item { Text(localizedAppText("Autres héros détectés"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold) }
+            item { Text(localizedAppText(localizedAppText("Autres héros détectés")), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold) }
             items(detectedOutsideCatalog, key = { "detected-" + it.nom }) { hero ->
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text(hero.nom, fontWeight = FontWeight.SemiBold)
                         Text(listOfNotNull(hero.niveauTexte.takeIf { it.isNotBlank() }, hero.etoiles, hero.puissanceHero).joinToString(" · "))
-                        TextButton(onClick = { editingHero = hero }) { Text(localizedAppText("Modifier les données détectées")) }
+                        TextButton(onClick = { editingHero = hero }) { Text(localizedAppText(localizedAppText("Modifier les données détectées"))) }
                     }
                 }
             }
@@ -2873,14 +2873,14 @@ private fun HeroEditDialog(
     }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(localizedAppText("Corriger le héros détecté")) },
+        title = { Text(localizedAppText(localizedAppText("Corriger le héros détecté"))) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(name, { name = it }, label = { Text(localizedAppText("Nom du héros")) }, singleLine = true)
-                OutlinedTextField(level, { level = it }, label = { Text(localizedAppText("Niveau")) }, singleLine = true)
-                OutlinedTextField(rarity, { rarity = it }, label = { Text(localizedAppText("Rareté")) }, singleLine = true)
-                OutlinedTextField(stars, { stars = it }, label = { Text(localizedAppText("Étoiles")) }, singleLine = true)
-                OutlinedTextField(power, { power = it }, label = { Text(localizedAppText("Puissance")) }, singleLine = true)
+                OutlinedTextField(name, { name = it }, label = { Text(localizedAppText(localizedAppText("Nom du héros"))) }, singleLine = true)
+                OutlinedTextField(level, { level = it }, label = { Text(localizedAppText(localizedAppText("Niveau"))) }, singleLine = true)
+                OutlinedTextField(rarity, { rarity = it }, label = { Text(localizedAppText(localizedAppText("Rareté"))) }, singleLine = true)
+                OutlinedTextField(stars, { stars = it }, label = { Text(localizedAppText(localizedAppText("Étoiles"))) }, singleLine = true)
+                OutlinedTextField(power, { power = it }, label = { Text(localizedAppText(localizedAppText("Puissance"))) }, singleLine = true)
                 OutlinedTextField(
                     skills,
                     { skills = it },
@@ -2942,9 +2942,9 @@ private fun HeroEditDialog(
                     )
                 },
                 enabled = name.isNotBlank()
-            ) { Text(localizedAppText("Enregistrer")) }
+            ) { Text(localizedAppText(localizedAppText("Enregistrer"))) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(localizedAppText("Annuler")) } }
+        dismissButton = { TextButton(onClick = onDismiss) { Text(localizedAppText(localizedAppText("Annuler"))) } }
     )
 }
 
@@ -3245,7 +3245,7 @@ private fun ResourcesScreen(
                                 Text(record.eventName, fontWeight = FontWeight.SemiBold)
                                 Text(listOf(record.date, record.score).filter { it.isNotBlank() }.joinToString(" · "), style = MaterialTheme.typography.bodySmall)
                                 if (record.notes.isNotBlank()) Text(record.notes, style = MaterialTheme.typography.bodySmall)
-                                TextButton(onClick = { onSaveEventRecords(eventRecords.filterNot { it.id == record.id }) }) { Text(localizedAppText("Supprimer l’entrée")) }
+                                TextButton(onClick = { onSaveEventRecords(eventRecords.filterNot { it.id == record.id }) }) { Text(localizedAppText(localizedAppText("Supprimer l’entrée"))) }
                             }
                         }
                     }
@@ -3322,7 +3322,7 @@ private fun ResourcesScreen(
                             OutlinedTextField(
                                 value = ownedShardsText,
                                 onValueChange = { ownedShardsText = it.filter { ch -> ch.isDigit() } },
-                                label = { Text(localizedAppText("Éclats en stock")) },
+                                label = { Text(localizedAppText(localizedAppText("Éclats en stock"))) },
                                 singleLine = true,
                                 modifier = Modifier.fillMaxWidth()
                             )
@@ -3567,7 +3567,7 @@ private fun AdviceScreen(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
             ) {
                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                    Text(localizedAppText("Contrôle des données avant recommandation"), fontWeight = FontWeight.SemiBold)
+                    Text(localizedAppText(localizedAppText("Contrôle des données avant recommandation")), fontWeight = FontWeight.SemiBold)
                     Text(
                         "Profil : ${heroes.size} héros · ${heroesWithWarSkills} avec compétence War identifiée · ${robots.size} robots · ${robotsWithDetails} avec bonus ou compétence renseigné.",
                         style = MaterialTheme.typography.bodySmall
@@ -3806,7 +3806,7 @@ private fun AdviceScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(Modifier.padding(14.dp)) {
-                            Text(localizedAppText("AVERTISSEMENT — CONSEILS NON VÉRIFIÉS"), fontWeight = FontWeight.Bold, color = Color(0xFFFF5252))
+                            Text(localizedAppText(localizedAppText("AVERTISSEMENT — CONSEILS NON VÉRIFIÉS")), fontWeight = FontWeight.Bold, color = Color(0xFFFF5252))
                             res.informationsIncertaines.forEach { info ->
                                 Text(localizedAppText("• $info"), color = Color(0xFFFFCDD2))
                             }
@@ -3816,7 +3816,7 @@ private fun AdviceScreen(
             }
 
             item {
-                Text(localizedAppText("Sources Internet, Photos & Dates"), fontWeight = FontWeight.SemiBold)
+                Text(localizedAppText(localizedAppText("Sources Internet, Photos & Dates")), fontWeight = FontWeight.SemiBold)
             }
             items(res.sources) { src ->
                 Card(
@@ -3869,16 +3869,16 @@ private fun HistoryScreen(
     if (showClearConfirmation) {
         AlertDialog(
             onDismissRequest = { showClearConfirmation = false },
-            title = { Text(localizedAppText("Effacer l’historique ?")) },
+            title = { Text(localizedAppText(localizedAppText("Effacer l’historique ?"))) },
             text = { Text(localizedAppText("Toutes les analyses enregistrées dans l’historique seront supprimées. Cette action est irréversible.")) },
             confirmButton = {
                 TextButton(onClick = {
                     onClearHistory()
                     showClearConfirmation = false
-                }) { Text(localizedAppText("Effacer")) }
+                }) { Text(localizedAppText(localizedAppText("Effacer"))) }
             },
             dismissButton = {
-                TextButton(onClick = { showClearConfirmation = false }) { Text(localizedAppText("Annuler")) }
+                TextButton(onClick = { showClearConfirmation = false }) { Text(localizedAppText(localizedAppText("Annuler"))) }
             }
         )
     }
@@ -3897,7 +3897,7 @@ private fun HistoryScreen(
             TextButton(onClick = { showClearConfirmation = true }) {
                 Icon(Icons.Outlined.DeleteSweep, contentDescription = null)
                 Spacer(Modifier.width(6.dp))
-                Text(localizedAppText("Effacer l’historique"))
+                Text(localizedAppText(localizedAppText("Effacer l’historique")))
             }
         }
         LazyColumn(
@@ -3985,7 +3985,7 @@ private fun SupabaseAccountCard() {
             modifier = Modifier.padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(9.dp)
         ) {
-            Text(localizedAppText("Compte & sauvegarde cloud"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(localizedAppText(localizedAppText("Compte & sauvegarde cloud")), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Text(
                 "Connecte ton compte pour synchroniser ton profil de joueur et tes héros dans l'espace cloud sécurisé.",
                 style = MaterialTheme.typography.bodySmall,
@@ -4011,7 +4011,7 @@ private fun SupabaseAccountCard() {
                         },
                         enabled = !busy,
                         modifier = Modifier.weight(1f)
-                    ) { Text(localizedAppText("Actualiser")) }
+                    ) { Text(localizedAppText(localizedAppText("Actualiser"))) }
                     OutlinedButton(
                         onClick = {
                             scope.launch {
@@ -4024,13 +4024,13 @@ private fun SupabaseAccountCard() {
                         },
                         enabled = !busy,
                         modifier = Modifier.weight(1f)
-                    ) { Text(localizedAppText("Déconnexion")) }
+                    ) { Text(localizedAppText(localizedAppText("Déconnexion"))) }
                 }
             } else {
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it.trim() },
-                    label = { Text(localizedAppText("Adresse e-mail")) },
+                    label = { Text(localizedAppText(localizedAppText("Adresse e-mail"))) },
                     singleLine = true,
                     enabled = !busy,
                     modifier = Modifier.fillMaxWidth()
@@ -4046,7 +4046,7 @@ private fun SupabaseAccountCard() {
                 )
                 if (createAccount) {
                     HorizontalDivider(color = Color(0xFF334155))
-                    Text(localizedAppText("Profil joueur et alliance"), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                    Text(localizedAppText(localizedAppText("Profil joueur et alliance")), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
                     Text(localizedAppText("Ces informations sont enregistrées pendant la création du compte. Tu n'auras pas à refaire une inscription dans l'espace Alliance."), style = MaterialTheme.typography.bodySmall, color = Color(0xFFB8C3D1))
                     OutlinedTextField(
                         value = signupPlayerName,
@@ -4059,7 +4059,7 @@ private fun SupabaseAccountCard() {
                     OutlinedTextField(
                         value = signupServer,
                         onValueChange = { signupServer = it.filter(Char::isDigit).take(6) },
-                        label = { Text(localizedAppText("Serveur (ex. 311)")) },
+                        label = { Text(localizedAppText(localizedAppText("Serveur (ex. 311)"))) },
                         singleLine = true,
                         enabled = !busy,
                         modifier = Modifier.fillMaxWidth()
@@ -4072,7 +4072,7 @@ private fun SupabaseAccountCard() {
                         enabled = !busy,
                         modifier = Modifier.fillMaxWidth()
                     )
-                    Text(localizedAppText("Ton rang actuel"), style = MaterialTheme.typography.labelLarge)
+                    Text(localizedAppText(localizedAppText("Ton rang actuel")), style = MaterialTheme.typography.labelLarge)
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                         items(AllianceRank.entries) { rank ->
                             FilterChip(
@@ -4314,7 +4314,7 @@ private fun AllianceScreen(
         item {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(localizedAppText("Demandes d'adhésion · R4 / R5"), fontWeight = FontWeight.Bold)
+                    Text(localizedAppText(localizedAppText("Demandes d'adhésion · R4 / R5")), fontWeight = FontWeight.Bold)
                     Text(
                         "Les demandes des joueurs de ton alliance apparaissent ici. Seuls les droits confirmés par un officier sont appliqués.",
                         style = MaterialTheme.typography.bodySmall,
@@ -4388,7 +4388,7 @@ private fun AllianceScreen(
                                         },
                                         enabled = !joinRequestsBusy,
                                         modifier = Modifier.weight(1f)
-                                    ) { Text(localizedAppText("Accepter")) }
+                                    ) { Text(localizedAppText(localizedAppText("Accepter"))) }
                                     OutlinedButton(
                                         onClick = {
                                             scope.launch {
@@ -4408,7 +4408,7 @@ private fun AllianceScreen(
                                         },
                                         enabled = !joinRequestsBusy,
                                         modifier = Modifier.weight(1f)
-                                    ) { Text(localizedAppText("Refuser")) }
+                                    ) { Text(localizedAppText(localizedAppText("Refuser"))) }
                                 }
                             }
                         }
@@ -4747,12 +4747,12 @@ private fun AllianceScreen(
     if (showAddMember) {
         AlertDialog(
             onDismissRequest = { showAddMember = false },
-            title = { Text(localizedAppText("Ajouter un membre")) },
+            title = { Text(localizedAppText(localizedAppText("Ajouter un membre"))) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                    OutlinedTextField(memberName, { memberName = it }, label = { Text(localizedAppText("Pseudo du joueur")) }, singleLine = true)
+                    OutlinedTextField(memberName, { memberName = it }, label = { Text(localizedAppText(localizedAppText("Pseudo du joueur"))) }, singleLine = true)
                     OutlinedTextField(memberPower, { memberPower = it }, label = { Text(localizedAppText("Puissance (facultatif)")) }, singleLine = true)
-                    Text(localizedAppText("Rang dans l'alliance"), style = MaterialTheme.typography.labelMedium)
+                    Text(localizedAppText(localizedAppText("Rang dans l'alliance")), style = MaterialTheme.typography.labelMedium)
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                         items(AllianceRank.entries) { item ->
                             FilterChip(selected = memberRank == item, onClick = { memberRank = item }, label = { Text(item.name) })
@@ -4791,10 +4791,10 @@ private fun AllianceScreen(
                         simulation = emptyList()
                     },
                     enabled = memberName.isNotBlank() && isOfficer
-                ) { Text(localizedAppText("Enregistrer")) }
+                ) { Text(localizedAppText(localizedAppText("Enregistrer"))) }
             },
             dismissButton = {
-                TextButton(onClick = { showAddMember = false }) { Text(localizedAppText("Annuler")) }
+                TextButton(onClick = { showAddMember = false }) { Text(localizedAppText(localizedAppText("Annuler"))) }
             }
         )
     }
@@ -5037,7 +5037,7 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
                         value = inviteCode,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text(localizedAppText("Code d'invitation")) },
+                        label = { Text(localizedAppText(localizedAppText("Code d'invitation"))) },
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -5082,7 +5082,7 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
     selectedR4?.let { candidate ->
         AlertDialog(
             onDismissRequest = { if (!transferBusy) selectedR4 = null },
-            title = { Text(localizedAppText("Confirmer le transfert du R5")) },
+            title = { Text(localizedAppText(localizedAppText("Confirmer le transfert du R5"))) },
             text = {
                 Text(localizedAppText("Confirmer que ${candidate.playerName} devient R5 ? Ton propre rang passera automatiquement à R4."))
             },
@@ -5111,7 +5111,7 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
                 ) { Text(if (transferBusy) localizedAppText("Transfert…") else localizedAppText("Confirmer le transfert")) }
             },
             dismissButton = {
-                TextButton(onClick = { selectedR4 = null }, enabled = !transferBusy) { Text(localizedAppText("Annuler")) }
+                TextButton(onClick = { selectedR4 = null }, enabled = !transferBusy) { Text(localizedAppText(localizedAppText("Annuler"))) }
             }
         )
     }
@@ -5198,7 +5198,7 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(localizedAppText("Proposer une amélioration"), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    Text(localizedAppText(localizedAppText("Proposer une amélioration")), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                     Text(
                         "Partage une idée, signale un bug ou propose une amélioration. Tu pourras suivre la réponse du développeur ici.",
                         style = MaterialTheme.typography.bodySmall,
@@ -5209,7 +5209,7 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
                     } else {
                         OutlinedTextField(
                             value = title, onValueChange = { title = it.take(120) },
-                            label = { Text(localizedAppText("Titre de la proposition")) },
+                            label = { Text(localizedAppText(localizedAppText("Titre de la proposition"))) },
                             supportingText = { Text(localizedAppText("${title.length}/120")) },
                             singleLine = true, modifier = Modifier.fillMaxWidth()
                         )
@@ -5226,7 +5226,7 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
                         }
                         OutlinedTextField(
                             value = description, onValueChange = { description = it.take(4000) },
-                            label = { Text(localizedAppText("Décris ton idée ou le problème")) },
+                            label = { Text(localizedAppText(localizedAppText("Décris ton idée ou le problème"))) },
                             supportingText = { Text(localizedAppText("${description.length}/4000 — ajoute des exemples si possible.")) },
                             minLines = 4, modifier = Modifier.fillMaxWidth()
                         )
@@ -5257,7 +5257,7 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             if (sending) CircularProgressIndicator(modifier = Modifier.size(17.dp), strokeWidth = 2.dp)
-                            else Text(localizedAppText("Envoyer ma proposition"))
+                            else Text(localizedAppText(localizedAppText("Envoyer ma proposition")))
                         }
                     }
                     message?.let { Text(it, color = if (isError) Color(0xFFFCA5A5) else Color(0xFF86EFAC), style = MaterialTheme.typography.bodySmall) }
@@ -5269,7 +5269,7 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(if (isDeveloper) localizedAppText("Toutes les propositions · Développeur") else localizedAppText("Mes propositions"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                 TextButton(onClick = { refresh() }, enabled = !loading) {
-                    if (loading) CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp) else Text(localizedAppText("Actualiser"))
+                    if (loading) CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp) else Text(localizedAppText(localizedAppText("Actualiser")))
                 }
             }
         }
@@ -5302,14 +5302,14 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
                         }
                     }
                     if (item.developerReply.isNotBlank()) {
-                        Text(localizedAppText("Réponse du développeur"), fontWeight = FontWeight.SemiBold, color = Color(0xFFFFC18A))
+                        Text(localizedAppText(localizedAppText("Réponse du développeur")), fontWeight = FontWeight.SemiBold, color = Color(0xFFFFC18A))
                         Text(item.developerReply, style = MaterialTheme.typography.bodySmall)
                     }
                     if (isDeveloper) {
                         OutlinedButton(
                             onClick = { selected = item; reply = item.developerReply },
                             modifier = Modifier.fillMaxWidth()
-                        ) { Text(localizedAppText("Traiter cette proposition")) }
+                        ) { Text(localizedAppText(localizedAppText("Traiter cette proposition"))) }
                     }
                 }
             }
@@ -5366,7 +5366,7 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
                 ) { Text(if (reviewBusy) localizedAppText("Enregistrement…") else localizedAppText("Envoyer la réponse")) }
             },
             dismissButton = {
-                TextButton(onClick = { selected = null }, enabled = !reviewBusy) { Text(localizedAppText("Annuler")) }
+                TextButton(onClick = { selected = null }, enabled = !reviewBusy) { Text(localizedAppText(localizedAppText("Annuler"))) }
             }
         )
     }
