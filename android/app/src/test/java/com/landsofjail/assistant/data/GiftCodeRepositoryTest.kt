@@ -1,0 +1,45 @@
+package com.landsofjail.assistant.data
+
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+class GiftCodeRepositoryTest {
+    @Test
+    fun initialCatalogSeparatesOfficialListedUnverifiedAndExpiredCodes() {
+        val snapshot = GiftCodeRepository.initialSnapshot()
+        val vip = snapshot.entries.firstOrNull { it.code == "VIP777" }
+        val expired = snapshot.entries.firstOrNull { it.code == "ZYKtwu9hchxuSv" }
+        val unverified = snapshot.entries.firstOrNull { it.code == "RuStore777" }
+
+        assertNotNull(vip)
+        assertEquals("OFFICIAL_LISTED", vip?.status)
+        assertEquals("21/09/2026", vip?.firstSeen)
+        assertEquals("13/10/2026", vip?.lastChecked)
+        assertTrue(vip?.expiresAt.isNullOrBlank())
+
+        assertNotNull(expired)
+        assertEquals("EXPIRED", expired?.status)
+        assertEquals("26/09/2026", expired?.expiresAt)
+
+        assertNotNull(unverified)
+        assertEquals("UNVERIFIED", unverified?.status)
+    }
+
+    @Test
+    fun catalogPreservesCaseSensitiveCodesAndContradictoryReports() {
+        val snapshot = GiftCodeRepository.initialSnapshot()
+        val lowerCaseCode = snapshot.entries.firstOrNull { it.code == "loj777" }
+        val conflicting = snapshot.entries.firstOrNull { it.code == "LOJCANDY49" }
+        val thirdParty = snapshot.entries.firstOrNull { it.code == "GuZQdq1KnWQJMx" }
+
+        assertNotNull(lowerCaseCode)
+        assertNotNull(conflicting)
+        assertEquals("NEEDS_REVIEW", conflicting?.status)
+        assertEquals("02/11/2025", conflicting?.expiresAt)
+        assertEquals("UNVERIFIED", thirdParty?.status)
+        assertFalse(snapshot.entries.any { it.code == "LOJ777" })
+    }
+}
