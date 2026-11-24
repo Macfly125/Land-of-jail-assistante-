@@ -327,6 +327,24 @@ Aimant"""
     }
 
     @Test
+    fun extractsEquipmentPieceAndExplicitUpgradeLevelWithoutGuessingQuality() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            """Hero Equipment
+Equipment Upgrade
+Weapon
+Level 18
+Magnet"""
+        )
+        assertEquals("equipements", result.detectedCategory)
+        assertEquals(1, result.equipment.size)
+        assertEquals("Arme", result.equipment.single().piece)
+        assertEquals("18", result.equipment.single().niveau)
+        assertTrue(result.equipment.single().qualite.isBlank())
+        assertTrue(result.equipment.single().materiaux.isNotBlank())
+        assertFalse(result.equipment.single().incertain)
+    }
+
+    @Test
     fun doesNotMistakeFrenchConjunctionOrForTheGoldResource() {
         val result = LandsOfJailOcrParser.parseLocalOcrText("Or il faut encore de la nourriture : 5M")
         assertTrue(result.resources.none { it.nom == "Cash / Or" })
