@@ -366,6 +366,20 @@ data class RobotRecord(
 )
 
 @Serializable
+data class EquipmentRecord(
+    val id: String = "",
+    val piece: String,
+    val niveau: String = "",
+    val qualite: String = "",
+    val materiaux: String = "",
+    val experience: String = "",
+    val reforme: String = "",
+    val texteObserve: String = "",
+    val incertain: Boolean = true,
+    val raisonIncertitude: String? = null
+)
+
+@Serializable
 data class EventProgressRecord(
     val id: String = "",
     val eventId: String,
@@ -403,6 +417,7 @@ data class ScreenshotAnalysis(
     val ressources: List<ResourceRecord> = emptyList(),
     val heros: List<HeroRecord> = emptyList(),
     val robots: List<RobotRecord> = emptyList(),
+    val equipements: List<EquipmentRecord> = emptyList(),
     val champsIncertains: List<UncertainItem> = emptyList()
 )
 
