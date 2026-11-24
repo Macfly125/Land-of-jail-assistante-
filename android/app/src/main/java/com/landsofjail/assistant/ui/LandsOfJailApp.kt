@@ -355,7 +355,7 @@ private fun localizedAppText(source: String): String {
         "Actualiser le lien cloud après connexion" to listOf("Actualiser le lien cloud après connexion", "Refresh cloud link after signing in", "Cloud-Verknüpfung nach der Anmeldung aktualisieren", "Giriş yaptıktan sonra bulut bağlantısını yenile", "Обновить связь с облаком после входа", "登录后刷新云端关联"),
     )
     var translated = dictionary[source]?.getOrNull(index)
-        ?: if (language == AppLanguage.IT) dictionary[source]?.getOrNull(1) else null
+        ?: (if (language == AppLanguage.IT) dictionary[source]?.getOrNull(1) else null)
         ?: source
     val fragments = when (language) {
         AppLanguage.FR -> emptyMap()
@@ -721,7 +721,7 @@ private fun resourceUiText(language: AppLanguage, key: String): String {
         "custom_duration" to "Durata personalizzata (minuti)", "duration_range" to "Da 1 a 10.080 minuti (7 giorni)"
     )[key] else null
     return italian ?: translations[key]?.getOrNull(index)
-        ?: if (language == AppLanguage.IT) translations[key]?.getOrNull(1) else null
+        ?: (if (language == AppLanguage.IT) translations[key]?.getOrNull(1) else null)
         ?: key
 }
 
