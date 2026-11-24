@@ -95,6 +95,7 @@ private fun localizedCaptureCategory(language: AppLanguage, raw: String): String
     "batiments", "buildings" -> localizedUiText(language, "Bâtiments", "Buildings", "Gebäude", "Binalar", "Здания", "建筑")
     "troupes", "troops" -> localizedUiText(language, "Troupes", "Troops", "Truppen", "Birlikler", "Войска", "部队")
     "profil", "profile" -> localizedUiText(language, "Profil", "Profile", "Profil", "Profil", "Профиль", "个人资料")
+    "gorilla_legion" -> localizedUiText(language, "Légion de Gorilla", "Gorilla Legion", "Gorilla-Legion", "Goril Lejyonu", "Легион горилл", "大猩猩军团")
     "trial_cage" -> localizedUiText(language, "Cage d’essai", "Trial Cage", "Prüfungskäfig", "Deneme Kafesi", "Испытательная клетка", "试炼笼")
     "crystal_clash" -> localizedUiText(language, "Conflit cristallin", "Crystal Clash", "Kristallkonflikt", "Kristal Çatışması", "Кристальная битва", "水晶冲突")
     "sandsea_conquest" -> localizedUiText(language, "Conquête de sable", "Sandsea Conquest", "Sandmeer-Eroberung", "Kum Denizi Fethi", "Покорение песчаного моря", "沙海征服")
