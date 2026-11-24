@@ -53,7 +53,9 @@ import com.landsofjail.assistant.ocr.LandsOfJailOcrParser
 import com.landsofjail.assistant.service.GameForegroundMonitorService
 import com.landsofjail.assistant.service.UsageStatsDetector
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -1167,7 +1169,9 @@ fun LandsOfJailAssistantApp(
             }
         } else ""
 
-        val localExtraction = LandsOfJailOcrParser.parseLocalOcrText(ocrRaw)
+        val localExtraction = withContext(Dispatchers.Default) {
+            LandsOfJailOcrParser.parseLocalOcrText(ocrRaw)
+        }
         onProgress(45)
 
         val remoteResult = runCatching {
