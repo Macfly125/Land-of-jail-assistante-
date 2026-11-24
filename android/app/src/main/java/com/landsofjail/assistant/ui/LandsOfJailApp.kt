@@ -980,20 +980,23 @@ fun LandsOfJailAssistantApp(
         }.getOrElse { GiftCodeRepository.initialSnapshot() })
     }
     var giftCodesRefreshing by remember { mutableStateOf(false) }
-    LaunchedEffect(lifecycleOwner) {
+    DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_START && !giftCodesRefreshing) {
                 scope.launch {
                     giftCodesRefreshing = true
-                    val refreshed = withContext(Dispatchers.IO) { GiftCodeRepository.refresh(giftCodeSnapshot) }
-                    giftCodeSnapshot = refreshed
-                    giftCodePrefs.edit().putString("snapshot", accountJson.encodeToString(refreshed)).apply()
-                    giftCodesRefreshing = false
+                    try {
+                        val refreshed = withContext(Dispatchers.IO) { GiftCodeRepository.refresh(giftCodeSnapshot) }
+                        giftCodeSnapshot = refreshed
+                        giftCodePrefs.edit().putString("snapshot", accountJson.encodeToString(refreshed)).apply()
+                    } finally {
+                        giftCodesRefreshing = false
+                    }
                 }
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
-        kotlinx.coroutines.awaitCancellation()
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
     var playerRole by remember { mutableStateOf(PlayerRole.POLYVALENT_F2P) }
     var packageFilter by remember { mutableStateOf(UsageStatsDetector.DEFAULT_GAME_PACKAGE_KEYWORD) }
@@ -3459,6 +3462,138 @@ private fun HeroEditDialog(
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(localizedAppText(localizedAppText("Annuler"))) } }
     )
+}
+
+@Composable
+private fun GiftCodesScreen(
+    language: AppLanguage,
+    snapshot: GiftCodeSnapshot,
+    refreshing: Boolean,
+    onRefresh: () -> Unit
+) {
+    val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
+    var filter by remember { mutableStateOf("ALL") }
+    val labels = when (language) {
+        AppLanguage.FR -> listOf("Tous", "Liste officielle", "À vérifier", "Expirés", "Actualiser", "Dernière vérification", "Date de publication", "Expiration", "Source", "Copier", "Copié", "Ouvrir Discord", "Utiliser les codes", "Aucun code dans cette catégorie.", "Aucun accès Internet. Les dernières données enregistrées restent visibles.", "Non testé dans le jeu", "Pas de date d’expiration annoncée")
+        AppLanguage.EN -> listOf("All", "Official list", "Needs checking", "Expired", "Refresh", "Last checked", "Published", "Expires", "Source", "Copy", "Copied", "Open Discord", "Redeem codes", "No codes in this category.", "No Internet access. Previously saved data remains visible.", "Not tested in game", "No expiry date announced")
+        AppLanguage.DE -> listOf("Alle", "Offizielle Liste", "Zu prüfen", "Abgelaufen", "Aktualisieren", "Zuletzt geprüft", "Veröffentlicht", "Läuft ab", "Quelle", "Kopieren", "Kopiert", "Discord öffnen", "Codes einlösen", "Keine Codes in dieser Kategorie.", "Kein Internet. Gespeicherte Daten bleiben sichtbar.", "Nicht im Spiel getestet", "Kein Ablaufdatum angegeben")
+        AppLanguage.TR -> listOf("Tümü", "Resmî liste", "Kontrol edilmeli", "Süresi doldu", "Yenile", "Son kontrol", "Yayın tarihi", "Son kullanma", "Kaynak", "Kopyala", "Kopyalandı", "Discord’u aç", "Kodları kullan", "Bu kategoride kod yok.", "İnternet yok. Kaydedilen veriler görünür kalır.", "Oyunda test edilmedi", "Son kullanma tarihi açıklanmadı")
+        AppLanguage.RU -> listOf("Все", "Официальный список", "Проверить", "Истекли", "Обновить", "Последняя проверка", "Опубликован", "Истекает", "Источник", "Копировать", "Скопировано", "Открыть Discord", "Активировать коды", "В этой категории нет кодов.", "Нет интернета. Сохранённые данные доступны.", "Не проверено в игре", "Срок действия не указан")
+        AppLanguage.ZH -> listOf("全部", "官方列表", "待核实", "已过期", "刷新", "最后检查", "发布日期", "过期日期", "来源", "复制", "已复制", "打开 Discord", "兑换代码", "此类别暂无代码。", "无网络，仍显示已保存的数据。", "未在游戏中测试", "未公布过期日期")
+        AppLanguage.IT -> listOf("Tutti", "Elenco ufficiale", "Da verificare", "Scaduti", "Aggiorna", "Ultimo controllo", "Pubblicato", "Scade", "Fonte", "Copia", "Copiato", "Apri Discord", "Riscatta codici", "Nessun codice in questa categoria.", "Nessuna connessione. I dati salvati restano visibili.", "Non testato nel gioco", "Nessuna scadenza annunciata")
+    }
+    val filtered = snapshot.entries.filter {
+        when (filter) {
+            "OFFICIAL" -> it.status == "OFFICIAL_LISTED"
+            "CHECK" -> it.status == "UNVERIFIED" || it.status == "NEEDS_REVIEW"
+            "EXPIRED" -> it.status == "EXPIRED"
+            else -> true
+        }
+    }
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        contentPadding = PaddingValues(top = 10.dp, bottom = 24.dp)
+    ) {
+        item {
+            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF151D2B))) {
+                Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        localizedUiText(language, "Codes cadeaux Land of Jail", "Land of Jail gift codes", "Land of Jail Geschenkcodes", "Land of Jail hediye kodları", "Подарочные коды Land of Jail", "Land of Jail 礼包码", "Codici regalo Land of Jail"),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(labels[5] + " : " + snapshot.updatedAt.ifBlank { "—" }, style = MaterialTheme.typography.bodySmall)
+                    Text(
+                        localizedUiText(language,
+                            "Les codes listés comme officiels sont rapportés par la communauté, mais leur validité doit toujours être confirmée dans le jeu. « Déjà utilisé » ne signifie pas expiré.",
+                            "Codes marked official are reported by the community; validity must still be confirmed in game. “Already used” does not mean expired.",
+                            "Als offiziell markierte Codes stammen aus Community-Berichten; die Gültigkeit muss im Spiel geprüft werden.",
+                            "Resmî olarak işaretlenen kodlar topluluk kaynaklıdır; geçerlilik oyunda doğrulanmalıdır.",
+                            "Коды из официального списка сообщества всё равно нужно проверять в игре.",
+                            "标记为官方的代码来自社区来源，仍需在游戏中确认有效性。",
+                            "I codici indicati come ufficiali provengono dalla community; la validità va comunque verificata nel gioco."
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFFCBD5E1)
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(onClick = onRefresh, enabled = !refreshing) {
+                            if (refreshing) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+                            else Icon(Icons.Outlined.Refresh, contentDescription = null)
+                            Spacer(Modifier.width(6.dp))
+                            Text(labels[4])
+                        }
+                        OutlinedButton(onClick = { uriHandler.openUri(GiftCodeRepository.DISCORD_URL) }) {
+                            Icon(Icons.Outlined.Forum, contentDescription = null)
+                            Spacer(Modifier.width(4.dp))
+                            Text(labels[11])
+                        }
+                    }
+                    OutlinedButton(onClick = { uriHandler.openUri(GiftCodeRepository.REDEEM_URL) }, modifier = Modifier.fillMaxWidth()) {
+                        Text(labels[12])
+                    }
+                    if (snapshot.sourceErrors.isNotEmpty()) {
+                        Text(labels[14], color = Color(0xFFFFC18A), style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+            }
+        }
+        item {
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
+                listOf("ALL" to labels[0], "OFFICIAL" to labels[1], "CHECK" to labels[2], "EXPIRED" to labels[3]).forEach { (key, label) ->
+                    FilterChip(selected = filter == key, onClick = { filter = key }, label = { Text(label, maxLines = 1) })
+                }
+            }
+        }
+        if (filtered.isEmpty()) {
+            item { Text(labels[13], color = Color(0xFFCBD5E1), modifier = Modifier.padding(12.dp)) }
+        }
+        items(filtered, key = { it.code.lowercase() }) { entry ->
+            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF111827))) {
+                Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                        Text(entry.code, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.ExtraBold)
+                        val statusText = when (entry.status) {
+                            "OFFICIAL_LISTED" -> labels[1]
+                            "EXPIRED" -> labels[3]
+                            else -> labels[2]
+                        }
+                        AssistChip(onClick = {}, label = { Text(statusText) })
+                    }
+                    if (entry.firstSeen.isNotBlank()) Text(labels[6] + " : " + entry.firstSeen, style = MaterialTheme.typography.bodySmall)
+                    if (entry.lastChecked.isNotBlank()) Text(labels[5] + " : " + entry.lastChecked, style = MaterialTheme.typography.bodySmall)
+                    Text(labels[7] + " : " + entry.expiresAt.ifBlank { labels[16] }, style = MaterialTheme.typography.bodySmall)
+                    Text(labels[8] + " : " + entry.source, style = MaterialTheme.typography.bodySmall)
+                    if (entry.note.isNotBlank()) Text(entry.note, style = MaterialTheme.typography.bodySmall, color = Color(0xFFCBD5E1))
+                    Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+                        TextButton(onClick = {
+                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                            clipboard.setPrimaryClip(ClipData.newPlainText("Land of Jail code", entry.code))
+                        }) {
+                            Icon(Icons.Outlined.ContentCopy, contentDescription = null)
+                            Spacer(Modifier.width(4.dp))
+                            Text(labels[9])
+                        }
+                    }
+                }
+            }
+        }
+        item {
+            Text(
+                localizedUiText(language, "Les codes « à vérifier » ne sont jamais présentés comme actifs. Après saisie dans le jeu, vérifie le message : succès, déjà utilisé ou expiré.",
+                    "Unverified codes are never presented as active. After trying one in game, check the response: successful, already used, or expired.",
+                    "Nicht bestätigte Codes werden nicht als aktiv angezeigt. Prüfe nach dem Einlösen die Spielmeldung.",
+                    "Doğrulanmamış kodlar aktif olarak gösterilmez. Oyundaki yanıtı kontrol et.",
+                    "Непроверенные коды не помечаются активными. Проверяйте ответ игры.",
+                    "未核实代码不会显示为有效。请以游戏兑换结果为准。",
+                    "I codici non verificati non vengono indicati come attivi. Controlla la risposta del gioco."),
+                style = MaterialTheme.typography.bodySmall,
+                color = Color(0xFF94A3B8)
+            )
+        }
+    }
 }
 
 @Composable
