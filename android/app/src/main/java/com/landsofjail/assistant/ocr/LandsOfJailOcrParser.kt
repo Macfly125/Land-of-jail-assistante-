@@ -16,6 +16,7 @@ data class LocalOcrExtraction(
     val power: PowerMetric?,
     val resources: List<ResourceRecord>,
     val heroes: List<HeroRecord>,
+    val robots: List<RobotRecord> = emptyList(),
     val uncertainItems: List<UncertainItem>
 )
 
@@ -69,6 +70,9 @@ object LandsOfJailOcrParser {
         val uncertain = mutableListOf<UncertainItem>()
         val resources = mutableListOf<ResourceRecord>()
         val heroes = mutableListOf<HeroRecord>()
+        val robots = mutableListOf<RobotRecord>()
+        val seenRobotKeys = mutableSetOf<String>()
+        val knownRobotNames = listOf("Musashimaru", "Phantom Cat", "Ranger", "Infercore", "Hercules α", "Hercules Alpha", "Halo", "Light Cone", "Atlax", "Yokozuna", "Bastion", "Pluto")
         val seenHeroKeys = mutableSetOf<String>()
         val seenResKeys = mutableSetOf<String>()
         var power: PowerMetric? = null
@@ -125,6 +129,35 @@ object LandsOfJailOcrParser {
                             raisonIncertitude = if (qtyText.contains(Regex("[kmb]$", RegexOption.IGNORE_CASE))) "Valeur OCR locale abrégée" else if (parseCompactNumeric(qtyText) == null) "Valeur numérique non interprétable" else null
                         )
                     )
+                }
+            }
+
+            // Robots connus : ne créer une fiche que si le nom exact est lisible.
+            for (robotName in knownRobotNames) {
+                val normalizedLine = normalizeHeroText(line)
+                val normalizedRobot = normalizeHeroText(robotName)
+                if (normalizedLine.contains(" $normalizedRobot ") && seenRobotKeys.add(normalizedRobot)) {
+                    val context = lines.subList(index, minOf(lines.size, index + 4)).joinToString(" ")
+                    val level = Regex("""(?:lv\\.?|level|niv\\.?|niveau)\\s*([0-9]{1,3})""", RegexOption.IGNORE_CASE)
+                        .find(context)?.groupValues?.get(1)
+                    val powerText = Regex("""(?:power|puissance|atk|attack)\\s*[:：]?\\s*([0-9]+(?:[.,][0-9]+)?\\s*%?)""", RegexOption.IGNORE_CASE)
+                        .find(context)?.groupValues?.get(1)?.trim().orEmpty()
+                    val bonusText = Regex("""(?:bonus|buff|boost|bonus troop|troop bonus)\\s*[:：]?\\s*([^,;。]{3,70})""", RegexOption.IGNORE_CASE)
+                        .find(context)?.groupValues?.get(1)?.trim().orEmpty()
+                    val skillText = Regex("""(?:skill|skills|comp[ée]tence|comp[ée]tences|core)\\s*[:：]?\\s*([^,;。]{3,90})""", RegexOption.IGNORE_CASE)
+                        .find(context)?.groupValues?.get(1)?.trim().orEmpty()
+                    val hasDetails = level != null || powerText.isNotBlank() || bonusText.isNotBlank() || skillText.isNotBlank()
+                    robots.add(RobotRecord(
+                        id = normalizedRobot.replace(' ', '_'),
+                        nom = robotName,
+                        niveau = level.orEmpty(),
+                        bonus = bonusText,
+                        competences = skillText,
+                        puissance = powerText,
+                        incertain = !hasDetails || level == null,
+                        raisonIncertitude = if (level == null) "Nom du robot reconnu, niveau non lu explicitement" else null,
+                        source = "ocr_local"
+                    ))
                 }
             }
 
@@ -270,6 +303,7 @@ object LandsOfJailOcrParser {
         val detectedCategory = when {
             screenRecognition.category != "ocr_local" -> screenRecognition.category
             heroes.isNotEmpty() -> "heros"
+            robots.isNotEmpty() -> "robots"
             resources.isNotEmpty() -> "ressources"
             power != null -> "profil"
             else -> "ocr_local"
@@ -307,6 +341,7 @@ object LandsOfJailOcrParser {
             power = power,
             resources = resources,
             heroes = heroes,
+            robots = robots,
             uncertainItems = uncertain
         )
     }
