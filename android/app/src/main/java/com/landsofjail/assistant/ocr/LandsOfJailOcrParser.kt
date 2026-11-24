@@ -93,6 +93,38 @@ object LandsOfJailOcrParser {
     }
 
     /**
+     * Sélectionne uniquement la rangée horizontale la plus cohérente de nombres
+     * située dans la zone supérieure. Cela évite de confondre les ressources
+     * avec des niveaux, compteurs ou nombres provenant d'autres panneaux.
+     */
+    private fun topResourceNumberBoxes(
+        boxes: List<OcrTextBox>,
+        imageWidth: Int,
+        imageHeight: Int
+    ): List<OcrTextBox> {
+        if (imageWidth <= 0 || imageHeight <= 0) return emptyList()
+        val candidates = boxes
+            .filter { it.top >= 0 && it.top <= (imageHeight * 0.20).toInt() }
+            .filter { it.left >= 0 && it.right <= imageWidth }
+            .filter { Regex("""^[0-9][0-9.,\\s]*[kmbKMB]?$""").matches(it.text.trim()) }
+        if (candidates.size < 4) return emptyList()
+
+        val tolerance = maxOf(18, (imageHeight * 0.025).toInt())
+        val bestRow = candidates
+            .map { anchor ->
+                candidates.filter { candidate ->
+                    kotlin.math.abs(
+                        ((candidate.top + candidate.bottom) / 2) -
+                            ((anchor.top + anchor.bottom) / 2)
+                    ) <= tolerance
+                }
+            }
+            .maxByOrNull { it.size }
+            .orEmpty()
+        return if (bestRow.size >= 4) bestRow.distinctBy { it.left to it.text }.sortedBy { it.left } else emptyList()
+    }
+
+    /**
      * Analyse OCR locale complète (puissance, QG/Prison, héros, ressources, type d'écran)
      * permettant un affichage immédiat dans l'appli même hors-ligne ou sans backend.
      */
@@ -390,33 +422,27 @@ object LandsOfJailOcrParser {
             power = power?.copy(niveauPrisonOuQG = wardenLevel)
         }
 
-        // La barre de ressources du jeu affiche les quantités dans un ordre horizontal stable.
-        // Quand les icônes ne produisent aucun texte OCR, on associe prudemment les nombres
-        // de la rangée supérieure à cet ordre, avec un statut incertain à confirmer.
-        if (imageWidth > 0 && imageHeight > 0) {
-            val topNumbers = textBoxes
-                .filter { it.top <= (imageHeight * 0.20).toInt() }
-                .filter { Regex("""^[0-9][0-9.,\s]*[kmbKMB]?$""").matches(it.text.trim()) }
-                .sortedBy { it.left }
-            val resourceOrder = listOf(
-                "Nourriture (Food)", "Bois (Wood)", "Acier (Steel)",
-                "Essence (Gasoline)", "Diamants (Gems)", "Cash / Or"
-            )
-            if (topNumbers.size >= 4) {
-                topNumbers.take(resourceOrder.size).forEachIndexed { index, box ->
-                    val name = resourceOrder[index]
-                    if (seenResKeys.add(name)) {
-                        val quantity = box.text.trim()
-                        resources.add(
-                            ResourceRecord(
-                                nom = name,
-                                quantiteTexte = quantity,
-                                quantiteNumerique = parseCompactNumeric(quantity),
-                                incertain = true,
-                                raisonIncertitude = "Valeur associée à la position de l'icône dans la barre supérieure ; confirmer visuellement."
-                            )
+        // Ne jamais mélanger des valeurs nommées avec une supposition par position.
+        // Le mode positionnel n'est utilisé que si aucune ressource n'a été lue par son nom.
+        val topNumbers = topResourceNumberBoxes(textBoxes, imageWidth, imageHeight)
+        val resourceOrder = listOf(
+            "Nourriture (Food)", "Bois (Wood)", "Acier (Steel)",
+            "Essence (Gasoline)", "Diamants (Gems)", "Cash / Or"
+        )
+        if (resources.isEmpty() && topNumbers.size >= 4) {
+            topNumbers.take(resourceOrder.size).forEachIndexed { index, box ->
+                val name = resourceOrder[index]
+                if (seenResKeys.add(name)) {
+                    val quantity = box.text.trim()
+                    resources.add(
+                        ResourceRecord(
+                            nom = name,
+                            quantiteTexte = quantity,
+                            quantiteNumerique = parseCompactNumeric(quantity),
+                            incertain = true,
+                            raisonIncertitude = "Valeur associée à la position de l'icône dans la barre supérieure ; confirmer visuellement."
                         )
-                    }
+                    )
                 }
             }
         }
