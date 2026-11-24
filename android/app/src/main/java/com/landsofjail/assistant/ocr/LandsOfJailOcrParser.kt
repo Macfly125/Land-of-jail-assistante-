@@ -83,12 +83,12 @@ object LandsOfJailOcrParser {
         val wardenRegex = Regex("""(?:warden\s*office|bureau\s*du\s*directeur|prison|qg|hq)\s*(?:niv\.?|lv\.?|level)?\s*([0-9]+)""", RegexOption.IGNORE_CASE)
 
         val resourcePatterns = listOf(
-            "Nourriture (Food)" to Regex("""(?:nourriture|food|vivres|nahrung|yiyecek|еда|食物)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)""", RegexOption.IGNORE_CASE),
-            "Bois (Wood)" to Regex("""(?:bois|wood|lumber|holz|odun|дерево|木材)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)""", RegexOption.IGNORE_CASE),
-            "Acier (Steel)" to Regex("""(?:acier|steel|fer|iron|stahl|çelik|сталь|钢材)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)""", RegexOption.IGNORE_CASE),
-            "Essence (Gasoline)" to Regex("""(?:essence|gasoline|fuel|p[ée]trole|benzin|бензин|汽油)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)""", RegexOption.IGNORE_CASE),
-            "Diamants (Gems)" to Regex("""(?:diamants?|diamonds?|gemmes?|gems?|diamanten|elmas|алмазы|钻石|宝石)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)""", RegexOption.IGNORE_CASE),
-            "Cash / Or" to Regex("""(?:cash|gold|g[oö]ld)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)|^or\s*[:：\-]\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)""", RegexOption.IGNORE_CASE)
+            "Nourriture (Food)" to Regex("""(?:nourriture|food|vivres|nahrung|yiyecek|еда|食物)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)?""", RegexOption.IGNORE_CASE),
+            "Bois (Wood)" to Regex("""(?:bois|wood|lumber|holz|odun|дерево|木材)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)?""", RegexOption.IGNORE_CASE),
+            "Acier (Steel)" to Regex("""(?:acier|steel|fer|iron|stahl|çelik|сталь|钢材)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)?""", RegexOption.IGNORE_CASE),
+            "Essence (Gasoline)" to Regex("""(?:essence|gasoline|fuel|p[ée]trole|benzin|бензин|汽油)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)?""", RegexOption.IGNORE_CASE),
+            "Diamants (Gems)" to Regex("""(?:diamants?|diamonds?|gemmes?|gems?|diamanten|elmas|алмазы|钻石|宝石)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)?""", RegexOption.IGNORE_CASE),
+            "Cash / Or" to Regex("""(?:cash|gold|g[oö]ld)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)?|^or\s*[:：\-]\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)?""", RegexOption.IGNORE_CASE)
         )
 
         for ((index, line) in lines.withIndex()) {
@@ -118,7 +118,12 @@ object LandsOfJailOcrParser {
                 if (seenResKeys.contains(resLabel)) continue
                 val match = regex.find(line)
                 if (match != null) {
-                    val qtyText = match.groupValues.drop(1).firstOrNull { it.isNotBlank() }?.trim() ?: continue
+                    val inlineQuantity = match.groupValues.drop(1).firstOrNull { it.isNotBlank() }?.trim()
+                    val nextLineQuantity = lines.getOrNull(index + 1)?.let { candidate ->
+                        Regex("""^\\s*([0-9][0-9.,\\s]*[kmbKMB]?)\\s*$""", RegexOption.IGNORE_CASE)
+                            .find(candidate)?.groupValues?.get(1)?.trim()
+                    }
+                    val qtyText = inlineQuantity ?: nextLineQuantity ?: continue
                     seenResKeys.add(resLabel)
                     resources.add(
                         ResourceRecord(
@@ -316,6 +321,21 @@ object LandsOfJailOcrParser {
                     raison = "Classification OCR de confiance ${screenRecognition.confidence}; vérification visuelle recommandée."
                 )
             )
+        }
+
+        if (screenRecognition.category == "robots" && robots.isEmpty()) {
+            uncertain.add(UncertainItem(
+                champ = "Robot",
+                valeurObservee = "Écran de robot détecté",
+                raison = "L'écran est identifié, mais aucun modèle et niveau exacts n'ont été lus. Vérification visuelle nécessaire."
+            ))
+        }
+        if (screenRecognition.category == "ressources" && resources.isEmpty()) {
+            uncertain.add(UncertainItem(
+                champ = "Ressources",
+                valeurObservee = "Écran de ressources détecté",
+                raison = "Les icônes et quantités ne sont pas encore associées avec certitude par l'OCR textuel."
+            ))
         }
 
         if (lines.isEmpty()) {
