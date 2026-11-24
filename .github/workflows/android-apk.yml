@@ -45,6 +45,17 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.11.1'
+      - name: Préparer l'accélération de l'émulateur (KVM ou TCG)
+        run: |
+          if [ -e /dev/kvm ]; then
+            sudo chmod 666 /dev/kvm || true
+          fi
+          if [ -r /dev/kvm ] && [ -w /dev/kvm ]; then
+            echo "KVM disponible : accélération matérielle activée."
+          else
+            echo "KVM indisponible : autoriser le mode logiciel TCG pour les émulateurs Android récents."
+            echo "ANDROID_I_WANT_MY_TCG=yes" >> "$GITHUB_ENV"
+          fi
       - name: Tester le démarrage réel sur émulateur Android
         uses: reactivecircus/android-emulator-runner@v2
         timeout-minutes: 15
