@@ -1331,7 +1331,9 @@ fun LandsOfJailAssistantApp(
         val hasLocalData = localExtraction.power != null ||
             localExtraction.heroes.isNotEmpty() ||
             localExtraction.resources.isNotEmpty() ||
-            localExtraction.robots.isNotEmpty()
+            localExtraction.robots.isNotEmpty() ||
+            localExtraction.detectedCategory == "robots" ||
+            localExtraction.detectedCategory == "ressources"
 
         if (hasLocalData) {
             onProgress(100)
