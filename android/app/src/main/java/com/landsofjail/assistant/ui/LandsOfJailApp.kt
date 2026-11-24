@@ -1596,6 +1596,7 @@ fun LandsOfJailAssistantApp(
                         onPickImage = { imagePicker.launch("image/*") }
                     )
                     AssistantTab.HEROS -> HeroesScreen(
+                        language = currentLang,
                         heroes = heroes,
                         onAddHero = { entry ->
                             val newHero = HeroRecord(
@@ -2212,12 +2213,12 @@ private fun DashboardScreen(
                         ).filter { it.second > 0L }
                         requiredResources.forEach { (label, required, aliases) ->
                             val stock = resources.firstOrNull { resource -> aliases.any { alias -> resource.nom.contains(alias, ignoreCase = true) } }
-                            val available = stock?.takeIf { !it.incertain }?.quantiteNumerique
+                            val available = stock?.quantiteNumerique
                             val shortage = available?.let { (required.toDouble() - it).coerceAtLeast(0.0).toLong() }
                             Text(
                                 when (currentLang) {
-                                    AppLanguage.FR -> "$label : requis ${required} · disponible ${available?.toLong()?.toString() ?: "à confirmer"} · manque ${shortage?.toString() ?: "inconnu"}"
-                                    AppLanguage.EN -> "$label: required ${required} · available ${available?.toLong()?.toString() ?: "unconfirmed"} · shortfall ${shortage?.toString() ?: "unknown"}"
+                                    AppLanguage.FR -> "$label : requis ${required} · disponible ${available?.toLong()?.toString() ?: "à confirmer"} · manque ${shortage?.toString() ?: "inconnu"}${if (stock?.incertain == true) " (lecture à confirmer)" else ""}"
+                                    AppLanguage.EN -> "$label: required ${required} · available ${available?.toLong()?.toString() ?: "unconfirmed"} · shortfall ${shortage?.toString() ?: "unknown"}${if (stock?.incertain == true) " (verify reading)" else ""}"
                                     AppLanguage.DE -> "$label: benötigt ${required} · vorhanden ${available?.toLong()?.toString() ?: "unbestätigt"} · fehlend ${shortage?.toString() ?: "unbekannt"}"
                                     AppLanguage.TR -> "$label: gereken ${required} · mevcut ${available?.toLong()?.toString() ?: "doğrulanmadı"} · eksik ${shortage?.toString() ?: "bilinmiyor"}"
                                     AppLanguage.RU -> "$label: нужно ${required} · есть ${available?.toLong()?.toString() ?: "не подтверждено"} · не хватает ${shortage?.toString() ?: "неизвестно"}"
@@ -2338,6 +2339,7 @@ private fun HeroPortraitFallback(typeTroupe: String?) {
 
 @Composable
 private fun HeroesScreen(
+    language: AppLanguage,
     heroes: List<HeroRecord>,
     onAddHero: (HeroCatalogEntry) -> HeroRecord,
     onUpdateHero: (HeroRecord, HeroRecord) -> Unit
@@ -2356,12 +2358,14 @@ private fun HeroesScreen(
         hero.niveauTexte.isBlank() || hero.etoiles.isNullOrBlank() ||
             hero.puissanceHero.isNullOrBlank() || hero.competences.isEmpty()
     }
-    val visibleHeroes = remember(search, selectedClass, heroes) {
+    val matchingHeroes = remember(search, selectedClass, heroes) {
         HeroCatalog.entries.filter { entry ->
             (search.isBlank() || entry.nom.contains(search.trim(), ignoreCase = true)) &&
                 (selectedClass == "Tous" || entry.typeTroupe == selectedClass)
-        }.sortedByDescending { entry -> profileByName.containsKey(entry.nom.trim().lowercase()) }
+        }
     }
+    val detectedCatalogHeroes = matchingHeroes.filter { profileByName.containsKey(it.nom.trim().lowercase()) }
+    val remainingCatalogHeroes = matchingHeroes.filterNot { profileByName.containsKey(it.nom.trim().lowercase()) }
 
     LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item {
@@ -2410,7 +2414,15 @@ private fun HeroesScreen(
                 )
             }
         }
-        items(visibleHeroes, key = { it.nom }) { entry ->
+        if (detectedCatalogHeroes.isNotEmpty()) {
+            item {
+                Text(
+                    localizedUiText(language, "Profils détectés sur tes captures", "Profiles detected in your screenshots", "In Screenshots erkannte Profile", "Ekran görüntülerinde algılanan profiller", "Профили, обнаруженные на снимках", "截图中识别到的英雄档案"),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            items(detectedCatalogHeroes, key = { "detected-${it.nom}" }) { entry ->
             val hero = profileByName[entry.nom.lowercase()]
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
@@ -2548,8 +2560,21 @@ private fun HeroesScreen(
                 }
             }
         }
-        if (visibleHeroes.isEmpty()) {
-            item { Text("Aucun héros ne correspond à cette recherche.") }
+        }
+        if (remainingCatalogHeroes.isNotEmpty()) {
+            item {
+                Text(
+                    localizedUiText(language, "Catalogue complet", "Full catalogue", "Vollständiger Katalog", "Tam katalog", "Полный каталог", "完整英雄目录"),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            items(remainingCatalogHeroes, key = { it.nom }) { entry ->
+        }
+        if (detectedCatalogHeroes.isEmpty() && remainingCatalogHeroes.isEmpty()) {
+            item {
+                Text(localizedUiText(language, "Aucun héros ne correspond à cette recherche.", "No heroes match this search.", "Keine Helden entsprechen dieser Suche.", "Bu aramayla eşleşen kahraman yok.", "Герои не найдены.", "没有符合此搜索的英雄。"))
+            }
         }
         val detectedOutsideCatalog = heroes.filter { detected ->
             HeroCatalog.entries.none { it.nom.equals(detected.nom, ignoreCase = true) }
