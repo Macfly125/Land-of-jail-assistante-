@@ -18,7 +18,7 @@ function slugify(value) {
 }
 
 function attr(tag, name) {
-  return tag.match(new RegExp('\\\\b' + name + '\\\\s*=\\\\s*"([^"]+)"', 'i'))?.[1] ?? '';
+  return tag.match(new RegExp('\\b' + name + '\\s*=\\s*"([^"]+)"', 'i'))?.[1] ?? '';
 }
 
 async function request(url, method = 'GET') {
