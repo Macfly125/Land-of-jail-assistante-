@@ -12,6 +12,7 @@ on:
   workflow_dispatch:
   push:
     paths:
+      - 'scripts/audit-hero-portraits.mjs'
       - 'android/**'
       - '.github/workflows/android-apk.yml'
 
