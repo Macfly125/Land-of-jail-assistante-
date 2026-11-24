@@ -171,6 +171,52 @@ private fun localizedAppText(source: String): String {
         "Envoyer ma proposition" to listOf("Envoyer ma proposition", "Send my suggestion", "Vorschlag senden", "Önerimi gönder", "Отправить предложение", "发送建议"),
         "Réponse du développeur" to listOf("Réponse du développeur", "Developer response", "Antwort des Entwicklers", "Geliştirici yanıtı", "Ответ разработчика", "开发者回复"),
         "Traiter cette proposition" to listOf("Traiter cette proposition", "Review this suggestion", "Diesen Vorschlag bearbeiten", "Bu öneriyi incele", "Рассмотреть предложение", "处理此建议")
+        "Garder le bouton flottant au-dessus du jeu" to listOf("Garder le bouton flottant au-dessus du jeu", "Keep the floating button above the game", "Schwebende Schaltfläche über dem Spiel behalten", "Yüzen düğmeyi oyunun üzerinde tut", "Оставлять плавающую кнопку поверх игры", "在游戏上方保留悬浮按钮"),
+        "Pour obtenir des conseils fiables, renseigne niveau, étoiles, puissance et compétences War / Arrest / Équipement. Les champs absents ne sont jamais devinés." to listOf("Pour obtenir des conseils fiables, renseigne niveau, étoiles, puissance et compétences War / Arrest / Équipement. Les champs absents ne sont jamais devinés.", "For reliable advice, enter level, stars, power and War / Arrest / Equipment skills. Missing fields are never guessed.", "Für zuverlässige Empfehlungen gib Level, Sterne, Macht und War-/Arrest-/Ausrüstungsfähigkeiten an. Fehlende Felder werden niemals geraten.", "Güvenilir öneriler için seviye, yıldız, güç ve War / Arrest / Ekipman becerilerini gir. Eksik alanlar asla tahmin edilmez.", "Для точных рекомендаций укажите уровень, звёзды, мощь и навыки War / Arrest / Equipment. Отсутствующие данные не угадываются.", "如需可靠建议，请填写等级、星级、战力以及 War / Arrest / Equipment 技能。不会猜测缺失字段。"),
+        "Les données du catalogue sont des références communautaires. Seules les valeurs détectées sur tes captures décrivent ton compte." to listOf("Les données du catalogue sont des références communautaires. Seules les valeurs détectées sur tes captures décrivent ton compte.", "Catalog data is community reference information. Only values detected in your screenshots describe your account.", "Katalogdaten sind Community-Referenzwerte. Nur auf deinen Screenshots erkannte Werte beschreiben dein Konto.", "Katalog verileri topluluk referanslarıdır. Hesabını yalnızca ekran görüntülerinde algılanan değerler tanımlar.", "Данные каталога — справочная информация сообщества. Ваш аккаунт описывают только значения, распознанные на снимках.", "目录数据仅供社区参考。只有从你的截图中识别出的数值才代表你的账号。"),
+        "Compétences personnelles non renseignées. Scanne les pages de compétences de ce héros pour obtenir ses effets et niveaux réels." to listOf("Compétences personnelles non renseignées. Scanne les pages de compétences de ce héros pour obtenir ses effets et niveaux réels.", "Personal skills are not available. Scan this hero's skill pages to capture their actual effects and levels.", "Persönliche Fähigkeiten sind nicht angegeben. Scanne die Fähigkeitsseiten dieses Helden, um echte Effekte und Stufen zu erfassen.", "Kişisel beceriler girilmedi. Gerçek etkileri ve seviyeleri almak için bu kahramanın beceri sayfalarını tara.", "Личные навыки не указаны. Отсканируйте страницы навыков героя, чтобы получить реальные эффекты и уровни.", "尚未填写个人技能。请扫描该英雄的技能页面，以获取实际效果和等级。"),
+        "Compétences : type | nom | niveau | description (war / arrest / equipment / inconnu)" to listOf("Compétences : type | nom | niveau | description (war / arrest / equipment / inconnu)", "Skills: type | name | level | description (war / arrest / equipment / unknown)", "Fähigkeiten: Typ | Name | Stufe | Beschreibung (War / Arrest / Ausrüstung / unbekannt)", "Beceriler: tür | ad | seviye | açıklama (war / arrest / equipment / bilinmiyor)", "Навыки: тип | название | уровень | описание (war / arrest / equipment / неизвестно)", "技能：类型 | 名称 | 等级 | 描述（war / arrest / equipment / 未知）"),
+        "Aucune ressource capturée pour l’instant. Utilisez « Calcul Bâtiments » ou « Calcul Héros » ci-dessus pour calculer vos prochains paliers." to listOf("Aucune ressource capturée pour l’instant. Utilisez « Calcul Bâtiments » ou « Calcul Héros » ci-dessus pour calculer vos prochains paliers.", "No resources have been captured yet. Use “Building Calculator” or “Hero Calculator” above to calculate your next upgrade levels.", "Bisher wurden keine Ressourcen erfasst. Verwende oben den Gebäude- oder Heldenrechner, um deine nächsten Ausbaustufen zu berechnen.", "Henüz kaynak yakalanmadı. Sonraki yükseltme aşamalarını hesaplamak için yukarıdaki Bina Hesaplayıcı veya Kahraman Hesaplayıcı'yı kullan.", "Ресурсы пока не распознаны. Используйте калькулятор зданий или героев выше, чтобы рассчитать следующие уровни улучшения.", "尚未捕获资源。请使用上方的“建筑计算器”或“英雄计算器”计算下一阶段升级需求。"),
+        "Ces données sont indépendantes des autres profils. Renseigne les bonus tels qu’ils apparaissent en jeu ; aucune statistique n’est devinée." to listOf("Ces données sont indépendantes des autres profils. Renseigne les bonus tels qu’ils apparaissent en jeu ; aucune statistique n’est devinée.", "This data is independent of other profiles. Enter bonuses exactly as shown in the game; no stats are guessed.", "Diese Daten sind unabhängig von anderen Profilen. Gib Boni genau wie im Spiel angezeigt ein; Werte werden nicht geraten.", "Bu veriler diğer profillerden bağımsızdır. Bonusları oyunda göründüğü gibi gir; hiçbir istatistik tahmin edilmez.", "Эти данные не зависят от других профилей. Указывайте бонусы так, как они показаны в игре; характеристики не угадываются.", "这些数据独立于其他档案。请按游戏中的显示填写加成；不会猜测任何属性。"),
+        "Note : Mystery Tomes requis à partir du palier 12→13. Pour les compétences héros : Arrest & War Skill Books selon rareté." to listOf("Note : Mystery Tomes requis à partir du palier 12→13. Pour les compétences héros : Arrest & War Skill Books selon rareté.", "Note: Mystery Tomes are required from level 12→13. Hero skills require Arrest & War Skill Books depending on rarity.", "Hinweis: Ab Stufe 12→13 werden Mystery Tomes benötigt. Für Heldenfähigkeiten sind je nach Seltenheit Arrest- und War-Skill-Bücher erforderlich.", "Not: 12→13 aşamasından itibaren Mystery Tomes gerekir. Kahraman becerileri için nadirliğe göre Arrest ve War Skill Books gerekir.", "Примечание: начиная с уровня 12→13 требуются Mystery Tomes. Для навыков героев нужны книги Arrest и War в зависимости от редкости.", "注意：从 12→13 阶段开始需要 Mystery Tomes。英雄技能所需的 Arrest 和 War 技能书取决于稀有度。"),
+        "Robots incomplets : renseigne leurs bonus et compétences avant de les comparer." to listOf("Robots incomplets : renseigne leurs bonus et compétences avant de les comparer.", "Incomplete robots: enter their bonuses and skills before comparing them.", "Unvollständige Roboter: Gib Boni und Fähigkeiten ein, bevor du sie vergleichst.", "Eksik robotlar: karşılaştırmadan önce bonuslarını ve becerilerini gir.", "Неполные данные роботов: укажите бонусы и навыки перед сравнением.", "机器人信息不完整：请先填写加成和技能，再进行比较。"),
+        "Ratios de référence : vérifie toujours les consignes du chef et les règles affichées dans l’événement." to listOf("Ratios de référence : vérifie toujours les consignes du chef et les règles affichées dans l’événement.", "Reference ratios: always check the leader's instructions and the rules shown in the event.", "Referenzverhältnisse: Beachte immer die Anweisungen des Anführers und die im Event angezeigten Regeln.", "Referans oranlar: liderin talimatlarını ve etkinlikte gösterilen kuralları daima kontrol et.", "Рекомендуемые соотношения: всегда проверяйте указания лидера и правила события.", "参考比例：请始终确认盟主指示以及活动中显示的规则。"),
+        "Sélection fondée sur les compétences reconnues dans ce profil. Ce n’est pas un classement de puissance ni une simulation de combat." to listOf("Sélection fondée sur les compétences reconnues dans ce profil. Ce n’est pas un classement de puissance ni une simulation de combat.", "Selection is based on skills recognized in this profile. It is not a power ranking or combat simulation.", "Die Auswahl basiert auf den in diesem Profil erkannten Fähigkeiten. Sie ist weder eine Macht-Rangliste noch eine Kampfsimulation.", "Seçim, bu profilde tanınan becerilere dayanır. Güç sıralaması veya savaş simülasyonu değildir.", "Выбор основан на навыках, распознанных в этом профиле. Это не рейтинг мощи и не симуляция боя.", "选择依据是此档案中识别的技能，并非战力排名或战斗模拟。"),
+        "Sélection basée sur les bonus et compétences que tu as saisis. Ce n’est pas une simulation ni un classement garanti." to listOf("Sélection basée sur les bonus et compétences que tu as saisis. Ce n’est pas une simulation ni un classement garanti.", "Selection is based on the bonuses and skills you entered. It is not a simulation or a guaranteed ranking.", "Die Auswahl basiert auf deinen eingegebenen Boni und Fähigkeiten. Sie ist keine Simulation und keine garantierte Rangliste.", "Seçim, girdiğin bonus ve becerilere dayanır. Simülasyon veya garantili sıralama değildir.", "Выбор основан на введённых вами бонусах и навыках. Это не симуляция и не гарантированный рейтинг.", "选择依据是你填写的加成和技能，并非模拟结果或保证排名。"),
+        "Toutes les analyses enregistrées dans l’historique seront supprimées. Cette action est irréversible." to listOf("Toutes les analyses enregistrées dans l’historique seront supprimées. Cette action est irréversible.", "All analyses saved in history will be deleted. This action cannot be undone.", "Alle im Verlauf gespeicherten Analysen werden gelöscht. Dieser Vorgang kann nicht rückgängig gemacht werden.", "Geçmişte kayıtlı tüm analizler silinecek. Bu işlem geri alınamaz.", "Все анализы, сохранённые в истории, будут удалены. Это действие нельзя отменить.", "历史记录中的所有分析都将被删除。此操作无法撤销。"),
+        "Historique vide. Appuyez sur « Analyser l’écran » pour enregistrer votre première capture." to listOf("Historique vide. Appuyez sur « Analyser l’écran » pour enregistrer votre première capture.", "History is empty. Tap “Analyze screen” to save your first capture.", "Der Verlauf ist leer. Tippe auf „Bildschirm analysieren“, um deinen ersten Screenshot zu speichern.", "Geçmiş boş. İlk ekran görüntünü kaydetmek için “Ekranı analiz et” seçeneğine dokun.", "История пуста. Нажмите «Анализировать экран», чтобы сохранить первый снимок.", "历史记录为空。点击“分析屏幕”以保存第一张截图。"),
+        "Connecte ton compte pour synchroniser ton profil de joueur et tes héros dans l'espace cloud sécurisé." to listOf("Connecte ton compte pour synchroniser ton profil de joueur et tes héros dans l'espace cloud sécurisé.", "Sign in to sync your player profile and heroes to secure cloud storage.", "Melde dich an, um dein Spielerprofil und deine Helden sicher mit der Cloud zu synchronisieren.", "Oyuncu profilini ve kahramanlarını güvenli bulut alanıyla eşitlemek için hesabına giriş yap.", "Войдите, чтобы синхронизировать профиль игрока и героев с защищённым облачным хранилищем.", "登录账号，将玩家档案和英雄同步到安全云端。"),
+        "Les jetons sont chiffrés avec Android Keystore. La synchronisation du profil se lance depuis le formulaire joueur ci-dessous." to listOf("Les jetons sont chiffrés avec Android Keystore. La synchronisation du profil se lance depuis le formulaire joueur ci-dessous.", "Tokens are encrypted with Android Keystore. Profile sync starts from the player form below.", "Tokens werden mit Android Keystore verschlüsselt. Die Profilsynchronisierung wird über das Spielerformular unten gestartet.", "Jetonlar Android Keystore ile şifrelenir. Profil eşitlemesi aşağıdaki oyuncu formundan başlatılır.", "Токены шифруются с помощью Android Keystore. Синхронизация профиля запускается из формы игрока ниже.", "令牌使用 Android Keystore 加密。请通过下方玩家表单启动档案同步。"),
+        "Créer un compte" to listOf("Créer un compte", "Create an account", "Konto erstellen", "Hesap oluştur", "Создать аккаунт", "创建账号"),
+        "J'ai déjà un compte" to listOf("J'ai déjà un compte", "I already have an account", "Ich habe bereits ein Konto", "Zaten hesabım var", "У меня уже есть аккаунт", "我已有账号"),
+        "Ces informations sont enregistrées pendant la création du compte. Tu n'auras pas à refaire une inscription dans l'espace Alliance." to listOf("Ces informations sont enregistrées pendant la création du compte. Tu n'auras pas à refaire une inscription dans l'espace Alliance.", "This information is saved when your account is created. You won't need to register again in the Alliance area.", "Diese Angaben werden bei der Kontoerstellung gespeichert. Du musst dich im Allianzbereich nicht erneut registrieren.", "Bu bilgiler hesap oluşturulurken kaydedilir. İttifak alanına yeniden kaydolman gerekmez.", "Эти данные сохраняются при создании аккаунта. Повторная регистрация в разделе альянса не потребуется.", "这些信息会在创建账号时保存。你无需在联盟空间再次注册。"),
+        "Pseudo dans Land of Jail" to listOf("Pseudo dans Land of Jail", "Land of Jail username", "Land-of-Jail-Spielername", "Land of Jail oyuncu adı", "Имя игрока в Land of Jail", "Land of Jail 游戏昵称"),
+        "Tag de l'alliance" to listOf("Tag de l'alliance", "Alliance tag", "Allianz-Tag", "İttifak etiketi", "Тег альянса", "联盟标签"),
+        "Choisis R5 uniquement si tu crées un nouvel espace d'alliance. Pour rejoindre une alliance existante, indique ton rang actuel : ta demande sera transmise aux responsables." to listOf("Choisis R5 uniquement si tu crées un nouvel espace d'alliance. Pour rejoindre une alliance existante, indique ton rang actuel : ta demande sera transmise aux responsables.", "Choose R5 only if you are creating a new alliance space. To join an existing alliance, enter your current rank; your request will be sent to its officers.", "Wähle R5 nur, wenn du einen neuen Allianzbereich erstellst. Um einer bestehenden Allianz beizutreten, gib deinen aktuellen Rang an; deine Anfrage wird an die Offiziere gesendet.", "Yalnızca yeni bir ittifak alanı oluşturuyorsan R5'i seç. Mevcut bir ittifaka katılmak için rütbeni belirt; isteğin yetkililere iletilir.", "Выбирайте R5, только если создаёте новое пространство альянса. Для вступления в существующий альянс укажите текущий ранг — запрос будет отправлен офицерам.", "仅在创建新联盟空间时选择 R5。若要加入现有联盟，请填写当前职位，申请将发送给管理人员。"),
+        "Actualisation…" to listOf("Actualisation…", "Refreshing…", "Aktualisierung…", "Yenileniyor…", "Обновление…", "正在刷新…"),
+        "Le R5 se remplace en nommant un R4." to listOf("Le R5 se remplace en nommant un R4.", "The R5 role is transferred by appointing an R4.", "Die R5-Rolle wird übertragen, indem ein R4 ernannt wird.", "R5 görevi bir R4 atanarak devredilir.", "Передача роли R5 выполняется назначением R4.", "任命一名 R4 即可转交 R5 职位。"),
+        "Retirer du roster" to listOf("Retirer du roster", "Remove from roster", "Aus Aufstellung entfernen", "Kad rodan çıkar", "Убрать из состава", "从名单中移除"),
+        "Lancer la simulation (R4 / R5)" to listOf("Lancer la simulation (R4 / R5)", "Run simulation (R4 / R5)", "Simulation starten (R4 / R5)", "Simülasyonu başlat (R4 / R5)", "Запустить симуляцию (R4 / R5)", "运行模拟（R4 / R5）"),
+        "Alliance partagée en ligne" to listOf("Alliance partagée en ligne", "Shared alliance online", "Allianz online geteilt", "Çevrimiçi paylaşılan ittifak", "Общий альянс онлайн", "在线共享联盟"),
+        "Crée l'espace cloud de ton alliance ou rejoins celui d'un autre joueur avec un code d'invitation. Le rang R5 du créateur est attribué côté serveur." to listOf("Crée l'espace cloud de ton alliance ou rejoins celui d'un autre joueur avec un code d'invitation. Le rang R5 du créateur est attribué côté serveur.", "Create your alliance's cloud space or join another player's using an invitation code. The creator's R5 rank is assigned by the server.", "Erstelle den Cloud-Bereich deiner Allianz oder tritt einem anderen Spieler per Einladungscode bei. Der R5-Rang des Erstellers wird serverseitig vergeben.", "İttifakının bulut alanını oluştur veya davet koduyla başka bir oyuncunun alanına katıl. Oluşturanın R5 rütbesi sunucu tarafından atanır.", "Создайте облачное пространство альянса или вступите в пространство другого игрока по коду приглашения. Ранг R5 создателя назначается сервером.", "创建联盟云空间，或使用邀请码加入其他玩家的空间。创建者的 R5 职位由服务器分配。"),
+        "Connecte-toi d'abord dans « Compte & sauvegarde cloud » pour utiliser ces fonctions." to listOf("Connecte-toi d'abord dans « Compte & sauvegarde cloud » pour utiliser ces fonctions.", "Sign in under “Account & cloud backup” first to use these features.", "Melde dich zuerst unter „Konto & Cloud-Sicherung“ an, um diese Funktionen zu nutzen.", "Bu özellikleri kullanmak için önce “Hesap ve bulut yedekleme” bölümünden giriş yap.", "Сначала войдите в разделе «Аккаунт и облачная копия», чтобы использовать эти функции.", "请先在“账号与云备份”中登录，再使用这些功能。"),
+        "Créer cette alliance dans le cloud" to listOf("Créer cette alliance dans le cloud", "Create this alliance in the cloud", "Diese Allianz in der Cloud erstellen", "Bu ittifakı bulutta oluştur", "Создать этот альянс в облаке", "在云端创建此联盟"),
+        "Actualiser la liste des R4" to listOf("Actualiser la liste des R4", "Refresh R4 list", "R4-Liste aktualisieren", "R4 listesini yenile", "Обновить список R4", "刷新 R4 列表"),
+        "Aucun membre R4 disponible dans la liste cloud." to listOf("Aucun membre R4 disponible dans la liste cloud.", "No R4 members are available in the cloud list.", "In der Cloud-Liste sind keine R4-Mitglieder verfügbar.", "Bulut listesinde R4 üyesi bulunmuyor.", "В облачном списке нет участников R4.", "云端列表中没有可用的 R4 成员。"),
+        "Générer un code d'invitation (105 membres max.)" to listOf("Générer un code d'invitation (105 membres max.)", "Generate invitation code (max. 105 members)", "Einladungscode erstellen (max. 105 Mitglieder)", "Davet kodu oluştur (en fazla 105 üye)", "Создать код приглашения (макс. 105 участников)", "生成邀请码（最多 105 名成员）"),
+        "Code reçu pour rejoindre une alliance" to listOf("Code reçu pour rejoindre une alliance", "Invitation code to join an alliance", "Erhaltener Code zum Beitritt zu einer Allianz", "İttifaka katılmak için alınan kod", "Полученный код для вступления в альянс", "加入联盟的邀请码"),
+        "Rejoindre avec ce code" to listOf("Rejoindre avec ce code", "Join with this code", "Mit diesem Code beitreten", "Bu kodla katıl", "Вступить по этому коду", "使用此代码加入"),
+        "Confirmer le transfert" to listOf("Confirmer le transfert", "Confirm transfer", "Übertragung bestätigen", "Devri onayla", "Подтвердить передачу", "确认转让"),
+        "Partage une idée, signale un bug ou propose une amélioration. Tu pourras suivre la réponse du développeur ici." to listOf("Partage une idée, signale un bug ou propose une amélioration. Tu pourras suivre la réponse du développeur ici.", "Share an idea, report a bug or suggest an improvement. You can follow the developer's response here.", "Teile eine Idee, melde einen Fehler oder schlage eine Verbesserung vor. Hier kannst du die Antwort des Entwicklers verfolgen.", "Fikrini paylaş, hata bildir veya iyileştirme öner. Geliştiricinin yanıtını buradan takip edebilirsin.", "Поделитесь идеей, сообщите об ошибке или предложите улучшение. Здесь можно отслеживать ответ разработчика.", "分享想法、报告错误或提出改进建议。你可以在这里查看开发者的回复。"),
+        "Connecte-toi à ton compte pour envoyer une proposition." to listOf("Connecte-toi à ton compte pour envoyer une proposition.", "Sign in to your account to send a suggestion.", "Melde dich an, um einen Vorschlag zu senden.", "Öneri göndermek için hesabına giriş yap.", "Войдите в аккаунт, чтобы отправить предложение.", "登录账号以发送建议。"),
+        "Toutes les propositions · Développeur" to listOf("Toutes les propositions · Développeur", "All suggestions · Developer", "Alle Vorschläge · Entwickler", "Tüm öneriler · Geliştirici", "Все предложения · Разработчик", "所有建议 · 开发者"),
+        "Mes propositions" to listOf("Mes propositions", "My suggestions", "Meine Vorschläge", "Önerilerim", "Мои предложения", "我的建议"),
+        "Aucune proposition pour le moment." to listOf("Aucune proposition pour le moment.", "No suggestions yet.", "Noch keine Vorschläge vorhanden.", "Henüz öneri yok.", "Пока нет предложений.", "目前还没有建议。"),
+        "Répondre à la proposition" to listOf("Répondre à la proposition", "Reply to suggestion", "Auf Vorschlag antworten", "Öneriyi yanıtla", "Ответить на предложение", "回复建议"),
+        "Ta réponse au joueur" to listOf("Ta réponse au joueur", "Your reply to the player", "Deine Antwort an den Spieler", "Oyuncuya yanıtın", "Ваш ответ игроку", "给玩家的回复"),
+        "Envoyer la réponse" to listOf("Envoyer la réponse", "Send reply", "Antwort senden", "Yanıtı gönder", "Отправить ответ", "发送回复"),
+        "Enregistrement…" to listOf("Enregistrement…", "Saving…", "Speichern…", "Kaydediliyor…", "Сохранение…", "正在保存…"),
+        "Package (com.justgame.jails)" to listOf("Package (com.justgame.jails)", "Package (com.justgame.jails)", "Paket (com.justgame.jails)", "Paket (com.justgame.jails)", "Пакет (com.justgame.jails)", "应用包名 (com.justgame.jails)"),
     )
     var translated = dictionary[source]?.get(index) ?: source
     val fragments = when (language) {
@@ -2253,7 +2299,7 @@ private fun DashboardScreen(
                         OutlinedTextField(
                             value = packageFilter,
                             onValueChange = onPackageFilterChange,
-                            label = { Text(localizedAppText("Package (com.justgame.jails)")) },
+                            label = { Text(localizedAppText(localizedAppText("Package (com.justgame.jails)"))) },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -2899,7 +2945,7 @@ private fun HeroEditDialog(
                 OutlinedTextField(
                     skills,
                     { skills = it },
-                    label = { Text(localizedAppText("Compétences : type | nom | niveau | description (war / arrest / equipment / inconnu)")) },
+                    label = { Text(localizedAppText(localizedAppText("Compétences : type | nom | niveau | description (war / arrest / equipment / inconnu)"))) },
                     minLines = 3,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -3112,7 +3158,7 @@ private fun ResourcesScreen(
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(resourceUiText(currentLang, "robot_inventory"), fontWeight = FontWeight.Bold)
-                            Text(localizedAppText("Ces données sont indépendantes des autres profils. Renseigne les bonus tels qu’ils apparaissent en jeu ; aucune statistique n’est devinée."), style = MaterialTheme.typography.bodySmall)
+                            Text(localizedAppText(localizedAppText("Ces données sont indépendantes des autres profils. Renseigne les bonus tels qu’ils apparaissent en jeu ; aucune statistique n’est devinée.")), style = MaterialTheme.typography.bodySmall)
                             OutlinedTextField(robotName, { robotName = it }, label = { Text(resourceUiText(currentLang, "robot_name")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 OutlinedTextField(robotLevel, { robotLevel = it }, label = { Text(resourceUiText(currentLang, "level")) }, modifier = Modifier.weight(1f), singleLine = true)
@@ -3885,7 +3931,7 @@ private fun HistoryScreen(
         AlertDialog(
             onDismissRequest = { showClearConfirmation = false },
             title = { Text(localizedAppText("Effacer l’historique ?")) },
-            text = { Text(localizedAppText("Toutes les analyses enregistrées dans l’historique seront supprimées. Cette action est irréversible.")) },
+            text = { Text(localizedAppText(localizedAppText("Toutes les analyses enregistrées dans l’historique seront supprimées. Cette action est irréversible."))) },
             confirmButton = {
                 TextButton(onClick = {
                     onClearHistory()
@@ -3900,7 +3946,7 @@ private fun HistoryScreen(
 
     if (analyses.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(localizedAppText("Historique vide. Appuyez sur « Analyser l’écran » pour enregistrer votre première capture."))
+            Text(localizedAppText(localizedAppText("Historique vide. Appuyez sur « Analyser l’écran » pour enregistrer votre première capture.")))
         }
         return
     }
@@ -4063,11 +4109,11 @@ private fun SupabaseAccountCard() {
                 if (createAccount) {
                     HorizontalDivider(color = Color(0xFF334155))
                     Text(localizedAppText("Profil joueur et alliance"), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                    Text(localizedAppText("Ces informations sont enregistrées pendant la création du compte. Tu n'auras pas à refaire une inscription dans l'espace Alliance."), style = MaterialTheme.typography.bodySmall, color = Color(0xFFB8C3D1))
+                    Text(localizedAppText(localizedAppText("Ces informations sont enregistrées pendant la création du compte. Tu n'auras pas à refaire une inscription dans l'espace Alliance.")), style = MaterialTheme.typography.bodySmall, color = Color(0xFFB8C3D1))
                     OutlinedTextField(
                         value = signupPlayerName,
                         onValueChange = { signupPlayerName = it.take(40) },
-                        label = { Text(localizedAppText("Pseudo dans Land of Jail")) },
+                        label = { Text(localizedAppText(localizedAppText("Pseudo dans Land of Jail"))) },
                         singleLine = true,
                         enabled = !busy,
                         modifier = Modifier.fillMaxWidth()
@@ -4083,7 +4129,7 @@ private fun SupabaseAccountCard() {
                     OutlinedTextField(
                         value = signupAllianceTag,
                         onValueChange = { signupAllianceTag = it.take(12) },
-                        label = { Text(localizedAppText("Tag de l'alliance")) },
+                        label = { Text(localizedAppText(localizedAppText("Tag de l'alliance"))) },
                         singleLine = true,
                         enabled = !busy,
                         modifier = Modifier.fillMaxWidth()
@@ -4099,11 +4145,11 @@ private fun SupabaseAccountCard() {
                             )
                         }
                     }
-                    Text(localizedAppText("Choisis R5 uniquement si tu crées un nouvel espace d'alliance. Pour rejoindre une alliance existante, indique ton rang actuel : ta demande sera transmise aux responsables."), style = MaterialTheme.typography.bodySmall, color = Color(0xFFFBBF24))
+                    Text(localizedAppText(localizedAppText("Choisis R5 uniquement si tu crées un nouvel espace d'alliance. Pour rejoindre une alliance existante, indique ton rang actuel : ta demande sera transmise aux responsables.")), style = MaterialTheme.typography.bodySmall, color = Color(0xFFFBBF24))
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     TextButton(onClick = { createAccount = !createAccount; message = null }, enabled = !busy) {
-                        Text(if (createAccount) localizedAppText("J'ai déjà un compte") else localizedAppText("Créer un compte"))
+                        Text(if (createAccount) localizedAppText(localizedAppText("J'ai déjà un compte")) else localizedAppText(localizedAppText("Créer un compte")))
                     }
                     Spacer(Modifier.weight(1f))
                     Button(
@@ -4369,7 +4415,7 @@ private fun AllianceScreen(
                         if (joinRequestsBusy) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
                         else Icon(Icons.Outlined.NotificationsActive, contentDescription = null)
                         Spacer(Modifier.width(7.dp))
-                        Text(if (joinRequestsBusy) localizedAppText("Actualisation…") else localizedAppText(localizedAppText("Voir les nouvelles demandes")))
+                        Text(if (joinRequestsBusy) localizedAppText(localizedAppText("Actualisation…")) else localizedAppText(localizedAppText("Voir les nouvelles demandes")))
                     }
                     joinRequestsMessage?.let {
                         Text(it, color = if (joinRequestsError) Color(0xFFFCA5A5) else Color(0xFF86EFAC), style = MaterialTheme.typography.bodySmall)
@@ -4617,7 +4663,7 @@ private fun AllianceScreen(
                                 }
                             }
                             if (member.rank == AllianceRank.R5) {
-                                Text(localizedAppText("Le R5 se remplace en nommant un R4."), style = MaterialTheme.typography.bodySmall)
+                                Text(localizedAppText(localizedAppText("Le R5 se remplace en nommant un R4.")), style = MaterialTheme.typography.bodySmall)
                             }
                         }
                     }
@@ -4625,7 +4671,7 @@ private fun AllianceScreen(
                         TextButton(onClick = {
                             onSaveWorkspace(workspace.copy(members = workspace.members.filterNot { it.id == member.id }))
                             simulation = emptyList()
-                        }) { Text(localizedAppText("Retirer du roster")) }
+                        }) { Text(localizedAppText(localizedAppText("Retirer du roster"))) }
                     }
                 }
             }
@@ -4743,7 +4789,7 @@ private fun AllianceScreen(
                     ) {
                         Icon(Icons.Outlined.AutoAwesome, contentDescription = null)
                         Spacer(Modifier.width(6.dp))
-                        Text(localizedAppText("Lancer la simulation (R4 / R5)"))
+                        Text(localizedAppText(localizedAppText("Lancer la simulation (R4 / R5)")))
                     }
                     simulation.forEach { line ->
                         Text(line, style = MaterialTheme.typography.bodySmall, color = if (line.startsWith("À confirmer")) Color(0xFFFBBF24) else MaterialTheme.colorScheme.onSurface)
@@ -4928,14 +4974,14 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
             modifier = Modifier.padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(9.dp)
         ) {
-            Text(localizedAppText("Alliance partagée en ligne"), fontWeight = FontWeight.Bold)
+            Text(localizedAppText(localizedAppText("Alliance partagée en ligne")), fontWeight = FontWeight.Bold)
             Text(
                 "Crée l'espace cloud de ton alliance ou rejoins celui d'un autre joueur avec un code d'invitation. Le rang R5 du créateur est attribué côté serveur.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             if (!signedIn) {
-                Text(localizedAppText("Connecte-toi d'abord dans « Compte & sauvegarde cloud » pour utiliser ces fonctions."),
+                Text(localizedAppText(localizedAppText("Connecte-toi d'abord dans « Compte & sauvegarde cloud » pour utiliser ces fonctions.")),
                     color = Color(0xFFFBBF24), style = MaterialTheme.typography.bodySmall)
             } else {
                 if (allianceId.isBlank()) {
@@ -4967,7 +5013,7 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
                         },
                         enabled = !busy && server.isNotBlank() && allianceName.isNotBlank(),
                         modifier = Modifier.fillMaxWidth()
-                    ) { Text(if (busy) localizedAppText("Création…") else localizedAppText("Créer cette alliance dans le cloud")) }
+                    ) { Text(if (busy) localizedAppText("Création…") else localizedAppText(localizedAppText("Créer cette alliance dans le cloud"))) }
                 } else {
                     Text(localizedAppText("Alliance cloud liée : $allianceId"), style = MaterialTheme.typography.bodySmall)
                     if (myCloudRank.isNotBlank()) {
@@ -5009,9 +5055,9 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
                             },
                             enabled = !transferBusy,
                             modifier = Modifier.fillMaxWidth()
-                        ) { Text(localizedAppText("Actualiser la liste des R4")) }
+                        ) { Text(localizedAppText(localizedAppText("Actualiser la liste des R4"))) }
                         if (r4Members.isEmpty()) {
-                            Text(localizedAppText("Aucun membre R4 disponible dans la liste cloud."), style = MaterialTheme.typography.bodySmall)
+                            Text(localizedAppText(localizedAppText("Aucun membre R4 disponible dans la liste cloud.")), style = MaterialTheme.typography.bodySmall)
                         } else {
                             r4Members.forEach { member ->
                                 OutlinedButton(
@@ -5047,7 +5093,7 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
                         },
                         enabled = !busy,
                         modifier = Modifier.fillMaxWidth()
-                    ) { Text(if (busy) localizedAppText("Génération…") else localizedAppText("Générer un code d'invitation (105 membres max.)")) }
+                    ) { Text(if (busy) localizedAppText("Génération…") else localizedAppText(localizedAppText("Générer un code d'invitation (105 membres max.)"))) }
                 }
                 if (inviteCode.isNotBlank()) {
                     OutlinedTextField(
@@ -5061,7 +5107,7 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
                 OutlinedTextField(
                     value = inviteInput,
                     onValueChange = { inviteInput = it.trim().take(256) },
-                    label = { Text(localizedAppText("Code reçu pour rejoindre une alliance")) },
+                    label = { Text(localizedAppText(localizedAppText("Code reçu pour rejoindre une alliance"))) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -5087,7 +5133,7 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
                     },
                     enabled = !busy && inviteInput.isNotBlank(),
                     modifier = Modifier.fillMaxWidth()
-                ) { Text(if (busy) localizedAppText("Vérification…") else localizedAppText("Rejoindre avec ce code")) }
+                ) { Text(if (busy) localizedAppText("Vérification…") else localizedAppText(localizedAppText("Rejoindre avec ce code"))) }
             }
             message?.let {
                 Text(it, color = if (isError) Color(0xFFFCA5A5) else Color(0xFF86EFAC),
@@ -5125,7 +5171,7 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
                         }
                     },
                     enabled = !transferBusy
-                ) { Text(if (transferBusy) localizedAppText("Transfert…") else localizedAppText("Confirmer le transfert")) }
+                ) { Text(if (transferBusy) localizedAppText("Transfert…") else localizedAppText(localizedAppText("Confirmer le transfert"))) }
             },
             dismissButton = {
                 TextButton(onClick = { selectedR4 = null }, enabled = !transferBusy) { Text(localizedAppText("Annuler")) }
@@ -5223,7 +5269,7 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
                         color = Color(0xFFB8C3D1)
                     )
                     if (session == null) {
-                        Text(localizedAppText("Connecte-toi à ton compte pour envoyer une proposition."), color = Color(0xFFFBBF24))
+                        Text(localizedAppText(localizedAppText("Connecte-toi à ton compte pour envoyer une proposition.")), color = Color(0xFFFBBF24))
                     } else {
                         OutlinedTextField(
                             value = title, onValueChange = { title = it.take(120) },
@@ -5285,7 +5331,7 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
 
         item {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(if (isDeveloper) localizedAppText("Toutes les propositions · Développeur") else localizedAppText("Mes propositions"), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                Text(if (isDeveloper) localizedAppText(localizedAppText("Toutes les propositions · Développeur")) else localizedAppText(localizedAppText("Mes propositions")), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                 TextButton(onClick = { refresh() }, enabled = !loading) {
                     if (loading) CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp) else Text(localizedAppText("Actualiser"))
                 }
@@ -5293,7 +5339,7 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
         }
 
         if (session != null && requests.isEmpty() && !loading) {
-            item { Text(localizedAppText("Aucune proposition pour le moment."), color = MaterialTheme.colorScheme.onSurfaceVariant) }
+            item { Text(localizedAppText(localizedAppText("Aucune proposition pour le moment.")), color = MaterialTheme.colorScheme.onSurfaceVariant) }
         }
 
         items(requests, key = { it.id }) { item ->
@@ -5338,7 +5384,7 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
         var status by remember(item.id) { mutableStateOf(item.status.takeIf { it != "pending" } ?: "accepted") }
         AlertDialog(
             onDismissRequest = { if (!reviewBusy) selected = null },
-            title = { Text(localizedAppText("Répondre à la proposition")) },
+            title = { Text(localizedAppText(localizedAppText("Répondre à la proposition"))) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(item.title, fontWeight = FontWeight.Bold)
@@ -5356,7 +5402,7 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
                     }
                     OutlinedTextField(
                         value = reply, onValueChange = { reply = it.take(3000) },
-                        label = { Text(localizedAppText("Ta réponse au joueur")) },
+                        label = { Text(localizedAppText(localizedAppText("Ta réponse au joueur"))) },
                         minLines = 3, modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -5381,7 +5427,7 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
                         }
                     },
                     enabled = !reviewBusy
-                ) { Text(if (reviewBusy) localizedAppText("Enregistrement…") else localizedAppText("Envoyer la réponse")) }
+                ) { Text(if (reviewBusy) localizedAppText(localizedAppText("Enregistrement…")) else localizedAppText(localizedAppText("Envoyer la réponse"))) }
             },
             dismissButton = {
                 TextButton(onClick = { selected = null }, enabled = !reviewBusy) { Text(localizedAppText("Annuler")) }
