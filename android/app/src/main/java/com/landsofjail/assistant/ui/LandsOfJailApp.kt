@@ -81,6 +81,60 @@ private fun localizedUiText(
 
 
 
+
+private fun localizedCaptureCategory(language: AppLanguage, raw: String): String = when (raw.lowercase()) {
+    "heros", "heroes" -> localizedUiText(language, "Héros", "Heroes", "Helden", "Kahramanlar", "Герои", "英雄")
+    "robots" -> localizedUiText(language, "Robots", "Robots", "Roboter", "Robotlar", "Роботы", "机器人")
+    "ressources", "resources" -> localizedUiText(language, "Ressources", "Resources", "Ressourcen", "Kaynaklar", "Ресурсы", "资源")
+    "batiments", "buildings" -> localizedUiText(language, "Bâtiments", "Buildings", "Gebäude", "Binalar", "Здания", "建筑")
+    "troupes", "troops" -> localizedUiText(language, "Troupes", "Troops", "Truppen", "Birlikler", "Войска", "部队")
+    "profil", "profile" -> localizedUiText(language, "Profil", "Profile", "Profil", "Profil", "Профиль", "个人资料")
+    "trial_cage" -> "Trial Cage"
+    "crystal_clash" -> "Crystal Clash"
+    "sandsea_conquest" -> localizedUiText(language, "Conquête de sable", "Sandsea Conquest", "Sandmeer-Eroberung", "Kum Denizi Fethi", "Покорение песчаного моря", "沙海征服")
+    "svs" -> "SvS"
+    "turmoil_surge" -> "Turmoil Surge"
+    "gold_hunter" -> "Gold Hunter"
+    else -> localizedUiText(language, "Autre capture", "Other capture", "Andere Aufnahme", "Diğer yakalama", "Другая запись", "其他截图")
+}
+
+private fun localizedResourceName(language: AppLanguage, raw: String): String {
+    val key = raw.lowercase()
+    return when {
+        key.contains("nourriture") || key.contains("food") -> localizedUiText(language, "Nourriture", "Food", "Nahrung", "Yiyecek", "Еда", "食物")
+        key.contains("bois") || key.contains("wood") -> localizedUiText(language, "Bois", "Wood", "Holz", "Odun", "Дерево", "木材")
+        key.contains("acier") || key.contains("steel") -> localizedUiText(language, "Acier", "Steel", "Stahl", "Çelik", "Сталь", "钢材")
+        key.contains("essence") || key.contains("gasoline") -> localizedUiText(language, "Essence", "Gasoline", "Benzin", "Benzin", "Бензин", "汽油")
+        key.contains("diamant") || key.contains("gem") -> localizedUiText(language, "Diamants", "Gems", "Diamanten", "Elmas", "Алмазы", "钻石")
+        key.contains("cash") || key.contains("or") || key.contains("gold") -> localizedUiText(language, "Or", "Gold", "Gold", "Altın", "Золото", "金币")
+        else -> raw
+    }
+}
+
+private fun localizedCaptureSummary(item: ScreenshotAnalysis, language: AppLanguage): String {
+    val parts = buildList {
+        item.puissance?.puissanceTotaleTexte?.takeIf { it.isNotBlank() }?.let {
+            add(localizedUiText(language, "Puissance : $it", "Power: $it", "Macht: $it", "Güç: $it", "Мощь: $it", "战力：$it"))
+        }
+        if (item.ressources.isNotEmpty()) {
+            val values = item.ressources.joinToString(" · ") {
+                "${localizedResourceName(language, it.nom)}: ${it.quantiteTexte}"
+            }
+            add(localizedUiText(language, "Ressources : $values", "Resources: $values", "Ressourcen: $values", "Kaynaklar: $values", "Ресурсы: $values", "资源：$values"))
+        }
+        if (item.heros.isNotEmpty()) {
+            val names = item.heros.take(4).joinToString(", ") { it.nom }
+            add(localizedUiText(language, "Héros : $names", "Heroes: $names", "Helden: $names", "Kahramanlar: $names", "Герои: $names", "英雄：$names"))
+        }
+        if (item.robots.isNotEmpty()) {
+            val names = item.robots.take(3).joinToString(", ") { it.nom }
+            add(localizedUiText(language, "Robots : $names", "Robots: $names", "Roboter: $names", "Robotlar: $names", "Роботы: $names", "机器人：$names"))
+        }
+    }
+    return parts.takeIf { it.isNotEmpty() }?.joinToString(" · ")
+        ?: localizedUiText(language, "Aucune valeur lue avec certitude ; vérification de la capture nécessaire.", "No values read with confidence; screenshot review is needed.", "Keine Werte sicher gelesen; Screenshot muss geprüft werden.", "Hiçbir değer güvenle okunamadı; ekran görüntüsü kontrol edilmeli.", "Не удалось уверенно прочитать значения; снимок нужно проверить.", "未能可靠读取数值；需要检查截图。")
+}
+
 private val LocalAssistantLanguage = staticCompositionLocalOf { AppLanguage.FR }
 
 /** Central UI fallback for screens whose labels were previously hard-coded in French. */
@@ -4137,13 +4191,13 @@ private fun HistoryScreen(
                         )
                     }
                     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Text(item.typeCapture, fontWeight = FontWeight.SemiBold)
+                        Text(localizedCaptureCategory(currentLang, item.typeCapture), fontWeight = FontWeight.SemiBold)
                         Text(
                             item.analyzedAtIso.take(19).replace('T', ' '),
                             style = MaterialTheme.typography.labelSmall,
                             color = Color(0xFF94A3B8)
                         )
-                        Text(item.resumeCapture, style = MaterialTheme.typography.bodySmall)
+                        Text(localizedCaptureSummary(item, currentLang), style = MaterialTheme.typography.bodySmall)
                         if (item.champsIncertains.isNotEmpty()) {
                             Text(
                                 localizedAppText("${item.champsIncertains.size} champ(s) incertain(s)"),
