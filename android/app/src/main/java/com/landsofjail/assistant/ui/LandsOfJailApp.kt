@@ -158,11 +158,151 @@ private fun localizedAppText(source: String): String {
     var translated = dictionary[source]?.get(index) ?: source
     val fragments = when (language) {
         AppLanguage.FR -> emptyMap()
-        AppLanguage.EN -> mapOf("Héros suivis :" to "Heroes tracked:", "Ressources :" to "Resources:", "Puissance :" to "Power:", "Compétences :" to "Skills:", "Robot :" to "Robot:", "Rang demandé :" to "Requested rank:", "À compléter" to "to complete", "profil(s) suffisamment renseigné(s)" to "profile(s) sufficiently completed", "à compléter" to "to complete", "Puissance (facultatif)" to "Power (optional)", "Rareté / étoiles" to "Rarity / stars")
-        AppLanguage.DE -> mapOf("Héros suivis :" to "Verfolgte Helden:", "Ressources :" to "Ressourcen:", "Puissance :" to "Macht:", "Compétences :" to "Fähigkeiten:", "Robot :" to "Roboter:", "Rang demandé :" to "Angeforderter Rang:", "À compléter" to "noch zu vervollständigen", "profil(s) suffisamment renseigné(s)" to "ausreichend ausgefüllte(s) Profil(e)", "à compléter" to "zu vervollständigen", "Puissance (facultatif)" to "Macht (optional)", "Rareté / étoiles" to "Seltenheit / Sterne")
-        AppLanguage.TR -> mapOf("Héros suivis :" to "Takip edilen kahramanlar:", "Ressources :" to "Kaynaklar:", "Puissance :" to "Güç:", "Compétences :" to "Beceriler:", "Robot :" to "Robot:", "Rang demandé :" to "İstenen rütbe:", "À compléter" to "tamamlanacak", "profil(s) suffisamment renseigné(s)" to "yeterince tamamlanmış profil", "à compléter" to "tamamlanacak", "Puissance (facultatif)" to "Güç (isteğe bağlı)", "Rareté / étoiles" to "Nadirlik / yıldız")
-        AppLanguage.RU -> mapOf("Héros suivis :" to "Герои:", "Ressources :" to "Ресурсы:", "Puissance :" to "Мощь:", "Compétences :" to "Навыки:", "Robot :" to "Робот:", "Rang demandé :" to "Запрошенный ранг:", "À compléter" to "нужно заполнить", "profil(s) suffisamment renseigné(s)" to "достаточно заполненных профилей", "à compléter" to "нужно заполнить", "Puissance (facultatif)" to "Мощь (необязательно)", "Rareté / étoiles" to "Редкость / звёзды")
-        AppLanguage.ZH -> mapOf("Héros suivis :" to "已跟踪英雄：", "Ressources :" to "资源：", "Puissance :" to "战力：", "Compétences :" to "技能：", "Robot :" to "机器人：", "Rang demandé :" to "申请职位：", "À compléter" to "待完善", "profil(s) suffisamment renseigné(s)" to "已完善的资料", "à compléter" to "待完善", "Puissance (facultatif)" to "战力（可选）", "Rareté / étoiles" to "稀有度 / 星级")
+        AppLanguage.EN -> mapOf(
+            "Héros suivis :" to "Heroes tracked:", "Ressources :" to "Resources:", "Puissance :" to "Power:",
+            "Compétences :" to "Skills:", "Robot :" to "Robot:", "Rang demandé :" to "Requested rank:",
+            "À compléter" to "to complete", "profil(s) suffisamment renseigné(s)" to "profile(s) sufficiently completed",
+            "à compléter" to "to complete", "Puissance (facultatif)" to "Power (optional)", "Rareté / étoiles" to "Rarity / stars",
+            "Bonus :" to "Bonuses:", "Éclats de héros" to "Hero shards", "Départ :" to "From:",
+            "Cible :" to "Target:", "Requis :" to "Required:", "Manquants :" to "Missing:",
+            "Tomes de troupes" to "Troop tomes", "De :" to "From:", "À :" to "To:",
+            "Seal of Wisdom :" to "Seal of Wisdom:", "Seal of Knowledge :" to "Seal of Knowledge:",
+            "Synthèse (" to "Summary (", "Composition :" to "Composition:", "Ratios de troupes" to "Troop ratios",
+            "À vérifier :" to "To verify:", "Session enregistrée :" to "Session saved:",
+            "Rareté lue sur capture :" to "Rarity read from screenshot:", "Spécialité observée :" to "Observed specialty:",
+            "Source :" to "Source:", "War / équipement observé :" to "Observed war / equipment:",
+            "Alliance cloud liée :" to "Linked cloud alliance:", "Ton rang confirmé dans le cloud :" to "Your confirmed cloud rank:",
+            "Compte joueur :" to "Player account:", "Pré-analyse IA :" to "AI pre-analysis:",
+            "Héros / compétences :" to "Heroes / skills:", "non renseignée" to "not provided",
+            "Catégorie" to "Category", " joueur(s)" to " player(s)", "Description non disponible" to "Description unavailable",
+            "Confirmer que " to "Confirm that ", " devient R5 ? Ton propre rang passera automatiquement à R4." to " becomes R5? Your own rank will automatically change to R4.",
+            "Code créé. Transmets-le uniquement aux membres de ton alliance." to "Code created. Share it only with your alliance members.",
+            "Création du code impossible." to "Could not create the code.", "Invitation acceptée. Ton compte a rejoint l'alliance." to "Invitation accepted. Your account has joined the alliance.",
+            "Invitation refusée." to "Invitation declined.", "Vérification…" to "Checking…", "Rejoindre avec ce code" to "Join with this code",
+            "Partage une idée, signale un bug ou propose une amélioration. Tu pourras suivre la réponse du développeur ici." to "Share an idea, report a bug or suggest an improvement. You can follow the developer's response here.",
+            "Toutes les propositions · Développeur" to "All suggestions · Developer", "Mes propositions" to "My suggestions",
+            "Aucune proposition pour le moment." to "No suggestions yet.", "Chargement des propositions impossible." to "Could not load suggestions.",
+            "Proposition envoyée. Tu recevras la réponse dans cette rubrique." to "Suggestion sent. You will receive the response in this section.",
+            "Envoi impossible." to "Could not send.", "Répondre à la proposition" to "Reply to suggestion",
+            "Ta réponse au joueur" to "Your reply to the player", "Réponse enregistrée et visible par le joueur." to "Reply saved and visible to the player.",
+            "Enregistrement impossible." to "Could not save.", "Enregistrement…" to "Saving…", "Envoyer la réponse" to "Send reply"
+        )
+        AppLanguage.DE -> mapOf(
+            "Héros suivis :" to "Verfolgte Helden:", "Ressources :" to "Ressourcen:", "Puissance :" to "Macht:",
+            "Compétences :" to "Fähigkeiten:", "Robot :" to "Roboter:", "Rang demandé :" to "Angeforderter Rang:",
+            "À compléter" to "noch zu vervollständigen", "profil(s) suffisamment renseigné(s)" to "ausreichend ausgefüllte(s) Profil(e)",
+            "à compléter" to "zu vervollständigen", "Puissance (facultatif)" to "Macht (optional)", "Rareté / étoiles" to "Seltenheit / Sterne",
+            "Bonus :" to "Boni:", "Éclats de héros" to "Heldensplitter", "Départ :" to "Von:",
+            "Cible :" to "Ziel:", "Requis :" to "Benötigt:", "Manquants :" to "Fehlend:",
+            "Tomes de troupes" to "Truppenbände", "De :" to "Von:", "À :" to "Bis:",
+            "Seal of Wisdom :" to "Seal of Wisdom:", "Seal of Knowledge :" to "Seal of Knowledge:",
+            "Synthèse (" to "Zusammenfassung (", "Composition :" to "Zusammensetzung:", "Ratios de troupes" to "Truppenverhältnisse",
+            "À vérifier :" to "Zu prüfen:", "Session enregistrée :" to "Sitzung gespeichert:",
+            "Rareté lue sur capture :" to "Seltenheit aus Screenshot:", "Spécialité observée :" to "Beobachteter Schwerpunkt:",
+            "Source :" to "Quelle:", "War / équipement observé :" to "Beobachteter Krieg / Ausrüstung:",
+            "Alliance cloud liée :" to "Verknüpfte Cloud-Allianz:", "Ton rang confirmé dans le cloud :" to "Dein bestätigter Cloud-Rang:",
+            "Compte joueur :" to "Spielerkonto:", "Pré-analyse IA :" to "KI-Voranalyse:",
+            "Héros / compétences :" to "Helden / Fähigkeiten:", "non renseignée" to "nicht angegeben",
+            "Catégorie" to "Kategorie", " joueur(s)" to " Spieler", "Description non disponible" to "Beschreibung nicht verfügbar",
+            "Confirmer que " to "Bestätigen, dass ", " devient R5 ? Ton propre rang passera automatiquement à R4." to " R5 wird? Dein eigener Rang wechselt automatisch zu R4.",
+            "Code créé. Transmets-le uniquement aux membres de ton alliance." to "Code erstellt. Teile ihn nur mit Mitgliedern deiner Allianz.",
+            "Création du code impossible." to "Code konnte nicht erstellt werden.", "Invitation acceptée. Ton compte a rejoint l'alliance." to "Einladung angenommen. Dein Konto ist der Allianz beigetreten.",
+            "Invitation refusée." to "Einladung abgelehnt.", "Vérification…" to "Wird überprüft…", "Rejoindre avec ce code" to "Mit diesem Code beitreten",
+            "Partage une idée, signale un bug ou propose une amélioration. Tu pourras suivre la réponse du développeur ici." to "Teile eine Idee, melde einen Fehler oder schlage eine Verbesserung vor. Die Antwort des Entwicklers kannst du hier verfolgen.",
+            "Toutes les propositions · Développeur" to "Alle Vorschläge · Entwickler", "Mes propositions" to "Meine Vorschläge",
+            "Aucune proposition pour le moment." to "Noch keine Vorschläge.", "Chargement des propositions impossible." to "Vorschläge konnten nicht geladen werden.",
+            "Proposition envoyée. Tu recevras la réponse dans cette rubrique." to "Vorschlag gesendet. Du erhältst die Antwort in diesem Bereich.",
+            "Envoi impossible." to "Senden fehlgeschlagen.", "Répondre à la proposition" to "Auf Vorschlag antworten",
+            "Ta réponse au joueur" to "Deine Antwort an den Spieler", "Réponse enregistrée et visible par le joueur." to "Antwort gespeichert und für den Spieler sichtbar.",
+            "Enregistrement impossible." to "Speichern fehlgeschlagen.", "Enregistrement…" to "Wird gespeichert…", "Envoyer la réponse" to "Antwort senden"
+        )
+        AppLanguage.TR -> mapOf(
+            "Héros suivis :" to "Takip edilen kahramanlar:", "Ressources :" to "Kaynaklar:", "Puissance :" to "Güç:",
+            "Compétences :" to "Beceriler:", "Robot :" to "Robot:", "Rang demandé :" to "İstenen rütbe:",
+            "À compléter" to "tamamlanacak", "profil(s) suffisamment renseigné(s)" to "yeterince tamamlanmış profil",
+            "à compléter" to "tamamlanacak", "Puissance (facultatif)" to "Güç (isteğe bağlı)", "Rareté / étoiles" to "Nadirlik / yıldız",
+            "Bonus :" to "Bonuslar:", "Éclats de héros" to "Kahraman parçaları", "Départ :" to "Başlangıç:",
+            "Cible :" to "Hedef:", "Requis :" to "Gerekli:", "Manquants :" to "Eksik:",
+            "Tomes de troupes" to "Birlik ciltleri", "De :" to "Şuradan:", "À :" to "Şuraya:",
+            "Seal of Wisdom :" to "Bilgelik Mührü:", "Seal of Knowledge :" to "Bilgi Mührü:",
+            "Synthèse (" to "Özet (", "Composition :" to "Dizilim:", "Ratios de troupes" to "Birlik oranları",
+            "À vérifier :" to "Kontrol edilecek:", "Session enregistrée :" to "Oturum kaydedildi:",
+            "Rareté lue sur capture :" to "Ekran görüntüsünden okunan nadirlik:", "Spécialité observée :" to "Gözlemlenen uzmanlık:",
+            "Source :" to "Kaynak:", "War / équipement observé :" to "Gözlemlenen savaş / ekipman:",
+            "Alliance cloud liée :" to "Bağlı bulut ittifakı:", "Ton rang confirmé dans le cloud :" to "Bulutta doğrulanan rütben:",
+            "Compte joueur :" to "Oyuncu hesabı:", "Pré-analyse IA :" to "Yapay zekâ ön analizi:",
+            "Héros / compétences :" to "Kahramanlar / beceriler:", "non renseignée" to "belirtilmemiş",
+            "Catégorie" to "Kategori", " joueur(s)" to " oyuncu", "Description non disponible" to "Açıklama mevcut değil",
+            "Confirmer que " to "Şunu onayla: ", " devient R5 ? Ton propre rang passera automatiquement à R4." to " R5 olacak mı? Kendi rütben otomatik olarak R4'e düşer.",
+            "Code créé. Transmets-le uniquement aux membres de ton alliance." to "Kod oluşturuldu. Yalnızca ittifak üyelerine ilet.",
+            "Création du code impossible." to "Kod oluşturulamadı.", "Invitation acceptée. Ton compte a rejoint l'alliance." to "Davet kabul edildi. Hesabın ittifaka katıldı.",
+            "Invitation refusée." to "Davet reddedildi.", "Vérification…" to "Kontrol ediliyor…", "Rejoindre avec ce code" to "Bu kodla katıl",
+            "Partage une idée, signale un bug ou propose une amélioration. Tu pourras suivre la réponse du développeur ici." to "Fikrini paylaş, hata bildir veya iyileştirme öner. Geliştiricinin yanıtını buradan takip edebilirsin.",
+            "Toutes les propositions · Développeur" to "Tüm öneriler · Geliştirici", "Mes propositions" to "Önerilerim",
+            "Aucune proposition pour le moment." to "Henüz öneri yok.", "Chargement des propositions impossible." to "Öneriler yüklenemedi.",
+            "Proposition envoyée. Tu recevras la réponse dans cette rubrique." to "Öneri gönderildi. Yanıtı bu bölümde alacaksın.",
+            "Envoi impossible." to "Gönderilemedi.", "Répondre à la proposition" to "Öneriyi yanıtla",
+            "Ta réponse au joueur" to "Oyuncuya yanıtın", "Réponse enregistrée et visible par le joueur." to "Yanıt kaydedildi ve oyuncu tarafından görülebilir.",
+            "Enregistrement impossible." to "Kaydedilemedi.", "Enregistrement…" to "Kaydediliyor…", "Envoyer la réponse" to "Yanıtı gönder"
+        )
+        AppLanguage.RU -> mapOf(
+            "Héros suivis :" to "Отслеживаемые герои:", "Ressources :" to "Ресурсы:", "Puissance :" to "Мощь:",
+            "Compétences :" to "Навыки:", "Robot :" to "Робот:", "Rang demandé :" to "Запрошенный ранг:",
+            "À compléter" to "нужно заполнить", "profil(s) suffisamment renseigné(s)" to "достаточно заполненных профилей",
+            "à compléter" to "нужно заполнить", "Puissance (facultatif)" to "Мощь (необязательно)", "Rareté / étoiles" to "Редкость / звёзды",
+            "Bonus :" to "Бонусы:", "Éclats de héros" to "Осколки героев", "Départ :" to "От:",
+            "Cible :" to "Цель:", "Requis :" to "Требуется:", "Manquants :" to "Не хватает:",
+            "Tomes de troupes" to "Тома войск", "De :" to "От:", "À :" to "До:",
+            "Seal of Wisdom :" to "Печать мудрости:", "Seal of Knowledge :" to "Печать знаний:",
+            "Synthèse (" to "Сводка (", "Composition :" to "Состав:", "Ratios de troupes" to "Соотношение войск",
+            "À vérifier :" to "Проверить:", "Session enregistrée :" to "Сеанс сохранён:",
+            "Rareté lue sur capture :" to "Редкость со снимка:", "Spécialité observée :" to "Замеченная специализация:",
+            "Source :" to "Источник:", "War / équipement observé :" to "Замеченная война / экипировка:",
+            "Alliance cloud liée :" to "Связанный облачный альянс:", "Ton rang confirmé dans le cloud :" to "Ваш ранг, подтверждённый в облаке:",
+            "Compte joueur :" to "Аккаунт игрока:", "Pré-analyse IA :" to "Предварительный анализ ИИ:",
+            "Héros / compétences :" to "Герои / навыки:", "non renseignée" to "не указано",
+            "Catégorie" to "Категория", " joueur(s)" to " игрок(ов)", "Description non disponible" to "Описание недоступно",
+            "Confirmer que " to "Подтвердить, что ", " devient R5 ? Ton propre rang passera automatiquement à R4." to " станет R5? Ваш собственный ранг автоматически изменится на R4.",
+            "Code créé. Transmets-le uniquement aux membres de ton alliance." to "Код создан. Передавайте его только участникам своего альянса.",
+            "Création du code impossible." to "Не удалось создать код.", "Invitation acceptée. Ton compte a rejoint l'alliance." to "Приглашение принято. Ваш аккаунт присоединился к альянсу.",
+            "Invitation refusée." to "Приглашение отклонено.", "Vérification…" to "Проверка…", "Rejoindre avec ce code" to "Вступить по этому коду",
+            "Partage une idée, signale un bug ou propose une amélioration. Tu pourras suivre la réponse du développeur ici." to "Поделитесь идеей, сообщите об ошибке или предложите улучшение. Ответ разработчика можно будет увидеть здесь.",
+            "Toutes les propositions · Développeur" to "Все предложения · Разработчик", "Mes propositions" to "Мои предложения",
+            "Aucune proposition pour le moment." to "Пока нет предложений.", "Chargement des propositions impossible." to "Не удалось загрузить предложения.",
+            "Proposition envoyée. Tu recevras la réponse dans cette rubrique." to "Предложение отправлено. Ответ появится в этом разделе.",
+            "Envoi impossible." to "Не удалось отправить.", "Répondre à la proposition" to "Ответить на предложение",
+            "Ta réponse au joueur" to "Ваш ответ игроку", "Réponse enregistrée et visible par le joueur." to "Ответ сохранён и виден игроку.",
+            "Enregistrement impossible." to "Не удалось сохранить.", "Enregistrement…" to "Сохранение…", "Envoyer la réponse" to "Отправить ответ"
+        )
+        AppLanguage.ZH -> mapOf(
+            "Héros suivis :" to "已跟踪英雄：", "Ressources :" to "资源：", "Puissance :" to "战力：",
+            "Compétences :" to "技能：", "Robot :" to "机器人：", "Rang demandé :" to "申请职位：",
+            "À compléter" to "待完善", "profil(s) suffisamment renseigné(s)" to "已完善的资料",
+            "à compléter" to "待完善", "Puissance (facultatif)" to "战力（可选）", "Rareté / étoiles" to "稀有度 / 星级",
+            "Bonus :" to "加成：", "Éclats de héros" to "英雄碎片", "Départ :" to "起始：",
+            "Cible :" to "目标：", "Requis :" to "需要：", "Manquants :" to "缺少：",
+            "Tomes de troupes" to "部队手册", "De :" to "从：", "À :" to "至：",
+            "Seal of Wisdom :" to "智慧印章：", "Seal of Knowledge :" to "知识印章：",
+            "Synthèse (" to "摘要（", "Composition :" to "阵容：", "Ratios de troupes" to "部队比例",
+            "À vérifier :" to "待核实：", "Session enregistrée :" to "会话已保存：",
+            "Rareté lue sur capture :" to "截图识别的稀有度：", "Spécialité observée :" to "观察到的专长：",
+            "Source :" to "来源：", "War / équipement observé :" to "观察到的战争 / 装备：",
+            "Alliance cloud liée :" to "已关联的云端联盟：", "Ton rang confirmé dans le cloud :" to "云端确认的职位：",
+            "Compte joueur :" to "玩家账户：", "Pré-analyse IA :" to "AI 初步分析：",
+            "Héros / compétences :" to "英雄 / 技能：", "non renseignée" to "未填写",
+            "Catégorie" to "类别", " joueur(s)" to " 名玩家", "Description non disponible" to "暂无描述",
+            "Confirmer que " to "确认 ", " devient R5 ? Ton propre rang passera automatiquement à R4." to " 成为 R5？你的职位将自动变为 R4。",
+            "Code créé. Transmets-le uniquement aux membres de ton alliance." to "邀请码已创建。请仅分享给联盟成员。",
+            "Création du code impossible." to "无法创建邀请码。", "Invitation acceptée. Ton compte a rejoint l'alliance." to "邀请已接受，你的账户已加入联盟。",
+            "Invitation refusée." to "邀请已拒绝。", "Vérification…" to "正在验证…", "Rejoindre avec ce code" to "使用此邀请码加入",
+            "Partage une idée, signale un bug ou propose une amélioration. Tu pourras suivre la réponse du développeur ici." to "分享想法、报告错误或提出改进建议。你可以在这里查看开发者的回复。",
+            "Toutes les propositions · Développeur" to "全部建议 · 开发者", "Mes propositions" to "我的建议",
+            "Aucune proposition pour le moment." to "目前没有建议。", "Chargement des propositions impossible." to "无法加载建议。",
+            "Proposition envoyée. Tu recevras la réponse dans cette rubrique." to "建议已发送，你会在此栏目收到回复。",
+            "Envoi impossible." to "发送失败。", "Répondre à la proposition" to "回复建议",
+            "Ta réponse au joueur" to "给玩家的回复", "Réponse enregistrée et visible par le joueur." to "回复已保存，玩家可以查看。",
+            "Enregistrement impossible." to "保存失败。", "Enregistrement…" to "正在保存…", "Envoyer la réponse" to "发送回复"
+        )
     }
     fragments.forEach { (from, to) -> translated = translated.replace(from, to) }
     return translated
@@ -1306,7 +1446,7 @@ fun LandsOfJailAssistantApp(
                             accountPrefs.edit().putString("active_game_profile_v1", id).commit()
                             showProfileDialog = false
                         }
-                    ) { Text("+ " + localizedUiText(currentLang, "Ajouter un profil", "Add a profile", "Profil hinzufügen", "Profil ekle", "Добавить профиль", "添加档案")) }
+                    ) { Text(localizedAppText("+ ") + localizedUiText(currentLang, "Ajouter un profil", "Add a profile", "Profil hinzufügen", "Profil ekle", "Добавить профиль", "添加档案")) }
                     TextButton(
                         enabled = !isProfileSyncing && !isAnalyzing && !isAutoCapturing,
                         onClick = {
@@ -2218,7 +2358,7 @@ private fun DashboardScreen(
                                     onClick = { showAutoIntervalMenu = true },
                                     enabled = isMonitoringRunning && hasUsagePermission && !isAnalyzing && !isProfileSyncing && !isAnalyzing && !isProfileSyncing
                                 ) {
-                                    Text("${autoCaptureIntervalSeconds}s")
+                                    Text(localizedAppText("${autoCaptureIntervalSeconds}s"))
                                 }
                                 DropdownMenu(
                                     expanded = showAutoIntervalMenu,
@@ -2421,7 +2561,7 @@ private fun DashboardScreen(
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
-                    Text("Héros suivis : $heroesCount · Ressources : $resourcesCount")
+                    Text(localizedAppText("Héros suivis : $heroesCount · Ressources : $resourcesCount"))
                 }
             }
         }
@@ -2502,7 +2642,7 @@ private fun HeroesScreen(
                 Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
                     Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text(localizedUiText(language, "Progression de ton profil héros", "Hero profile progress", "Fortschritt deines Heldenprofils", "Kahraman profil ilerlemesi", "Прогресс профиля героев", "英雄档案进度"), fontWeight = FontWeight.SemiBold)
-                        Text("$verifiedHeroes profil(s) suffisamment renseigné(s) · $heroesToComplete à compléter")
+                        Text(localizedAppText("$verifiedHeroes profil(s) suffisamment renseigné(s) · $heroesToComplete à compléter"))
                         LinearProgressIndicator(
                             progress = { if (heroes.isEmpty()) 0f else verifiedHeroes.toFloat() / heroes.size.toFloat() },
                             modifier = Modifier.fillMaxWidth()
@@ -2597,7 +2737,7 @@ private fun HeroesScreen(
                             }
                         }
                         if (!hero.rarete.isNullOrBlank() && !hero.rarete.equals(entry.rarete, true)) {
-                            Text("Rareté lue sur capture : ${hero.rarete}", style = MaterialTheme.typography.bodySmall)
+                            Text(localizedAppText("Rareté lue sur capture : ${hero.rarete}"), style = MaterialTheme.typography.bodySmall)
                         }
                         if (hero.incertain) {
                             Text(
@@ -2644,9 +2784,9 @@ private fun HeroesScreen(
                     if (expandedHeroName == entry.nom) {
                         HorizontalDivider()
                         Text(localizedAppText("Fiche de référence"), fontWeight = FontWeight.SemiBold)
-                        Text("Rareté : ${entry.rarete} · Saison : ${entry.saison} · Classe : ${entry.typeTroupe}")
-                        Text("Source : ${entry.sourceNiveau}")
-                        entry.usageWarObserve?.let { Text("Spécialité observée : $it") }
+                        Text(localizedAppText("Rareté : ${entry.rarete} · Saison : ${entry.saison} · Classe : ${entry.typeTroupe}"))
+                        Text(localizedAppText("Source : ${entry.sourceNiveau}"))
+                        entry.usageWarObserve?.let { Text(localizedAppText("Spécialité observée : $it")) }
                         if (hero == null || hero.competences.isEmpty()) {
                             Text(
                                 "Compétences personnelles non renseignées. Scanne les pages de compétences de ce héros pour obtenir ses effets et niveaux réels.",
@@ -2671,7 +2811,7 @@ private fun HeroesScreen(
                         }
                     }
                     entry.usageWarObserve?.let {
-                        Text("War / équipement observé : $it", style = MaterialTheme.typography.bodySmall)
+                        Text(localizedAppText("War / équipement observé : $it"), style = MaterialTheme.typography.bodySmall)
                     }
                     Text(
                         if (entry.sourceNiveau == "Observé en jeu") "Référence : LOJ XLab · données observées en jeu"
@@ -2936,7 +3076,7 @@ private fun ResourcesScreen(
                     items(resources) { res ->
                         Card(modifier = Modifier.fillMaxWidth()) {
                             Column(Modifier.padding(14.dp)) {
-                                Text("${res.nom} : ${res.quantiteTexte}", fontWeight = FontWeight.Medium)
+                                Text(localizedAppText("${res.nom} : ${res.quantiteTexte}"), fontWeight = FontWeight.Medium)
                                 if (res.incertain) {
                                     Text(
                                         "Incertain : ${res.raisonIncertitude ?: "affichage tronqué"}",
@@ -3020,8 +3160,8 @@ private fun ResourcesScreen(
                                 Text(robot.nom, fontWeight = FontWeight.SemiBold)
                                 val meta = listOf(robot.niveau.takeIf { it.isNotBlank() }?.let { "Niv. $it" }, robot.rarete, robot.puissance.takeIf { it.isNotBlank() }?.let { "Puissance $it" }).filterNotNull()
                                 if (meta.isNotEmpty()) Text(meta.joinToString(" · "), style = MaterialTheme.typography.bodySmall)
-                                if (robot.bonus.isNotBlank()) Text("Bonus : ${robot.bonus}", style = MaterialTheme.typography.bodySmall)
-                                if (robot.competences.isNotBlank()) Text("Compétences : ${robot.competences}", style = MaterialTheme.typography.bodySmall)
+                                if (robot.bonus.isNotBlank()) Text(localizedAppText("Bonus : ${robot.bonus}"), style = MaterialTheme.typography.bodySmall)
+                                if (robot.competences.isNotBlank()) Text(localizedAppText("Compétences : ${robot.competences}"), style = MaterialTheme.typography.bodySmall)
                                 if (robot.incertain) {
                                     Text(
                                         robot.raisonIncertitude?.takeIf { it.isNotBlank() } ?: "Données détectées à vérifier sur l’écran du jeu.",
@@ -3135,11 +3275,11 @@ private fun ResourcesScreen(
                                     enabled = targetBuildingLvl < 30
                                 ) { Text(localizedAppText("+1 Niveau")) }
                             }
-                            Text("${resourceUiText(currentLang, "prerequisites")} : ${req.prereqs}", fontWeight = FontWeight.Medium)
-                            Text("${resourceUiText(currentLang, "food")} : ${formatCompactFr(req.food)}")
-                            Text("${resourceUiText(currentLang, "wood")} : ${formatCompactFr(req.wood)}")
-                            Text("${resourceUiText(currentLang, "steel")} : ${formatCompactFr(req.steel)}")
-                            Text("${resourceUiText(currentLang, "gasoline")} : ${formatCompactFr(req.gasoline)}")
+                            Text(localizedAppText("${resourceUiText(currentLang, ")prerequisites")} : ${req.prereqs}", fontWeight = FontWeight.Medium)
+                            Text(localizedAppText("${resourceUiText(currentLang, ")food")} : ${formatCompactFr(req.food)}")
+                            Text(localizedAppText("${resourceUiText(currentLang, ")wood")} : ${formatCompactFr(req.wood)}")
+                            Text(localizedAppText("${resourceUiText(currentLang, ")steel")} : ${formatCompactFr(req.steel)}")
+                            Text(localizedAppText("${resourceUiText(currentLang, ")gasoline")} : ${formatCompactFr(req.gasoline)}")
                             Text(
                                 if (req.verified) resourceUiText(currentLang, "verified_source")
                                 else resourceUiText(currentLang, "estimated_source"),
@@ -3166,16 +3306,16 @@ private fun ResourcesScreen(
                 item {
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("Éclats de héros ($starFrom★ → $starTo★)", fontWeight = FontWeight.SemiBold)
+                            Text(localizedAppText("Éclats de héros ($starFrom★ → $starTo★)"), fontWeight = FontWeight.SemiBold)
                             Text(localizedAppText("Total 1★→5★ : 1 075 éclats (+10 recrutement). Seuil 4★ recommandé : 475 éclats."))
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 OutlinedButton(onClick = {
                                     starFrom = (starFrom + 1) % 5
                                     if (starTo <= starFrom) starTo = starFrom + 1
-                                }) { Text("Départ : $starFrom★") }
+                                }) { Text(localizedAppText("Départ : $starFrom★")) }
                                 Button(onClick = {
                                     starTo = if (starTo >= 5) starFrom + 1 else starTo + 1
-                                }) { Text("Cible : $starTo★") }
+                                }) { Text(localizedAppText("Cible : $starTo★")) }
                             }
                             OutlinedTextField(
                                 value = ownedShardsText,
@@ -3184,25 +3324,25 @@ private fun ResourcesScreen(
                                 singleLine = true,
                                 modifier = Modifier.fillMaxWidth()
                             )
-                            Text("Requis : $totalShards éclats · Manquants : $missing", fontWeight = FontWeight.Medium)
+                            Text(localizedAppText("Requis : $totalShards éclats · Manquants : $missing"), fontWeight = FontWeight.Medium)
                         }
                     }
                 }
                 item {
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("Tomes de troupes (Niv. $tomeFrom → $tomeTo)", fontWeight = FontWeight.SemiBold)
+                            Text(localizedAppText("Tomes de troupes (Niv. $tomeFrom → $tomeTo)"), fontWeight = FontWeight.SemiBold)
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 OutlinedButton(onClick = {
                                     tomeFrom = (tomeFrom + 1) % 6
                                     if (tomeTo <= tomeFrom) tomeTo = tomeFrom + 1
-                                }) { Text("De : $tomeFrom") }
+                                }) { Text(localizedAppText("De : $tomeFrom")) }
                                 Button(onClick = {
                                     tomeTo = if (tomeTo >= 6) tomeFrom + 1 else tomeTo + 1
-                                }) { Text("À : $tomeTo") }
+                                }) { Text(localizedAppText("À : $tomeTo")) }
                             }
-                            Text("Seal of Wisdom : $totalWisdom")
-                            Text("Seal of Knowledge : $totalKnowledge")
+                            Text(localizedAppText("Seal of Wisdom : $totalWisdom"))
+                            Text(localizedAppText("Seal of Knowledge : $totalKnowledge"))
                             Text(
                                 "Note : Mystery Tomes requis à partir du palier 12→13. Pour les compétences héros : Arrest & War Skill Books selon rareté.",
                                 style = MaterialTheme.typography.bodySmall
@@ -3536,9 +3676,9 @@ private fun AdviceScreen(
             item {
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("Synthèse (${adviceDate.take(10)})", fontWeight = FontWeight.SemiBold)
+                        Text(localizedAppText("Synthèse (${adviceDate.take(10)})"), fontWeight = FontWeight.SemiBold)
                         Text(res.synthese)
-                        Text("Composition : ${res.compositionRecommandee}")
+                        Text(localizedAppText("Composition : ${res.compositionRecommandee}"))
                     }
                 }
             }
@@ -3596,7 +3736,7 @@ private fun AdviceScreen(
                                     Text(hero.titre, fontWeight = FontWeight.Medium)
                                     Text(hero.detail, style = MaterialTheme.typography.bodySmall)
                                     hero.raisonIncertitude?.let {
-                                        Text("À vérifier : $it", color = Color(0xFFFBBF24), style = MaterialTheme.typography.bodySmall)
+                                        Text(localizedAppText("À vérifier : $it"), color = Color(0xFFFBBF24), style = MaterialTheme.typography.bodySmall)
                                     }
                                 }
                             }
@@ -3620,7 +3760,7 @@ private fun AdviceScreen(
                                     Text(robot.titre, fontWeight = FontWeight.Medium)
                                     Text(robot.detail, style = MaterialTheme.typography.bodySmall)
                                     robot.raisonIncertitude?.let {
-                                        Text("À vérifier : $it", color = Color(0xFFFBBF24), style = MaterialTheme.typography.bodySmall)
+                                        Text(localizedAppText("À vérifier : $it"), color = Color(0xFFFBBF24), style = MaterialTheme.typography.bodySmall)
                                     }
                                 }
                             }
@@ -3666,7 +3806,7 @@ private fun AdviceScreen(
                         Column(Modifier.padding(14.dp)) {
                             Text(localizedAppText("AVERTISSEMENT — CONSEILS NON VÉRIFIÉS"), fontWeight = FontWeight.Bold, color = Color(0xFFFF5252))
                             res.informationsIncertaines.forEach { info ->
-                                Text("• $info", color = Color(0xFFFFCDD2))
+                                Text(localizedAppText("• $info"), color = Color(0xFFFFCDD2))
                             }
                         }
                     }
@@ -3850,7 +3990,7 @@ private fun SupabaseAccountCard() {
                 color = Color(0xFFB8C3D1)
             )
             if (session != null) {
-                Text("Session enregistrée : ${session?.email.orEmpty()}", color = Color(0xFF86EFAC), style = MaterialTheme.typography.bodyMedium)
+                Text(localizedAppText("Session enregistrée : ${session?.email.orEmpty()}"), color = Color(0xFF86EFAC), style = MaterialTheme.typography.bodyMedium)
                 Text(
                     "Les jetons sont chiffrés avec Android Keystore. La synchronisation du profil se lance depuis le formulaire joueur ci-dessous.",
                     style = MaterialTheme.typography.bodySmall,
@@ -4220,7 +4360,7 @@ private fun AllianceScreen(
                         Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF202B3A))) {
                             Column(Modifier.fillMaxWidth().padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                                 Text(request.playerName, fontWeight = FontWeight.Bold)
-                                Text("Rang demandé : ${request.requestedRank} · ${request.createdAt.take(10)}", style = MaterialTheme.typography.bodySmall)
+                                Text(localizedAppText("Rang demandé : ${request.requestedRank} · ${request.createdAt.take(10)}"), style = MaterialTheme.typography.bodySmall)
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                     Button(
                                         onClick = {
@@ -4293,7 +4433,7 @@ private fun AllianceScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(localizedUiText(language, "Roster de l'alliance", "Alliance roster", "Allianzmitglieder", "İttifak kadrosu", "Состав альянса", "联盟成员名单"), fontWeight = FontWeight.Bold)
-                        Text("${workspace.members.size + if (workspace.ownProfile.playerName.isNotBlank()) 1 else 0} joueur(s)",
+                        Text(localizedAppText("${workspace.members.size + if (workspace.ownProfile.playerName.isNotBlank()) 1 else 0} joueur(s)"),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.labelSmall)
                     }
@@ -4397,9 +4537,9 @@ private fun AllianceScreen(
                         Text(member.playerName, fontWeight = FontWeight.SemiBold)
                         Text(member.rank.labelFor(language), color = Color(0xFFFFB36B), style = MaterialTheme.typography.labelSmall)
                     }
-                    Text("Puissance : ${member.powerText.ifBlank { "non renseignée" }}", style = MaterialTheme.typography.bodySmall)
-                    if (member.heroSkillSummary.isNotBlank()) Text("Héros / compétences : ${member.heroSkillSummary}", style = MaterialTheme.typography.bodySmall)
-                    if (member.robotSummary.isNotBlank()) Text("Robot : ${member.robotSummary}", style = MaterialTheme.typography.bodySmall)
+                    Text(localizedAppText("Puissance : ${member.powerText.ifBlank { ")non renseignée" }}", style = MaterialTheme.typography.bodySmall)
+                    if (member.heroSkillSummary.isNotBlank()) Text(localizedAppText("Héros / compétences : ${member.heroSkillSummary}"), style = MaterialTheme.typography.bodySmall)
+                    if (member.robotSummary.isNotBlank()) Text(localizedAppText("Robot : ${member.robotSummary}"), style = MaterialTheme.typography.bodySmall)
                     if (cloudCanManageRanks && member.id in cloudMemberIds) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -4809,9 +4949,9 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
                         modifier = Modifier.fillMaxWidth()
                     ) { Text(if (busy) "Création…" else "Créer cette alliance dans le cloud") }
                 } else {
-                    Text("Alliance cloud liée : $allianceId", style = MaterialTheme.typography.bodySmall)
+                    Text(localizedAppText("Alliance cloud liée : $allianceId"), style = MaterialTheme.typography.bodySmall)
                     if (myCloudRank.isNotBlank()) {
-                        Text("Ton rang confirmé dans le cloud : $myCloudRank", color = Color(0xFF86EFAC), style = MaterialTheme.typography.bodySmall)
+                        Text(localizedAppText("Ton rang confirmé dans le cloud : $myCloudRank"), color = Color(0xFF86EFAC), style = MaterialTheme.typography.bodySmall)
                     }
                     if (myCloudRank == "R5" || (isAppDeveloper && myCloudRank == "R4")) {
                         Divider()
@@ -4859,7 +4999,7 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
                                     enabled = !transferBusy,
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    Text("${member.playerName} · R4")
+                                    Text(localizedAppText("${member.playerName} · R4"))
                                 }
                             }
                         }
@@ -4941,7 +5081,7 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
             onDismissRequest = { if (!transferBusy) selectedR4 = null },
             title = { Text(localizedAppText("Confirmer le transfert du R5")) },
             text = {
-                Text("Confirmer que ${candidate.playerName} devient R5 ? Ton propre rang passera automatiquement à R4.")
+                Text(localizedAppText("Confirmer que ${candidate.playerName} devient R5 ? Ton propre rang passera automatiquement à R4."))
             },
             confirmButton = {
                 Button(
@@ -5067,7 +5207,7 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
                         OutlinedTextField(
                             value = title, onValueChange = { title = it.take(120) },
                             label = { Text(localizedAppText("Titre de la proposition")) },
-                            supportingText = { Text("${title.length}/120") },
+                            supportingText = { Text(localizedAppText("${title.length}/120")) },
                             singleLine = true, modifier = Modifier.fillMaxWidth()
                         )
                         var expanded by remember { mutableStateOf(false) }
@@ -5084,7 +5224,7 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
                         OutlinedTextField(
                             value = description, onValueChange = { description = it.take(4000) },
                             label = { Text(localizedAppText("Décris ton idée ou le problème")) },
-                            supportingText = { Text("${description.length}/4000 — ajoute des exemples si possible.") },
+                            supportingText = { Text(localizedAppText("${description.length}/4000 — ajoute des exemples si possible.")) },
                             minLines = 4, modifier = Modifier.fillMaxWidth()
                         )
                         Button(
@@ -5153,9 +5293,9 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
                     Text(categoryLabels[item.category] ?: item.category, style = MaterialTheme.typography.labelSmall, color = Color(0xFFFFC18A))
                     Text(item.description, style = MaterialTheme.typography.bodySmall)
                     if (isDeveloper) {
-                        Text("Compte joueur : ${item.userId.take(8)}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(localizedAppText("Compte joueur : ${item.userId.take(8)}"), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         if (item.aiSummary.isNotBlank()) {
-                            Text("Pré-analyse IA : ${item.aiSummary}", style = MaterialTheme.typography.bodySmall)
+                            Text(localizedAppText("Pré-analyse IA : ${item.aiSummary}"), style = MaterialTheme.typography.bodySmall)
                         }
                     }
                     if (item.developerReply.isNotBlank()) {
