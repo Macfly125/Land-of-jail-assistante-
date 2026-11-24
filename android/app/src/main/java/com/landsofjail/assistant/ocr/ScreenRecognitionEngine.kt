@@ -27,7 +27,7 @@ object ScreenRecognitionEngine {
         "heros" to listOf("heroes", "hero", "héros", "skills", "compétences", "stars", "étoiles", "helden", "fähigkeiten", "sterne", "kahraman", "kahramanlar", "beceriler", "yıldızlar", "герои", "навыки", "звёзды", "英雄", "技能", "星级"),
         "batiments" to listOf("building", "upgrade", "bâtiment", "construction", "warden office", "bureau du directeur", "barracks", "caserne", "laboratory", "laboratoire", "infirmary", "infirmerie", "warehouse", "entrepôt", "kitchen", "cuisine", "yard", "cour", "cell", "cellule", "comms", "gebäude", "ausbau", "bina", "yükseltme", "здание", "улучшение", "建筑", "升级"),
         "troupes" to listOf("shieldbearer", "shieldbearers", "bomber", "bombers", "shooter", "shooters", "troops", "troupes", "march capacity", "capacité de marche", "truppen", "birlikler", "войска", "部队"),
-        "ressources" to listOf("food", "wood", "steel", "gasoline", "nourriture", "bois", "acier", "essence", "diamonds", "diamants", "gems", "gemmes", "nahrung", "holz", "stahl", "benzin", "diamanten", "yiyecek", "odun", "çelik", "elmas", "altın", "еда", "дерево", "сталь", "бензин", "алмазы", "золото", "食物", "木材", "钢材", "汽油", "钻石", "宝石", "金币", "黄金"),
+        "ressources" to listOf("food", "wood", "steel", "gasoline", "nourriture", "bois", "acier", "essence", "diamonds", "diamants", "gems", "gemmes", "gold", "nahrung", "holz", "stahl", "benzin", "diamanten", "yiyecek", "odun", "çelik", "elmas", "altın", "еда", "дерево", "сталь", "бензин", "алмазы", "золото", "食物", "木材", "钢材", "汽油", "钻石", "宝石", "金币", "黄金"),
         "profil" to listOf("power", "puissance", "eliminations", "éliminations", "profile", "profil", "macht", "güç", "мощь", "профиль", "战力", "档案")
     )
 
