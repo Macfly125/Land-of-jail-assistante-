@@ -250,7 +250,29 @@ enum class AllianceRank(val labelFr: String) {
     R4("R4 · Officier"),
     R3("R3"),
     R2("R2"),
-    R1("R1")
+    R1("R1");
+
+    fun labelFor(language: AppLanguage): String = when (this) {
+        R5 -> when (language) {
+            AppLanguage.FR -> labelFr
+            AppLanguage.EN -> "R5 · Leader"
+            AppLanguage.DE -> "R5 · Anführer"
+            AppLanguage.TR -> "R5 · Lider"
+            AppLanguage.RU -> "R5 · Лидер"
+            AppLanguage.ZH -> "R5 · 领袖"
+        }
+        R4 -> when (language) {
+            AppLanguage.FR -> labelFr
+            AppLanguage.EN -> "R4 · Officer"
+            AppLanguage.DE -> "R4 · Offizier"
+            AppLanguage.TR -> "R4 · Subay"
+            AppLanguage.RU -> "R4 · Офицер"
+            AppLanguage.ZH -> "R4 · 官员"
+        }
+        R3 -> "R3"
+        R2 -> "R2"
+        R1 -> "R1"
+    }
 }
 
 @Serializable
