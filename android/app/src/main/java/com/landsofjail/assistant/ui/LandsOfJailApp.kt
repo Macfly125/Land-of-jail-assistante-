@@ -58,6 +58,23 @@ import kotlinx.serialization.json.Json
 import java.time.Instant
 import java.util.UUID
 
+private fun localizedUiText(
+    language: AppLanguage,
+    fr: String,
+    en: String,
+    de: String,
+    tr: String,
+    ru: String,
+    zh: String
+): String = when (language) {
+    AppLanguage.FR -> fr
+    AppLanguage.EN -> en
+    AppLanguage.DE -> de
+    AppLanguage.TR -> tr
+    AppLanguage.RU -> ru
+    AppLanguage.ZH -> zh
+}
+
 private enum class AssistantTab {
     TABLEAU, HEROS, RESSOURCES, CONSEILS, ALLIANCE, HISTORIQUE, AMELIORATIONS;
 
@@ -1088,10 +1105,10 @@ fun LandsOfJailAssistantApp(
         if (showProfileDialog) {
         AlertDialog(
             onDismissRequest = { showProfileDialog = false },
-            title = { Text("Profils de jeu") },
+            title = { Text(localizedUiText(currentLang, "Profils de jeu", "Game profiles", "Spielprofile", "Oyun profilleri", "Игровые профили", "游戏档案")) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Chaque profil conserve séparément ses héros, robots, ressources, puissance, événements, minuteries et historique. Renomme-les selon le personnage ou le compte pour les retrouver facilement.")
+                    Text(localizedUiText(currentLang, "Chaque profil conserve séparément ses héros, robots, ressources, puissance, événements, minuteries et historique. Renomme-les selon le personnage ou le compte pour les retrouver facilement.", "Each profile keeps its heroes, robots, resources, power, events, timers and history separate. Rename profiles by character or account to find them easily.", "Jedes Profil speichert Helden, Roboter, Ressourcen, Stärke, Ereignisse, Timer und Verlauf getrennt. Benenne Profile nach Charakter oder Konto, damit du sie leichter findest.", "Her profil kahramanları, robotları, kaynakları, gücü, etkinlikleri, zamanlayıcıları ve geçmişi ayrı tutar. Kolay bulmak için profilleri karaktere veya hesaba göre yeniden adlandır.", "В каждом профиле отдельно хранятся герои, роботы, ресурсы, сила, события, таймеры и история. Переименуйте профиль по персонажу или аккаунту, чтобы его было легче найти.", "每个档案分别保存英雄、机器人、资源、战力、活动、计时器和历史记录。可按角色或账号重命名，方便查找。"))
                     localProfiles.forEach { profile ->
                         Column(modifier = Modifier.fillMaxWidth()) {
                             Text(
@@ -1124,15 +1141,15 @@ fun LandsOfJailAssistantApp(
                                         }.onFailure { errorMessage = "Impossible d'ouvrir ce profil : ${it.message}" }
                                     }
                                     showProfileDialog = false
-                                }) { Text(if (profile.id == activeProfileId) "Actif" else "Ouvrir") }
+                                }) { Text(if (profile.id == activeProfileId) localizedUiText(currentLang, "Actif", "Active", "Aktiv", "Etkin", "Активен", "当前") else localizedUiText(currentLang, "Ouvrir", "Open", "Öffnen", "Aç", "Открыть", "打开")) }
                                 TextButton(enabled = !isAnalyzing && !isAutoCapturing, onClick = {
                                     editingProfileId = profile.id
                                     profileNameInput = profile.name
-                                }) { Text("Renommer") }
+                                }) { Text(localizedUiText(currentLang, "Renommer", "Rename", "Umbenennen", "Yeniden adlandır", "Переименовать", "重命名")) }
                                 TextButton(
                                     enabled = localProfiles.size > 1 && !isAnalyzing && !isAutoCapturing,
                                     onClick = { deletingProfileId = profile.id }
-                                ) { Text("Supprimer") }
+                                ) { Text(localizedUiText(currentLang, "Supprimer", "Delete", "Löschen", "Sil", "Удалить", "删除")) }
                             }
                         }
                     }
