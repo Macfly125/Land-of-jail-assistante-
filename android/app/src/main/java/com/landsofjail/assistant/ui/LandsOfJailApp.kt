@@ -3539,6 +3539,12 @@ private fun GiftCodesScreen(
                     OutlinedButton(onClick = { uriHandler.openUri(GiftCodeRepository.REDEEM_URL) }, modifier = Modifier.fillMaxWidth()) {
                         Text(labels[12])
                     }
+                    TextButton(
+                        onClick = { uriHandler.openUri(GiftCodeRepository.GUIDE_URL) },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(localizedUiText(language, "Consulter les codes sur GuideLOJ", "View codes on GuideLOJ", "Codes auf GuideLOJ ansehen", "Kodları GuideLOJ'de görüntüle", "Посмотреть коды на GuideLOJ", "在 GuideLOJ 查看兑换码", "Vedi i codici su GuideLOJ"))
+                    }
                     if (snapshot.sourceErrors.isNotEmpty()) {
                         Text(labels[14], color = Color(0xFFFFC18A), style = MaterialTheme.typography.bodySmall)
                     }
