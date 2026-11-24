@@ -274,6 +274,26 @@ Stahl
     }
 
     @Test
+    fun readsResourceQuantityAfterAnOcrSymbolLine() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            """Food
+🍖
+12500"""
+        )
+        assertEquals(1, result.resources.size)
+        assertEquals("Nourriture (Food)", result.resources.single().nom)
+        assertEquals(12500.0, result.resources.single().quantiteNumerique ?: 0.0, 0.1)
+    }
+
+    @Test
+    fun recognizesRobotNameSplitAcrossTwoOcrLines() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText("Phantom\\nCat\\nLevel 12")
+        assertEquals(1, result.robots.size)
+        assertEquals("Phantom Cat", result.robots.single().nom)
+        assertEquals("12", result.robots.single().niveau)
+    }
+
+    @Test
     fun doesNotMistakeFrenchConjunctionOrForTheGoldResource() {
         val result = LandsOfJailOcrParser.parseLocalOcrText("Or il faut encore de la nourriture : 5M")
         assertTrue(result.resources.none { it.nom == "Cash / Or" })
