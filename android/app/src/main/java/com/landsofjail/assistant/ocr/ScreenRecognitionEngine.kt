@@ -16,7 +16,7 @@ data class ScreenRecognitionResult(
 
 object ScreenRecognitionEngine {
     private val dictionaries = linkedMapOf(
-        "trial_cage" to listOf("trial cage", "cage", "damage ranking", "damage dealt", "dégâts infligés", "versuchskäfig", "prüfungskäfig", "schadensrangliste", "verursachter schaden", "deneme kafesi", "deneme kafesi", "verilen hasar", "испытательная клетка", "нанесенный урон", "试炼笼", "造成伤害"),
+        "trial_cage" to listOf("trial cage", "cage", "damage ranking", "damage dealt", "dégâts infligés", "versuchskäfig", "prüfungskäfig", "schadensrangliste", "verursachter schaden", "deneme kafesi", "verilen hasar", "испытательная клетка", "нанесенный урон", "试炼笼", "造成伤害"),
         "crystal_clash" to listOf("crystal clash", "ironhold", "ironprison", "energy hub", "crystal prison", "kristallkonflikt", "kristallkampf", "kristal çatışması", "kristal savaşı", "кристальная битва", "кристальное столкновение", "水晶冲突", "水晶争夺"),
         "sandsea_conquest" to listOf("sandsea", "vessel station", "lighthouse", "phare", "fuel", "sandmeer", "schiffsstation", "leuchtturm", "kum denizi", "gemi istasyonu", "deniz feneri", "песчаное море", "станция судов", "маяк", "沙海", "船只站", "灯塔"),
         "svs" to listOf("supreme honor", "svs", "war preparation", "préparation de guerre", "kriegsvorbereitung", "kriegsvorbereitungen", "savaş hazırlığı", "savaş hazırlıkları", "подготовка к войне", "战前准备", "战争准备"),
@@ -27,7 +27,7 @@ object ScreenRecognitionEngine {
         "heros" to listOf("heroes", "hero", "héros", "skills", "compétences", "stars", "étoiles", "helden", "fähigkeiten", "sterne", "kahraman", "kahramanlar", "beceriler", "yıldızlar", "герои", "навыки", "звёзды", "英雄", "技能", "星级"),
         "batiments" to listOf("building", "upgrade", "bâtiment", "construction", "warden office", "bureau du directeur", "barracks", "caserne", "laboratory", "laboratoire", "infirmary", "infirmerie", "warehouse", "entrepôt", "kitchen", "cuisine", "yard", "cour", "cell", "cellule", "comms", "gebäude", "ausbau", "bina", "yükseltme", "здание", "улучшение", "建筑", "升级"),
         "troupes" to listOf("shieldbearer", "shieldbearers", "bomber", "bombers", "shooter", "shooters", "troops", "troupes", "march capacity", "capacité de marche", "truppen", "birlikler", "войска", "部队"),
-        "ressources" to listOf("food", "wood", "steel", "gasoline", "nourriture", "bois", "acier", "essence", "diamonds", "diamants", "gems", "gemmes", "nahrung", "holz", "stahl", "benzin", "diamanten", "yiyecek", "odun", "çelik", "elmas", "еда", "дерево", "сталь", "бензин", "алмазы", "食物", "木材", "钢材", "汽油", "钻石", "宝石", "nahrung", "holz", "stahl", "benzin", "yiyecek", "odun", "çelik", "еда", "дерево", "сталь", "бензин", "алмазы", "食物", "木材", "钢材", "汽油", "钻石", "宝石"),
+        "ressources" to listOf("food", "wood", "steel", "gasoline", "nourriture", "bois", "acier", "essence", "diamonds", "diamants", "gems", "gemmes", "nahrung", "holz", "stahl", "benzin", "diamanten", "yiyecek", "odun", "çelik", "elmas", "еда", "дерево", "сталь", "бензин", "алмазы", "食物", "木材", "钢材", "汽油", "钻石", "宝石"),
         "profil" to listOf("power", "puissance", "eliminations", "éliminations", "profile", "profil", "macht", "güç", "мощь", "профиль", "战力", "档案")
     )
 
