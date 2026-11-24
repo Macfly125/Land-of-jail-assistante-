@@ -179,7 +179,9 @@ object GiftCodeRepository {
                 java.time.format.DateTimeFormatter.ofPattern("d/M/yyyy", Locale.FRENCH),
                 java.time.format.DateTimeFormatter.ofPattern("d.M.yyyy", Locale.FRENCH),
                 java.time.format.DateTimeFormatter.ofPattern("d-M-yyyy", Locale.FRENCH),
-                java.time.format.DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.ENGLISH),
+                java.time.format.DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH),
+                java.time.format.DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.FRENCH),
+                java.time.format.DateTimeFormatter.ofPattern("d MMM yyyy", Locale.FRENCH),
                 java.time.format.DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.ENGLISH)
             )
             patterns.firstNotNullOfOrNull { pattern ->
