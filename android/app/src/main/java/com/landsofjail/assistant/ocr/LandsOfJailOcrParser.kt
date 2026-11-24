@@ -193,7 +193,7 @@ object LandsOfJailOcrParser {
                 if (aliases.none { alias -> normalizedEquipmentLine == normalizeHeroText(alias) ||
                         normalizedEquipmentLine.startsWith(normalizeHeroText(alias) + " ") }) continue
                 val context = lines.subList(index, minOf(lines.size, index + 4)).joinToString(" ")
-                val level = Regex("""(?:lv\.?|level|niv\.?|niveau|等级)\s*[:+]?\s*([0-9]{1,3})""", RegexOption.IGNORE_CASE)
+                val level = Regex("""(?:lv\.?|level|niv\.?|niveau|stufe|seviye|уровень|等级)\s*[:+]?\s*([0-9]{1,3})""", RegexOption.IGNORE_CASE)
                     .find(context)?.groupValues?.get(1)
                     ?: Regex("""(?:^|\s)\+([0-9]{1,3})(?:\s|$)""").find(context)?.groupValues?.get(1).orEmpty()
                 val quality = Regex("""\b(legendary|mythic|epic|rare|common|légendaire|épique|legendär|episch|selten|efsanevi|destansı|nadir|легендарный|эпический|редкий|обычный|传奇|神话|史诗|稀有)\b""", RegexOption.IGNORE_CASE)
