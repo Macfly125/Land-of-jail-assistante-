@@ -1375,6 +1375,9 @@ fun LandsOfJailAssistantApp(
                 ressources = mergeResourceRecords(localExtraction.resources, remoteResult.ressources),
                 heros = mergeHeroRecords(localExtraction.heroes, remoteResult.heros),
                 robots = mergeRobotRecords(localExtraction.robots, remoteResult.robots),
+                equipements = (remoteResult.equipements + localExtraction.equipment).distinctBy {
+                    (it.piece + it.niveau).lowercase()
+                },
                 champsIncertains = (remoteResult.champsIncertains + localExtraction.uncertainItems)
                     .distinctBy { normalizedKey(it.champ) + normalizedKey(it.valeurObservee) }
             )
@@ -1409,6 +1412,7 @@ fun LandsOfJailAssistantApp(
                 ressources = localExtraction.resources,
                 heros = localExtraction.heroes,
                 robots = localExtraction.robots,
+                equipements = localExtraction.equipment,
                 champsIncertains = localExtraction.uncertainItems + UncertainItem(
                     "Analyse en ligne",
                     "Indisponible",
@@ -1531,6 +1535,9 @@ fun LandsOfJailAssistantApp(
                             ressources = mergeResourceRecords(remote.ressources, localExtraction.resources),
                             heros = mergeHeroRecords(remote.heros, localExtraction.heroes),
                             robots = mergeRobotRecords(remote.robots, localExtraction.robots),
+                            equipements = (remote.equipements + localExtraction.equipment).distinctBy {
+                                (it.piece + it.niveau).lowercase()
+                            },
                             champsIncertains = (remote.champsIncertains + localExtraction.uncertainItems)
                                 .distinctBy { normalizedKey(it.champ) + normalizedKey(it.valeurObservee) }
                         )
