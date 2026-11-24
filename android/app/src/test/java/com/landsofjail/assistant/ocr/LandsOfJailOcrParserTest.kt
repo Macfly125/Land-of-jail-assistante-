@@ -423,4 +423,22 @@ Aimant"""
         assertEquals(2_000_000_000.0, gold.quantiteNumerique ?: 0.0, 0.1)
         assertTrue(gold.incertain)
     }
+
+    @Test
+    fun recognizesGoldResourceLabelsInAllSixSupportedLanguages() {
+        val samples = listOf(
+            "Gold: 1200",
+            "Or: 1200",
+            "Gold: 1200",
+            "Altın: 1200",
+            "Золото: 1200",
+            "金币：1200"
+        )
+        samples.forEach { sample ->
+            val result = LandsOfJailOcrParser.parseLocalOcrText(sample)
+            assertTrue("La ressource Or doit être reconnue : $sample", result.resources.any {
+                it.nom == "Cash / Or" && it.quantiteNumerique == 1200.0
+            })
+        }
+    }
 }
