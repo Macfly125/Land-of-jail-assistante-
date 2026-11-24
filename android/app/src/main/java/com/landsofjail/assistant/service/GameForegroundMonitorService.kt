@@ -662,6 +662,7 @@ class GameForegroundMonitorService : Service() {
                 }
                 val effectivePkg = fgPkg ?: lastKnownForegroundPkg
                 val isSelfForeground = effectivePkg == applicationContext.packageName
+                val assistantVisible = MainActivity.isAppInForeground.value
                 val isGameNow = UsageStatsDetector.isLandsOfJailPackage(effectivePkg, targetFilter)
                 _detectedGameForeground.value = isGameNow
                 if (_isAutoCapturing.value) updateAutoCaptureSurface(isGameNow)
@@ -672,7 +673,7 @@ class GameForegroundMonitorService : Service() {
 
                 // Ne jamais masquer le TopAppBar de notre propre appli avec la barre flottante,
                 // mais toujours la garder visible au-dessus du jeu / des autres apps.
-                if (_isAutoCapturing.value || isCapturingNow || isSelfForeground) {
+                if (_isAutoCapturing.value || isCapturingNow || assistantVisible || isSelfForeground) {
                     removeFloatingAnalyzeBar()
                 } else if (isGameNow || alwaysShowFloating) {
                     showFloatingAnalyzeBarIfAllowed()

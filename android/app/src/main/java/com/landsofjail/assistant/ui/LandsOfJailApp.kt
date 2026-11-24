@@ -963,60 +963,49 @@ fun LandsOfJailAssistantApp(
         }
         analysisQueue = analysisQueue + added
         if (isQueueRunning) return
+        isQueueRunning = true
+    }
 
-        scope.launch {
-            isQueueRunning = true
-            isAnalyzing = true
-            errorMessage = null
-            try {
-                while (true) {
-                    val nextItem = analysisQueue.firstOrNull { it.status == "waiting" } ?: break
+    LaunchedEffect(isQueueRunning) {
+        if (!isQueueRunning) return@LaunchedEffect
+        isAnalyzing = true
+        errorMessage = null
+        try {
+            while (true) {
+                val nextItem = analysisQueue.firstOrNull { it.status == "waiting" } ?: break
+                analysisQueue = analysisQueue.map {
+                    if (it.id == nextItem.id) it.copy(status = "analyzing", progress = 15) else it
+                }
+                val result = runCatching {
+                    analyzeSingleUriInternal(nextItem.uri) { pct ->
+                        analysisQueue = analysisQueue.map {
+                            if (it.id == nextItem.id) it.copy(progress = pct) else it
+                        }
+                    }
+                }
+                result.onSuccess { analysis ->
+                    mergeNewAnalysis(analysis)
                     analysisQueue = analysisQueue.map {
-                        if (it.id == nextItem.id) it.copy(status = "analyzing", progress = 15) else it
+                        if (it.id == nextItem.id) {
+                            it.copy(status = "done", progress = 100, summary = analysis.resumeCapture)
+                        } else it
                     }
-                    val result = runCatching {
-                        analyzeSingleUriInternal(nextItem.uri) { pct ->
-                            analysisQueue = analysisQueue.map {
-                                if (it.id == nextItem.id) it.copy(progress = pct) else it
-                            }
-                        }
-                    }
-                    result.onSuccess { analysis ->
-                        mergeNewAnalysis(analysis)
-                        analysisQueue = analysisQueue.map {
-                            if (it.id == nextItem.id) {
-                                it.copy(
-                                    status = "done",
-                                    progress = 100,
-                                    summary = analysis.resumeCapture
-                                )
-                            } else {
-                                it
-                            }
-                        }
-                    }.onFailure { err ->
-                        analysisQueue = analysisQueue.map {
-                            if (it.id == nextItem.id) {
-                                it.copy(
-                                    status = "error",
-                                    progress = 0,
-                                    summary = err.message ?: "Erreur"
-                                )
-                            } else {
-                                it
-                            }
-                        }
+                }.onFailure { err ->
+                    analysisQueue = analysisQueue.map {
+                        if (it.id == nextItem.id) {
+                            it.copy(status = "error", progress = 0, summary = err.message ?: "Erreur")
+                        } else it
                     }
                 }
-                val doneCount = analysisQueue.count { it.status == "done" }
-                if (doneCount > 0) {
-                    currentTab = AssistantTab.TABLEAU
-                    snackbarHostState.showSnackbar("File terminée (100 %) : $doneCount capture(s) analysée(s)")
-                }
-            } finally {
-                isQueueRunning = false
-                isAnalyzing = false
             }
+            val doneCount = analysisQueue.count { it.status == "done" }
+            if (doneCount > 0) {
+                currentTab = AssistantTab.TABLEAU
+                snackbarHostState.showSnackbar("File terminée (100 %) : $doneCount capture(s) analysée(s)")
+            }
+        } finally {
+            isQueueRunning = false
+            isAnalyzing = false
         }
     }
 

@@ -18,8 +18,14 @@ import androidx.core.content.ContextCompat
 import com.landsofjail.assistant.capture.ScreenCaptureConsentActivity
 import com.landsofjail.assistant.data.GeminiAssistantRepository
 import com.landsofjail.assistant.ui.LandsOfJailAssistantApp
+import kotlinx.coroutines.flow.MutableStateFlow
 
 class MainActivity : ComponentActivity() {
+
+    companion object {
+        /** True only while the assistant activity is visible to the user. */
+        val isAppInForeground = MutableStateFlow(false)
+    }
 
     private var pendingSharedUri by mutableStateOf<Uri?>(null)
 
@@ -55,6 +61,16 @@ class MainActivity : ComponentActivity() {
                 onConsumeCapturedScreen = { ScreenCaptureConsentActivity.consumeCapture(applicationContext) }
             )
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        isAppInForeground.value = true
+    }
+
+    override fun onStop() {
+        isAppInForeground.value = false
+        super.onStop()
     }
 
     override fun onNewIntent(intent: Intent) {
