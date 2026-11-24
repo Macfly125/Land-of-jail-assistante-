@@ -1472,7 +1472,7 @@ fun LandsOfJailAssistantApp(
                     deletingProfileId = null
                 }) { Text(localizedUiText(currentLang, "Supprimer", "Delete", "Löschen", "Sil", "Удалить", "删除")) }
             },
-            dismissButton = { TextButton(onClick = { deletingProfileId = null }) { Text(localizedAppText("Annuler"))) } }
+            dismissButton = { TextButton(onClick = { deletingProfileId = null }) { Text(localizedAppText("Annuler")) } }
         )
     }
 
@@ -1627,7 +1627,7 @@ fun LandsOfJailAssistantApp(
                             )
                             if (!isQueueRunning) {
                                 TextButton(onClick = { analysisQueue = emptyList() }) {
-                                    Text(localizedAppText("Fermer la file (100 %)")))
+                                    Text(localizedAppText("Fermer la file (100 %)"))
                                 }
                             }
                         }
@@ -1809,7 +1809,7 @@ fun LandsOfJailAssistantApp(
                 showAllianceOnboarding = false
                 accountPrefs.edit().putBoolean("alliance_onboarding_completed_v1", true).apply()
             },
-            title = { Text(localizedAppText("Bienvenue · Inscription joueur"))) },
+            title = { Text(localizedAppText("Bienvenue · Inscription joueur")) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
@@ -1819,21 +1819,21 @@ fun LandsOfJailAssistantApp(
                     OutlinedTextField(
                         value = onboardingPlayerName,
                         onValueChange = { onboardingPlayerName = it.take(40) },
-                        label = { Text(localizedAppText("Pseudo dans le jeu"))) },
+                        label = { Text(localizedAppText("Pseudo dans le jeu")) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
                     OutlinedTextField(
                         value = onboardingServer,
                         onValueChange = { onboardingServer = it.filter(Char::isDigit).take(6) },
-                        label = { Text(localizedAppText("Serveur (ex. 311)"))) },
+                        label = { Text(localizedAppText("Serveur (ex. 311)")) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
                     OutlinedTextField(
                         value = onboardingAllianceTag,
                         onValueChange = { onboardingAllianceTag = it.take(12) },
-                        label = { Text(localizedAppText("Initiales / tag de l'alliance"))) },
+                        label = { Text(localizedAppText("Initiales / tag de l'alliance")) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -1919,7 +1919,7 @@ fun LandsOfJailAssistantApp(
                         }
                     },
                     enabled = onboardingPlayerName.isNotBlank() && onboardingServer.isNotBlank() && onboardingAllianceTag.isNotBlank()
-                ) { Text(localizedAppText("Enregistrer et continuer"))) }
+                ) { Text(localizedAppText("Enregistrer et continuer")) }
             },
             dismissButton = {
                 TextButton(
@@ -1927,7 +1927,7 @@ fun LandsOfJailAssistantApp(
                         showAllianceOnboarding = false
                         accountPrefs.edit().putBoolean("alliance_onboarding_completed_v1", true).apply()
                     }
-                ) { Text(localizedAppText("Plus tard"))) }
+                ) { Text(localizedAppText("Plus tard")) }
             }
         )
     }
@@ -2050,7 +2050,7 @@ private fun DashboardScreen(
                                 fontWeight = FontWeight.Medium
                             )
                             Button(onClick = onOpenUsageSettings) {
-                                Text(localizedAppText("Autoriser Statistiques d'utilisation")))
+                                Text(localizedAppText("Autoriser Statistiques d'utilisation"))
                             }
                         } else {
                             Text(
@@ -2067,7 +2067,7 @@ private fun DashboardScreen(
                                 fontWeight = FontWeight.Medium
                             )
                             Button(onClick = onOpenOverlaySettings) {
-                                Text(localizedAppText("Autoriser affichage par-dessus les applis")))
+                                Text(localizedAppText("Autoriser affichage par-dessus les applis"))
                             }
                         } else {
                             Text(
@@ -2096,7 +2096,7 @@ private fun DashboardScreen(
                         OutlinedTextField(
                             value = packageFilter,
                             onValueChange = onPackageFilterChange,
-                            label = { Text(localizedAppText("Package (com.justgame.jails)"))) },
+                            label = { Text(localizedAppText("Package (com.justgame.jails)")) },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -2667,7 +2667,7 @@ private fun HeroesScreen(
                             }
                         }
                         TextButton(onClick = { uriHandler.openUri(entry.sourceUrl) }) {
-                            Text(localizedAppText("Consulter la source du catalogue")))
+                            Text(localizedAppText("Consulter la source du catalogue"))
                         }
                     }
                     entry.usageWarObserve?.let {
@@ -2697,7 +2697,7 @@ private fun HeroesScreen(
                     Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text(hero.nom, fontWeight = FontWeight.SemiBold)
                         Text(listOfNotNull(hero.niveauTexte.takeIf { it.isNotBlank() }, hero.etoiles, hero.puissanceHero).joinToString(" · "))
-                        TextButton(onClick = { editingHero = hero }) { Text(localizedAppText("Modifier les données détectées"))) }
+                        TextButton(onClick = { editingHero = hero }) { Text(localizedAppText("Modifier les données détectées")) }
                     }
                 }
             }
@@ -2731,18 +2731,18 @@ private fun HeroEditDialog(
     }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(localizedAppText("Corriger le héros détecté"))) },
+        title = { Text(localizedAppText("Corriger le héros détecté")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(name, { name = it }, label = { Text(localizedAppText("Nom du héros"))) }, singleLine = true)
-                OutlinedTextField(level, { level = it }, label = { Text(localizedAppText("Niveau"))) }, singleLine = true)
-                OutlinedTextField(rarity, { rarity = it }, label = { Text(localizedAppText("Rareté"))) }, singleLine = true)
-                OutlinedTextField(stars, { stars = it }, label = { Text(localizedAppText("Étoiles"))) }, singleLine = true)
-                OutlinedTextField(power, { power = it }, label = { Text(localizedAppText("Puissance"))) }, singleLine = true)
+                OutlinedTextField(name, { name = it }, label = { Text(localizedAppText("Nom du héros")) }, singleLine = true)
+                OutlinedTextField(level, { level = it }, label = { Text(localizedAppText("Niveau")) }, singleLine = true)
+                OutlinedTextField(rarity, { rarity = it }, label = { Text(localizedAppText("Rareté")) }, singleLine = true)
+                OutlinedTextField(stars, { stars = it }, label = { Text(localizedAppText("Étoiles")) }, singleLine = true)
+                OutlinedTextField(power, { power = it }, label = { Text(localizedAppText("Puissance")) }, singleLine = true)
                 OutlinedTextField(
                     skills,
                     { skills = it },
-                    label = { Text(localizedAppText("Compétences : type | nom | niveau | description (war / arrest / equipment / inconnu)"))) },
+                    label = { Text(localizedAppText("Compétences : type | nom | niveau | description (war / arrest / equipment / inconnu)")) },
                     minLines = 3,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -2800,9 +2800,9 @@ private fun HeroEditDialog(
                     )
                 },
                 enabled = name.isNotBlank()
-            ) { Text(localizedAppText("Enregistrer"))) }
+            ) { Text(localizedAppText("Enregistrer")) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(localizedAppText("Annuler"))) } }
+        dismissButton = { TextButton(onClick = onDismiss) { Text(localizedAppText("Annuler")) } }
     )
 }
 
@@ -3068,9 +3068,9 @@ private fun ResourcesScreen(
                                     )
                                 }
                             }
-                            OutlinedTextField(eventDateInput, { eventDateInput = it }, label = { Text(localizedAppText("Date (ex. 23/11/2026)"))) }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                            OutlinedTextField(eventScoreInput, { eventScoreInput = it }, label = { Text(localizedAppText("Score / dégâts / classement"))) }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                            OutlinedTextField(eventNotesInput, { eventNotesInput = it }, label = { Text(localizedAppText("Composition, ratio, remarques"))) }, minLines = 3, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(eventDateInput, { eventDateInput = it }, label = { Text(localizedAppText("Date (ex. 23/11/2026)")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(eventScoreInput, { eventScoreInput = it }, label = { Text(localizedAppText("Score / dégâts / classement")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(eventNotesInput, { eventNotesInput = it }, label = { Text(localizedAppText("Composition, ratio, remarques")) }, minLines = 3, modifier = Modifier.fillMaxWidth())
                             Button(
                                 enabled = eventDateInput.isNotBlank() || eventScoreInput.isNotBlank() || eventNotesInput.isNotBlank(),
                                 onClick = {
@@ -3103,7 +3103,7 @@ private fun ResourcesScreen(
                                 Text(record.eventName, fontWeight = FontWeight.SemiBold)
                                 Text(listOf(record.date, record.score).filter { it.isNotBlank() }.joinToString(" · "), style = MaterialTheme.typography.bodySmall)
                                 if (record.notes.isNotBlank()) Text(record.notes, style = MaterialTheme.typography.bodySmall)
-                                TextButton(onClick = { onSaveEventRecords(eventRecords.filterNot { it.id == record.id }) }) { Text(localizedAppText("Supprimer l’entrée"))) }
+                                TextButton(onClick = { onSaveEventRecords(eventRecords.filterNot { it.id == record.id }) }) { Text(localizedAppText("Supprimer l’entrée")) }
                             }
                         }
                     }
@@ -3129,11 +3129,11 @@ private fun ResourcesScreen(
                                 OutlinedButton(
                                     onClick = { if (targetBuildingLvl > 2) targetBuildingLvl-- },
                                     enabled = targetBuildingLvl > 2
-                                ) { Text(localizedAppText("-1 Niveau"))) }
+                                ) { Text(localizedAppText("-1 Niveau")) }
                                 Button(
                                     onClick = { if (targetBuildingLvl < 30) targetBuildingLvl++ },
                                     enabled = targetBuildingLvl < 30
-                                ) { Text(localizedAppText("+1 Niveau"))) }
+                                ) { Text(localizedAppText("+1 Niveau")) }
                             }
                             Text("${resourceUiText(currentLang, "prerequisites")} : ${req.prereqs}", fontWeight = FontWeight.Medium)
                             Text("${resourceUiText(currentLang, "food")} : ${formatCompactFr(req.food)}")
@@ -3167,7 +3167,7 @@ private fun ResourcesScreen(
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text("Éclats de héros ($starFrom★ → $starTo★)", fontWeight = FontWeight.SemiBold)
-                            Text(localizedAppText("Total 1★→5★ : 1 075 éclats (+10 recrutement). Seuil 4★ recommandé : 475 éclats.")))
+                            Text(localizedAppText("Total 1★→5★ : 1 075 éclats (+10 recrutement). Seuil 4★ recommandé : 475 éclats."))
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 OutlinedButton(onClick = {
                                     starFrom = (starFrom + 1) % 5
@@ -3180,7 +3180,7 @@ private fun ResourcesScreen(
                             OutlinedTextField(
                                 value = ownedShardsText,
                                 onValueChange = { ownedShardsText = it.filter { ch -> ch.isDigit() } },
-                                label = { Text(localizedAppText("Éclats en stock"))) },
+                                label = { Text(localizedAppText("Éclats en stock")) },
                                 singleLine = true,
                                 modifier = Modifier.fillMaxWidth()
                             )
@@ -3727,23 +3727,23 @@ private fun HistoryScreen(
     if (showClearConfirmation) {
         AlertDialog(
             onDismissRequest = { showClearConfirmation = false },
-            title = { Text(localizedAppText("Effacer l’historique ?"))) },
-            text = { Text(localizedAppText("Toutes les analyses enregistrées dans l’historique seront supprimées. Cette action est irréversible."))) },
+            title = { Text(localizedAppText("Effacer l’historique ?")) },
+            text = { Text(localizedAppText("Toutes les analyses enregistrées dans l’historique seront supprimées. Cette action est irréversible.")) },
             confirmButton = {
                 TextButton(onClick = {
                     onClearHistory()
                     showClearConfirmation = false
-                }) { Text(localizedAppText("Effacer"))) }
+                }) { Text(localizedAppText("Effacer")) }
             },
             dismissButton = {
-                TextButton(onClick = { showClearConfirmation = false }) { Text(localizedAppText("Annuler"))) }
+                TextButton(onClick = { showClearConfirmation = false }) { Text(localizedAppText("Annuler")) }
             }
         )
     }
 
     if (analyses.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(localizedAppText("Historique vide. Appuyez sur « Analyser l’écran » pour enregistrer votre première capture.")))
+            Text(localizedAppText("Historique vide. Appuyez sur « Analyser l’écran » pour enregistrer votre première capture."))
         }
         return
     }
@@ -3755,7 +3755,7 @@ private fun HistoryScreen(
             TextButton(onClick = { showClearConfirmation = true }) {
                 Icon(Icons.Outlined.DeleteSweep, contentDescription = null)
                 Spacer(Modifier.width(6.dp))
-                Text(localizedAppText("Effacer l’historique")))
+                Text(localizedAppText("Effacer l’historique"))
             }
         }
         LazyColumn(
@@ -3869,7 +3869,7 @@ private fun SupabaseAccountCard() {
                         },
                         enabled = !busy,
                         modifier = Modifier.weight(1f)
-                    ) { Text(localizedAppText("Actualiser"))) }
+                    ) { Text(localizedAppText("Actualiser")) }
                     OutlinedButton(
                         onClick = {
                             scope.launch {
@@ -3882,13 +3882,13 @@ private fun SupabaseAccountCard() {
                         },
                         enabled = !busy,
                         modifier = Modifier.weight(1f)
-                    ) { Text(localizedAppText("Déconnexion"))) }
+                    ) { Text(localizedAppText("Déconnexion")) }
                 }
             } else {
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it.trim() },
-                    label = { Text(localizedAppText("Adresse e-mail"))) },
+                    label = { Text(localizedAppText("Adresse e-mail")) },
                     singleLine = true,
                     enabled = !busy,
                     modifier = Modifier.fillMaxWidth()
@@ -3896,7 +3896,7 @@ private fun SupabaseAccountCard() {
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
-                    label = { Text(localizedAppText("Mot de passe (8 caractères minimum)"))) },
+                    label = { Text(localizedAppText("Mot de passe (8 caractères minimum)")) },
                     singleLine = true,
                     enabled = !busy,
                     visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
@@ -3909,7 +3909,7 @@ private fun SupabaseAccountCard() {
                     OutlinedTextField(
                         value = signupPlayerName,
                         onValueChange = { signupPlayerName = it.take(40) },
-                        label = { Text(localizedAppText("Pseudo dans Land of Jail"))) },
+                        label = { Text(localizedAppText("Pseudo dans Land of Jail")) },
                         singleLine = true,
                         enabled = !busy,
                         modifier = Modifier.fillMaxWidth()
@@ -3917,7 +3917,7 @@ private fun SupabaseAccountCard() {
                     OutlinedTextField(
                         value = signupServer,
                         onValueChange = { signupServer = it.filter(Char::isDigit).take(6) },
-                        label = { Text(localizedAppText("Serveur (ex. 311)"))) },
+                        label = { Text(localizedAppText("Serveur (ex. 311)")) },
                         singleLine = true,
                         enabled = !busy,
                         modifier = Modifier.fillMaxWidth()
@@ -3925,7 +3925,7 @@ private fun SupabaseAccountCard() {
                     OutlinedTextField(
                         value = signupAllianceTag,
                         onValueChange = { signupAllianceTag = it.take(12) },
-                        label = { Text(localizedAppText("Tag de l'alliance"))) },
+                        label = { Text(localizedAppText("Tag de l'alliance")) },
                         singleLine = true,
                         enabled = !busy,
                         modifier = Modifier.fillMaxWidth()
@@ -4042,7 +4042,7 @@ private fun SupabaseAccountCard() {
                         },
                         enabled = !busy
                     ) {
-                        Text(localizedAppText("Renvoyer l'e-mail de confirmation")))
+                        Text(localizedAppText("Renvoyer l'e-mail de confirmation"))
                     }
                 }
             }
@@ -4246,7 +4246,7 @@ private fun AllianceScreen(
                                         },
                                         enabled = !joinRequestsBusy,
                                         modifier = Modifier.weight(1f)
-                                    ) { Text(localizedAppText("Accepter"))) }
+                                    ) { Text(localizedAppText("Accepter")) }
                                     OutlinedButton(
                                         onClick = {
                                             scope.launch {
@@ -4266,7 +4266,7 @@ private fun AllianceScreen(
                                         },
                                         enabled = !joinRequestsBusy,
                                         modifier = Modifier.weight(1f)
-                                    ) { Text(localizedAppText("Refuser"))) }
+                                    ) { Text(localizedAppText("Refuser")) }
                                 }
                             }
                         }
@@ -4466,7 +4466,7 @@ private fun AllianceScreen(
                         TextButton(onClick = {
                             onSaveWorkspace(workspace.copy(members = workspace.members.filterNot { it.id == member.id }))
                             simulation = emptyList()
-                        }) { Text(localizedAppText("Retirer du roster"))) }
+                        }) { Text(localizedAppText("Retirer du roster")) }
                     }
                 }
             }
@@ -4584,7 +4584,7 @@ private fun AllianceScreen(
                     ) {
                         Icon(Icons.Outlined.AutoAwesome, contentDescription = null)
                         Spacer(Modifier.width(6.dp))
-                        Text(localizedAppText("Lancer la simulation (R4 / R5)")))
+                        Text(localizedAppText("Lancer la simulation (R4 / R5)"))
                     }
                     simulation.forEach { line ->
                         Text(line, style = MaterialTheme.typography.bodySmall, color = if (line.startsWith("À confirmer")) Color(0xFFFBBF24) else MaterialTheme.colorScheme.onSurface)
@@ -4604,11 +4604,11 @@ private fun AllianceScreen(
     if (showAddMember) {
         AlertDialog(
             onDismissRequest = { showAddMember = false },
-            title = { Text(localizedAppText("Ajouter un membre"))) },
+            title = { Text(localizedAppText("Ajouter un membre")) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                    OutlinedTextField(memberName, { memberName = it }, label = { Text(localizedAppText("Pseudo du joueur"))) }, singleLine = true)
-                    OutlinedTextField(memberPower, { memberPower = it }, label = { Text(localizedAppText("Puissance (facultatif)"))) }, singleLine = true)
+                    OutlinedTextField(memberName, { memberName = it }, label = { Text(localizedAppText("Pseudo du joueur")) }, singleLine = true)
+                    OutlinedTextField(memberPower, { memberPower = it }, label = { Text(localizedAppText("Puissance (facultatif)")) }, singleLine = true)
                     Text(localizedAppText("Rang dans l'alliance")), style = MaterialTheme.typography.labelMedium)
                     LazyRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                         items(AllianceRank.entries) { item ->
@@ -4617,12 +4617,12 @@ private fun AllianceScreen(
                     }
                     OutlinedTextField(
                         memberSkills, { memberSkills = it },
-                        label = { Text(localizedAppText("Héros et compétences War (copier les infos)"))) },
+                        label = { Text(localizedAppText("Héros et compétences War (copier les infos)")) },
                         minLines = 3, modifier = Modifier.fillMaxWidth()
                     )
                     OutlinedTextField(
                         memberRobots, { memberRobots = it },
-                        label = { Text(localizedAppText("Robot / bonus (facultatif)"))) },
+                        label = { Text(localizedAppText("Robot / bonus (facultatif)")) },
                         minLines = 2, modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -4648,10 +4648,10 @@ private fun AllianceScreen(
                         simulation = emptyList()
                     },
                     enabled = memberName.isNotBlank() && isOfficer
-                ) { Text(localizedAppText("Enregistrer"))) }
+                ) { Text(localizedAppText("Enregistrer")) }
             },
             dismissButton = {
-                TextButton(onClick = { showAddMember = false }) { Text(localizedAppText("Annuler"))) }
+                TextButton(onClick = { showAddMember = false }) { Text(localizedAppText("Annuler")) }
             }
         )
     }
@@ -4785,7 +4785,7 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
                         },
                         enabled = !busy,
                         modifier = Modifier.fillMaxWidth()
-                    ) { Text(localizedAppText("Actualiser le lien cloud après connexion"))) }
+                    ) { Text(localizedAppText("Actualiser le lien cloud après connexion")) }
                     Button(
                         onClick = {
                             scope.launch {
@@ -4849,7 +4849,7 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
                             },
                             enabled = !transferBusy,
                             modifier = Modifier.fillMaxWidth()
-                        ) { Text(localizedAppText("Actualiser la liste des R4"))) }
+                        ) { Text(localizedAppText("Actualiser la liste des R4")) }
                         if (r4Members.isEmpty()) {
                             Text(localizedAppText("Aucun membre R4 disponible dans la liste cloud.")), style = MaterialTheme.typography.bodySmall)
                         } else {
@@ -4894,14 +4894,14 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
                         value = inviteCode,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text(localizedAppText("Code d'invitation"))) },
+                        label = { Text(localizedAppText("Code d'invitation")) },
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
                 OutlinedTextField(
                     value = inviteInput,
                     onValueChange = { inviteInput = it.trim().take(256) },
-                    label = { Text(localizedAppText("Code reçu pour rejoindre une alliance"))) },
+                    label = { Text(localizedAppText("Code reçu pour rejoindre une alliance")) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -4939,7 +4939,7 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
     selectedR4?.let { candidate ->
         AlertDialog(
             onDismissRequest = { if (!transferBusy) selectedR4 = null },
-            title = { Text(localizedAppText("Confirmer le transfert du R5"))) },
+            title = { Text(localizedAppText("Confirmer le transfert du R5")) },
             text = {
                 Text("Confirmer que ${candidate.playerName} devient R5 ? Ton propre rang passera automatiquement à R4.")
             },
@@ -4968,7 +4968,7 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
                 ) { Text(if (transferBusy) "Transfert…" else "Confirmer le transfert") }
             },
             dismissButton = {
-                TextButton(onClick = { selectedR4 = null }, enabled = !transferBusy) { Text(localizedAppText("Annuler"))) }
+                TextButton(onClick = { selectedR4 = null }, enabled = !transferBusy) { Text(localizedAppText("Annuler")) }
             }
         )
     }
@@ -5066,7 +5066,7 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
                     } else {
                         OutlinedTextField(
                             value = title, onValueChange = { title = it.take(120) },
-                            label = { Text(localizedAppText("Titre de la proposition"))) },
+                            label = { Text(localizedAppText("Titre de la proposition")) },
                             supportingText = { Text("${title.length}/120") },
                             singleLine = true, modifier = Modifier.fillMaxWidth()
                         )
@@ -5083,7 +5083,7 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
                         }
                         OutlinedTextField(
                             value = description, onValueChange = { description = it.take(4000) },
-                            label = { Text(localizedAppText("Décris ton idée ou le problème"))) },
+                            label = { Text(localizedAppText("Décris ton idée ou le problème")) },
                             supportingText = { Text("${description.length}/4000 — ajoute des exemples si possible.") },
                             minLines = 4, modifier = Modifier.fillMaxWidth()
                         )
@@ -5114,7 +5114,7 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             if (sending) CircularProgressIndicator(modifier = Modifier.size(17.dp), strokeWidth = 2.dp)
-                            else Text(localizedAppText("Envoyer ma proposition")))
+                            else Text(localizedAppText("Envoyer ma proposition"))
                         }
                     }
                     message?.let { Text(it, color = if (isError) Color(0xFFFCA5A5) else Color(0xFF86EFAC), style = MaterialTheme.typography.bodySmall) }
@@ -5126,7 +5126,7 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(if (isDeveloper) "Toutes les propositions · Développeur" else "Mes propositions", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                 TextButton(onClick = { refresh() }, enabled = !loading) {
-                    if (loading) CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp) else Text(localizedAppText("Actualiser")))
+                    if (loading) CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp) else Text(localizedAppText("Actualiser"))
                 }
             }
         }
@@ -5166,7 +5166,7 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
                         OutlinedButton(
                             onClick = { selected = item; reply = item.developerReply },
                             modifier = Modifier.fillMaxWidth()
-                        ) { Text(localizedAppText("Traiter cette proposition"))) }
+                        ) { Text(localizedAppText("Traiter cette proposition")) }
                     }
                 }
             }
@@ -5177,7 +5177,7 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
         var status by remember(item.id) { mutableStateOf(item.status.takeIf { it != "pending" } ?: "accepted") }
         AlertDialog(
             onDismissRequest = { if (!reviewBusy) selected = null },
-            title = { Text(localizedAppText("Répondre à la proposition"))) },
+            title = { Text(localizedAppText("Répondre à la proposition")) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(item.title, fontWeight = FontWeight.Bold)
@@ -5195,7 +5195,7 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
                     }
                     OutlinedTextField(
                         value = reply, onValueChange = { reply = it.take(3000) },
-                        label = { Text(localizedAppText("Ta réponse au joueur"))) },
+                        label = { Text(localizedAppText("Ta réponse au joueur")) },
                         minLines = 3, modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -5223,7 +5223,7 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
                 ) { Text(if (reviewBusy) "Enregistrement…" else "Envoyer la réponse") }
             },
             dismissButton = {
-                TextButton(onClick = { selected = null }, enabled = !reviewBusy) { Text(localizedAppText("Annuler"))) }
+                TextButton(onClick = { selected = null }, enabled = !reviewBusy) { Text(localizedAppText("Annuler")) }
             }
         )
     }
