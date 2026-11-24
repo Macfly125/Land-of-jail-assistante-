@@ -973,10 +973,11 @@ fun LandsOfJailAssistantApp(
             .apply()
     }
     var currentTab by remember { mutableStateOf(AssistantTab.TABLEAU) }
+    val giftCodeJson = remember { Json { ignoreUnknownKeys = true } }
     val giftCodePrefs = remember(context) { context.getSharedPreferences("gift_codes_cache_v1", Context.MODE_PRIVATE) }
     var giftCodeSnapshot by remember {
         mutableStateOf(runCatching {
-            accountJson.decodeFromString<GiftCodeSnapshot>(giftCodePrefs.getString("snapshot", "") ?: "")
+            giftCodeJson.decodeFromString<GiftCodeSnapshot>(giftCodePrefs.getString("snapshot", "") ?: "")
         }.getOrElse { GiftCodeRepository.initialSnapshot() })
     }
     var giftCodesRefreshing by remember { mutableStateOf(false) }
@@ -988,7 +989,7 @@ fun LandsOfJailAssistantApp(
                     try {
                         val refreshed = withContext(Dispatchers.IO) { GiftCodeRepository.refresh(giftCodeSnapshot) }
                         giftCodeSnapshot = refreshed
-                        giftCodePrefs.edit().putString("snapshot", accountJson.encodeToString(refreshed)).apply()
+                        giftCodePrefs.edit().putString("snapshot", giftCodeJson.encodeToString(refreshed)).apply()
                     } finally {
                         giftCodesRefreshing = false
                     }
@@ -3541,8 +3542,8 @@ private fun GiftCodesScreen(
             }
         }
         item {
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
-                listOf("ALL" to labels[0], "OFFICIAL" to labels[1], "CHECK" to labels[2], "EXPIRED" to labels[3]).forEach { (key, label) ->
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
+                items(listOf("ALL" to labels[0], "OFFICIAL" to labels[1], "CHECK" to labels[2], "EXPIRED" to labels[3])) { (key, label) ->
                     FilterChip(selected = filter == key, onClick = { filter = key }, label = { Text(label, maxLines = 1) })
                 }
             }
@@ -3566,6 +3567,7 @@ private fun GiftCodesScreen(
                     if (entry.lastChecked.isNotBlank()) Text(labels[5] + " : " + entry.lastChecked, style = MaterialTheme.typography.bodySmall)
                     Text(labels[7] + " : " + entry.expiresAt.ifBlank { labels[16] }, style = MaterialTheme.typography.bodySmall)
                     Text(labels[8] + " : " + entry.source, style = MaterialTheme.typography.bodySmall)
+                    if (entry.reward.isNotBlank()) Text(localizedUiText(language, "Récompenses : ", "Rewards: ", "Belohnungen: ", "Ödüller: ", "Награды: ", "奖励：", "Ricompense: ") + entry.reward, style = MaterialTheme.typography.bodySmall)
                     if (entry.note.isNotBlank()) Text(entry.note, style = MaterialTheme.typography.bodySmall, color = Color(0xFFCBD5E1))
                     Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
                         TextButton(onClick = {
