@@ -90,12 +90,12 @@ private fun localizedCaptureCategory(language: AppLanguage, raw: String): String
     "batiments", "buildings" -> localizedUiText(language, "Bâtiments", "Buildings", "Gebäude", "Binalar", "Здания", "建筑")
     "troupes", "troops" -> localizedUiText(language, "Troupes", "Troops", "Truppen", "Birlikler", "Войска", "部队")
     "profil", "profile" -> localizedUiText(language, "Profil", "Profile", "Profil", "Profil", "Профиль", "个人资料")
-    "trial_cage" -> "Trial Cage"
-    "crystal_clash" -> "Crystal Clash"
+    "trial_cage" -> localizedUiText(language, "Cage d’essai", "Trial Cage", "Prüfungskäfig", "Deneme Kafesi", "Испытательная клетка", "试炼笼")
+    "crystal_clash" -> localizedUiText(language, "Conflit cristallin", "Crystal Clash", "Kristallkonflikt", "Kristal Çatışması", "Кристальная битва", "水晶冲突")
     "sandsea_conquest" -> localizedUiText(language, "Conquête de sable", "Sandsea Conquest", "Sandmeer-Eroberung", "Kum Denizi Fethi", "Покорение песчаного моря", "沙海征服")
-    "svs" -> "SvS"
-    "turmoil_surge" -> "Turmoil Surge"
-    "gold_hunter" -> "Gold Hunter"
+    "svs" -> localizedUiText(language, "SvS", "SvS", "SvS", "SvS", "SvS", "SvS")
+    "turmoil_surge" -> localizedUiText(language, "Vague de chaos", "Turmoil Surge", "Chaoswelle", "Kaos Dalgası", "Волна хаоса", "混乱浪潮")
+    "gold_hunter" -> localizedUiText(language, "Chasseur d’or", "Gold Hunter", "Goldjäger", "Altın Avcısı", "Золотой охотник", "黄金猎人")
     else -> localizedUiText(language, "Autre capture", "Other capture", "Andere Aufnahme", "Diğer yakalama", "Другая запись", "其他截图")
 }
 
