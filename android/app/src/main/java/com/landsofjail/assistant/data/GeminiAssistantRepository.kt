@@ -407,6 +407,8 @@ class GeminiAssistantRepository(
                     add("https://guideloj.com/fr/events/alliance/turmoil-surge")
                 AdviceMode.GOLD_HUNTER ->
                     add("https://lojxlab.com/topic/gold-hunter/")
+                AdviceMode.GORILLA_LEGION ->
+                    add("https://lojstrats.com/")
             }
         }.distinct()
 
