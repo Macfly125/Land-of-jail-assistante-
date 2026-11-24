@@ -2161,36 +2161,116 @@ private fun DashboardScreen(
         item {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                    Text("Objectifs à atteindre", fontWeight = FontWeight.Bold)
-                    Text("Les priorités sont calculées à partir des informations de ton profil. Une donnée absente n'est pas considérée comme acquise.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        localizedUiText(currentLang, "Objectifs à atteindre", "Goals to reach", "Zu erreichende Ziele", "Ulaşılacak hedefler", "Цели для достижения", "待完成目标"),
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        localizedUiText(
+                            currentLang,
+                            "Priorités calculées depuis les données de ce profil. Les valeurs absentes ou incertaines ne sont jamais considérées comme acquises.",
+                            "Priorities are calculated from this profile. Missing or uncertain values are never treated as confirmed.",
+                            "Prioritäten basieren auf diesem Profil. Fehlende oder unsichere Werte gelten nicht als bestätigt.",
+                            "Öncelikler bu profile göre hesaplanır. Eksik veya belirsiz değerler doğrulanmış sayılmaz.",
+                            "Приоритеты рассчитаны по этому профилю. Отсутствующие и сомнительные значения не считаются подтверждёнными.",
+                            "根据此档案计算优先事项。缺失或不确定的数据不会被视为已确认。"
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                     if (currentWardenLevel == null) {
-                        Text("• Niveau du QG / prison à mesurer", fontWeight = FontWeight.SemiBold)
-                        Text("À faire : importer une capture de ton bâtiment principal pour identifier le niveau et calculer la prochaine amélioration.", style = MaterialTheme.typography.bodySmall)
+                        Text(
+                            localizedUiText(currentLang, "• Niveau du QG / prison à mesurer", "• Measure HQ / Warden Office level", "• HQ-/Gefängnisstufe erfassen", "• Karargâh / Müdürlük seviyesini ölç", "• Определить уровень штаба / тюрьмы", "• 先识别总部 / 典狱长办公室等级"),
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            localizedUiText(
+                                currentLang,
+                                "À faire : importer une capture du bâtiment principal pour identifier le niveau et calculer la prochaine amélioration.",
+                                "Next: import a screenshot of the main building to identify its level and calculate the next upgrade.",
+                                "Nächster Schritt: Screenshot des Hauptgebäudes importieren, um die Stufe und das nächste Upgrade zu ermitteln.",
+                                "Sonraki adım: seviyeyi belirlemek ve sonraki yükseltmeyi hesaplamak için ana bina ekran görüntüsünü içe aktar.",
+                                "Далее: импортируйте снимок главного здания, чтобы определить уровень и рассчитать улучшение.",
+                                "下一步：导入主建筑截图，以识别等级并计算下一次升级。"
+                            ),
+                            style = MaterialTheme.typography.bodySmall
+                        )
                     } else if (nextWardenRequirement != null) {
-                        Text("• Objectif bâtiment : niveau ${nextWardenRequirement.level}", fontWeight = FontWeight.SemiBold)
-                        Text("Prérequis : ${nextWardenRequirement.prereqs}", style = MaterialTheme.typography.bodySmall)
-                        val costs = listOf("Nourriture" to nextWardenRequirement.food, "Bois" to nextWardenRequirement.wood, "Acier" to nextWardenRequirement.steel, "Essence" to nextWardenRequirement.gasoline).filter { it.second > 0L }.joinToString(" · ") { "${it.first} : ${it.second}" }
-                        if (costs.isNotBlank()) Text("Ressources nécessaires : $costs", style = MaterialTheme.typography.bodySmall)
-                        if (!nextWardenRequirement.verified) Text("Coût / prérequis estimé : à confirmer dans le jeu.", color = Color(0xFFFBBF24), style = MaterialTheme.typography.bodySmall)
+                        Text(
+                            localizedUiText(currentLang, "• Prochain objectif bâtiment : niveau ${nextWardenRequirement.level}", "• Next building goal: level ${nextWardenRequirement.level}", "• Nächstes Gebäudeziel: Stufe ${nextWardenRequirement.level}", "• Sonraki bina hedefi: seviye ${nextWardenRequirement.level}", "• Следующая цель здания: уровень ${nextWardenRequirement.level}", "• 下一个建筑目标：等级 ${nextWardenRequirement.level}"),
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            localizedUiText(currentLang, "Prérequis : ${nextWardenRequirement.prereqs}", "Requirements: ${nextWardenRequirement.prereqs}", "Voraussetzungen: ${nextWardenRequirement.prereqs}", "Ön koşullar: ${nextWardenRequirement.prereqs}", "Требования: ${nextWardenRequirement.prereqs}", "前置条件：${nextWardenRequirement.prereqs}"),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                        val requiredResources = listOf(
+                            Triple("Nourriture", nextWardenRequirement.food, listOf("nourriture", "food", "vivres")),
+                            Triple("Bois", nextWardenRequirement.wood, listOf("bois", "wood", "lumber")),
+                            Triple("Acier", nextWardenRequirement.steel, listOf("acier", "steel", "fer", "iron")),
+                            Triple("Essence", nextWardenRequirement.gasoline, listOf("essence", "gasoline", "fuel", "pétrole", "petrole"))
+                        ).filter { it.second > 0L }
+                        requiredResources.forEach { (label, required, aliases) ->
+                            val stock = resources.firstOrNull { resource -> aliases.any { alias -> resource.nom.contains(alias, ignoreCase = true) } }
+                            val available = stock?.takeIf { !it.incertain }?.quantiteNumerique
+                            val shortage = available?.let { (required.toDouble() - it).coerceAtLeast(0.0).toLong() }
+                            Text(
+                                when (currentLang) {
+                                    AppLanguage.FR -> "$label : requis ${required} · disponible ${available?.toLong()?.toString() ?: "à confirmer"} · manque ${shortage?.toString() ?: "inconnu"}"
+                                    AppLanguage.EN -> "$label: required ${required} · available ${available?.toLong()?.toString() ?: "unconfirmed"} · shortfall ${shortage?.toString() ?: "unknown"}"
+                                    AppLanguage.DE -> "$label: benötigt ${required} · vorhanden ${available?.toLong()?.toString() ?: "unbestätigt"} · fehlend ${shortage?.toString() ?: "unbekannt"}"
+                                    AppLanguage.TR -> "$label: gereken ${required} · mevcut ${available?.toLong()?.toString() ?: "doğrulanmadı"} · eksik ${shortage?.toString() ?: "bilinmiyor"}"
+                                    AppLanguage.RU -> "$label: нужно ${required} · есть ${available?.toLong()?.toString() ?: "не подтверждено"} · не хватает ${shortage?.toString() ?: "неизвестно"}"
+                                    AppLanguage.ZH -> "$label：需要 ${required} · 当前 ${available?.toLong()?.toString() ?: "未确认"} · 缺少 ${shortage?.toString() ?: "未知"}"
+                                },
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                        if (!nextWardenRequirement.verified) {
+                            Text(
+                                localizedUiText(currentLang, "Coûts / prérequis estimés : à confirmer dans le jeu.", "Estimated costs / requirements: confirm in-game.", "Geschätzte Kosten / Voraussetzungen: im Spiel prüfen.", "Tahmini maliyetler / ön koşullar: oyunda doğrulayın.", "Расчётные затраты / требования: проверьте в игре.", "估算费用 / 前置条件：请在游戏内确认。"),
+                                color = Color(0xFFFBBF24),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
                     } else if (currentWardenLevel >= 30) {
-                        Text("• Objectif bâtiment : niveau maximum actuellement référencé (30).", style = MaterialTheme.typography.bodySmall)
+                        Text(localizedUiText(currentLang, "• Objectif bâtiment : niveau maximum actuellement référencé (30).", "• Building goal: currently documented maximum level (30).", "• Gebäudeziel: derzeit dokumentierte Höchststufe (30).", "• Bina hedefi: şu anda belgelenen en yüksek seviye (30).", "• Цель здания: максимальный уровень в текущих данных (30).", "• 建筑目标：当前资料记录的最高等级（30）。"), style = MaterialTheme.typography.bodySmall)
                     } else {
-                        Text("• Prochaine amélioration du QG : données de prérequis non référencées pour le niveau ${currentWardenLevel + 1}.", style = MaterialTheme.typography.bodySmall)
+                        Text(localizedUiText(currentLang, "• Données de prérequis manquantes pour le niveau ${(currentWardenLevel ?: 0) + 1}.", "• Requirements are not documented for level ${(currentWardenLevel ?: 0) + 1}.", "• Voraussetzungen für Stufe ${(currentWardenLevel ?: 0) + 1} fehlen.", "• ${(currentWardenLevel ?: 0) + 1}. seviye için ön koşul verisi yok.", "• Нет данных о требованиях для уровня ${(currentWardenLevel ?: 0) + 1}.", "• 缺少等级 ${(currentWardenLevel ?: 0) + 1} 的前置条件数据。"), style = MaterialTheme.typography.bodySmall)
                     }
                     if (heroesToComplete.isNotEmpty()) {
-                        Text("• Héros à compléter : ${heroesToComplete.size}", fontWeight = FontWeight.SemiBold)
-                        Text(heroesToComplete.take(4).joinToString(" · ") { hero -> val missing = buildList { if (hero.niveauTexte.isBlank()) add("niveau"); if (hero.etoiles.isNullOrBlank()) add("étoiles"); if (hero.puissanceHero.isNullOrBlank()) add("puissance"); if (hero.competences.isEmpty()) add("compétences") }; "${hero.nom} (${missing.joinToString(", ")})" }, style = MaterialTheme.typography.bodySmall)
-                        Text("À faire : ouvrir Héros, puis compléter les champs manquants avec les captures du jeu.", style = MaterialTheme.typography.bodySmall)
+                        Text(
+                            localizedUiText(currentLang, "• Héros à compléter : ${heroesToComplete.size}", "• Heroes to complete: ${heroesToComplete.size}", "• Zu ergänzende Helden: ${heroesToComplete.size}", "• Tamamlanacak kahraman: ${heroesToComplete.size}", "• Героев для заполнения: ${heroesToComplete.size}", "• 待补全英雄：${heroesToComplete.size}"),
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            heroesToComplete.take(4).joinToString(" · ") { hero ->
+                                val missing = buildList {
+                                    if (hero.niveauTexte.isBlank()) add("niveau")
+                                    if (hero.etoiles.isNullOrBlank()) add("étoiles")
+                                    if (hero.puissanceHero.isNullOrBlank()) add("puissance")
+                                    if (hero.competences.isEmpty()) add("compétences")
+                                }
+                                "${hero.nom} (${missing.joinToString(", ")})"
+                            },
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                        Text(
+                            localizedUiText(currentLang, "À faire : ouvrir Héros et compléter les champs manquants avec les captures du jeu.", "Next: open Heroes and complete missing fields using game screenshots.", "Nächster Schritt: Helden öffnen und fehlende Felder anhand von Spiel-Screenshots ergänzen.", "Sonraki adım: Kahramanlar bölümünü açıp eksik alanları oyun ekran görüntüleriyle tamamlayın.", "Далее: откройте героев и заполните пропуски по игровым снимкам.", "下一步：打开英雄页面，使用游戏截图补全缺失字段。"),
+                            style = MaterialTheme.typography.bodySmall
+                        )
                     }
                     if (resources.isEmpty()) {
-                        Text("• Inventaire à renseigner", fontWeight = FontWeight.SemiBold)
-                        Text("À faire : importer une capture de l'inventaire des ressources pour comparer tes stocks aux prochains coûts.", style = MaterialTheme.typography.bodySmall)
+                        Text(localizedUiText(currentLang, "• Inventaire à renseigner", "• Resource inventory missing", "• Ressourceninventar fehlt", "• Kaynak envanteri eksik", "• Не заполнен запас ресурсов", "• 尚未记录资源库存"), fontWeight = FontWeight.SemiBold)
+                        Text(localizedUiText(currentLang, "À faire : importer une capture de l'inventaire pour comparer tes stocks aux prochains coûts.", "Next: import an inventory screenshot to compare your stock with upcoming costs.", "Nächster Schritt: Screenshot des Inventars importieren und Bestände mit künftigen Kosten vergleichen.", "Sonraki adım: stokları sonraki maliyetlerle karşılaştırmak için envanter ekranını içe aktarın.", "Далее: импортируйте снимок запасов, чтобы сравнить их с будущими затратами.", "下一步：导入库存截图，将现有资源与后续升级费用比较。"), style = MaterialTheme.typography.bodySmall)
                     }
                     if (robots.isEmpty()) {
-                        Text("• Profil robot à renseigner", fontWeight = FontWeight.SemiBold)
-                        Text("À faire : importer les écrans du robot, de ses bonus et de ses compétences.", style = MaterialTheme.typography.bodySmall)
+                        Text(localizedUiText(currentLang, "• Profil robot à renseigner", "• Robot profile missing", "• Roboterprofil fehlt", "• Robot profili eksik", "• Не заполнен профиль робота", "• 尚未记录机器人资料"), fontWeight = FontWeight.SemiBold)
+                        Text(localizedUiText(currentLang, "À faire : importer les écrans du robot, de ses bonus et de ses compétences.", "Next: import the robot screens showing its bonuses and skills.", "Nächster Schritt: Screenshots des Roboters mit Boni und Fähigkeiten importieren.", "Sonraki adım: robotun bonuslarını ve becerilerini gösteren ekranları içe aktarın.", "Далее: импортируйте экраны робота, его бонусов и навыков.", "下一步：导入机器人、加成和技能页面。"), style = MaterialTheme.typography.bodySmall)
                     }
-                    if (heroesToComplete.isEmpty() && resources.isNotEmpty() && robots.isNotEmpty() && currentWardenLevel != null) Text("Les principales données du profil sont renseignées. Consulte Événements et Conseils pour définir tes prochains objectifs tactiques.", color = Color(0xFF34D399), style = MaterialTheme.typography.bodySmall)
+                    if (heroesToComplete.isEmpty() && resources.isNotEmpty() && robots.isNotEmpty() && currentWardenLevel != null) {
+                        Text(localizedUiText(currentLang, "Les principales données du profil sont renseignées. Consulte Événements et Conseils pour définir tes prochains objectifs tactiques.", "The main profile data is complete. Check Events and Advice to set your next tactical goals.", "Die wichtigsten Profildaten sind erfasst. Prüfe Ereignisse und Tipps für deine nächsten taktischen Ziele.", "Profilin temel verileri tamamlandı. Sonraki taktik hedefler için Etkinlikler ve Tavsiyeler'e bakın.", "Основные данные профиля заполнены. Откройте события и советы, чтобы определить следующие тактические цели.", "主要档案数据已填写。请查看活动和建议，制定下一步战术目标。"), color = Color(0xFF34D399), style = MaterialTheme.typography.bodySmall)
+                    }
                 }
             }
         }
