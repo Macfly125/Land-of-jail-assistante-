@@ -203,7 +203,7 @@ fun ProgressionCoachScreen(
                                 val observedStocks = resources.mapNotNull { resource ->
                                     val quantity = resource.quantiteNumerique?.takeIf { it.isFinite() && it >= 0 }?.toLong()
                                     if (quantity == null) null else PlayerResourceStock(
-                                        resource.nom.lowercase(), quantity, !resource.incertain, now
+                                        canonicalProgressionResourceId(resource.nom), quantity, !resource.incertain, now
                                     )
                                 }
                                 val stocks = mergeProgressionStocks(profile.resourceStocks, observedStocks)
