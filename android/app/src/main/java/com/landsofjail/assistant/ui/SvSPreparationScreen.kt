@@ -23,7 +23,39 @@ import com.landsofjail.assistant.model.AppLanguage
 private data class SvSAction(val fr:String,val en:String,val de:String,val tr:String,val ru:String,val zh:String,val it:String,val points:String="")
 private data class SvSDay(val number:Int,val title:SvSAction,val actions:List<SvSAction>)
 private fun SvSAction.text(l:AppLanguage)=when(l){AppLanguage.FR->fr;AppLanguage.EN->en;AppLanguage.DE->de;AppLanguage.TR->tr;AppLanguage.RU->ru;AppLanguage.ZH->zh;AppLanguage.IT->it}
-private fun a(fr:String,en:String,points:String="")=SvSAction(fr,en,en,en,en,en,en,points)
+private fun a(fr:String,en:String,points:String=""):SvSAction {
+ val t=svsTranslations[fr]
+ return SvSAction(fr,en,t?.get(0)?:en,t?.get(1)?:en,t?.get(2)?:en,t?.get(3)?:en,t?.get(4)?:en,points)
+}
+private val svsTranslations:Map<String,List<String>> = mapOf(
+ "Forticlad, bâtiments et recherches" to listOf("Forticlad, Gebäude und Forschung","Forticlad, binalar ve araştırma","Фортиклад, здания и исследования","Forticlad、建筑与研究","Forticlad, edifici e ricerca"),
+ "Noyaux Forticlad" to listOf("Forticlad-Kerne","Forticlad Çekirdekleri","Ядра Forticlad","Forticlad核心","Nuclei Forticlad"),
+ "Hyperalliage" to listOf("Hyperlegierung","Hiper Alaşım","Гиперсплав","超合金","Iperlega"),
+ "Noyaux Forticlad avancés" to listOf("Fortgeschrittene Forticlad-Kerne","Gelişmiş Forticlad Çekirdekleri","Улучшенные ядра Forticlad","高级Forticlad核心","Nuclei Forticlad avanzati"),
+ "Tomes et satellites (puces, noyaux Orbit/Cosmic)" to listOf("Bände und Satelliten (Chips, Orbit-/Cosmic-Kerne)","Ciltler ve uydular (çipler, Orbit/Cosmic çekirdekleri)","Фолианты и спутники (чипы, ядра Orbit/Cosmic)","典籍与卫星（芯片、Orbit/Cosmic核心）","TomI e satelliti (chip, nuclei Orbit/Cosmic)"),
+ "Accélérateurs construction, recherche et entraînement" to listOf("Beschleuniger für Bau, Forschung und Ausbildung","İnşaat, araştırma ve eğitim hızlandırmaları","Ускорители строительства, исследований и обучения","建筑、研究和训练加速道具","Accelerazioni costruzione, ricerca e addestramento"),
+ "Collecte, fragments et spins" to listOf("Sammeln, Splitter und Drehs","Toplama, parçalar ve çarklar","Сбор ресурсов, фрагменты и прокрутки","采集、碎片与转盘","Raccolta, frammenti e giri"),
+ "Collecter sur la carte : nourriture, bois, acier, essence" to listOf("Auf der Karte Nahrung, Holz, Stahl und Benzin sammeln","Haritada yiyecek, odun, çelik ve benzin topla","Собирайте на карте еду, дерево, сталь и бензин","在地图上采集食物、木材、钢材和汽油","Raccogli cibo, legno, acciaio e benzina sulla mappa"),
+ "Fragments de héros rares / épiques / légendaires" to listOf("Seltene / epische / legendäre Heldenfragmente","Nadir / destansı / efsanevi kahraman parçaları","Редкие / эпические / легендарные фрагменты героев","稀有/史诗/传奇英雄碎片","Frammenti eroe rari / epici / leggendari"),
+ "Spins de renforcement" to listOf("Verstärkungsdrehs","Güçlendirme çarkları","Прокрутки усиления","强化转盘","Giri di potenziamento"),
+ "Noyaux Forticlad et Hyperalliage" to listOf("Forticlad-Kerne und Hyperlegierung","Forticlad çekirdekleri ve Hiper Alaşım","Ядра Forticlad и гиперсплав","Forticlad核心与超合金","Nuclei Forticlad e Iperlega"),
+ "Fugitifs, rallies et modules" to listOf("Flüchtige, Rallyes und Module","Kaçaklar, ralliler ve modüller","Беглецы, ралли и модули","逃犯、集结与模块","Fuggitivi, rally e moduli"),
+ "Vaincre des fugitifs (selon leur niveau)" to listOf("Flüchtige besiegen (je nach Level)","Kaçakları yen (seviyelerine göre)","Побеждайте беглецов (в зависимости от уровня)","击败逃犯（取决于等级）","Sconfiggi i fuggitivi (in base al livello)"),
+ "Lancer un rallye contre une bête" to listOf("Eine Bestien-Rallye starten","Bir canavara karşı ralli başlat","Начать рейд на зверя","发起野兽集结","Avvia un rally contro una bestia"),
+ "Ouvrir les coffres de modules Solo / Formation / Barrière" to listOf("Solo-/Formations-/Barriere-Modultruhen öffnen","Solo / Formasyon / Bariyer modül sandıklarını aç","Открывайте сундуки модулей: одиночный / строй / барьер","开启单人/阵型/屏障模块宝箱","Apri casse moduli Solo / Formazione / Barriera"),
+ "Modules de puissance / avancés" to listOf("Leistungs- / fortgeschrittene Module","Güç / gelişmiş modüller","Модули силы / улучшенные модули","力量/高级模块","Moduli potenza / avanzati"),
+ "Entraînement, promotion et équipements" to listOf("Ausbildung, Beförderung und Ausrüstung","Eğitim, terfi ve ekipman","Обучение, повышение и снаряжение","训练、晋升与装备","Addestramento, promozione ed equipaggiamento"),
+ "Entraîner ou promouvoir les troupes" to listOf("Truppen ausbilden oder befördern","Birlikleri eğit veya terfi ettir","Обучайте или повышайте уровень войск","训练或晋升部队","Addestra o promuovi le truppe"),
+ "Pièces d'équipement exclusif de héros" to listOf("Exklusive Heldenausrüstungsteile","Kahramana özel ekipman parçaları","Детали эксклюзивного снаряжения героев","英雄专属装备部件","Componenti equipaggiamento esclusivo eroi"),
+ "Engrenages de précision, bobines de potentiel, aimants" to listOf("Präzisionszahnräder, Potenzialspulen, Magnete","Hassas dişliler, potansiyel bobinleri, mıknatıslar","Точные шестерни, катушки потенциала, магниты","精密齿轮、潜能线圈、磁铁","Ingranaggi di precisione, bobine potenziale, magneti"),
+ "Puces satellite et noyaux Orbit/Cosmic" to listOf("Satellitenchips und Orbit-/Cosmic-Kerne","Uydu çipleri ve Orbit/Cosmic çekirdekleri","Спутниковые чипы и ядра Orbit/Cosmic","卫星芯片与Orbit/Cosmic核心","Chip satellitari e nuclei Orbit/Cosmic"),
+ "Accélérateurs d'entraînement" to listOf("Ausbildungsbeschleuniger","Eğitim hızlandırmaları","Ускорители обучения","训练加速道具","Accelerazioni addestramento"),
+ "Journée mixte : utiliser le reliquat éligible" to listOf("Gemischter Tag: übrige geeignete Vorräte verwenden","Karma gün: kalan uygun stokları kullan","Смешанный день: используйте оставшиеся подходящие запасы","混合日：使用剩余的适用物资","Giornata mista: usa le scorte idonee rimanenti"),
+ "Coffres de modules et modules de puissance" to listOf("Modultruhen und Leistungsmodule","Modül sandıkları ve güç modülleri","Сундуки модулей и модули силы","模块宝箱与力量模块","Casse moduli e moduli potenza"),
+ "Noyaux Forticlad, Hyperalliage et noyaux avancés" to listOf("Forticlad-Kerne, Hyperlegierung und fortgeschrittene Kerne","Forticlad çekirdekleri, Hiper Alaşım ve gelişmiş çekirdekler","Ядра Forticlad, гиперсплав и улучшенные ядра","Forticlad核心、超合金和高级核心","Nuclei Forticlad, Iperlega e nuclei avanzati"),
+ "Pièces exclusives, engrenages, bobines et aimants" to listOf("Exklusive Teile, Zahnräder, Spulen und Magnete","Özel parçalar, dişliler, bobinler ve mıknatıslar","Эксклюзивные детали, шестерни, катушки и магниты","专属部件、齿轮、线圈和磁铁","Parti esclusive, ingranaggi, bobine e magneti"),
+ "Note de collection gagnée" to listOf("Erhaltene Sammlungswertung","Kazanılan koleksiyon puanı","Полученный рейтинг коллекции","获得的收藏评分","Valutazione collezione ottenuta")
+)
 private val svsDays=listOf(
  SvSDay(1,a("Forticlad, bâtiments et recherches","Forticlad, buildings and research"),listOf(
   a("Noyaux Forticlad","Forticlad Cores","3 000 pts/unité"),a("Hyperalliage","Hyperalloy","1 500 pts/unité"),a("Noyaux Forticlad avancés","Advanced Forticlad Cores","45 000 pts/unité"),a("Tomes et satellites (puces, noyaux Orbit/Cosmic)","Tomes and satellites (chips, Orbit/Cosmic Cores)","210 pts/rating · 9 800 / 3 500 / 43 750"),a("Accélérateurs construction, recherche et entraînement","Construction, research and training speedups","90 pts/minute")
