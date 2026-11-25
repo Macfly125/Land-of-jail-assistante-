@@ -297,6 +297,14 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun classifiesWardenOfficeWithApostropheAsBuildingScreen() {
+        listOf("Warden's Office", "Warden’s Office", "Director's Office").forEach { label ->
+            val result = ScreenRecognitionEngine.analyze(label)
+            assertEquals("Le Bureau du directeur doit être classé comme bâtiment : $label", "batiments", result.category)
+        }
+    }
+
+    @Test
     fun recognizesBuildingScreensSeparatelyFromResources() {
         val result = ScreenRecognitionEngine.analyze(
             "Warden Office Level 18\nUpgrade building\nRequired resources"
