@@ -80,4 +80,27 @@ class ProgressionCoachTest {
             ProgressionCoach.freeSourceAdvice("steel", mapOf("steel" to listOf("Alliance shop", "Daily missions"))))
         assertEquals(emptyList<String>(), ProgressionCoach.freeSourceAdvice("unknown", emptyMap()))
     }
+    @Test
+    fun localizedResourceAliasesAreCanonicalizedForCostsAndConfirmedStocks() {
+        val steps = listOf(
+            ProgressionStep("hq-1-2", ProgressionDomain.BUILDING, "Bureau", 1, 2,
+                listOf(
+                    ResourceCost("Bois", 100, CostConfidence.VERIFIED_IN_GAME),
+                    ResourceCost("Wood", 50, CostConfidence.COMMUNITY_REFERENCE),
+                    ResourceCost("Acier", 25, CostConfidence.COMMUNITY_REFERENCE)
+                ))
+        )
+        val plan = ProgressionCoach.calculate(steps, listOf(
+            PlayerResourceStock("Bois", 80, true, 10),
+            PlayerResourceStock("wood", 90, true, 20),
+            PlayerResourceStock("Wood", 500, false, 30)
+        ))
+
+        val wood = plan.requirements.single { it.resourceId == "wood" }
+        assertEquals(150L, wood.required)
+        assertEquals(90L, wood.ownedConfirmed)
+        assertEquals(60L, wood.missing)
+        assertEquals("steel", plan.requirements.single { it.resourceId == "steel" }.resourceId)
+    }
+
 }

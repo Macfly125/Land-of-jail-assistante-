@@ -102,12 +102,15 @@ object ProgressionCoach {
         val cyclicIds = remaining.keys.toList()
 
         val confirmedStocks = stocks.filter { it.confirmed }
-            .groupBy { it.resourceId }
+            .groupBy { canonicalProgressionResourceId(it.resourceId) }
             .mapValues { (_, entries) -> entries.maxByOrNull { it.updatedAtEpochMillis }!!.quantity }
 
+        // Normalize localized resource names at the calculation boundary too:
+        // callers outside the UI must get the same safe totals.
         // Costs flagged NEEDS_CONFIRMATION are deliberately excluded from totals.
         val allCosts = steps.flatMap { step ->
             step.costs.filter { it.confidence != CostConfidence.NEEDS_CONFIRMATION }
+                .map { it.copy(resourceId = canonicalProgressionResourceId(it.resourceId)) }
         }.groupBy { it.resourceId }
         val requirements = allCosts.map { (resourceId, costs) ->
             val required = costs.sumOf { it.quantity }
