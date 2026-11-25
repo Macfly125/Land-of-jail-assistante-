@@ -35,5 +35,8 @@ class ResourceNameMatcherTest {
         assertFalse(ResourceNameMatcher.matchesWardenCost("", "food"))
         assertFalse(ResourceNameMatcher.matchesWardenCost("Diamants", "food"))
         assertFalse(ResourceNameMatcher.matchesWardenCost("Nourriture", "unknown"))
+        assertFalse(ResourceNameMatcher.matchesWardenCost("Different", "steel"))
+        assertFalse(ResourceNameMatcher.matchesWardenCost("Seafood", "food"))
+        assertFalse(ResourceNameMatcher.matchesWardenCost("Wooden", "wood"))
     }
 }
