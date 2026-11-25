@@ -45,6 +45,7 @@ private val progressionDomains = listOf(
     ProgressionDomain.HERO,
     ProgressionDomain.RESEARCH,
     ProgressionDomain.ROBOT,
+    ProgressionDomain.ROBOT_CORE,
     ProgressionDomain.EQUIPMENT,
     ProgressionDomain.TROOPS
 )
