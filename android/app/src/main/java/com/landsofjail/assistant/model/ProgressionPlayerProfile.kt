@@ -68,20 +68,38 @@ data class ProgressionPlayerProfile(
  * Merge fresh OCR observations without letting uncertain values erase a
  * previously confirmed stock. An empty observation preserves saved values.
  */
+fun canonicalProgressionResourceId(rawId: String): String {
+    val key = rawId.trim().lowercase()
+        .replace("é", "e").replace("è", "e").replace("ê", "e")
+        .replace("à", "a").replace("â", "a").replace("î", "i")
+        .replace("ô", "o").replace("û", "u").replace("ç", "c")
+    return when (key) {
+        "food", "nourriture", "alimento", "essen" -> "food"
+        "wood", "bois", "holz", "madera", "legno" -> "wood"
+        "steel", "acier", "stahl", "acero", "acciaio" -> "steel"
+        "gasoline", "gas", "essence", "benzine", "benzin", "gasolina", "benzina" -> "gasoline"
+        "gold", "or", "cash", "argent", "oro" -> "gold"
+        "diamond", "diamonds", "diamant", "diamants", "gem", "gems", "gemme" -> "diamonds"
+        else -> key
+    }
+}
+
 fun mergeProgressionStocks(
     existing: List<PlayerResourceStock>,
     observed: List<PlayerResourceStock>
 ): List<PlayerResourceStock> {
-    if (observed.isEmpty()) return existing
-    val merged = existing.associateBy { it.resourceId }.toMutableMap()
+    val merged = existing.associateBy { canonicalProgressionResourceId(it.resourceId) }
+        .toMutableMap()
     observed.forEach { candidate ->
-        val previous = merged[candidate.resourceId]
+        val key = canonicalProgressionResourceId(candidate.resourceId)
+        val normalized = candidate.copy(resourceId = key)
+        val previous = merged[key]
         when {
-            candidate.confirmed -> merged[candidate.resourceId] = candidate
-            previous == null -> merged[candidate.resourceId] = candidate
+            normalized.confirmed -> merged[key] = normalized
+            previous == null -> merged[key] = normalized
             previous.confirmed -> Unit
-            candidate.updatedAtEpochMillis >= previous.updatedAtEpochMillis ->
-                merged[candidate.resourceId] = candidate
+            normalized.updatedAtEpochMillis >= previous.updatedAtEpochMillis ->
+                merged[key] = normalized
         }
     }
     return merged.values.sortedBy { it.resourceId }
