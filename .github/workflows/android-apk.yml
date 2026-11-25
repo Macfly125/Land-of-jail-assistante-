@@ -180,15 +180,33 @@ jobs:
 
       - name: Publier un lien APK direct (sans archive ni Split APK Installer)
         if: steps.signing.outputs.available == 'true'
-        uses: softprops/action-gh-release@v2
+        uses: actions/github-script@v7
         with:
-          tag_name: android-latest
-          name: Android - dernière version
-          prerelease: true
-          make_latest: false
-          overwrite_files: true
-          files: android/app/build/outputs/apk/release/app-release.apk
-          fail_on_unmatched_files: true
+          script: |
+            const fs = require('fs');
+            const { owner, repo } = context.repo;
+            const tag = 'android-latest';
+            let release;
+            try {
+              release = (await github.rest.repos.getReleaseByTag({ owner, repo, tag })).data;
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              release = (await github.rest.repos.createRelease({
+                owner, repo, tag_name: tag, name: 'Android - dernière version',
+                prerelease: true, make_latest: 'false', target_commitish: context.sha
+              })).data;
+            }
+            for (const asset of release.assets) {
+              if (asset.name === 'app-release.apk') {
+                await github.rest.repos.deleteReleaseAsset({ owner, repo, asset_id: asset.id });
+              }
+            }
+            await github.rest.repos.uploadReleaseAsset({
+              owner, repo, release_id: release.id, name: 'app-release.apk',
+              data: fs.readFileSync('android/app/build/outputs/apk/release/app-release.apk'),
+              headers: { 'content-type': 'application/vnd.android.package-archive' }
+            });
+            core.info(`APK direct publié : ${release.html_url}`);
 
       - name: Compiler APK debug (tests uniquement)
         if: steps.signing.outputs.available != 'true'
