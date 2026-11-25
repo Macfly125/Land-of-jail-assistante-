@@ -1,6 +1,7 @@
 package com.landsofjail.assistant.ui
 
 import android.content.Context
+import java.text.NumberFormat
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,6 +28,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.landsofjail.assistant.model.AppLanguage
 import com.landsofjail.assistant.model.PlayerResourceStock
+import com.landsofjail.assistant.model.ProgressionCatalog
+import com.landsofjail.assistant.model.ProgressionCoach
+import com.landsofjail.assistant.model.canonicalProgressionResourceId
 import com.landsofjail.assistant.model.ProgressionDomain
 import com.landsofjail.assistant.model.ProgressionLevelRecord
 import com.landsofjail.assistant.model.ProgressionObjective
@@ -93,6 +97,11 @@ fun ProgressionCoachScreen(
     var currentLevel by remember(profileId) { mutableStateOf("") }
     var targetLevel by remember(profileId) { mutableStateOf("") }
     var statusMessage by remember(profileId) { mutableStateOf("") }
+    val labGoal = profile.objectives.firstOrNull {
+        it.domain == ProgressionDomain.BUILDING &&
+            it.targetId.trim().lowercase() in setOf("lab", "laboratory", "labo", "laboratoire")
+    }
+    val labCurrentLevel = labGoal?.let { profile.confirmedLevel(it.targetId) }
 
     fun text(fr: String, en: String, de: String, tr: String, ru: String, zh: String, it: String) =
         when (language) {
@@ -244,6 +253,89 @@ fun ProgressionCoachScreen(
                             }) {
                                 Text(text(fr = "Supprimer", en = "Delete", de = "Löschen", tr = "Sil", ru = "Удалить", zh = "删除", it = "Elimina"))
                             }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (labGoal != null) {
+            item {
+                Card(Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(text(fr = "Calculateur du laboratoire", en = "Laboratory calculator", de = "Labor-Rechner",
+                            tr = "Laboratuvar hesaplayıcısı", ru = "Калькулятор лаборатории", zh = "实验室计算器",
+                            it = "Calcolatore del laboratorio"), style = MaterialTheme.typography.titleMedium)
+                        Text(text(fr = "Référence communautaire LOJ Wiki · consultée le 25/11/2026 · temps de base sans bonus.",
+                            en = "LOJ Wiki community reference · checked 25/11/2026 · base time before bonuses.",
+                            de = "Community-Referenz LOJ Wiki · geprüft am 25.11.2026 · Grundzeit ohne Boni.",
+                            tr = "LOJ Wiki topluluk kaynağı · 25.11.2026 tarihinde kontrol edildi · bonuslar hariç temel süre.",
+                            ru = "Сообщество LOJ Wiki · проверено 25.11.2026 · базовое время без бонусов.",
+                            zh = "LOJ Wiki 社区参考数据 · 2026/11/25 核对 · 不含加成的基础时间。",
+                            it = "Riferimento community LOJ Wiki · verificato il 25/11/2026 · tempo base senza bonus."),
+                            style = MaterialTheme.typography.bodySmall)
+                        if (labCurrentLevel == null) {
+                            Text(text(fr = "Niveau actuel du laboratoire non confirmé : renseigne-le dans l’objectif.",
+                                en = "Current Lab level is not confirmed: enter it in the goal.",
+                                de = "Das aktuelle Labor-Level ist nicht bestätigt: Gib es im Ziel ein.",
+                                tr = "Mevcut laboratuvar seviyesi doğrulanmadı: hedefe gir.",
+                                ru = "Текущий уровень лаборатории не подтверждён: укажи его в цели.",
+                                zh = "实验室当前等级尚未确认，请在目标中填写。",
+                                it = "Il livello attuale del laboratorio non è confermato: inseriscilo nell'obiettivo."),
+                                style = MaterialTheme.typography.bodySmall)
+                        } else if (labGoal.targetLevel <= labCurrentLevel) {
+                            Text(text(fr = "Objectif déjà atteint.", en = "Target already reached.", de = "Ziel bereits erreicht.",
+                                tr = "Hedefe ulaşıldı.", ru = "Цель уже достигнута.", zh = "目标已达成。",
+                                it = "Obiettivo già raggiunto."), style = MaterialTheme.typography.bodySmall)
+                        } else {
+                            val steps = ProgressionCatalog.labBuilding
+                                .filter { it.step.toLevel > labCurrentLevel && it.step.toLevel <= labGoal.targetLevel }
+                                .map { it.step }
+                            val normalizedStocks = profile.resourceStocks.map {
+                                it.copy(resourceId = canonicalProgressionResourceId(it.resourceId))
+                            }
+                            val plan = ProgressionCoach.calculate(steps, normalizedStocks)
+                            Text(text(fr = "Niveau $labCurrentLevel → ${labGoal.targetLevel}",
+                                en = "Level $labCurrentLevel → ${labGoal.targetLevel}",
+                                de = "Level $labCurrentLevel → ${labGoal.targetLevel}",
+                                tr = "Seviye $labCurrentLevel → ${labGoal.targetLevel}",
+                                ru = "Уровень $labCurrentLevel → ${labGoal.targetLevel}",
+                                zh = "等级 $labCurrentLevel → ${labGoal.targetLevel}",
+                                it = "Livello $labCurrentLevel → ${labGoal.targetLevel}"))
+                            plan.requirements.forEach { requirement ->
+                                val label = when (requirement.resourceId) {
+                                    "food" -> text("Nourriture", "Food", "Nahrung", "Yiyecek", "Еда", "食物", "Cibo")
+                                    "wood" -> text("Bois", "Wood", "Holz", "Odun", "Дерево", "木材", "Legno")
+                                    "steel" -> text("Acier", "Steel", "Stahl", "Çelik", "Сталь", "钢材", "Acciaio")
+                                    "gasoline" -> text("Essence", "Gasoline", "Benzin", "Benzin", "Бензин", "汽油", "Benzina")
+                                    else -> requirement.resourceId
+                                }
+                                val required = NumberFormat.getIntegerInstance().format(requirement.required)
+                                val owned = requirement.ownedConfirmed?.let { NumberFormat.getIntegerInstance().format(it) }
+                                val missing = requirement.missing?.let { NumberFormat.getIntegerInstance().format(it) }
+                                Text(if (owned == null) "$label : $required · " +
+                                    text("stock inconnu", "stock unknown", "Bestand unbekannt", "stok bilinmiyor", "запас неизвестен", "库存未知", "scorta sconosciuta")
+                                    else "$label : $required · " +
+                                    text("possédé", "owned", "vorhanden", "mevcut", "есть", "拥有", "disponibile") + " $owned · " +
+                                    text("manque", "missing", "fehlen", "eksik", "не хватает", "缺少", "mancano") + " $missing")
+                            }
+                            plan.totalKnownDurationSeconds?.let { duration ->
+                                Text(text(fr = "Temps de base : ${duration / 86400} j ${(duration % 86400) / 3600} h ${(duration % 3600) / 60} min",
+                                    en = "Base time: ${duration / 86400} d ${(duration % 86400) / 3600} h ${(duration % 3600) / 60} min",
+                                    de = "Grundzeit: ${duration / 86400} T ${(duration % 86400) / 3600} Std. ${(duration % 3600) / 60} Min.",
+                                    tr = "Temel süre: ${duration / 86400} g ${(duration % 86400) / 3600} sa ${(duration % 3600) / 60} dk",
+                                    ru = "Базовое время: ${duration / 86400} д ${(duration % 86400) / 3600} ч ${(duration % 3600) / 60} мин",
+                                    zh = "基础时间：${duration / 86400} 天 ${(duration % 86400) / 3600} 小时 ${(duration % 3600) / 60} 分",
+                                    it = "Tempo base: ${duration / 86400} g ${(duration % 86400) / 3600} h ${(duration % 3600) / 60} min"))
+                            }
+                            Text(text(fr = "Coûts issus d’une référence communautaire, non testés en direct dans le jeu. Vérifie les prérequis du Bureau du directeur avant l’amélioration.",
+                                en = "Costs come from a community reference, not live in-game testing. Check Warden's Office prerequisites before upgrading.",
+                                de = "Kosten aus Community-Referenz, nicht live im Spiel getestet. Voraussetzungen des Büros vor dem Upgrade prüfen.",
+                                tr = "Maliyetler topluluk kaynağından alınmıştır, oyunda canlı test edilmemiştir. Yükseltmeden önce gereksinimleri kontrol et.",
+                                ru = "Стоимость взята из сообщества, не проверена в игре. Перед улучшением проверь требования.",
+                                zh = "费用来自社区参考，未经游戏内实时测试。升级前请确认典狱长办公室前置条件。",
+                                it = "Costi da una fonte community, non testati in gioco. Verifica i prerequisiti prima di migliorare."),
+                                style = MaterialTheme.typography.bodySmall)
                         }
                     }
                 }
