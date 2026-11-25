@@ -1,9 +1,12 @@
 package com.landsofjail.assistant.model
 
+import kotlinx.serialization.Serializable
+
 /**
  * Offline-first progression calculator. Only verified cost rows are summed;
  * unknown rows stay explicitly unknown and are never estimated by interpolation.
  */
+@Serializable
 enum class ProgressionDomain {
     BUILDING, HERO, RESEARCH, ROBOT, ROBOT_CORE, EQUIPMENT, TROOPS
 }
