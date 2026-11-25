@@ -115,7 +115,11 @@ class ProgressionPlayerProfileTest {
             PlayerResourceStock("steel", 250L, false, 110L)
         )
 
-        assertEquals(existing, mergeProgressionStocks(existing, emptyList()))
+        val merged = mergeProgressionStocks(existing, emptyList()).associateBy { it.resourceId }
+        assertEquals(700L, merged.getValue("wood").quantity)
+        assertEquals(true, merged.getValue("wood").confirmed)
+        assertEquals(250L, merged.getValue("steel").quantity)
+        assertEquals(false, merged.getValue("steel").confirmed)
     }
 
     @Test
