@@ -19,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -118,6 +119,23 @@ fun ProgressionCoachScreen(
         text("Laboratoire", "Laboratory", "Labor", "Laboratuvar", "Лаборатория", "实验室", "Laboratorio")
     else
         text("Bureau du directeur", "Warden's Office", "Büro des Direktors", "Müdür Ofisi", "Офис директора", "典狱长办公室", "Ufficio del Direttore")
+
+    // Keep the coach inventory synchronized with every new resource capture.
+    // Empty or uncertain OCR observations cannot erase confirmed quantities.
+    LaunchedEffect(profileId, resources) {
+        val now = System.currentTimeMillis()
+        val observedStocks = resources.mapNotNull { resource ->
+            val quantity = resource.quantiteNumerique?.takeIf { it.isFinite() && it >= 0 }?.toLong()
+            if (quantity == null) null else PlayerResourceStock(
+                canonicalProgressionResourceId(resource.nom), quantity, !resource.incertain, now
+            )
+        }
+        val mergedStocks = mergeProgressionStocks(profile.resourceStocks, observedStocks)
+        if (mergedStocks != profile.resourceStocks) {
+            profile = profile.copy(resourceStocks = mergedStocks, updatedAtEpochMillis = now)
+            prefs.edit().putString("profile", ProgressionProfileCodec.encode(profile)).apply()
+        }
+    }
 
     LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
         item {
