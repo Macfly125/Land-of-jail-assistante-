@@ -92,15 +92,15 @@ class ProgressionCatalogTest {
     @Test
     fun fiveAdditionalBuildingCatalogsContainOnlyPublishedExactEarlyLevels() {
         val catalogs = listOf(
-            ProgressionCatalog.kitchenBuilding to ProgressionCatalog.KITCHEN_SOURCE,
-            ProgressionCatalog.cellBuilding to ProgressionCatalog.CELL_SOURCE,
-            ProgressionCatalog.factoryBuilding to ProgressionCatalog.FACTORY_SOURCE,
-            ProgressionCatalog.utilityRoomBuilding to ProgressionCatalog.UTILITY_ROOM_SOURCE,
-            ProgressionCatalog.guardRoomBuilding to ProgressionCatalog.GUARD_ROOM_SOURCE
+            Triple(ProgressionCatalog.kitchenBuilding, ProgressionCatalog.KITCHEN_SOURCE, 7),
+            Triple(ProgressionCatalog.cellBuilding, ProgressionCatalog.CELL_SOURCE, 9),
+            Triple(ProgressionCatalog.factoryBuilding, ProgressionCatalog.FACTORY_SOURCE, 6),
+            Triple(ProgressionCatalog.utilityRoomBuilding, ProgressionCatalog.UTILITY_ROOM_SOURCE, 7),
+            Triple(ProgressionCatalog.guardRoomBuilding, ProgressionCatalog.GUARD_ROOM_SOURCE, 6)
         )
 
-        catalogs.forEach { (rows, source) ->
-            assertEquals((2..6).toList(), rows.map { it.step.toLevel })
+        catalogs.forEach { (rows, source, maxLevel) ->
+            assertEquals((2..maxLevel).toList(), rows.map { it.step.toLevel })
             assertTrue(rows.all { it.step.fromLevel == it.step.toLevel - 1 })
             assertTrue(rows.all { it.step.costs.size == 1 })
             assertTrue(rows.all { it.step.costs.single().resourceId == "gold" })
@@ -113,14 +113,17 @@ class ProgressionCatalogTest {
 
     @Test
     fun cashOnlyBuildingCatalogsDoNotInventRoundedHigherLevelCosts() {
-        val catalogs = listOf(
-            ProgressionCatalog.kitchenBuilding,
-            ProgressionCatalog.cellBuilding,
-            ProgressionCatalog.factoryBuilding,
-            ProgressionCatalog.utilityRoomBuilding,
-            ProgressionCatalog.guardRoomBuilding
+        val catalogLimits = listOf(
+            ProgressionCatalog.kitchenBuilding to 7,
+            ProgressionCatalog.cellBuilding to 9,
+            ProgressionCatalog.factoryBuilding to 6,
+            ProgressionCatalog.utilityRoomBuilding to 7,
+            ProgressionCatalog.guardRoomBuilding to 6
         )
-        assertTrue(catalogs.all { rows -> rows.none { it.step.toLevel > 6 } })
+        assertTrue(catalogLimits.all { (rows, maxLevel) -> rows.none { it.step.toLevel > maxLevel } })
+        assertEquals(listOf(6_668L), ProgressionCatalog.kitchenBuilding.filter { it.step.toLevel == 7 }.map { it.step.costs.single().quantity })
+        assertEquals(listOf(2_134L, 7_041L, 8_449L), ProgressionCatalog.cellBuilding.filter { it.step.toLevel >= 7 }.map { it.step.costs.single().quantity })
+        assertEquals(listOf(9_335L), ProgressionCatalog.utilityRoomBuilding.filter { it.step.toLevel == 7 }.map { it.step.costs.single().quantity })
     }
 
 
