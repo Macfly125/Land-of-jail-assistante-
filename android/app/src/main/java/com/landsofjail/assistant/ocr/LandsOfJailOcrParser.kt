@@ -317,7 +317,7 @@ object LandsOfJailOcrParser {
                         val quantityLine = equipmentContextLines.getOrNull(materialIndex + 1)
                             ?.trim()
                             ?.takeIf {
-                                Regex("""^(?:x\\s*)?[0-9][0-9.,\\s]*[kmbKMB]?$""", RegexOption.IGNORE_CASE)
+                                Regex("""^(?:x\s*)?[0-9][0-9.,\s]*[kmbKMB]?$""", RegexOption.IGNORE_CASE)
                                     .matches(it)
                             }
                         if (quantityLine.isNullOrBlank()) materialLine.take(80)
