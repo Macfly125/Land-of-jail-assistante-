@@ -103,14 +103,28 @@ fun ProgressionCoachScreen(
             it.targetId.trim().lowercase() in setOf(
                 "lab", "laboratory", "labo", "laboratoire",
                 "warden_office", "warden's office", "bureau_du_directeur", "bureau du directeur", "hq",
-                "gate", "porte"
+                "gate", "porte", "kitchen", "cuisine", "cell", "cellule",
+                "factory", "usine", "utility_room", "utility room", "salle utilitaire",
+                "guard_room", "guard room", "salle de garde"
             )
     }
     val isLabGoal = supportedBuildingGoal?.targetId?.trim()?.lowercase()?.let {
         it in setOf("lab", "laboratory", "labo", "laboratoire")
     } == true
-    val isGateGoal = supportedBuildingGoal?.targetId?.trim()?.lowercase()?.let { it in setOf("gate", "porte") } == true
-    val buildingMaxLevel = if (isGateGoal) 7 else 30
+    val buildingTargetKey = supportedBuildingGoal?.targetId?.trim()?.lowercase().orEmpty()
+    val isGateGoal = buildingTargetKey in setOf("gate", "porte")
+    val buildingCatalog = when (buildingTargetKey) {
+        "lab", "laboratory", "labo", "laboratoire" -> ProgressionCatalog.labBuilding
+        "gate", "porte" -> ProgressionCatalog.gateBuilding
+        "kitchen", "cuisine" -> ProgressionCatalog.kitchenBuilding
+        "cell", "cellule" -> ProgressionCatalog.cellBuilding
+        "factory", "usine" -> ProgressionCatalog.factoryBuilding
+        "utility_room", "utility room", "salle utilitaire" -> ProgressionCatalog.utilityRoomBuilding
+        "guard_room", "guard room", "salle de garde" -> ProgressionCatalog.guardRoomBuilding
+        "warden_office", "warden's office", "bureau_du_directeur", "bureau du directeur", "hq" -> ProgressionCatalog.wardensOffice
+        else -> emptyList()
+    }
+    val buildingMaxLevel = buildingCatalog.maxOfOrNull { it.step.toLevel } ?: 0
     val buildingCurrentLevel = supportedBuildingGoal?.let { profile.confirmedLevel(it.targetId) }
     fun text(fr: String, en: String, de: String, tr: String, ru: String, zh: String, it: String) =
         when (language) {
@@ -118,9 +132,14 @@ fun ProgressionCoachScreen(
             AppLanguage.TR -> tr; AppLanguage.RU -> ru; AppLanguage.ZH -> zh; AppLanguage.IT -> it
         }
 
-    val buildingDisplayName = when {
-        isLabGoal -> text("Laboratoire", "Laboratory", "Labor", "Laboratuvar", "Лаборатория", "实验室", "Laboratorio")
-        isGateGoal -> text("Porte", "Gate", "Tor", "Kapı", "Ворота", "大门", "Cancello")
+    val buildingDisplayName = when (buildingTargetKey) {
+        "lab", "laboratory", "labo", "laboratoire" -> text("Laboratoire", "Laboratory", "Labor", "Laboratuvar", "Лаборатория", "实验室", "Laboratorio")
+        "gate", "porte" -> text("Porte", "Gate", "Tor", "Kapı", "Ворота", "大门", "Cancello")
+        "kitchen", "cuisine" -> text("Cuisine", "Kitchen", "Küche", "Mutfak", "Кухня", "厨房", "Cucina")
+        "cell", "cellule" -> text("Cellule", "Cell", "Zelle", "Hücre", "Камера", "牢房", "Cella")
+        "factory", "usine" -> text("Usine", "Factory", "Fabrik", "Fabrika", "Фабрика", "工厂", "Fabbrica")
+        "utility_room", "utility room", "salle utilitaire" -> text("Salle utilitaire", "Utility Room", "Geräteraum", "Malzeme Odası", "Подсобное помещение", "杂物间", "Locale attrezzi")
+        "guard_room", "guard room", "salle de garde" -> text("Salle de garde", "Guard Room", "Wachraum", "Nöbetçi Odası", "Караульная", "警卫室", "Sala di guardia")
         else -> text("Bureau du directeur", "Warden's Office", "Büro des Direktors", "Müdür Ofisi", "Офис директора", "典狱长办公室", "Ufficio del Direttore")
     }
 
@@ -332,12 +351,7 @@ fun ProgressionCoachScreen(
                                 it = "I dati documentati coprono questo edificio solo fino al livello $buildingMaxLevel. I costi successivi restano sconosciuti."),
                                 style = MaterialTheme.typography.bodySmall)
                         } else {
-                            val catalog = when {
-                                isLabGoal -> ProgressionCatalog.labBuilding
-                                isGateGoal -> ProgressionCatalog.gateBuilding
-                                else -> ProgressionCatalog.wardensOffice
-                            }
-                            val catalogRows = catalog
+                            val catalogRows = buildingCatalog
                                 .filter { it.step.toLevel > buildingCurrentLevel && it.step.toLevel <= supportedBuildingGoal.targetLevel }
                             val steps = catalogRows.map { it.step }
                             val normalizedStocks = profile.resourceStocks.map {
