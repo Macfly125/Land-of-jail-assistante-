@@ -608,17 +608,26 @@ object HeroCatalog {
  * Labels passed here are stable resource keys, not translated display strings.
  */
 object ResourceNameMatcher {
+    // Aliases are kept language-neutral so the stock/cost comparison works
+    // even when the game language differs from the app language.
     private val aliases = mapOf(
-        "food" to listOf("nourriture", "food", "vivres", "cibo"),
-        "wood" to listOf("bois", "wood", "lumber", "legno"),
-        "steel" to listOf("acier", "steel", "fer", "iron", "acciaio"),
-        "gasoline" to listOf("essence", "gasoline", "fuel", "pétrole", "petrole", "benzina", "carburante")
+        "food" to listOf("nourriture", "food", "vivres", "nahrung", "yiyecek", "еда", "食物", "cibo"),
+        "wood" to listOf("bois", "wood", "lumber", "holz", "odun", "дерево", "木材", "legno"),
+        "steel" to listOf("acier", "steel", "fer", "iron", "stahl", "çelik", "сталь", "钢材", "acciaio"),
+        "gasoline" to listOf("essence", "gasoline", "fuel", "pétrole", "petrole", "benzin", "benzin", "бензин", "汽油", "benzina", "carburante")
     )
 
     fun matchesWardenCost(resourceName: String, resourceKey: String): Boolean {
-        val normalizedName = resourceName.lowercase().trim()
+        val normalizedName = java.text.Normalizer.normalize(
+            resourceName.lowercase().trim(),
+            java.text.Normalizer.Form.NFD
+        ).replace(Regex("\\p{Mn}+"), "")
         val candidates = aliases[resourceKey.lowercase()] ?: return false
-        return normalizedName.isNotBlank() && candidates.any(normalizedName::contains)
+        return normalizedName.isNotBlank() && candidates.any { alias ->
+            val normalizedAlias = java.text.Normalizer.normalize(alias.lowercase(), java.text.Normalizer.Form.NFD)
+                .replace(Regex("\\p{Mn}+"), "")
+            normalizedName.contains(normalizedAlias)
+        }
     }
 }
 
