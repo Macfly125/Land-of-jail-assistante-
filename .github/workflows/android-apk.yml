@@ -223,6 +223,7 @@ jobs:
 
       - name: Nettoyer les anciens artefacts APK (garder les 3 dernières réussites)
         uses: actions/github-script@v7
+        continue-on-error: true
         with:
           script: |
             const { owner, repo } = context.repo;
@@ -235,16 +236,30 @@ jobs:
             const keepRunIds = new Set(successful.slice(0, 3).map(run => run.id));
             keepRunIds.add(context.runId);
             let deleted = 0;
+            let cleanupWarnings = 0;
             for (const run of data.workflow_runs) {
-              if (keepRunIds.has(run.id)) continue;
-              const { data: artifacts } = await github.rest.actions.listWorkflowRunArtifacts({
-                owner, repo, run_id: run.id, per_page: 100
-              });
+              if (keepRunIds.has(run.id) || run.status !== 'completed') continue;
+              let artifacts;
+              try {
+                ({ data: artifacts } = await github.rest.actions.listWorkflowRunArtifacts({
+                  owner, repo, run_id: run.id, per_page: 100
+                }));
+              } catch (error) {
+                cleanupWarnings += 1;
+                core.warning(`Impossible de lister les artefacts du run ${run.id}: ${error.message}`);
+                continue;
+              }
               for (const artifact of artifacts.artifacts) {
-                if (artifact.name.startsWith('lands-of-jail-assistant-')) {
+                if (!artifact.name.startsWith('lands-of-jail-assistant-')) continue;
+                try {
                   await github.rest.actions.deleteArtifact({ owner, repo, artifact_id: artifact.id });
                   deleted += 1;
+                } catch (error) {
+                  // GitHub may return an empty 204 response that Octokit cannot decode.
+                  // Cleanup is best-effort and must never invalidate a verified APK.
+                  cleanupWarnings += 1;
+                  core.warning(`Nettoyage ignoré pour l'artefact ${artifact.id}: ${error.message}`);
                 }
               }
             }
-            core.info(`Conservation des 3 dernières compilations réussies ; ${deleted} ancien(s) artefact(s) APK supprimé(s).`);
+            core.info(`Nettoyage terminé : ${deleted} artefact(s) supprimé(s), ${cleanupWarnings} avertissement(s).`);
