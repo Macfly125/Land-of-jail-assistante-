@@ -143,4 +143,22 @@ class ProgressionCatalogTest {
         assertTrue(rows.none { it.step.toLevel > 7 })
     }
 
+
+    @Test
+    fun laundryCatalogPreservesItsNonLinearWardenOfficePrerequisites() {
+        val rows = ProgressionCatalog.laundryBuilding
+        assertEquals((2..7).toList(), rows.map { it.step.toLevel })
+        assertEquals(listOf(5, 5, 5, 5, 6, 7), rows.map {
+            it.prerequisiteNotes.single().substringAfter("Lv.").toInt()
+        })
+        assertEquals(listOf(113L, 136L, 163L, 733L, 1_834L, 3_667L),
+            rows.map { it.step.costs.single().quantity })
+        assertEquals(listOf(7L, 12L, 20L, 80L, 152L, 293L),
+            rows.map { it.step.durationSeconds })
+        assertTrue(rows.all { it.step.costs.single().resourceId == "gold" })
+        assertTrue(rows.all { it.sourceUrl == ProgressionCatalog.LAUNDRY_SOURCE })
+        assertTrue(rows.all { it.checkedOn == ProgressionCatalog.SOURCE_CHECKED_ON })
+        assertTrue(rows.none { it.step.toLevel > 7 })
+    }
+
 }
