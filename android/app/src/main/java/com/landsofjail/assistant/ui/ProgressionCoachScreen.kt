@@ -106,7 +106,8 @@ fun ProgressionCoachScreen(
                 "gate", "porte", "kitchen", "cuisine", "cell", "cellule",
                 "factory", "usine", "utility_room", "utility room", "salle utilitaire",
                 "guard_room", "guard room", "salle de garde",
-                "inventory", "warehouse", "entrepot", "entrepôt", "lager"
+                "inventory", "warehouse", "entrepot", "entrepôt", "lager",
+                "laundry", "buanderie", "wäsche"
             )
     }
     val isLabGoal = supportedBuildingGoal?.targetId?.trim()?.lowercase()?.let {
@@ -123,6 +124,7 @@ fun ProgressionCoachScreen(
         "utility_room", "utility room", "salle utilitaire" -> ProgressionCatalog.utilityRoomBuilding
         "guard_room", "guard room", "salle de garde" -> ProgressionCatalog.guardRoomBuilding
         "inventory", "warehouse", "entrepot", "entrepôt", "lager" -> ProgressionCatalog.inventoryBuilding
+        "laundry", "buanderie", "wäsche" -> ProgressionCatalog.laundryBuilding
         "warden_office", "warden's office", "bureau_du_directeur", "bureau du directeur", "hq" -> ProgressionCatalog.wardensOffice
         else -> emptyList()
     }
@@ -143,6 +145,7 @@ fun ProgressionCoachScreen(
         "utility_room", "utility room", "salle utilitaire" -> text("Salle utilitaire", "Utility Room", "Geräteraum", "Malzeme Odası", "Подсобное помещение", "杂物间", "Locale attrezzi")
         "guard_room", "guard room", "salle de garde" -> text("Salle de garde", "Guard Room", "Wachraum", "Nöbetçi Odası", "Караульная", "警卫室", "Sala di guardia")
         "inventory", "warehouse", "entrepot", "entrepôt", "lager" -> text("Entrepôt", "Inventory", "Lager", "Depo", "Склад", "仓库", "Magazzino")
+        "laundry", "buanderie", "wäsche" -> text("Buanderie", "Laundry", "Wäscherei", "Çamaşırhane", "Прачечная", "洗衣房", "Lavanderia")
         else -> text("Bureau du directeur", "Warden's Office", "Büro des Direktors", "Müdür Ofisi", "Офис директора", "典狱长办公室", "Ufficio del Direttore")
     }
 
