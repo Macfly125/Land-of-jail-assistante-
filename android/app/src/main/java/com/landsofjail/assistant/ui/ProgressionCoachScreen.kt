@@ -109,7 +109,11 @@ fun ProgressionCoachScreen(
                 "inventory", "warehouse", "entrepot", "entrepôt", "lager",
                 "laundry", "buanderie", "wäsche", "playground", "terrain de jeu", "spielplatz", "shower_room", "shower room", "douche", "shower", "cafeteria", "cafétéria", "cantine", "kafeterya",
                 "medical_station", "medical station", "medical", "infirmerie", "krankenstation",
-                "communication_center", "communication center", "communications center", "centre des communications", "kommunikationszentrum"
+                "communication_center", "communication center", "communications center", "centre des communications", "kommunikationszentrum",
+                "command_center", "command center", "centre de commandement", "kommandozentrale",
+                "shieldbearer_barracks", "shieldbearer barracks", "caserne bouclier", "caserne des boucliers",
+                "shooter_barracks", "shooter barracks", "caserne tireurs", "caserne des tireurs",
+                "bomber_barracks", "bomber barracks", "caserne bombardiers", "caserne des bombardiers"
             )
     }
     val isLabGoal = supportedBuildingGoal?.targetId?.trim()?.lowercase()?.let {
@@ -132,6 +136,10 @@ fun ProgressionCoachScreen(
         "cafeteria", "cafétéria", "cantine", "kafeterya" -> ProgressionCatalog.cafeteriaBuilding
         "medical_station", "medical station", "medical", "infirmerie", "krankenstation" -> ProgressionCatalog.medicalStationBuilding
         "communication_center", "communication center", "communications center", "centre des communications", "kommunikationszentrum" -> ProgressionCatalog.communicationCenterBuilding
+        "command_center", "command center", "centre de commandement", "kommandozentrale" -> ProgressionCatalog.commandCenterBuilding
+        "shieldbearer_barracks", "shieldbearer barracks", "caserne bouclier", "caserne des boucliers" -> ProgressionCatalog.shieldbearerBarrackBuilding
+        "shooter_barracks", "shooter barracks", "caserne tireurs", "caserne des tireurs" -> ProgressionCatalog.shooterBarrackBuilding
+        "bomber_barracks", "bomber barracks", "caserne bombardiers", "caserne des bombardiers" -> ProgressionCatalog.bomberBarrackBuilding
         "warden_office", "warden's office", "bureau_du_directeur", "bureau du directeur", "hq" -> ProgressionCatalog.wardensOffice
         else -> emptyList()
     }
@@ -158,6 +166,10 @@ fun ProgressionCoachScreen(
         "cafeteria", "cafétéria", "cantine", "kafeterya" -> text("Cafétéria", "Cafeteria", "Kantine", "Kafeterya", "Столовая", "食堂", "Caffetteria")
         "medical_station", "medical station", "medical", "infirmerie", "krankenstation" -> text("Infirmerie", "Medical Station", "Krankenstation", "Revir", "Медпункт", "医疗站", "Infermeria")
         "communication_center", "communication center", "communications center", "centre des communications", "kommunikationszentrum" -> text("Centre des communications", "Communication Center", "Kommunikationszentrum", "İletişim Merkezi", "Центр связи", "通讯中心", "Centro comunicazioni")
+        "command_center", "command center", "centre de commandement", "kommandozentrale" -> text("Centre de commandement", "Command Center", "Kommandozentrale", "Komuta Merkezi", "Командный центр", "指挥中心", "Centro di comando")
+        "shieldbearer_barracks", "shieldbearer barracks", "caserne bouclier", "caserne des boucliers" -> text("Caserne de boucliers", "Shieldbearer Barracks", "Schildträger-Kaserne", "Kalkanlı Kışlası", "Казарма щитоносцев", "盾卫兵营", "Caserma scudieri")
+        "shooter_barracks", "shooter barracks", "caserne tireurs", "caserne des tireurs" -> text("Caserne de tireurs", "Shooter Barracks", "Schützenkaserne", "Nişancı Kışlası", "Казарма стрелков", "射手兵营", "Caserma tiratori")
+        "bomber_barracks", "bomber barracks", "caserne bombardiers", "caserne des bombardiers" -> text("Caserne de bombardiers", "Bomber Barracks", "Bomber-Kaserne", "Bombacı Kışlası", "Казарма бомбардировщиков", "轰炸兵营", "Caserma bombardieri")
         else -> text("Bureau du directeur", "Warden's Office", "Büro des Direktors", "Müdür Ofisi", "Офис директора", "典狱长办公室", "Ufficio del Direttore")
     }
 
