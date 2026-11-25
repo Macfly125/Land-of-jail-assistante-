@@ -64,6 +64,29 @@ data class ProgressionPlayerProfile(
             .maxByOrNull { it.updatedAtEpochMillis }?.quantity
 }
 
+/**
+ * Merge fresh OCR observations without letting uncertain values erase a
+ * previously confirmed stock. An empty observation preserves saved values.
+ */
+fun mergeProgressionStocks(
+    existing: List<PlayerResourceStock>,
+    observed: List<PlayerResourceStock>
+): List<PlayerResourceStock> {
+    if (observed.isEmpty()) return existing
+    val merged = existing.associateBy { it.resourceId }.toMutableMap()
+    observed.forEach { candidate ->
+        val previous = merged[candidate.resourceId]
+        when {
+            candidate.confirmed -> merged[candidate.resourceId] = candidate
+            previous == null -> merged[candidate.resourceId] = candidate
+            previous.confirmed -> Unit
+            candidate.updatedAtEpochMillis >= previous.updatedAtEpochMillis ->
+                merged[candidate.resourceId] = candidate
+        }
+    }
+    return merged.values.sortedBy { it.resourceId }
+}
+
 object ProgressionProfileCodec {
     private val json = Json {
         ignoreUnknownKeys = true
