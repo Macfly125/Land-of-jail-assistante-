@@ -618,17 +618,25 @@ object ResourceNameMatcher {
     )
 
     fun matchesWardenCost(resourceName: String, resourceKey: String): Boolean {
-        val normalizedName = java.text.Normalizer.normalize(
-            resourceName.lowercase().trim(),
-            java.text.Normalizer.Form.NFD
-        ).replace(Regex("\\p{Mn}+"), "")
+        val normalizedName = normalizeLabel(resourceName)
         val candidates = aliases[resourceKey.lowercase()] ?: return false
-        return normalizedName.isNotBlank() && candidates.any { alias ->
-            val normalizedAlias = java.text.Normalizer.normalize(alias.lowercase(), java.text.Normalizer.Form.NFD)
-                .replace(Regex("\\p{Mn}+"), "")
-            normalizedName.contains(normalizedAlias)
+        if (normalizedName.isBlank()) return false
+        return candidates.any { alias ->
+            val normalizedAlias = normalizeLabel(alias)
+            val isCjk = normalizedAlias.any { it.code in 0x3400..0x9FFF || it.code in 0xF900..0xFAFF }
+            if (isCjk) {
+                normalizedName.replace(" ", "").contains(normalizedAlias)
+            } else {
+                " $normalizedName ".contains(" $normalizedAlias ")
+            }
         }
     }
+
+    private fun normalizeLabel(value: String): String =
+        java.text.Normalizer.normalize(value.lowercase(), java.text.Normalizer.Form.NFD)
+            .replace(Regex("\\p{Mn}+"), "")
+            .replace(Regex("[^\\p{L}\\p{N}]+"), " ")
+            .trim()
 }
 
 object ForticladSelection {
