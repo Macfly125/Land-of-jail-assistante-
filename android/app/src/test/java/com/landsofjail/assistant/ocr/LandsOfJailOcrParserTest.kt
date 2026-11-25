@@ -607,4 +607,48 @@ Aimant"""
         assertEquals("ressources", result.category)
         assertTrue(result.confidence >= 0.8f)
     }
+    @Test
+    fun recognizesItalianHeroEquipmentUpgradeAndPieceLabels() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            """Equipaggiamento eroe
+Miglioramento equipaggiamento
+Arma
+Livello 18
+Magnete x 120"""
+        )
+        assertEquals("equipements", result.detectedCategory)
+        assertEquals(1, result.equipment.size)
+        assertEquals("Arme", result.equipment.single().piece)
+        assertEquals("18", result.equipment.single().niveau)
+        assertTrue(result.equipment.single().materiaux.contains("Magnete"))
+        assertFalse(result.equipment.single().incertain)
+    }
+
+    @Test
+    fun keepsEquipmentUpgradeCaptureWhenThePieceCannotBeRead() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            """Hero Equipment
+Equipment Upgrade
+Magnet x 120
+Potential Coil x 8"""
+        )
+        assertEquals("equipements", result.detectedCategory)
+        assertEquals(1, result.equipment.size)
+        assertEquals("Équipement de héros", result.equipment.single().piece)
+        assertTrue(result.equipment.single().incertain)
+        assertTrue(result.equipment.single().texteObserve.contains("Magnet x 120"))
+        assertTrue(result.uncertainItems.any { it.champ == "Équipement" })
+    }
+
+    @Test
+    fun recognizesItalianAndExclusiveEquipmentScreenLabels() {
+        val samples = listOf(
+            "Equipaggiamento eroe\\nMiglioramento equipaggiamento\\nMagnete",
+            "Equipaggiamento esclusivo\\nIngranaggio di precisione"
+        )
+        samples.forEach { sample ->
+            assertEquals("equipements", ScreenRecognitionEngine.analyze(sample).category)
+        }
+    }
+
 }
