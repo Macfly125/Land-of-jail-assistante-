@@ -263,7 +263,11 @@ object LandsOfJailOcrParser {
                 if (aliases.none { alias ->
                         val normalizedAlias = normalizeEquipmentText(alias)
                         normalizedEquipmentLine == normalizedAlias ||
-                            normalizedEquipmentLine.startsWith(normalizedAlias + " ")
+                            Regex(
+                                "^" + Regex.escape(normalizedAlias) +
+                                    "\\s+(?:\\+\\s*\\d{1,3}|(?:lv\\.?|level|niv\\.?|niveau|stufe|seviye|уровень|等级|livello)\\s*[:+]?\\s*\\d{1,3})$",
+                                RegexOption.IGNORE_CASE
+                            ).matches(normalizedEquipmentLine)
                     }) continue
                 val context = lines.subList(index, minOf(lines.size, index + 4)).joinToString(" ")
                 val level = Regex("""(?:lv\.?|level|niv\.?|niveau|stufe|seviye|уровень|等级|livello)\s*[:+]?\s*([0-9]{1,3})""", RegexOption.IGNORE_CASE)
