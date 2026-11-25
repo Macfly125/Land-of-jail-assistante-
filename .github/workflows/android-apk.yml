@@ -70,7 +70,27 @@ jobs:
           heap-size: 512
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot -no-snapshot-save
-          script: cd android && adb wait-for-device && gradle connectedDebugAndroidTest --no-daemon --stacktrace --max-workers=2
+          script: |
+            cd android
+            adb wait-for-device
+            # Maven Central can temporarily rate-limit fresh emulator runners (HTTP 429).
+            # Retry only that transient network condition; real test failures stay fatal.
+            for attempt in 1 2 3; do
+              if gradle connectedDebugAndroidTest --no-daemon --stacktrace --max-workers=2 > /tmp/loj-instrumented-test.log 2>&1; then
+                cat /tmp/loj-instrumented-test.log
+                exit 0
+              else
+                status=$?
+                cat /tmp/loj-instrumented-test.log
+              fi
+              if grep -Eqi 'status code 429|HTTP 429|Too Many Requests' /tmp/loj-instrumented-test.log && [ "$attempt" -lt 3 ]; then
+                delay=$((attempt * 30))
+                echo "::warning::Maven Central répond HTTP 429 ; nouvelle tentative dans ${delay}s (tentative ${attempt}/3)."
+                sleep "$delay"
+              else
+                exit "$status"
+              fi
+            done
 
   build-apk:
     runs-on: ubuntu-24.04
