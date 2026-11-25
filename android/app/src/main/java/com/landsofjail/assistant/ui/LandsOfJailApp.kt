@@ -847,7 +847,7 @@ private enum class AssistantTab {
 }
 
 private enum class ResourceSubTab {
-    INVENTAIRE, ROBOTS, EVENEMENTS, BATIMENTS, HEROS_OBJETS, DEVELOPPEMENTS, ROUTINE, PROGRESSION;
+    INVENTAIRE, ROBOTS, EVENEMENTS, BATIMENTS, HEROS_OBJETS, DEVELOPPEMENTS, ROUTINE, PROGRESSION, SVS;
 
     fun labelFor(lang: AppLanguage): String = when (this) {
         INVENTAIRE -> when (lang) {
@@ -904,7 +904,7 @@ private enum class ResourceSubTab {
             AppLanguage.EN -> "Goals"
             AppLanguage.IT -> "Obiettivi"
         }
-        ROBOTS -> when (lang) {
+        SVS -> when (lang) {\n            AppLanguage.FR -> "Prépa SVS"\n            AppLanguage.EN -> "SvS Prep"\n            AppLanguage.DE -> "SvS-Plan"\n            AppLanguage.TR -> "SvS Planı"\n            AppLanguage.RU -> "План SvS"\n            AppLanguage.ZH -> "SVS计划"\n            AppLanguage.IT -> "Piano SvS"\n        }\n        ROBOTS -> when (lang) {
             AppLanguage.FR -> "Robots"
             AppLanguage.TR -> "Robotlar"
             AppLanguage.RU -> "Роботы"
