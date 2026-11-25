@@ -75,8 +75,35 @@ private val svsDays=listOf(
 )
 
 private data class SvSScoreItem(val fr:String,val en:String,val points:Long) {
- fun label(language:AppLanguage)=when(language){AppLanguage.FR->fr;else->en}
+ fun label(language:AppLanguage):String {
+  val t=svsScoreTranslations[fr]
+  return when(language){AppLanguage.FR->fr;AppLanguage.EN->en;AppLanguage.DE->t?.get(0)?:en;AppLanguage.TR->t?.get(1)?:en;AppLanguage.RU->t?.get(2)?:en;AppLanguage.ZH->t?.get(3)?:en;AppLanguage.IT->t?.get(4)?:en}
+ }
 }
+private val svsScoreTranslations=mapOf(
+ "Noyau Forticlad" to listOf("Forticlad-Kern","Forticlad Çekirdeği","Ядро Forticlad","Forticlad核心","Nucleo Forticlad"),
+ "Hyperalliage" to listOf("Hyperlegierung","Hiper Alaşım","Гиперсплав","超合金","Iperlega"),
+ "Noyau Forticlad avancé" to listOf("Fortgeschrittener Forticlad-Kern","Gelişmiş Forticlad Çekirdeği","Улучшенное ядро Forticlad","高级Forticlad核心","Nucleo Forticlad avanzato"),
+ "Minute d'accélérateur" to listOf("Beschleunigungsminute","Hızlandırma dakikası","Минута ускорения","加速分钟","Minuto di accelerazione"),
+ "Fragment rare" to listOf("Seltenes Heldenfragment","Nadir kahraman parçası","Редкий фрагмент героя","稀有英雄碎片","Frammento eroe raro"),
+ "Fragment épique" to listOf("Episches Heldenfragment","Destansı kahraman parçası","Эпический фрагмент героя","史诗英雄碎片","Frammento eroe epico"),
+ "Fragment légendaire" to listOf("Legendäres Heldenfragment","Efsanevi kahraman parçası","Легендарный фрагмент героя","传奇英雄碎片","Frammento eroe leggendario"),
+ "Spin de renforcement" to listOf("Verstärkungsdreh","Güçlendirme çarkı","Прокрутка усиления","强化转盘","Giro di potenziamento"),
+ "Pièce équipement exclusif" to listOf("Exklusives Ausrüstungsteil","Özel ekipman parçası","Деталь эксклюзивного снаряжения","专属装备部件","Pezzo equipaggiamento esclusivo"),
+ "Engrenage de précision" to listOf("Präzisionszahnrad","Hassas dişli","Точная шестерня","精密齿轮","Ingranaggio di precisione"),
+ "Bobine de potentiel" to listOf("Potenzialspule","Potansiyel bobini","Катушка потенциала","潜能线圈","Bobina potenziale"),
+ "Aimant" to listOf("Magnet","Mıknatıs","Магнит","磁铁","Magnete"),
+ "Note de collection" to listOf("Sammlungswertung","Koleksiyon puanı","Рейтинг коллекции","收藏评分","Valutazione collezione"),
+ "Coffre de module Solo" to listOf("Solo-Modultruhe","Solo modül sandığı","Сундук одиночного модуля","单人模块宝箱","Cassa modulo Solo"),
+ "Coffre de module Formation" to listOf("Formations-Modultruhe","Formasyon modül sandığı","Сундук модуля строя","阵型模块宝箱","Cassa modulo Formazione"),
+ "Coffre de module Barrière" to listOf("Barriere-Modultruhe","Bariyer modül sandığı","Сундук модуля барьера","屏障模块宝箱","Cassa modulo Barriera"),
+ "Module de puissance" to listOf("Leistungsmodul","Güç modülü","Модуль силы","力量模块","Modulo potenza"),
+ "Module de puissance avancé" to listOf("Fortgeschrittenes Leistungsmodul","Gelişmiş güç modülü","Улучшенный модуль силы","高级力量模块","Modulo potenza avanzato"),
+ "Puce satellite" to listOf("Satellitenchip","Uydu çipi","Спутниковый чип","卫星芯片","Chip satellitare"),
+ "Noyau Orbit" to listOf("Orbit-Kern","Orbit çekirdeği","Ядро Orbit","Orbit核心","Nucleo Orbit"),
+ "Noyau Cosmic" to listOf("Cosmic-Kern","Cosmic çekirdeği","Ядро Cosmic","Cosmic核心","Nucleo Cosmic"),
+ "Rallye de bête lancé" to listOf("Gestartete Bestien-Rallye","Başlatılan canavar rallisi","Запущенный рейд на зверя","已发起的野兽集结","Rally bestia avviato")
+)
 private val svsScoreItems=listOf(
  SvSScoreItem("Noyau Forticlad","Forticlad Core",3000),
  SvSScoreItem("Hyperalliage","Hyperalloy",1500),
