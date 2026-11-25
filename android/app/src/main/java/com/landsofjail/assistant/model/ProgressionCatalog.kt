@@ -197,6 +197,17 @@ object ProgressionCatalog {
     }
 
 
+    const val PLAYGROUND_SOURCE = "https://lojwiki.com/buildings/playground/"
+
+    // Playground: exact Cash values only through level 6; level 7 is rounded.
+    val playgroundBuilding = cashBuilding(
+        "Playground", PLAYGROUND_SOURCE, listOf(
+            CashBuildingLevel(2, 319, 20, 2), CashBuildingLevel(3, 383, 33, 3),
+            CashBuildingLevel(4, 459, 57, 4), CashBuildingLevel(5, 2_067, 226, 5),
+            CashBuildingLevel(6, 5_167, 428, 6)
+        )
+    )
+
     const val LAUNDRY_SOURCE = "https://lojwiki.com/buildings/laundry/"
 
     // Laundry: only exact, un-abbreviated Cash values through level 7.
