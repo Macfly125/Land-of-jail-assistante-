@@ -105,7 +105,8 @@ fun ProgressionCoachScreen(
                 "warden_office", "warden's office", "bureau_du_directeur", "bureau du directeur", "hq",
                 "gate", "porte", "kitchen", "cuisine", "cell", "cellule",
                 "factory", "usine", "utility_room", "utility room", "salle utilitaire",
-                "guard_room", "guard room", "salle de garde"
+                "guard_room", "guard room", "salle de garde",
+                "inventory", "warehouse", "entrepot", "entrepôt", "lager"
             )
     }
     val isLabGoal = supportedBuildingGoal?.targetId?.trim()?.lowercase()?.let {
