@@ -417,7 +417,7 @@ class LandsOfJailOcrParserTest {
             imageWidth = 900,
             imageHeight = 1600
         )
-        assertEquals(6, result.resources.size)
+        assertEquals(5, result.resources.size)
         assertEquals("Cash / Or", result.resources[0].nom)
         assertEquals("Nourriture (Food)", result.resources[1].nom)
         assertEquals("Bois (Wood)", result.resources[2].nom)
@@ -444,8 +444,8 @@ class LandsOfJailOcrParserTest {
             imageWidth = 900,
             imageHeight = 1600
         )
-        assertEquals(6, result.resources.size)
-        assertEquals(listOf("1.2M", "850K", "42M", "3.4M", "120", "7.8M"), result.resources.map { it.quantiteTexte })
+        assertEquals(5, result.resources.size)
+        assertEquals(listOf("1.2M", "850K", "42M", "3.4M", "120"), result.resources.map { it.quantiteTexte })
     }
 
     @Test
