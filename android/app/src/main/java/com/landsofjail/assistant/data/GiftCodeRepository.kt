@@ -132,20 +132,15 @@ object GiftCodeRepository {
             }
             val checkedDate = Regex("(?i)(?:last checked|checked|updated|derni[eè]re v[eé]rification|derni[eè]re mise [àa] jour|mis[e] [àa] jour)\\s*[:\\-]?\\s*(?:on\\s*)?([0-9]{1,2}[./-][0-9]{1,2}[./-]20[0-9]{2}|[0-9]{1,2}\\s+[A-Za-zÀ-ÿ]+\\s+20[0-9]{2}|[A-Za-zÀ-ÿ]+\\s+[0-9]{1,2},?\\s+20[0-9]{2})")
                 .find(stripTags(html))?.groupValues?.getOrNull(1).orEmpty()
-            val codeMatches = Regex("(?is)<code[^>]*>(.*?)</code>").findAll(html)
-            for (match in codeMatches) {
-                val code = decodeHtml(stripTags(match.groupValues[1])).trim()
-                if (!code.matches(Regex("[A-Za-z0-9]{6,20}"))) continue
+            for ((code, nearby) in extractCandidatesFromHtml(html)) {
                 val key = code.lowercase(Locale.ROOT)
                 val existing = found[key]
                 if (existing != null) {
                     val mergedSource = (existing.source.split(" · ") + sourceName).distinct().joinToString(" · ")
                     found[key] = existing.copy(source = mergedSource, lastChecked = newerDate(existing.lastChecked, checkedDate))
                 } else {
-                    val contextStart = (match.range.first - 220).coerceAtLeast(0)
-                    val contextEnd = (match.range.last + 420).coerceAtMost(html.length)
-                    val nearby = stripTags(html.substring(contextStart, contextEnd)).lowercase(Locale.ROOT)
-                    val looksExpired = nearby.contains("ended codes") || nearby.contains("expired")
+                    val looksExpired = nearby.contains("ended codes") || nearby.contains("expired") ||
+                        nearby.contains("codes expir") || nearby.contains("codes termin")
                     found[key] = GiftCodeEntry(
                         code = code,
                         status = if (looksExpired) "NEEDS_REVIEW" else "UNVERIFIED",
@@ -195,6 +190,44 @@ object GiftCodeRepository {
         val oldValue = millis(existing)
         val newValue = millis(candidate)
         return if (oldValue != null && newValue != null && newValue > oldValue) candidate else existing
+    }
+
+    /**
+     * Reads explicit code elements and conservative plain-list fallbacks.
+     * Plain text is accepted only inside a list/paragraph/table cell that
+     * explicitly discusses gift/promo codes; ordinary page text is ignored.
+     */
+    internal fun extractCandidatesFromHtml(html: String): List<Pair<String, String>> {
+        val candidates = linkedMapOf<String, Pair<String, String>>()
+        val codeElements = Regex("(?is)<code[^>]*>(.*?)</code>")
+        codeElements.findAll(html).forEach { match ->
+            val code = decodeHtml(stripTags(match.groupValues[1])).trim()
+            if (code.matches(Regex("[A-Za-z0-9]{6,20}"))) {
+                val start = (match.range.first - 220).coerceAtLeast(0)
+                val end = (match.range.last + 420).coerceAtMost(html.length)
+                val context = stripTags(html.substring(start, end)).lowercase(Locale.ROOT)
+                candidates[code.lowercase(Locale.ROOT)] = code to context
+            }
+        }
+
+        val blocks = Regex("(?is)<(?:li|p|td)[^>]*>(.*?)</(?:li|p|td)>")
+        val token = Regex("(?<![A-Za-z0-9])[A-Za-z0-9]{6,20}(?![A-Za-z0-9])")
+        val codeContext = Regex("(?i)\\b(gift\\s*codes?|promo\\s*codes?|coupon\\s*codes?|codes?\\s*(?:cadeaux?|for\\s+lands|of\\s+lands)|lands?\\s+of\\s+jail\\s+codes?)\\b")
+        val excluded = setOf("ACTIVE", "EXPIRED", "LATEST", "REWARDS", "GIFTCO", "COUPON")
+        blocks.findAll(html).forEach { block ->
+            val plain = decodeHtml(stripTags(block.groupValues[1]))
+            if (!codeContext.containsMatchIn(plain)) return@forEach
+            val context = plain.lowercase(Locale.ROOT)
+            token.findAll(plain).forEach { foundToken ->
+                val code = foundToken.value
+                val normalized = code.uppercase(Locale.ROOT)
+                // The fallback requires a digit or the game's LOJ prefix to avoid
+                // treating ordinary uppercase words as redeemable codes.
+                if (normalized in excluded || !(code.any(Char::isDigit) || normalized.startsWith("LOJ"))) return@forEach
+                candidates.putIfAbsent(code.lowercase(Locale.ROOT), code to context)
+            }
+        }
+        return candidates.values.toList()
     }
 
     private fun fetch(address: String): String {
