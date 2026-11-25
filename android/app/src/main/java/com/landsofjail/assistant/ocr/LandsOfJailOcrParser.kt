@@ -157,8 +157,8 @@ object LandsOfJailOcrParser {
             "Nourriture (Food)" to Regex("""(?:nourriture|food|vivres|nahrung|yiyecek|еда|食物|cibo)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)?""", RegexOption.IGNORE_CASE),
             "Bois (Wood)" to Regex("""(?:bois|wood|lumber|holz|odun|дерево|木材|legno)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)?""", RegexOption.IGNORE_CASE),
             "Acier (Steel)" to Regex("""(?:acier|steel|fer|iron|stahl|çelik|сталь|钢材|acciaio)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)?""", RegexOption.IGNORE_CASE),
-            "Essence (Gasoline)" to Regex("""(?:essence|gasoline|fuel|p[ée]trole|benzin|бензин|汽油|benzina|carburante)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)?""", RegexOption.IGNORE_CASE),
-            "Diamants (Gems)" to Regex("""(?:diamants?|diamonds?|gemmes?|gems?|diamanten|elmas|алмазы|钻石|宝石|diamanti)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)?""", RegexOption.IGNORE_CASE),
+            "Essence (Gasoline)" to Regex("""(?:essence|gasoline|fuel|p[ée]trole|benzina|carburante|benzin|бензин|汽油)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)?""", RegexOption.IGNORE_CASE),
+            "Diamants (Gems)" to Regex("""(?:diamanti|diamants?|diamonds?|gemmes?|gems?|diamanten|elmas|алмазы|钻石|宝石)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)?""", RegexOption.IGNORE_CASE),
             "Cash / Or" to Regex("""(?:cash|gold|g[oö]ld|altın|золото|金币|黄金|oro)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)?|^or\s*[:：\-]\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)?""", RegexOption.IGNORE_CASE)
         )
 
