@@ -279,10 +279,10 @@ class LandsOfJailOcrParserTest {
     @Test
     fun recognizesWardenAndDirectorsOfficeLevelsWithApostrophesAndLocalizedLevelLabels() {
         val samples = listOf(
-            "Warden's Office\\nLevel 18\\nPower: 12,345",
-            "Warden’s Office Lv. 21\\nPower: 12,345",
-            "Director's Office\\nLvl 16\\nPower: 12,345",
-            "Bureau du directeur\\nNiv. 14\\nPuissance: 12,345"
+            "Warden's Office\nLevel 18\nPower: 12,345",
+            "Warden’s Office Lv. 21\nPower: 12,345",
+            "Director's Office\nLvl 16\nPower: 12,345",
+            "Bureau du directeur\nNiv. 14\nPuissance: 12,345"
         )
         samples.forEach { sample ->
             val result = LandsOfJailOcrParser.parseLocalOcrText(sample)
@@ -291,7 +291,7 @@ class LandsOfJailOcrParserTest {
         }
         assertEquals(
             "Niv. 18",
-            LandsOfJailOcrParser.parseLocalOcrText("Warden's Office Level 18\\nPower: 12,345")
+            LandsOfJailOcrParser.parseLocalOcrText("Warden's Office Level 18\nPower: 12,345")
                 .power?.niveauPrisonOuQG
         )
     }
