@@ -145,7 +145,15 @@ fun SvSPreparationScreen(language:AppLanguage){
  LazyColumn(verticalArrangement=Arrangement.spacedBy(10.dp)){
   item { Card(Modifier.fillMaxWidth()){Column(Modifier.padding(14.dp),verticalArrangement=Arrangement.spacedBy(6.dp)){
    Text("SVS · "+when(language){AppLanguage.FR->"Préparation en 5 jours";AppLanguage.EN->"5-day preparation";AppLanguage.DE->"5-Tage-Vorbereitung";AppLanguage.TR->"5 günlük hazırlık";AppLanguage.RU->"Подготовка за 5 дней";AppLanguage.ZH->"五天备战";AppLanguage.IT->"Preparazione in 5 giorni"},style=MaterialTheme.typography.titleMedium)
-   Text(when(language){AppLanguage.FR->"Commence à économiser avant le premier reset. Garde les matériaux jusqu'au jour où ils rapportent des points. Les valeurs sont des points, pas des quotas quotidiens.";AppLanguage.EN->"Start saving before the first reset. Hold materials until their scoring day. Values are points, not daily quotas.";else->"Save before the first reset and spend items on their scoring day. Values are points, not daily quotas."},style=MaterialTheme.typography.bodySmall)
+    Text(when(language){
+     AppLanguage.FR->"Commence à économiser avant le premier reset. Garde les matériaux jusqu'au jour où ils rapportent des points. Les valeurs sont des points, pas des quotas quotidiens."
+     AppLanguage.EN->"Start saving before the first reset. Hold materials until their scoring day. Values are points, not daily quotas."
+     AppLanguage.DE->"Beginne vor dem ersten Reset zu sparen. Bewahre Materialien bis zu ihrem Wertungstag auf. Die Werte sind Punkte, keine Tagesziele."
+     AppLanguage.TR->"İlk sıfırlamadan önce biriktirmeye başla. Malzemeleri puan kazandırdıkları güne kadar sakla. Değerler günlük hedef değil, puandır."
+     AppLanguage.RU->"Начните копить до первого сброса. Сохраняйте материалы до дня начисления очков. Значения указаны в очках, а не в дневных целях."
+     AppLanguage.ZH->"在首次重置前开始储备。将材料留到对应得分日使用。数值代表积分，不是每日目标。"
+     AppLanguage.IT->"Inizia ad accumulare prima del primo reset. Conserva i materiali fino al giorno in cui assegnano punti. I valori sono punti, non obiettivi giornalieri."
+    },style=MaterialTheme.typography.bodySmall)
   }}}
   item { Card(Modifier.fillMaxWidth()){Column(Modifier.padding(14.dp),verticalArrangement=Arrangement.spacedBy(5.dp)){
    Text(when(language){AppLanguage.FR->"À économiser avant le SVS";AppLanguage.EN->"Save before SvS";AppLanguage.DE->"Vor dem SvS sparen";AppLanguage.TR->"SvS öncesinde biriktir";AppLanguage.RU->"Что накопить до SvS";AppLanguage.ZH->"SvS前需要储备";AppLanguage.IT->"Da conservare prima del SvS"},style=MaterialTheme.typography.titleSmall)
