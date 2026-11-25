@@ -45,6 +45,7 @@ data class ProgressionStep(
     }
 }
 
+@Serializable
 data class PlayerResourceStock(
     val resourceId: String,
     val quantity: Long,
