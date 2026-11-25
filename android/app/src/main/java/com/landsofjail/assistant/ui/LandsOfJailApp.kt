@@ -3026,20 +3026,22 @@ private fun DashboardScreen(
                             style = MaterialTheme.typography.bodySmall
                         )
                         val requiredResources = listOf(
-                            Triple("Nourriture", nextWardenRequirement.food, listOf("nourriture", "food", "vivres")),
-                            Triple("Bois", nextWardenRequirement.wood, listOf("bois", "wood", "lumber")),
-                            Triple("Acier", nextWardenRequirement.steel, listOf("acier", "steel", "fer", "iron")),
-                            Triple("Essence", nextWardenRequirement.gasoline, listOf("essence", "gasoline", "fuel", "pétrole", "petrole"))
+                            Triple("food", nextWardenRequirement.food, localizedUiText(currentLang, "Nourriture", "Food", "Nahrung", "Yiyecek", "Еда", "食物", "Cibo")),
+                            Triple("wood", nextWardenRequirement.wood, localizedUiText(currentLang, "Bois", "Wood", "Holz", "Odun", "Дерево", "木材", "Legno")),
+                            Triple("steel", nextWardenRequirement.steel, localizedUiText(currentLang, "Acier", "Steel", "Stahl", "Çelik", "Сталь", "钢材", "Acciaio")),
+                            Triple("gasoline", nextWardenRequirement.gasoline, localizedUiText(currentLang, "Essence", "Gasoline", "Benzin", "Benzin", "Бензин", "汽油", "Benzina"))
                         ).filter { it.second > 0L }
-                        requiredResources.forEach { (label, required, aliases) ->
-                            val stock = resources.firstOrNull { resource -> aliases.any { alias -> resource.nom.contains(alias, ignoreCase = true) } }
+                        requiredResources.forEach { (resourceKey, required, label) ->
+                            val stock = resources.firstOrNull { resource ->
+                                ResourceNameMatcher.matchesWardenCost(resource.nom, resourceKey)
+                            }
                             val available = stock?.quantiteNumerique
                             val shortage = available?.let { (required.toDouble() - it).coerceAtLeast(0.0).toLong() }
                             Text(
                                 when (currentLang) {
                                     AppLanguage.FR -> "$label : requis ${required} · disponible ${available?.toLong()?.toString() ?: "à confirmer"} · manque ${shortage?.toString() ?: "inconnu"}${if (stock?.incertain == true) " (lecture à confirmer)" else ""}"
                                     AppLanguage.EN -> "$label: required ${required} · available ${available?.toLong()?.toString() ?: "unconfirmed"} · shortfall ${shortage?.toString() ?: "unknown"}${if (stock?.incertain == true) " (verify reading)" else ""}"
-                                    AppLanguage.IT -> "$label: required ${required} · available ${available?.toLong()?.toString() ?: "unconfirmed"} · shortfall ${shortage?.toString() ?: "unknown"}${if (stock?.incertain == true) " (verify reading)" else ""}"
+                                    AppLanguage.IT -> "$label: richiesti ${required} · disponibili ${available?.toLong()?.toString() ?: "da confermare"} · mancanti ${shortage?.toString() ?: "sconosciuti"}${if (stock?.incertain == true) " (verifica la lettura)" else ""}"
                                     AppLanguage.DE -> "$label: benötigt ${required} · vorhanden ${available?.toLong()?.toString() ?: "unbestätigt"} · fehlend ${shortage?.toString() ?: "unbekannt"}"
                                     AppLanguage.TR -> "$label: gereken ${required} · mevcut ${available?.toLong()?.toString() ?: "doğrulanmadı"} · eksik ${shortage?.toString() ?: "bilinmiyor"}"
                                     AppLanguage.RU -> "$label: нужно ${required} · есть ${available?.toLong()?.toString() ?: "не подтверждено"} · не хватает ${shortage?.toString() ?: "неизвестно"}"
