@@ -118,6 +118,50 @@ object ProgressionCatalog {
             "Communication Center Lv.29", "Shooter Barracks Lv.29")
     )
 
+
+    const val GATE_SOURCE = "https://lojwiki.com/buildings/gate/"
+
+    /**
+     * Gate upgrades for levels 1 -> 7 only. The source abbreviates higher
+     * resource quantities (e.g. 3.8M), so those levels are intentionally
+     * excluded rather than treating rounded display values as exact costs.
+     */
+    val gateBuilding: List<ProgressionCatalogRecord> = listOf(
+        gateRow(2, listOf("wood" to 10_000L, "steel" to 2_000L), 10, 7),
+        gateRow(3, listOf("wood" to 180_000L, "steel" to 36_000L, "gasoline" to 9_000L), 1_290, 10),
+        gateRow(4, listOf("food" to 800_000L, "wood" to 800_000L, "steel" to 160_000L, "gasoline" to 40_000L), 3_840, 13),
+        gateRow(5, listOf("food" to 3_000_000L, "wood" to 3_000_000L, "steel" to 600_000L, "gasoline" to 150_000L), 13_140, 16),
+        gateRow(6, listOf("food" to 10_000_000L, "wood" to 10_000_000L, "steel" to 2_000_000L, "gasoline" to 500_000L), 35_520, 20),
+        gateRow(7, listOf("food" to 30_000_000L, "wood" to 30_000_000L, "steel" to 6_000_000L, "gasoline" to 1_500_000L), 133_200, 24)
+    )
+
+    private fun gateRow(
+        targetLevel: Int,
+        costs: List<Pair<String, Long>>,
+        baseDurationSeconds: Long,
+        requiredWardenOfficeLevel: Int
+    ): ProgressionCatalogRecord {
+        val sourcedCosts = costs.map { (resourceId, quantity) ->
+            ResourceCost(resourceId, quantity, CostConfidence.COMMUNITY_REFERENCE, GATE_SOURCE)
+        }
+        return ProgressionCatalogRecord(
+            step = ProgressionStep(
+                id = "gate-${targetLevel - 1}-$targetLevel",
+                domain = ProgressionDomain.BUILDING,
+                itemName = "Gate",
+                fromLevel = targetLevel - 1,
+                toLevel = targetLevel,
+                costs = sourcedCosts,
+                durationSeconds = baseDurationSeconds,
+                dataComplete = true
+            ),
+            prerequisiteNotes = listOf("Warden's Office Lv.$requiredWardenOfficeLevel"),
+            sourceLabel = "LOJ Wiki — Gate upgrade costs",
+            sourceUrl = GATE_SOURCE,
+            checkedOn = SOURCE_CHECKED_ON
+        )
+    }
+
     private fun hqRow(
         targetLevel: Int,
         costs: List<Pair<String, Long>>,
