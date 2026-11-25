@@ -122,6 +122,7 @@ fun ProgressionCoachScreen(
         "factory", "usine" -> ProgressionCatalog.factoryBuilding
         "utility_room", "utility room", "salle utilitaire" -> ProgressionCatalog.utilityRoomBuilding
         "guard_room", "guard room", "salle de garde" -> ProgressionCatalog.guardRoomBuilding
+        "inventory", "warehouse", "entrepot", "entrepôt", "lager" -> ProgressionCatalog.inventoryBuilding
         "warden_office", "warden's office", "bureau_du_directeur", "bureau du directeur", "hq" -> ProgressionCatalog.wardensOffice
         else -> emptyList()
     }
@@ -141,6 +142,7 @@ fun ProgressionCoachScreen(
         "factory", "usine" -> text("Usine", "Factory", "Fabrik", "Fabrika", "Фабрика", "工厂", "Fabbrica")
         "utility_room", "utility room", "salle utilitaire" -> text("Salle utilitaire", "Utility Room", "Geräteraum", "Malzeme Odası", "Подсобное помещение", "杂物间", "Locale attrezzi")
         "guard_room", "guard room", "salle de garde" -> text("Salle de garde", "Guard Room", "Wachraum", "Nöbetçi Odası", "Караульная", "警卫室", "Sala di guardia")
+        "inventory", "warehouse", "entrepot", "entrepôt", "lager" -> text("Entrepôt", "Inventory", "Lager", "Depo", "Склад", "仓库", "Magazzino")
         else -> text("Bureau du directeur", "Warden's Office", "Büro des Direktors", "Müdür Ofisi", "Офис директора", "典狱长办公室", "Ufficio del Direttore")
     }
 
