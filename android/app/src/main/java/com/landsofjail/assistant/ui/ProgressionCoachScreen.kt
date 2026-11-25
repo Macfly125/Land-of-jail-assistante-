@@ -33,6 +33,7 @@ import com.landsofjail.assistant.model.ProgressionObjective
 import com.landsofjail.assistant.model.ProgressionPlayerProfile
 import com.landsofjail.assistant.model.ProgressionProfileCodec
 import com.landsofjail.assistant.model.ResourceRecord
+import com.landsofjail.assistant.model.mergeProgressionStocks
 
 private val progressionDomains = listOf(
     ProgressionDomain.BUILDING,
