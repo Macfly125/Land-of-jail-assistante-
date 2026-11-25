@@ -464,9 +464,13 @@ object LandsOfJailOcrParser {
         val topNumbers = topResourceNumberBoxes(textBoxes, imageWidth, imageHeight)
         val resourceOrder = listOf(
             "Cash / Or", "Nourriture (Food)", "Bois (Wood)",
-            "Acier (Steel)", "Essence (Gasoline)"
+            "Acier (Steel)", "Essence (Gasoline)", "Diamants (Gems)"
         )
-        if (resources.isEmpty() && topNumbers.size >= 4) {
+        // Sans libellés ni reconnaissance d'icônes, une correspondance partielle
+        // par position serait dangereuse : un emplacement manquant décalerait
+        // toutes les ressources suivantes. On n'associe les positions que si
+        // les six emplacements sont présents sur la même rangée.
+        if (resources.isEmpty() && topNumbers.size >= resourceOrder.size) {
             topNumbers.take(resourceOrder.size).forEachIndexed { index, box ->
                 val name = resourceOrder[index]
                 if (seenResKeys.add(name)) {
