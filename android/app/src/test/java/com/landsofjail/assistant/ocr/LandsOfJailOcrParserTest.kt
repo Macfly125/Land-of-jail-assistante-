@@ -667,6 +667,25 @@ Aimant"""
     }
 
     @Test
+    fun keepsExplicitEquipmentMaterialQuantityWhenItAppearsOnTheNextLine() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            """Hero Equipment
+Equipment Upgrade
+Weapon
+Level 18
+Magnet
+125"""
+        )
+
+        assertEquals(1, result.equipment.size)
+        val equipment = result.equipment.single()
+        assertEquals("Arme", equipment.piece)
+        assertEquals("18", equipment.niveau)
+        assertTrue(equipment.materiaux.contains("Magnet"))
+        assertTrue(equipment.materiaux.contains("125"))
+    }
+
+    @Test
     fun recognizesGoldResourceLabelsInTurkishRussianAndChinese() {
         val samples = listOf(
             "Altın: 2500",
