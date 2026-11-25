@@ -3552,7 +3552,7 @@ private fun GiftCodesScreen(
     }.getOrDefault("—")
     val filtered = snapshot.entries.filter {
         when (filter) {
-            "OFFICIAL" -> it.status == "COMMUNITY_LISTED"
+            "LISTED" -> it.status == "COMMUNITY_LISTED"
             "CHECK" -> it.status == "UNVERIFIED" || it.status == "NEEDS_REVIEW"
             "EXPIRED" -> it.status == "EXPIRED"
             else -> true
@@ -3601,7 +3601,7 @@ private fun GiftCodesScreen(
         }
         item {
             LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
-                items(listOf("ALL" to labels[0], "OFFICIAL" to labels[1], "CHECK" to labels[2], "EXPIRED" to labels[3])) { (key, label) ->
+                items(listOf("ALL" to labels[0], "LISTED" to labels[1], "CHECK" to labels[2], "EXPIRED" to labels[3])) { (key, label) ->
                     FilterChip(selected = filter == key, onClick = { filter = key }, label = { Text(label, maxLines = 1) })
                 }
             }
