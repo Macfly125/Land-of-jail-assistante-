@@ -329,12 +329,12 @@ fun ProgressionCoachScreen(
                                     style = MaterialTheme.typography.bodySmall)
                             }
                             Text(text(fr = "$buildingDisplayName : $buildingCurrentLevel → ${supportedBuildingGoal.targetLevel}",
-                                en = "Level $labCurrentLevel → ${labGoal.targetLevel}",
-                                de = "Level $labCurrentLevel → ${labGoal.targetLevel}",
-                                tr = "Seviye $labCurrentLevel → ${labGoal.targetLevel}",
-                                ru = "Уровень $labCurrentLevel → ${labGoal.targetLevel}",
-                                zh = "等级 $labCurrentLevel → ${labGoal.targetLevel}",
-                                it = "Livello $labCurrentLevel → ${labGoal.targetLevel}"))
+                                en = "$buildingDisplayName: $buildingCurrentLevel → ${supportedBuildingGoal.targetLevel}",
+                                de = "$buildingDisplayName: $buildingCurrentLevel → ${supportedBuildingGoal.targetLevel}",
+                                tr = "$buildingDisplayName: $buildingCurrentLevel → ${supportedBuildingGoal.targetLevel}",
+                                ru = "$buildingDisplayName: $buildingCurrentLevel → ${supportedBuildingGoal.targetLevel}",
+                                zh = "$buildingDisplayName：$buildingCurrentLevel → ${supportedBuildingGoal.targetLevel}",
+                                it = "$buildingDisplayName: $buildingCurrentLevel → ${supportedBuildingGoal.targetLevel}"))
                             plan.requirements.forEach { requirement ->
                                 val label = when (requirement.resourceId) {
                                     "food" -> text("Nourriture", "Food", "Nahrung", "Yiyecek", "Еда", "食物", "Cibo")
