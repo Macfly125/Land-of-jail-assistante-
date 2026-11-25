@@ -132,7 +132,8 @@ object LandsOfJailOcrParser {
         rawText: String,
         textBoxes: List<OcrTextBox> = emptyList(),
         imageWidth: Int = 0,
-        imageHeight: Int = 0
+        imageHeight: Int = 0,
+        visualRobotMatches: List<RobotPortraitMatch> = emptyList()
     ): LocalOcrExtraction {
         val lines = rawText.lines().map { it.trim() }.filter { it.isNotEmpty() }
         val lowerFull = rawText.lowercase()
@@ -245,6 +246,25 @@ object LandsOfJailOcrParser {
                         source = "ocr_local"
                     ))
                 }
+            }
+
+            // Les portraits confirmés complètent l'OCR uniquement pour l'identité.
+            // Aucun niveau, bonus ou compétence n'est déduit de l'image.
+            for (portrait in visualRobotMatches.filter { it.isConfirmed }) {
+                val robotId = portrait.robotId?.trim().orEmpty()
+                val displayName = portrait.displayName?.trim().orEmpty()
+                if (robotId.isBlank() || displayName.isBlank()) continue
+                val key = normalizeHeroText(robotId)
+                if (!seenRobotKeys.add(key)) continue
+                robots.add(
+                    RobotRecord(
+                        id = robotId,
+                        nom = displayName,
+                        incertain = true,
+                        raisonIncertitude = "Identité proposée par comparaison du portrait ; détails à vérifier en jeu",
+                        source = "portrait_local"
+                    )
+                )
             }
 
             // Équipements de héros : ne remplir que les valeurs réellement visibles dans l'OCR.
