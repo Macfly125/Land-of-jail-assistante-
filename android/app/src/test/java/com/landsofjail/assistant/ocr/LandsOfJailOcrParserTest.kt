@@ -772,4 +772,29 @@ Potential Coil x 8"""
         assertTrue(result.equipment.isEmpty())
     }
 
+
+    @Test
+    fun readsWardenOfficeLevelWhenTheBadgeNumberPrecedesTheBuildingName() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            "6 Bureau du directeur\\nCapacité des prisonniers 40/40\\nNiveau de danger 9"
+        )
+        assertEquals("Niv. 6", result.power?.niveauPrisonOuQG)
+    }
+
+    @Test
+    fun readsCashResourceWhenTheGameCallsItArgentLiquide() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText("Argent liquide: 1.0B")
+        val cash = result.resources.single { it.nom == "Cash / Or" }
+        assertEquals("1.0B", cash.quantiteTexte)
+        assertEquals(1_000_000_000.0, cash.quantiteNumerique ?: 0.0, 0.1)
+    }
+
+    @Test
+    fun doesNotUsePrisonerDangerLevelAsWardenOfficeLevel() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            "Bureau du directeur\\nCapacité des prisonniers 40/40\\nNiveau de danger 9"
+        )
+        assertNull(result.power?.niveauPrisonOuQG)
+    }
+
 }
