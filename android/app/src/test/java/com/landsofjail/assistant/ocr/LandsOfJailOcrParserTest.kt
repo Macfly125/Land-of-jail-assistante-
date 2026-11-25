@@ -643,8 +643,8 @@ Potential Coil x 8"""
     @Test
     fun recognizesItalianAndExclusiveEquipmentScreenLabels() {
         val samples = listOf(
-            "Equipaggiamento eroe\\nMiglioramento equipaggiamento\\nMagnete",
-            "Equipaggiamento esclusivo\\nIngranaggio di precisione"
+            "Equipaggiamento eroe\nMiglioramento equipaggiamento\nMagnete",
+            "Equipaggiamento esclusivo\nIngranaggio di precisione"
         )
         samples.forEach { sample ->
             assertEquals("equipements", ScreenRecognitionEngine.analyze(sample).category)
