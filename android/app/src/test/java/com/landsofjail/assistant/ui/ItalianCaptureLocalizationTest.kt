@@ -31,4 +31,15 @@ class ItalianCaptureLocalizationTest {
         assertEquals("Stivali", localizedEquipmentPiece(AppLanguage.IT, "Boots"))
         assertEquals("Accessorio", localizedEquipmentPiece(AppLanguage.IT, "Accessory"))
     }
+
+    @Test
+    fun alreadyItalianResourceNamesRemainNormalized() {
+        assertEquals("Cibo", localizedResourceName(AppLanguage.IT, "Cibo"))
+        assertEquals("Legno", localizedResourceName(AppLanguage.IT, "Legno"))
+        assertEquals("Acciaio", localizedResourceName(AppLanguage.IT, "Acciaio"))
+        assertEquals("Benzina", localizedResourceName(AppLanguage.IT, "Benzina"))
+        assertEquals("Diamanti", localizedResourceName(AppLanguage.IT, "Diamanti"))
+        assertEquals("Oro", localizedResourceName(AppLanguage.IT, "Oro"))
+        assertEquals("Oro", localizedResourceName(AppLanguage.IT, "Cash / Or"))
+    }
 }
