@@ -109,6 +109,11 @@ class ScreenCaptureConsentActivity : ComponentActivity() {
         autoCaptureIntervalMillis = intent.getLongExtra(EXTRA_INTERVAL_MILLIS, 10_000L)
             .coerceIn(10_000L, 60_000L)
         projectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-        projectionLauncher.launch(projectionManager.createScreenCaptureIntent())
+        // ActivityResultRegistry restaure une demande déjà en cours après une recréation
+        // (rotation / changement de configuration). Ne pas ouvrir une seconde boîte
+        // de consentement MediaProjection dans ce cas.
+        if (savedInstanceState == null) {
+            projectionLauncher.launch(projectionManager.createScreenCaptureIntent())
+        }
     }
 }
