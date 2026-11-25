@@ -144,7 +144,7 @@ object LandsOfJailOcrParser {
         val equipment = mutableListOf<EquipmentRecord>()
         val seenEquipmentKeys = mutableSetOf<String>()
         val seenRobotKeys = mutableSetOf<String>()
-        val knownRobotNames = listOf("Musashimaru", "Phantom Cat", "Ranger", "Infercore", "Hercules α", "Hercules Alpha", "Halo", "Light Cone", "Atlax", "Yokozuna", "Bastion", "Pluto")
+        val knownRobotNames = listOf("Musashimaru", "Phantom Cat", "Ranger", "Infercore", "Hercules α", "Hercules Alpha", "Halo", "Light Cone", "Atlax", "Yokozuna", "Bastion", "Pluto", "Dauntless", "Valiant", "Scorpio")
         val seenHeroKeys = mutableSetOf<String>()
         val seenResKeys = mutableSetOf<String>()
         var power: PowerMetric? = null
