@@ -57,4 +57,30 @@ class GiftCodeRepositoryTest {
         assertEquals("UNVERIFIED", thirdParty?.status)
         assertFalse(snapshot.entries.any { it.code == "LOJ777" })
     }
+    @Test
+    fun parserFindsCodesInContextualListsButIgnoresOrdinaryUppercaseText() {
+        val html = """
+            <h2>Active gift codes</h2>
+            <ul><li>Gift codes: LOJNOW and JAIL2026</li></ul>
+            <p>Our latest rewards include DIAMONDS and HEROES.</p>
+            <li>Expired codes: OLD2025</li>
+        """.trimIndent()
+
+        val parsed = GiftCodeRepository.extractCandidatesFromHtml(html)
+            .associateBy { it.first }
+
+        assertTrue(parsed.containsKey("LOJNOW"))
+        assertTrue(parsed.containsKey("JAIL2026"))
+        assertTrue(parsed.containsKey("OLD2025"))
+        assertFalse(parsed.containsKey("DIAMONDS"))
+        assertFalse(parsed.containsKey("HEROES"))
+    }
+
+    @Test
+    fun parserKeepsExplicitCodeTagsEvenWithoutNearbyHeading() {
+        val html = "<div><code>AbC123xy</code></div>"
+        val parsed = GiftCodeRepository.extractCandidatesFromHtml(html)
+        assertTrue(parsed.any { it.first == "AbC123xy" })
+    }
+
 }
