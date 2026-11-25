@@ -165,6 +165,60 @@ object ProgressionCatalog {
         )
     )
 
+    const val MEDICAL_STATION_SOURCE = "https://lojwiki.com/buildings/medical-station/"
+    const val COMMUNICATION_CENTER_SOURCE = "https://lojwiki.com/buildings/communication-center/"
+
+    // Only exact, fully written resource amounts are included; later K/M rows are omitted.
+    val medicalStationBuilding = multiResourceBuilding(
+        "Medical Station", MEDICAL_STATION_SOURCE, listOf(
+            MultiResourceBuildingLevel(2, listOf("wood" to 150L), 9, 8),
+            MultiResourceBuildingLevel(3, listOf("wood" to 900L), 40, 8),
+            MultiResourceBuildingLevel(4, listOf("wood" to 2_000L, "steel" to 400L), 125, 8),
+            MultiResourceBuildingLevel(5, listOf("wood" to 9_000L, "steel" to 1_800L), 250, 8)
+        )
+    )
+
+    val communicationCenterBuilding = multiResourceBuilding(
+        "Communication Center", COMMUNICATION_CENTER_SOURCE, listOf(
+            MultiResourceBuildingLevel(2, listOf("wood" to 200L), 10, 8),
+            MultiResourceBuildingLevel(3, listOf("wood" to 1_000L), 60, 8),
+            MultiResourceBuildingLevel(4, listOf("wood" to 2_000L, "steel" to 400L), 120, 8),
+            MultiResourceBuildingLevel(5, listOf("wood" to 8_000L, "steel" to 1_600L), 400, 8)
+        )
+    )
+
+    private data class MultiResourceBuildingLevel(
+        val targetLevel: Int,
+        val costs: List<Pair<String, Long>>,
+        val durationSeconds: Long,
+        val requiredWardenOfficeLevel: Int
+    )
+
+    private fun multiResourceBuilding(
+        buildingName: String,
+        sourceUrl: String,
+        levels: List<MultiResourceBuildingLevel>
+    ): List<ProgressionCatalogRecord> = levels.map { level ->
+        ProgressionCatalogRecord(
+            step = ProgressionStep(
+                id = "${buildingName.lowercase().replace(" ", "-")}-${level.targetLevel - 1}-${level.targetLevel}",
+                domain = ProgressionDomain.BUILDING,
+                itemName = buildingName,
+                fromLevel = level.targetLevel - 1,
+                toLevel = level.targetLevel,
+                costs = level.costs.map { (resourceId, quantity) ->
+                    ResourceCost(resourceId, quantity, CostConfidence.COMMUNITY_REFERENCE, sourceUrl)
+                },
+                durationSeconds = level.durationSeconds,
+                dataComplete = true
+            ),
+            prerequisiteNotes = listOf("Warden's Office Lv.${level.requiredWardenOfficeLevel}"),
+            sourceLabel = "LOJ Wiki — $buildingName upgrade costs",
+            sourceUrl = sourceUrl,
+            checkedOn = SOURCE_CHECKED_ON
+        )
+    }
+
     private data class CashBuildingLevel(
         val targetLevel: Int,
         val cash: Long,
