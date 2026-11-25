@@ -8,14 +8,14 @@ import org.junit.Test
 
 class GiftCodeRepositoryTest {
     @Test
-    fun initialCatalogSeparatesOfficialListedUnverifiedAndExpiredCodes() {
+    fun initialCatalogSeparatesCommunityListedUnverifiedAndExpiredCodes() {
         val snapshot = GiftCodeRepository.initialSnapshot()
         val vip = snapshot.entries.firstOrNull { it.code == "VIP777" }
         val expired = snapshot.entries.firstOrNull { it.code == "ZYKtwu9hchxuSv" }
         val unverified = snapshot.entries.firstOrNull { it.code == "RuStore777" }
 
         assertNotNull(vip)
-        assertEquals("OFFICIAL_LISTED", vip?.status)
+        assertEquals("COMMUNITY_LISTED", vip?.status)
         assertEquals("21/09/2026", vip?.firstSeen)
         assertEquals("01/11/2026", vip?.lastChecked)
         assertTrue(vip?.expiresAt.isNullOrBlank())
