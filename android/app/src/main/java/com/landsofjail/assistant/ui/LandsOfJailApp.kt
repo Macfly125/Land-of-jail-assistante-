@@ -3551,13 +3551,13 @@ private fun GiftCodesScreen(
                     Text(labels[17] + " : " + updatedLabel, style = MaterialTheme.typography.bodySmall)
                     Text(
                         localizedUiText(language,
-                            "Les codes listés comme officiels sont rapportés par la communauté, mais leur validité doit toujours être confirmée dans le jeu. « Déjà utilisé » ne signifie pas expiré.",
-                            "Codes marked official are reported by the community; validity must still be confirmed in game. “Already used” does not mean expired.",
-                            "Als offiziell markierte Codes stammen aus Community-Berichten; die Gültigkeit muss im Spiel geprüft werden.",
-                            "Resmî olarak işaretlenen kodlar topluluk kaynaklıdır; geçerlilik oyunda doğrulanmalıdır.",
-                            "Коды из официального списка сообщества всё равно нужно проверять в игре.",
-                            "标记为官方的代码来自社区来源，仍需在游戏中确认有效性。",
-                            "I codici indicati come ufficiali provengono dalla community; la validità va comunque verificata nel gioco."
+                            "Les codes répertoriés proviennent de sources communautaires. L’application ne les teste pas dans le jeu : leur validité reste à confirmer. « Déjà utilisé » ne signifie pas expiré.",
+                            "Listed codes come from community sources. The app does not redeem them in game, so validity remains unconfirmed. “Already used” does not mean expired.",
+                            "Gelistete Codes stammen aus Community-Quellen. Die App testet sie nicht im Spiel; ihre Gültigkeit muss bestätigt werden.",
+                            "Listelenen kodlar topluluk kaynaklarından gelir. Uygulama kodları oyunda denemez; geçerlilik doğrulanmalıdır.",
+                            "Коды взяты из источников сообщества. Приложение не проверяет их в игре; действительность нужно подтвердить.",
+                            "收录的代码来自社区来源。应用不会在游戏内兑换测试，因此有效性仍需确认。",
+                            "I codici segnalati provengono da fonti della community. L’app non li prova nel gioco; la validità resta da confermare."
                         ),
                         style = MaterialTheme.typography.bodySmall,
                         color = Color(0xFFCBD5E1)
