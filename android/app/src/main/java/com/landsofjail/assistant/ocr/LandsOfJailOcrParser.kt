@@ -475,7 +475,10 @@ object LandsOfJailOcrParser {
         }
 
         // Si aucune puissance explicite mais grand nombre de puissance top-bar (ex: "12.4M" ou "8,450,120")
-        if (power == null) {
+        // Une grande quantité de ressource dans la barre supérieure ne doit jamais
+        // être réinterprétée comme la puissance du joueur. Sans libellé explicite,
+        // le fallback puissance n'est autorisé que si aucune ressource n'a été lue.
+        if (power == null && resources.isEmpty()) {
             val topPowerLine = lines.take(6).firstOrNull { l ->
                 Regex("""\b\d{1,3}(?:[.,\s]\d{3}){2,}\b|\b\d+(?:[.,]\d+)?\s*[MB]\b""").containsMatchIn(l)
             }
