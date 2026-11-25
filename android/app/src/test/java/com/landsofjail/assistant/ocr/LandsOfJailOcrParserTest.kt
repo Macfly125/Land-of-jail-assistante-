@@ -738,4 +738,38 @@ Potential Coil x 8"""
         }
     }
 
+    @Test
+    fun recognizesEquipmentPiecesAndExplicitLevelsAcrossAllSevenLanguages() {
+        val samples = listOf(
+            "Arme +5" to "Arme",
+            "Weapon +6" to "Arme",
+            "Waffe +7" to "Arme",
+            "Silah +8" to "Arme",
+            "Оружие +9" to "Arme",
+            "武器 +10" to "Arme",
+            "Arma +11" to "Arme",
+            "Rüstung +12" to "Armure",
+            "Zırh +13" to "Armure",
+            "Перчатка +14" to "Gants",
+            "手套 +15" to "Gants",
+            "Guanto +16" to "Gants",
+            "Stiefel +17" to "Bottes",
+            "靴 +18" to "Bottes"
+        )
+        samples.forEach { (line, expectedPiece) ->
+            val result = LandsOfJailOcrParser.parseLocalOcrText(line)
+            assertEquals("Pièce incorrecte pour $line", expectedPiece, result.equipment.singleOrNull()?.piece)
+            assertEquals("Niveau incorrect pour $line", line.substringAfter('+'), result.equipment.singleOrNull()?.niveau)
+            assertFalse("Le niveau explicite doit être fiable pour $line", result.equipment.singleOrNull()?.incertain ?: true)
+        }
+    }
+
+    @Test
+    fun doesNotTreatWordsContainingEquipmentAliasesAsEquipmentPieces() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            "Weaponized research\nArmor-plated vehicle\nBootcamp"
+        )
+        assertTrue(result.equipment.isEmpty())
+    }
+
 }
