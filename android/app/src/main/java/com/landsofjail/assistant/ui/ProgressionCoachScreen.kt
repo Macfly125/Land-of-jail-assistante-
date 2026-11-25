@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -121,8 +122,8 @@ fun ProgressionCoachScreen(
                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(text(fr = "Nouvel objectif", en = "New goal", de = "Neues Ziel", tr = "Yeni hedef", ru = "Новая цель", zh = "新目标", it = "Nuovo obiettivo"),
                         style = MaterialTheme.typography.titleMedium)
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        progressionDomains.forEach { domain ->
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        items(progressionDomains) { domain ->
                             FilterChip(
                                 selected = selectedDomain == domain,
                                 onClick = { selectedDomain = domain },
@@ -210,10 +211,16 @@ fun ProgressionCoachScreen(
                     Column(Modifier.padding(12.dp)) {
                         Text("${progressionLabel(goal.domain, language)} · ${goal.targetId}",
                             style = MaterialTheme.typography.titleSmall)
-                        Text(text(fr = "Niveau cible : ${goal.targetLevel}", en = "Target level: ${goal.targetLevel}",
-                            de = "Ziel-Level: ${goal.targetLevel}", tr = "Hedef seviye: ${goal.targetLevel}",
-                            ru = "Целевой уровень: ${goal.targetLevel}", zh = "目标等级：${goal.targetLevel}",
-                            it = "Livello obiettivo: ${goal.targetLevel}"))
+                        val savedCurrentLevel = profile.confirmedLevel(goal.targetId)
+                        Text(text(
+                            fr = "Niveau actuel : ${savedCurrentLevel?.toString() ?: "inconnu"} · Cible : ${goal.targetLevel}",
+                            en = "Current level: ${savedCurrentLevel?.toString() ?: "unknown"} · Target: ${goal.targetLevel}",
+                            de = "Aktuelles Level: ${savedCurrentLevel?.toString() ?: "unbekannt"} · Ziel: ${goal.targetLevel}",
+                            tr = "Mevcut seviye: ${savedCurrentLevel?.toString() ?: "bilinmiyor"} · Hedef: ${goal.targetLevel}",
+                            ru = "Текущий уровень: ${savedCurrentLevel?.toString() ?: "неизвестно"} · Цель: ${goal.targetLevel}",
+                            zh = "当前等级：${savedCurrentLevel?.toString() ?: "未知"} · 目标：${goal.targetLevel}",
+                            it = "Livello attuale: ${savedCurrentLevel?.toString() ?: "sconosciuto"} · Obiettivo: ${goal.targetLevel}"
+                        ))
                         if (goal.isPrimary) Text(text(fr = "Objectif principal", en = "Primary goal", de = "Hauptziel",
                             tr = "Ana hedef", ru = "Основная цель", zh = "主要目标", it = "Obiettivo principale"),
                             color = MaterialTheme.colorScheme.primary)
