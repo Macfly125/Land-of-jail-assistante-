@@ -45,34 +45,61 @@ class ScreenCaptureConsentActivity : ComponentActivity() {
         private const val KEY_PENDING_URI = "pending_capture_uri"
         private const val KEY_PENDING_AT = "pending_capture_at"
 
+        private fun clearPendingCaptureState(context: Context) {
+            context.getSharedPreferences(PREFS_CAPTURE, Context.MODE_PRIVATE)
+                .edit()
+                .remove(KEY_PENDING_URI)
+                .remove(KEY_PENDING_AT)
+                .commit()
+        }
+
+        private fun ownedCaptureFile(context: Context, uriText: String?): File? {
+            if (uriText.isNullOrBlank()) return null
+            val uri = runCatching { Uri.parse(uriText) }.getOrNull() ?: return null
+            if (uri.scheme != "file") return null
+            val file = uri.path?.let(::File)?.canonicalFile ?: return null
+            val captureDirectory = File(context.filesDir, "captures").canonicalFile
+            return file.takeIf { it.parentFile == captureDirectory }
+        }
+
         fun restorePendingCapture(context: Context) {
             if (_pendingCapture.value != null) return
             val prefs = context.getSharedPreferences(PREFS_CAPTURE, Context.MODE_PRIVATE)
             val uriText = prefs.getString(KEY_PENDING_URI, null) ?: return
-            val uri = runCatching { Uri.parse(uriText) }.getOrNull() ?: return
-            val file = uri.path?.let(::File) ?: return
-            if (!file.exists()) return
-            runCatching {
+            val file = ownedCaptureFile(context, uriText)
+            if (file == null || !file.isFile) {
+                clearPendingCaptureState(context)
+                return
+            }
+            val restored = runCatching {
                 val bytes = file.readBytes()
-                val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: return
-                _pendingCapture.value = CapturedScreenPayload(
+                val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                    ?: throw IllegalStateException("Capture illisible")
+                CapturedScreenPayload(
                     bitmap = bitmap,
                     base64Jpeg = Base64.encodeToString(bytes, Base64.NO_WRAP),
                     capturedAtMillis = prefs.getLong(KEY_PENDING_AT, file.lastModified()),
                     imageFileUri = uriText
                 )
+            }.getOrNull()
+            if (restored == null) {
+                file.delete()
+                clearPendingCaptureState(context)
+            } else {
+                _pendingCapture.value = restored
             }
         }
 
         fun consumeCapture(context: Context) {
             val consumed = _pendingCapture.value
             _pendingCapture.value = null
+            val prefs = context.getSharedPreferences(PREFS_CAPTURE, Context.MODE_PRIVATE)
+            val uriText = consumed?.imageFileUri
+                ?.takeIf { it.isNotBlank() }
+                ?: prefs.getString(KEY_PENDING_URI, null)
+            clearPendingCaptureState(context)
+            ownedCaptureFile(context, uriText)?.delete()
             consumed?.bitmap?.let { bitmap -> if (!bitmap.isRecycled) bitmap.recycle() }
-            context.getSharedPreferences(PREFS_CAPTURE, Context.MODE_PRIVATE)
-                .edit()
-                .remove(KEY_PENDING_URI)
-                .remove(KEY_PENDING_AT)
-                .apply()
             GameForegroundMonitorService.notifyAutoCaptureConsumed(context)
         }
     }
