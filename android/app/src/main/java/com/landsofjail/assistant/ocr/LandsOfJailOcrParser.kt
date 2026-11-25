@@ -249,12 +249,12 @@ object LandsOfJailOcrParser {
 
             // Équipements de héros : ne remplir que les valeurs réellement visibles dans l'OCR.
             val equipmentPartLabels = mapOf(
-                "Arme" to listOf("weapon", "arme", "waffe", "silah", "оружие", "武器"),
-                "Armure" to listOf("armor", "armour", "armure", "rüstung", "zırh", "броня", "护甲"),
-                "Casque" to listOf("helmet", "casque", "helm", "miğfer", "шлем", "头盔"),
-                "Gants" to listOf("gloves", "gants", "handschuhe", "eldiven", "перчатки", "手套"),
-                "Bottes" to listOf("boots", "bottes", "stiefel", "bot", "сапоги", "靴子"),
-                "Accessoire" to listOf("accessory", "accessoire", "zubehör", "aksesuar", "аксессуар", "配件")
+                "Arme" to listOf("weapon", "arme", "waffe", "silah", "оружие", "武器", "arma"),
+                "Armure" to listOf("armor", "armour", "armure", "rüstung", "zırh", "броня", "护甲", "armatura"),
+                "Casque" to listOf("helmet", "casque", "helm", "miğfer", "шлем", "头盔", "elmo"),
+                "Gants" to listOf("gloves", "gants", "handschuhe", "eldiven", "перчатки", "手套", "guanti"),
+                "Bottes" to listOf("boots", "bottes", "stiefel", "bot", "сапоги", "靴子", "stivali"),
+                "Accessoire" to listOf("accessory", "accessoire", "zubehör", "aksesuar", "аксессуар", "配件", "accessorio")
             )
             // Preserve Cyrillic and Chinese characters: normalizeHeroText is Latin-only and strips them.
             val normalizedEquipmentLine = line.lowercase().trim().replace(Regex("\\s+"), " ")
@@ -262,13 +262,23 @@ object LandsOfJailOcrParser {
                 if (aliases.none { alias -> normalizedEquipmentLine == alias.lowercase() ||
                         normalizedEquipmentLine.startsWith(alias.lowercase() + " ") }) continue
                 val context = lines.subList(index, minOf(lines.size, index + 4)).joinToString(" ")
-                val level = Regex("""(?:lv\.?|level|niv\.?|niveau|stufe|seviye|уровень|等级)\s*[:+]?\s*([0-9]{1,3})""", RegexOption.IGNORE_CASE)
+                val level = Regex("""(?:lv\.?|level|niv\.?|niveau|stufe|seviye|уровень|等级|livello)\s*[:+]?\s*([0-9]{1,3})""", RegexOption.IGNORE_CASE)
                     .find(context)?.groupValues?.get(1)
                     ?: Regex("""(?:^|\s)\+([0-9]{1,3})(?:\s|$)""").find(context)?.groupValues?.get(1).orEmpty()
-                val quality = Regex("""\b(legendary|mythic|epic|rare|common|légendaire|épique|legendär|episch|selten|efsanevi|destansı|nadir|легендарный|эпический|редкий|обычный|传奇|神话|史诗|稀有)\b""", RegexOption.IGNORE_CASE)
+                val quality = Regex("""\b(legendary|mythic|epic|rare|common|légendaire|épique|legendär|episch|selten|efsanevi|destansı|nadir|легендарный|эпический|редкий|обычный|传奇|神话|史诗|稀有|leggendario|mitico|epico|raro|comune)\b""", RegexOption.IGNORE_CASE)
                     .find(context)?.value.orEmpty()
-                val materials = listOf("magnet", "aimant", "potential coil", "precision gear", "equipment part", "mıknatıs", "магнит", "магнитная катушка", "материал", "磁铁", "精密齿轮")
-                    .firstOrNull { context.contains(it, ignoreCase = true) }.orEmpty()
+                val materialAliases = listOf(
+                    "magnet", "aimant", "potential coil", "precision gear", "equipment part",
+                    "mıknatıs", "hassas dişli", "potansiyel bobin",
+                    "магнит", "магнитная катушка", "прецизионная шестерня", "материал",
+                    "磁铁", "精密齿轮", "潜能线圈",
+                    "magnete", "ingranaggio di precisione", "bobina potenziale", "componente equipaggiamento"
+                )
+                val materials = materialAliases.firstOrNull { context.contains(it, ignoreCase = true) }
+                    ?.let { alias ->
+                        lines.subList(index, minOf(lines.size, index + 4))
+                            .firstOrNull { it.contains(alias, ignoreCase = true) }?.trim()?.take(80) ?: alias
+                    }.orEmpty()
                 val key = (partName + "-" + level.ifBlank { "?" }).lowercase()
                 if (seenEquipmentKeys.add(key)) equipment.add(
                     EquipmentRecord(
@@ -448,6 +458,34 @@ object LandsOfJailOcrParser {
         }
 
         val screenRecognition = ScreenRecognitionEngine.analyze(rawText)
+        // Conserver une trace exploitable même si l'OCR lit l'écran d'amélioration
+        // mais ne parvient pas à distinguer la pièce. Aucun niveau n'est déduit.
+        if (screenRecognition.category == "equipements" && equipment.isEmpty()) {
+            val observedMaterials = lines.filter { line ->
+                listOf(
+                    "magnet", "aimant", "potential coil", "precision gear", "mıknatıs",
+                    "магнит", "магнитная катушка", "磁铁", "精密齿轮",
+                    "magnete", "ingranaggio di precisione", "bobina potenziale"
+                ).any { line.contains(it, ignoreCase = true) }
+            }.take(4).joinToString(" | ")
+            val isExclusive = rawText.contains("exclusive", true) ||
+                rawText.contains("exclusif", true) ||
+                rawText.contains("exklusiv", true) ||
+                rawText.contains("özel ekipman", true) ||
+                rawText.contains("эксклюзив", true) ||
+                rawText.contains("专属装备", true) ||
+                rawText.contains("esclusivo", true)
+            equipment.add(
+                EquipmentRecord(
+                    id = if (isExclusive) "exclusive_equipment_screen" else "hero_equipment_screen",
+                    piece = if (isExclusive) "Équipement exclusif" else "Équipement de héros",
+                    materiaux = observedMaterials,
+                    texteObserve = lines.take(10).joinToString(" · ").take(220),
+                    incertain = true,
+                    raisonIncertitude = "Écran d'amélioration reconnu, mais pièce ou niveau non identifiés avec certitude"
+                )
+            )
+        }
         val detectedCategory = when {
             screenRecognition.category != "ocr_local" -> screenRecognition.category
             equipment.isNotEmpty() -> "equipements"
