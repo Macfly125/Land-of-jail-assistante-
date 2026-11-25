@@ -473,6 +473,16 @@ object LandsOfJailOcrParser {
 
         if (power != null && power?.niveauPrisonOuQG == null && wardenLevel != null) {
             power = power?.copy(niveauPrisonOuQG = wardenLevel)
+        } else if (power == null && wardenLevel != null) {
+            // Le niveau du Bureau du directeur reste une donnée utile même si
+            // la puissance n'est pas visible/lisible sur cette capture.
+            // Le libellé explicite évite de présenter une puissance inventée.
+            power = PowerMetric(
+                puissanceTotaleTexte = "Non mesurée",
+                niveauPrisonOuQG = wardenLevel,
+                incertain = false,
+                raisonIncertitude = null
+            )
         }
 
         // Ne jamais mélanger des valeurs nommées avec une supposition par position.
