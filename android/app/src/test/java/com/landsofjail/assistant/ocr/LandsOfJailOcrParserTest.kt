@@ -592,8 +592,13 @@ Aimant"""
         val result = LandsOfJailOcrParser.parseLocalOcrText(
             "Cibo: 1200\nLegno: 2300\nAcciaio: 3400\nBenzina: 4500\nDiamanti: 55\nOro: 66"
         )
-        assertEquals("Tutte e sei le risorse italiane devono essere riconosciute", 6, result.resources.size)
-        assertTrue(result.resources.all { it.quantiteNumerique != null })
+        val recognized = result.resources.associate { it.nom to it.quantiteNumerique }
+        assertTrue("Cibo non riconosciuto: $recognized", recognized["Nourriture (Food)"] == 1200.0)
+        assertTrue("Legno non riconosciuto: $recognized", recognized["Bois (Wood)"] == 2300.0)
+        assertTrue("Acciaio non riconosciuto: $recognized", recognized["Acier (Steel)"] == 3400.0)
+        assertTrue("Benzina non riconosciuta: $recognized", recognized["Essence (Gasoline)"] == 4500.0)
+        assertTrue("Diamanti non riconosciuti: $recognized", recognized["Diamants (Gems)"] == 55.0)
+        assertTrue("Oro non riconosciuto: $recognized", recognized["Cash / Or"] == 66.0)
     }
 
     @Test
