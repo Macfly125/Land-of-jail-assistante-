@@ -463,8 +463,8 @@ object LandsOfJailOcrParser {
         // Le mode positionnel n'est utilisé que si aucune ressource n'a été lue par son nom.
         val topNumbers = topResourceNumberBoxes(textBoxes, imageWidth, imageHeight)
         val resourceOrder = listOf(
-            "Nourriture (Food)", "Bois (Wood)", "Acier (Steel)",
-            "Essence (Gasoline)", "Diamants (Gems)", "Cash / Or"
+            "Cash / Or", "Nourriture (Food)", "Bois (Wood)",
+            "Acier (Steel)", "Essence (Gasoline)"
         )
         if (resources.isEmpty() && topNumbers.size >= 4) {
             topNumbers.take(resourceOrder.size).forEachIndexed { index, box ->
