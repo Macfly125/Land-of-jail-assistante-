@@ -217,4 +217,38 @@ class ProgressionCatalogTest {
         assertTrue(rows.none { it.step.toLevel > 7 })
     }
 
+    @Test
+    fun medicalStationCatalogContainsOnlyExactEarlyUpgradeCosts() {
+        val rows = ProgressionCatalog.medicalStationBuilding
+        assertEquals((2..5).toList(), rows.map { it.step.toLevel })
+        assertEquals(listOf(9L, 40L, 125L, 250L), rows.map { it.step.durationSeconds })
+        assertEquals(listOf(
+            mapOf("wood" to 150L),
+            mapOf("wood" to 900L),
+            mapOf("wood" to 2_000L, "steel" to 400L),
+            mapOf("wood" to 9_000L, "steel" to 1_800L)
+        ), rows.map { row -> row.step.costs.associate { it.resourceId to it.quantity } })
+        assertTrue(rows.all { it.prerequisiteNotes == listOf("Warden's Office Lv.8") })
+        assertTrue(rows.all { it.sourceUrl == ProgressionCatalog.MEDICAL_STATION_SOURCE })
+        assertTrue(rows.all { it.checkedOn == ProgressionCatalog.SOURCE_CHECKED_ON })
+        assertTrue(rows.none { it.step.toLevel > 5 })
+    }
+
+    @Test
+    fun communicationCenterCatalogContainsOnlyExactEarlyUpgradeCosts() {
+        val rows = ProgressionCatalog.communicationCenterBuilding
+        assertEquals((2..5).toList(), rows.map { it.step.toLevel })
+        assertEquals(listOf(10L, 60L, 120L, 400L), rows.map { it.step.durationSeconds })
+        assertEquals(listOf(
+            mapOf("wood" to 200L),
+            mapOf("wood" to 1_000L),
+            mapOf("wood" to 2_000L, "steel" to 400L),
+            mapOf("wood" to 8_000L, "steel" to 1_600L)
+        ), rows.map { row -> row.step.costs.associate { it.resourceId to it.quantity } })
+        assertTrue(rows.all { it.prerequisiteNotes == listOf("Warden's Office Lv.8") })
+        assertTrue(rows.all { it.sourceUrl == ProgressionCatalog.COMMUNICATION_CENTER_SOURCE })
+        assertTrue(rows.all { it.checkedOn == ProgressionCatalog.SOURCE_CHECKED_ON })
+        assertTrue(rows.none { it.step.toLevel > 5 })
+    }
+
 }
