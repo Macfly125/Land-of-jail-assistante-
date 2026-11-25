@@ -599,24 +599,39 @@ class GameForegroundMonitorService : Service() {
     }
 
     private fun saveCaptureToInternalFile(jpegBytes: ByteArray): String {
+        val dir = File(filesDir, "captures")
+        val timestamp = System.currentTimeMillis()
+        val outFile = File(dir, "capture_$timestamp.jpg")
+        val tempFile = File(dir, "capture_$timestamp.jpg.tmp")
         return try {
-            val dir = File(filesDir, "captures").apply { mkdirs() }
-            val outFile = File(dir, "capture_${System.currentTimeMillis()}.jpg")
-            FileOutputStream(outFile).use { fos ->
+            if (!dir.exists() && !dir.mkdirs()) return ""
+            // Écrire d'abord dans un fichier temporaire pour qu'un arrêt brutal
+            // ne laisse jamais une capture partiellement écrite référencée comme valide.
+            FileOutputStream(tempFile).use { fos ->
                 fos.write(jpegBytes)
-                fos.flush()
+                fos.fd.sync()
             }
-            getSharedPreferences("loj_capture_state", Context.MODE_PRIVATE)
+            if (!tempFile.renameTo(outFile)) {
+                tempFile.delete()
+                return ""
+            }
+            val uri = Uri.fromFile(outFile).toString()
+            val persisted = getSharedPreferences("loj_capture_state", Context.MODE_PRIVATE)
                 .edit()
-                .putString("pending_capture_uri", Uri.fromFile(outFile).toString())
-                .putLong("pending_capture_at", System.currentTimeMillis())
-                .apply()
-            // Nettoyer les captures très anciennes (garder les 30 plus récentes)
-            dir.listFiles()?.sortedByDescending { it.lastModified() }?.drop(30)?.forEach {
-                it.delete()
+                .putString("pending_capture_uri", uri)
+                .putLong("pending_capture_at", timestamp)
+                .commit()
+            if (!persisted) {
+                outFile.delete()
+                return ""
             }
-            Uri.fromFile(outFile).toString()
+            // Nettoyer les captures très anciennes (garder les 30 plus récentes).
+            dir.listFiles()?.filter { it.isFile && it.extension.equals("jpg", ignoreCase = true) }
+                ?.sortedByDescending { it.lastModified() }?.drop(30)?.forEach { it.delete() }
+            uri
         } catch (_: Throwable) {
+            tempFile.delete()
+            outFile.delete()
             ""
         }
     }
