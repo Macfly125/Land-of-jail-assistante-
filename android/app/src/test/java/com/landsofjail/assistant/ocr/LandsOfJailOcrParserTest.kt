@@ -590,7 +590,7 @@ Aimant"""
     @Test
     fun parsesItalianResourceNamesAndQuantities() {
         val result = LandsOfJailOcrParser.parseLocalOcrText(
-            "Cibo: 1200\\nLegno: 2300\\nAcciaio: 3400\\nBenzina: 4500\\nDiamanti: 55\\nOro: 66"
+            "Cibo: 1200\nLegno: 2300\nAcciaio: 3400\nBenzina: 4500\nDiamanti: 55\nOro: 66"
         )
         assertEquals("Tutte e sei le risorse italiane devono essere riconosciute", 6, result.resources.size)
         assertTrue(result.resources.all { it.quantiteNumerique != null })
@@ -598,7 +598,7 @@ Aimant"""
 
     @Test
     fun recognizesItalianResourceScreens() {
-        val result = ScreenRecognitionEngine.analyze("Cibo\\nLegno\\nAcciaio\\nBenzina")
+        val result = ScreenRecognitionEngine.analyze("Cibo\nLegno\nAcciaio\nBenzina")
         assertEquals("ressources", result.category)
         assertTrue(result.confidence >= 0.8f)
     }
