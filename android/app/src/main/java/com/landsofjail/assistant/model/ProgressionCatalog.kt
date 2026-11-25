@@ -197,6 +197,19 @@ object ProgressionCatalog {
     }
 
 
+    const val SHOWER_ROOM_SOURCE = "https://lojwiki.com/buildings/shower-room/"
+
+    // Shower Room: exact un-abbreviated cash amounts through level 10.
+    val showerRoomBuilding = cashBuilding(
+        "Shower Room", SHOWER_ROOM_SOURCE, listOf(
+            CashBuildingLevel(2, 174, 11, 2), CashBuildingLevel(3, 208, 18, 3),
+            CashBuildingLevel(4, 250, 31, 4), CashBuildingLevel(5, 1_125, 123, 5),
+            CashBuildingLevel(6, 2_813, 233, 6), CashBuildingLevel(7, 5_626, 450, 7),
+            CashBuildingLevel(8, 18_600, 640, 8), CashBuildingLevel(9, 22_300, 883, 9),
+            CashBuildingLevel(10, 26_700, 1_104, 10)
+        )
+    )
+
     const val PLAYGROUND_SOURCE = "https://lojwiki.com/buildings/playground/"
 
     // Playground: exact Cash values only through level 6; level 7 is rounded.
