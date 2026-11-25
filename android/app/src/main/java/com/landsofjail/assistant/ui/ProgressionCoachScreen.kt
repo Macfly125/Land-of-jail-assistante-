@@ -317,12 +317,10 @@ fun ProgressionCoachScreen(
             item {
                 Card(Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(if (isLabGoal) text(fr = "Calculateur du laboratoire", en = "Laboratory calculator", de = "Labor-Rechner",
-                            tr = "Laboratuvar hesaplayıcısı", ru = "Калькулятор лаборатории", zh = "实验室计算器",
-                            it = "Calcolatore del laboratorio")
-                            else text(fr = "Calculateur du Bureau du directeur", en = "Warden's Office calculator", de = "Rechner Büro des Direktors",
-                            tr = "Müdür Ofisi hesaplayıcısı", ru = "Калькулятор офиса директора", zh = "典狱长办公室计算器",
-                            it = "Calcolatore Ufficio del Direttore"), style = MaterialTheme.typography.titleMedium)
+                        Text(text(fr = "Calculateur : $buildingDisplayName", en = "$buildingDisplayName calculator",
+                            de = "$buildingDisplayName-Rechner", tr = "$buildingDisplayName hesaplayıcısı",
+                            ru = "Калькулятор: $buildingDisplayName", zh = "$buildingDisplayName 计算器",
+                            it = "Calcolatore: $buildingDisplayName"), style = MaterialTheme.typography.titleMedium)
                         Text(text(fr = "Référence communautaire LOJ Wiki · consultée le 25/11/2026 · temps de base sans bonus.",
                             en = "LOJ Wiki community reference · checked 25/11/2026 · base time before bonuses.",
                             de = "Community-Referenz LOJ Wiki · geprüft am 25.11.2026 · Grundzeit ohne Boni.",
