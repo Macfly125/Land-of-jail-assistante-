@@ -912,7 +912,8 @@ private enum class ResourceSubTab {
             AppLanguage.DE -> "SvS-Plan"
             AppLanguage.EN -> "SvS Prep"
             AppLanguage.IT -> "Piano SvS"
-        }\n        ROBOTS -> when (lang) {
+        }
+        ROBOTS -> when (lang) {
             AppLanguage.FR -> "Robots"
             AppLanguage.TR -> "Robotlar"
             AppLanguage.RU -> "Роботы"
