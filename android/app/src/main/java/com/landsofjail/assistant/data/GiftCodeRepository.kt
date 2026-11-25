@@ -243,7 +243,7 @@ object GiftCodeRepository {
         val blocks = Regex("(?is)<(?:li|p|td)[^>]*>(.*?)</(?:li|p|td)>")
         val headings = Regex("(?is)<h[1-6][^>]*>(.*?)</h[1-6]>")
         val token = Regex("(?<![A-Za-z0-9])[A-Za-z0-9]{6,20}(?![A-Za-z0-9])")
-        val codeContext = Regex("(?i)\\b(gift\\s*codes?|promo\\s*codes?|coupon\\s*codes?|(?:active|expired|working|new)\\s+codes?|codes?\\s*(?:cadeaux?|for\\s+lands|of\\s+lands)|lands?\\s+of\\s+jail\\s+codes?)\\b")
+        val codeContext = Regex("(?i)\\b(gift\\s*codes?|promo\\s*codes?|coupon\\s*codes?|(?:active|expired|working|new)\\s+codes?|codes?\\s*(?:cadeaux?|actifs?|expir[eé]s?|fonctionnels?|for\\s+lands|of\\s+lands)|lands?\\s+of\\s+jail\\s+codes?)\\b")
         val excluded = setOf("ACTIVE", "EXPIRED", "LATEST", "REWARDS", "GIFTCO", "COUPON")
 
         fun collectBlock(blockHtml: String, inheritedHeading: String = "") {
