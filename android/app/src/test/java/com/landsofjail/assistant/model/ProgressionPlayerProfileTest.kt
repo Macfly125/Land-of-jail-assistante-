@@ -66,3 +66,47 @@ class ProgressionPlayerProfileTest {
         assertEquals("warden_office", updated.primaryObjective?.targetId)
     }
 }
+
+    @Test
+    fun stockMergeNeverLetsAnUncertainCaptureReplaceAConfirmedValue() {
+        val existing = listOf(PlayerResourceStock("wood", 900L, true, 100L))
+        val observed = listOf(PlayerResourceStock("Bois (Wood)", 120L, false, 200L))
+
+        val merged = mergeProgressionStocks(existing, observed)
+
+        assertEquals(1, merged.size)
+        assertEquals("wood", merged.single().resourceId)
+        assertEquals(900L, merged.single().quantity)
+        assertEquals(true, merged.single().confirmed)
+        assertEquals(100L, merged.single().updatedAtEpochMillis)
+    }
+
+    @Test
+    fun stockMergeUsesNewestConfirmedObservationAcrossLocalizedAliases() {
+        val existing = listOf(PlayerResourceStock("Nourriture", 500L, true, 100L))
+        val observed = listOf(PlayerResourceStock("Food", 750L, true, 200L))
+
+        val merged = mergeProgressionStocks(existing, observed)
+
+        assertEquals(1, merged.size)
+        assertEquals("food", merged.single().resourceId)
+        assertEquals(750L, merged.single().quantity)
+        assertEquals(200L, merged.single().updatedAtEpochMillis)
+    }
+
+    @Test
+    fun canonicalResourceIdsNormalizeAllSixMainResourceFamilies() {
+        val aliases = mapOf(
+            "Nourriture (Food)" to "food",
+            "Bois (Wood)" to "wood",
+            "Acier (Steel)" to "steel",
+            "Essence (Gasoline)" to "gasoline",
+            "Cash / Or" to "gold",
+            "Diamants (Gems)" to "diamonds"
+        )
+
+        aliases.forEach { (input, expected) ->
+            assertEquals(input, expected, canonicalProgressionResourceId(input))
+        }
+    }
+}
