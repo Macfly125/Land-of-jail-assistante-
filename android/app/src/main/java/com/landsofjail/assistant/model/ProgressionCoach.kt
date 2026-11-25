@@ -66,6 +66,8 @@ data class ProgressionPlan(
     val steps: List<ProgressionStep>,
     val requirements: List<ResourceRequirement>,
     val unknownStepIds: List<String>,
+    val missingPrerequisiteIds: List<String>,
+    val cyclicStepIds: List<String>,
     val totalKnownDurationSeconds: Long?
 )
 
@@ -74,11 +76,35 @@ object ProgressionCoach {
         steps: List<ProgressionStep>,
         stocks: List<PlayerResourceStock>
     ): ProgressionPlan {
+        val byId = steps.associateBy { it.id }
+        val missingPrerequisites = steps.flatMap { it.prerequisites }
+            .filterNot { it in byId }.distinct()
+
+        // Stable topological ordering: prerequisites are always planned before dependants.
+        val remaining = steps.associateBy { it.id }.toMutableMap()
+        val ordered = mutableListOf<ProgressionStep>()
+        while (remaining.isNotEmpty()) {
+            val ready = steps.filter { step ->
+                step.id in remaining && step.prerequisites.all { prerequisite ->
+                    prerequisite !in byId || ordered.any { it.id == prerequisite }
+                }
+            }
+            if (ready.isEmpty()) break
+            ready.forEach { step ->
+                ordered += step
+                remaining.remove(step.id)
+            }
+        }
+        val cyclicIds = remaining.keys.toList()
+
         val confirmedStocks = stocks.filter { it.confirmed }
             .groupBy { it.resourceId }
             .mapValues { (_, entries) -> entries.maxByOrNull { it.updatedAtEpochMillis }!!.quantity }
 
-        val allCosts = steps.flatMap { it.costs }.groupBy { it.resourceId }
+        // Costs flagged NEEDS_CONFIRMATION are deliberately excluded from totals.
+        val allCosts = steps.flatMap { step ->
+            step.costs.filter { it.confidence != CostConfidence.NEEDS_CONFIRMATION }
+        }.groupBy { it.resourceId }
         val requirements = allCosts.map { (resourceId, costs) ->
             val required = costs.sumOf { it.quantity }
             val owned = confirmedStocks[resourceId]
@@ -92,11 +118,20 @@ object ProgressionCoach {
             )
         }.sortedByDescending { it.missing ?: it.required }
 
+        val unknownIds = steps.filter { step ->
+            !step.dataComplete ||
+                step.costs.any { it.confidence == CostConfidence.NEEDS_CONFIRMATION } ||
+                step.prerequisites.any { it !in byId }
+        }.map { it.id }
+
         return ProgressionPlan(
-            steps = steps,
+            steps = ordered + steps.filter { it.id in cyclicIds },
             requirements = requirements,
-            unknownStepIds = steps.filterNot { it.dataComplete }.map { it.id },
-            totalKnownDurationSeconds = if (steps.all { it.durationSeconds != null })
+            unknownStepIds = unknownIds,
+            missingPrerequisiteIds = missingPrerequisites,
+            cyclicStepIds = cyclicIds,
+            totalKnownDurationSeconds = if (steps.all { it.dataComplete && it.durationSeconds != null } &&
+                missingPrerequisites.isEmpty() && cyclicIds.isEmpty())
                 steps.sumOf { it.durationSeconds!! } else null
         )
     }
