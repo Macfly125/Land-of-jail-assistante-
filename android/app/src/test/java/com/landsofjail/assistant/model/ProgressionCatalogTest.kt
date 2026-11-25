@@ -161,4 +161,22 @@ class ProgressionCatalogTest {
         assertTrue(rows.none { it.step.toLevel > 7 })
     }
 
+
+    @Test
+    fun playgroundCatalogStopsBeforeRoundedCashValues() {
+        val rows = ProgressionCatalog.playgroundBuilding
+        assertEquals((2..6).toList(), rows.map { it.step.toLevel })
+        assertEquals(listOf(319L, 383L, 459L, 2_067L, 5_167L),
+            rows.map { it.step.costs.single().quantity })
+        assertEquals(listOf(20L, 33L, 57L, 226L, 428L),
+            rows.map { it.step.durationSeconds })
+        assertEquals((2..6).toList(), rows.map {
+            it.prerequisiteNotes.single().substringAfter("Lv.").toInt()
+        })
+        assertTrue(rows.all { it.step.costs.single().resourceId == "gold" })
+        assertTrue(rows.all { it.sourceUrl == ProgressionCatalog.PLAYGROUND_SOURCE })
+        assertTrue(rows.all { it.checkedOn == ProgressionCatalog.SOURCE_CHECKED_ON })
+        assertTrue(rows.none { it.step.toLevel > 6 })
+    }
+
 }
