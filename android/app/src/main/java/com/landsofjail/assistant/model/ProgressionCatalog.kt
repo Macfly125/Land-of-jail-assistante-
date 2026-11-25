@@ -132,14 +132,15 @@ object ProgressionCatalog {
         "Kitchen", KITCHEN_SOURCE, listOf(
             CashBuildingLevel(2, 206, 13, 2), CashBuildingLevel(3, 247, 21, 3),
             CashBuildingLevel(4, 296, 37, 4), CashBuildingLevel(5, 1_334, 146, 5),
-            CashBuildingLevel(6, 3_334, 276, 6)
+            CashBuildingLevel(6, 3_334, 276, 6), CashBuildingLevel(7, 6_668, 533, 7)
         )
     )
     val cellBuilding = cashBuilding(
         "Cell", CELL_SOURCE, listOf(
             CashBuildingLevel(2, 66, 4, 2), CashBuildingLevel(3, 79, 7, 3),
             CashBuildingLevel(4, 95, 12, 4), CashBuildingLevel(5, 427, 47, 5),
-            CashBuildingLevel(6, 1_067, 89, 6)
+            CashBuildingLevel(6, 1_067, 89, 6), CashBuildingLevel(7, 2_134, 171, 7),
+            CashBuildingLevel(8, 7_041, 243, 8), CashBuildingLevel(9, 8_449, 335, 9)
         )
     )
     val factoryBuilding = cashBuilding(
@@ -153,7 +154,7 @@ object ProgressionCatalog {
         "Utility Room", UTILITY_ROOM_SOURCE, listOf(
             CashBuildingLevel(2, 288, 18, 4), CashBuildingLevel(3, 346, 30, 4),
             CashBuildingLevel(4, 415, 51, 4), CashBuildingLevel(5, 1_867, 204, 5),
-            CashBuildingLevel(6, 4_667, 387, 6)
+            CashBuildingLevel(6, 4_667, 387, 6), CashBuildingLevel(7, 9_335, 746, 7)
         )
     )
     val guardRoomBuilding = cashBuilding(
