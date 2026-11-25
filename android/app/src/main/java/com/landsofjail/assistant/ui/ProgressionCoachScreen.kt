@@ -107,7 +107,9 @@ fun ProgressionCoachScreen(
                 "factory", "usine", "utility_room", "utility room", "salle utilitaire",
                 "guard_room", "guard room", "salle de garde",
                 "inventory", "warehouse", "entrepot", "entrepôt", "lager",
-                "laundry", "buanderie", "wäsche", "playground", "terrain de jeu", "spielplatz", "shower_room", "shower room", "douche", "shower", "cafeteria", "cafétéria", "cantine", "kafeterya"
+                "laundry", "buanderie", "wäsche", "playground", "terrain de jeu", "spielplatz", "shower_room", "shower room", "douche", "shower", "cafeteria", "cafétéria", "cantine", "kafeterya",
+                "medical_station", "medical station", "medical", "infirmerie", "krankenstation",
+                "communication_center", "communication center", "communications center", "centre des communications", "kommunikationszentrum"
             )
     }
     val isLabGoal = supportedBuildingGoal?.targetId?.trim()?.lowercase()?.let {
@@ -128,6 +130,8 @@ fun ProgressionCoachScreen(
         "playground", "terrain de jeu", "spielplatz" -> ProgressionCatalog.playgroundBuilding
         "shower_room", "shower room", "douche", "shower" -> ProgressionCatalog.showerRoomBuilding
         "cafeteria", "cafétéria", "cantine", "kafeterya" -> ProgressionCatalog.cafeteriaBuilding
+        "medical_station", "medical station", "medical", "infirmerie", "krankenstation" -> ProgressionCatalog.medicalStationBuilding
+        "communication_center", "communication center", "communications center", "centre des communications", "kommunikationszentrum" -> ProgressionCatalog.communicationCenterBuilding
         "warden_office", "warden's office", "bureau_du_directeur", "bureau du directeur", "hq" -> ProgressionCatalog.wardensOffice
         else -> emptyList()
     }
@@ -152,6 +156,8 @@ fun ProgressionCoachScreen(
         "playground", "terrain de jeu", "spielplatz" -> text("Terrain de jeu", "Playground", "Spielplatz", "Oyun alanı", "Игровая площадка", "游乐场", "Parco giochi")
         "shower_room", "shower room", "douche", "shower" -> text("Salle de douche", "Shower Room", "Duschraum", "Duş Odası", "Душевая", "淋浴间", "Sala docce")
         "cafeteria", "cafétéria", "cantine", "kafeterya" -> text("Cafétéria", "Cafeteria", "Kantine", "Kafeterya", "Столовая", "食堂", "Caffetteria")
+        "medical_station", "medical station", "medical", "infirmerie", "krankenstation" -> text("Infirmerie", "Medical Station", "Krankenstation", "Revir", "Медпункт", "医疗站", "Infermeria")
+        "communication_center", "communication center", "communications center", "centre des communications", "kommunikationszentrum" -> text("Centre des communications", "Communication Center", "Kommunikationszentrum", "İletişim Merkezi", "Центр связи", "通讯中心", "Centro comunicazioni")
         else -> text("Bureau du directeur", "Warden's Office", "Büro des Direktors", "Müdür Ofisi", "Офис директора", "典狱长办公室", "Ufficio del Direttore")
     }
 
