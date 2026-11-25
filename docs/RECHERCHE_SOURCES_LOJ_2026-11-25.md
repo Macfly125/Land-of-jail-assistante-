@@ -41,8 +41,10 @@ Règles d'affichage :
 ## Armure de prisonnier et robots
 
 - [LOJ Wiki — armure de prisonnier](https://lojwiki.com/calculator/prisoner-armor/) : suit les données d'armure, modules de puissance et modules avancés ; les plafonds peuvent être 60, 90 ou 100 selon l'armure. Les percées par dizaines coûtent des modules.
+- [LOJ Wiki — hangar d'armure](https://lojwiki.com/power-armor/) : le Hangar d'armure de prisonnier requiert le Bureau du directeur niveau 25 ; disponibilité de chaque robot dépend aussi de la saison et du niveau du Bureau (25–30). Ne pas confondre ce déblocage avec l'Arsenal des équipements de héros (Bureau niveau 15).
 - Les noyaux robots et leurs puces Solo, Formation et Barrière sont distincts de l'armure de prisonnier. Ne pas fusionner les deux calculateurs.
 - [LOJ XLab — bibliothèque](https://lojxlab.com/library/) : répertorie des tableaux communautaires contrôlés, notamment niveaux robots 1–100 et noyaux I–V (116 460 puces annoncées comme total vérifié par la communauté). Il faut conserver le lien exact vers la table d'origine et ne pas extrapoler les lignes absentes.
+- [LOJ XLab — coûts robots niveaux 1–100](https://lojxlab.com/library/lands-of-jail-robot-upgrade-cost/) : total annoncé 141 050 données d'armure, 1 040 modules de puissance et 325 modules avancés pour le niveau 1→100. Le tableau détaille chaque tranche de 10 niveaux. Une divergence reste explicitement signalée pour les modules avancés du niveau 60→70 : 40 selon deux tableaux/sources, 140 selon un calculateur ; conserver cette cellule en NEEDS_CONFIRMATION tant qu'une capture du jeu ne la tranche pas.
 - [LOJ XLab — HEROpedia](https://lojxlab.com/heropedia/) : fiches héros, compétences, équipements exclusifs et saisons 1 à 7 ; les données sont présentées comme observées sur captures du jeu par les contributeurs. Le catalogue d'images générées pour illustrer les rôles n'est pas de l'art officiel.
 
 ## Sources transversales
