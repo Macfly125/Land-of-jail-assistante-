@@ -241,22 +241,41 @@ object GiftCodeRepository {
         }
 
         val blocks = Regex("(?is)<(?:li|p|td)[^>]*>(.*?)</(?:li|p|td)>")
+        val headings = Regex("(?is)<h[1-6][^>]*>(.*?)</h[1-6]>")
         val token = Regex("(?<![A-Za-z0-9])[A-Za-z0-9]{6,20}(?![A-Za-z0-9])")
         val codeContext = Regex("(?i)\\b(gift\\s*codes?|promo\\s*codes?|coupon\\s*codes?|(?:active|expired|working|new)\\s+codes?|codes?\\s*(?:cadeaux?|for\\s+lands|of\\s+lands)|lands?\\s+of\\s+jail\\s+codes?)\\b")
         val excluded = setOf("ACTIVE", "EXPIRED", "LATEST", "REWARDS", "GIFTCO", "COUPON")
-        blocks.findAll(html).forEach blockLoop@ { block ->
-            val plain = decodeHtml(stripTags(block.groupValues[1]))
-            if (!codeContext.containsMatchIn(plain)) return@blockLoop
-            val context = plain.lowercase(Locale.ROOT)
+
+        fun collectBlock(blockHtml: String, inheritedHeading: String = "") {
+            val plain = decodeHtml(stripTags(blockHtml))
+            val context = "$inheritedHeading $plain".trim().lowercase(Locale.ROOT)
+            if (!codeContext.containsMatchIn(context)) return
             token.findAll(plain).forEach tokenLoop@ { foundToken ->
                 val code = foundToken.value
                 val normalized = code.uppercase(Locale.ROOT)
                 // The fallback requires a digit or the game's LOJ prefix to avoid
                 // treating ordinary uppercase words as redeemable codes.
                 if (normalized in excluded || !(code.any(Char::isDigit) || normalized.startsWith("LOJ"))) return@tokenLoop
-                if (!candidates.containsKey(code.lowercase(Locale.ROOT))) candidates[code.lowercase(Locale.ROOT)] = code to context
+                val key = code.lowercase(Locale.ROOT)
+                if (!candidates.containsKey(key)) candidates[key] = code to context
             }
         }
+
+        // Many guides put the heading ("Active gift codes") above a list whose
+        // individual <li> elements contain only the code. Carry that heading only
+        // until the next heading, so unrelated page sections are not harvested.
+        val headingMatches = headings.findAll(html).toList()
+        headingMatches.forEachIndexed { index, heading ->
+            val headingText = decodeHtml(stripTags(heading.groupValues[1]))
+            if (!codeContext.containsMatchIn(headingText)) return@forEachIndexed
+            val sectionStart = heading.range.last + 1
+            val sectionEnd = headingMatches.getOrNull(index + 1)?.range?.first ?: html.length
+            val section = html.substring(sectionStart, sectionEnd)
+            blocks.findAll(section).forEach { block -> collectBlock(block.groupValues[1], headingText) }
+        }
+
+        // Keep supporting pages that place the code-context phrase in each row.
+        blocks.findAll(html).forEach { block -> collectBlock(block.groupValues[1]) }
         return candidates.values.toList()
     }
 
