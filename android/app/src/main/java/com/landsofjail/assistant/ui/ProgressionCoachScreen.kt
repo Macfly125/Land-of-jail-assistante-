@@ -107,16 +107,16 @@ fun ProgressionCoachScreen(
     val isLabGoal = supportedBuildingGoal?.targetId?.trim()?.lowercase() in
         setOf("lab", "laboratory", "labo", "laboratoire")
     val buildingCurrentLevel = supportedBuildingGoal?.let { profile.confirmedLevel(it.targetId) }
-    val buildingDisplayName = if (isLabGoal)
-        text("Laboratoire", "Laboratory", "Labor", "Laboratuvar", "Лаборатория", "实验室", "Laboratorio")
-    else
-        text("Bureau du directeur", "Warden's Office", "Büro des Direktors", "Müdür Ofisi", "Офис директора", "典狱长办公室", "Ufficio del Direttore")
-
     fun text(fr: String, en: String, de: String, tr: String, ru: String, zh: String, it: String) =
         when (language) {
             AppLanguage.FR -> fr; AppLanguage.EN -> en; AppLanguage.DE -> de
             AppLanguage.TR -> tr; AppLanguage.RU -> ru; AppLanguage.ZH -> zh; AppLanguage.IT -> it
         }
+
+    val buildingDisplayName = if (isLabGoal)
+        text("Laboratoire", "Laboratory", "Labor", "Laboratuvar", "Лаборатория", "实验室", "Laboratorio")
+    else
+        text("Bureau du directeur", "Warden's Office", "Büro des Direktors", "Müdür Ofisi", "Офис директора", "典狱长办公室", "Ufficio del Direttore")
 
     LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
         item {
