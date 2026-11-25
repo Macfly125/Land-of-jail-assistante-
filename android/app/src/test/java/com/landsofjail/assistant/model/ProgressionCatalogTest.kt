@@ -123,4 +123,24 @@ class ProgressionCatalogTest {
         assertTrue(catalogs.all { rows -> rows.none { it.step.toLevel > 6 } })
     }
 
+
+    @Test
+    fun inventoryCatalogContainsOnlyExactSourcedLevelsTwoToSeven() {
+        val rows = ProgressionCatalog.inventoryBuilding
+        assertEquals((2..7).toList(), rows.map { it.step.toLevel })
+        assertTrue(rows.all { it.step.fromLevel == it.step.toLevel - 1 })
+        assertTrue(rows.all { it.step.itemName == "Inventory" })
+        assertTrue(rows.all { it.sourceUrl == ProgressionCatalog.INVENTORY_SOURCE })
+        assertTrue(rows.all { it.checkedOn == ProgressionCatalog.SOURCE_CHECKED_ON })
+        assertTrue(rows.all { it.prerequisiteNotes == listOf("Warden's Office Lv.9") })
+        assertTrue(rows.all { it.step.durationSeconds != null && it.step.costs.isNotEmpty() })
+        assertTrue(rows.all { row -> row.step.costs.all {
+            it.confidence == CostConfidence.COMMUNITY_REFERENCE &&
+                it.sourceUrl == ProgressionCatalog.INVENTORY_SOURCE
+        } })
+        val levelFour = rows.single { it.step.toLevel == 4 }.step.costs.associate { it.resourceId to it.quantity }
+        assertEquals(mapOf("wood" to 2_000L, "steel" to 400L), levelFour)
+        assertTrue(rows.none { it.step.toLevel > 7 })
+    }
+
 }
