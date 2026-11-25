@@ -119,6 +119,83 @@ object ProgressionCatalog {
     )
 
 
+
+    const val KITCHEN_SOURCE = "https://lojwiki.com/buildings/kitchen/"
+    const val CELL_SOURCE = "https://lojwiki.com/buildings/cell/"
+    const val FACTORY_SOURCE = "https://lojwiki.com/buildings/factory/"
+    const val UTILITY_ROOM_SOURCE = "https://lojwiki.com/buildings/utility-room/"
+    const val GUARD_ROOM_SOURCE = "https://lojwiki.com/buildings/guard-room/"
+
+    // Only un-abbreviated cash values are included. Higher levels use rounded
+    // K/M display values on the source page and are intentionally left out.
+    val kitchenBuilding = cashBuilding(
+        "Kitchen", KITCHEN_SOURCE, listOf(
+            CashBuildingLevel(2, 206, 13, 2), CashBuildingLevel(3, 247, 21, 3),
+            CashBuildingLevel(4, 296, 37, 4), CashBuildingLevel(5, 1_334, 146, 5),
+            CashBuildingLevel(6, 3_334, 276, 6)
+        )
+    )
+    val cellBuilding = cashBuilding(
+        "Cell", CELL_SOURCE, listOf(
+            CashBuildingLevel(2, 66, 4, 2), CashBuildingLevel(3, 79, 7, 3),
+            CashBuildingLevel(4, 95, 12, 4), CashBuildingLevel(5, 427, 47, 5),
+            CashBuildingLevel(6, 1_067, 89, 6)
+        )
+    )
+    val factoryBuilding = cashBuilding(
+        "Factory", FACTORY_SOURCE, listOf(
+            CashBuildingLevel(2, 463, 29, 3), CashBuildingLevel(3, 556, 47, 3),
+            CashBuildingLevel(4, 667, 82, 4), CashBuildingLevel(5, 3_000, 327, 5),
+            CashBuildingLevel(6, 7_501, 621, 6)
+        )
+    )
+    val utilityRoomBuilding = cashBuilding(
+        "Utility Room", UTILITY_ROOM_SOURCE, listOf(
+            CashBuildingLevel(2, 288, 18, 4), CashBuildingLevel(3, 346, 30, 4),
+            CashBuildingLevel(4, 415, 51, 4), CashBuildingLevel(5, 1_867, 204, 5),
+            CashBuildingLevel(6, 4_667, 387, 6)
+        )
+    )
+    val guardRoomBuilding = cashBuilding(
+        "Guard Room", GUARD_ROOM_SOURCE, listOf(
+            CashBuildingLevel(2, 360, 22, 2), CashBuildingLevel(3, 432, 37, 3),
+            CashBuildingLevel(4, 519, 64, 4), CashBuildingLevel(5, 2_334, 255, 5),
+            CashBuildingLevel(6, 5_834, 483, 6)
+        )
+    )
+
+    private data class CashBuildingLevel(
+        val targetLevel: Int,
+        val cash: Long,
+        val durationSeconds: Long,
+        val requiredWardenOfficeLevel: Int
+    )
+
+    private fun cashBuilding(
+        buildingName: String,
+        sourceUrl: String,
+        levels: List<CashBuildingLevel>
+    ): List<ProgressionCatalogRecord> = levels.map { level ->
+        ProgressionCatalogRecord(
+            step = ProgressionStep(
+                id = "${buildingName.lowercase().replace(" ", "-")}-${level.targetLevel - 1}-${level.targetLevel}",
+                domain = ProgressionDomain.BUILDING,
+                itemName = buildingName,
+                fromLevel = level.targetLevel - 1,
+                toLevel = level.targetLevel,
+                costs = listOf(
+                    ResourceCost("gold", level.cash, CostConfidence.COMMUNITY_REFERENCE, sourceUrl)
+                ),
+                durationSeconds = level.durationSeconds,
+                dataComplete = true
+            ),
+            prerequisiteNotes = listOf("Warden's Office Lv.${level.requiredWardenOfficeLevel}"),
+            sourceLabel = "LOJ Wiki — $buildingName upgrade costs",
+            sourceUrl = sourceUrl,
+            checkedOn = SOURCE_CHECKED_ON
+        )
+    }
+
     const val GATE_SOURCE = "https://lojwiki.com/buildings/gate/"
 
     /**
