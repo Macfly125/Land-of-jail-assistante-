@@ -226,14 +226,17 @@ class LandsOfJailOcrParserTest {
     @Test
     fun recognizesAllFourteenDocumentedRobotNamesWithoutInventingLevels() {
         val names = listOf(
-            "Light Cone", "Hercules", "Pluto", "Ranger", "Infercore", "Atlax",
-            "Phantom Cat", "Halo", "Yokozuna", "Musashimaru", "Bastion",
-            "Dauntless", "Valiant", "Scorpio"
+            "Light Cone" to "Light Cone", "Hercules" to "Hercules α",
+            "Pluto" to "Pluto", "Ranger" to "Ranger", "Infercore" to "Infercore",
+            "Atlax" to "Atlax", "Phantom Cat" to "Phantom Cat", "Halo" to "Halo",
+            "Yokozuna" to "Yokozuna", "Musashimaru" to "Musashimaru",
+            "Bastion" to "Bastion", "Dauntless" to "Dauntless",
+            "Valiant" to "Valiant", "Scorpio" to "Scorpio"
         )
-        names.forEach { name ->
+        names.forEach { (name, expectedName) ->
             val result = LandsOfJailOcrParser.parseLocalOcrText(name)
-            assertTrue("Robot non reconnu : $name", result.robots.any { it.nom.equals(name, true) })
-            val robot = result.robots.first { it.nom.equals(name, true) }
+            assertTrue("Robot non reconnu : $name", result.robots.any { it.nom.equals(expectedName, true) })
+            val robot = result.robots.first { it.nom.equals(expectedName, true) }
             assertTrue("Niveau inventé pour $name", robot.niveau.isBlank())
             assertTrue("La fiche sans niveau doit rester incertaine : $name", robot.incertain)
         }
