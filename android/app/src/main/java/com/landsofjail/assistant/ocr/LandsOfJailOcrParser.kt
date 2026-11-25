@@ -288,7 +288,7 @@ object LandsOfJailOcrParser {
                         normalizedEquipmentLine == normalizedAlias ||
                             Regex(
                                 "^" + Regex.escape(normalizedAlias) +
-                                    "\s+(?:\\d{1,3}|(?:lv\.?|level|niv\.?|niveau|stufe|seviye|уровень|等级|livello)\s*[:+]?\s*\\d{1,3})$",
+                                    "\\s+(?:\\d{1,3}|(?:lv\\.?|level|niv\\.?|niveau|stufe|seviye|уровень|等级|livello)\\s*[:+]?\\s*\\d{1,3})$",
                                 RegexOption.IGNORE_CASE
                             ).matches(normalizedEquipmentLine)
                     }) continue
@@ -635,7 +635,7 @@ object LandsOfJailOcrParser {
 
     private fun matchesHeroName(canonicalName: String, line: String): Boolean {
         val normalizedLine = " ${normalizeHeroText(line)} "
-        val words = normalizedLine.trim().split(Regex("\s+")).filter { it.isNotBlank() }
+        val words = normalizedLine.trim().split(Regex("\\s+")).filter { it.isNotBlank() }
 
         // Les alias/traductions doivent correspondre exactement : les comparer
         // de façon approximative crée des collisions (ex. « Berry » / « Terry »).
@@ -647,7 +647,7 @@ object LandsOfJailOcrParser {
 
         // La tolérance OCR ne s'applique qu'au nom canonique, jamais aux alias.
         val target = normalizeHeroText(canonicalName)
-        val targetWords = target.split(Regex("\s+")).filter { it.isNotBlank() }
+        val targetWords = target.split(Regex("\\s+")).filter { it.isNotBlank() }
         return if (targetWords.size > 1) {
             targetWords.all { expected ->
                 words.any { actual ->
@@ -689,7 +689,7 @@ object LandsOfJailOcrParser {
     }
 
     private fun parseCompactNumeric(text: String): Double? {
-        val cleaned = text.trim().lowercase().replace(Regex("\s+"), "")
+        val cleaned = text.trim().lowercase().replace(Regex("\\s+"), "")
         val suffix = cleaned.lastOrNull()?.takeIf { it in listOf('k', 'm', 'b') }
         val multiplier = when (suffix) {
             'b' -> 1_000_000_000.0
