@@ -94,19 +94,28 @@ fun mergeProgressionStocks(
     existing: List<PlayerResourceStock>,
     observed: List<PlayerResourceStock>
 ): List<PlayerResourceStock> {
-    val merged = existing.associateBy { canonicalProgressionResourceId(it.resourceId) }
-        .toMutableMap()
+    // Collapse legacy aliases deterministically: confirmed beats uncertain,
+    // then the newest observation wins. Never depend on input/list ordering.
+    val merged = existing
+        .groupBy { canonicalProgressionResourceId(it.resourceId) }
+        .mapValuesTo(mutableMapOf()) { (key, entries) ->
+            entries.maxWithOrNull(
+                compareBy<PlayerResourceStock> { it.confirmed }
+                    .thenBy { it.updatedAtEpochMillis }
+            )!!.copy(resourceId = key)
+        }
+
     observed.forEach { candidate ->
         val key = canonicalProgressionResourceId(candidate.resourceId)
         val normalized = candidate.copy(resourceId = key)
         val previous = merged[key]
-        when {
-            normalized.confirmed -> merged[key] = normalized
-            previous == null -> merged[key] = normalized
-            previous.confirmed -> Unit
-            normalized.updatedAtEpochMillis >= previous.updatedAtEpochMillis ->
-                merged[key] = normalized
+        val shouldReplace = when {
+            previous == null -> true
+            normalized.confirmed && !previous.confirmed -> true
+            !normalized.confirmed && previous.confirmed -> false
+            else -> normalized.updatedAtEpochMillis >= previous.updatedAtEpochMillis
         }
+        if (shouldReplace) merged[key] = normalized
     }
     return merged.values.sortedBy { it.resourceId }
 }
