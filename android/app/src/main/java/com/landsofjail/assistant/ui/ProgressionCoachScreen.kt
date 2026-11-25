@@ -287,14 +287,34 @@ fun ProgressionCoachScreen(
                             Text(text(fr = "Objectif déjà atteint.", en = "Target already reached.", de = "Ziel bereits erreicht.",
                                 tr = "Hedefe ulaşıldı.", ru = "Цель уже достигнута.", zh = "目标已达成。",
                                 it = "Obiettivo già raggiunto."), style = MaterialTheme.typography.bodySmall)
+                        } else if (labGoal.targetLevel > 30) {
+                            Text(text(fr = "Le catalogue sourcé couvre le laboratoire jusqu’au niveau 30. Le coût au-delà reste inconnu et n’est pas estimé.",
+                                en = "The sourced catalog covers the Laboratory through level 30. Costs beyond that remain unknown and are not estimated.",
+                                de = "Der belegte Katalog reicht bis Labor-Level 30. Weitere Kosten sind unbekannt und werden nicht geschätzt.",
+                                tr = "Kaynaklı katalog Laboratuvar 30. seviyeye kadar kapsar. Sonraki maliyetler bilinmiyor ve tahmin edilmez.",
+                                ru = "Каталог содержит данные лаборатории до 30-го уровня. Дальнейшие затраты неизвестны и не оцениваются.",
+                                zh = "有来源的目录仅覆盖实验室至 30 级，之后的费用未知，不作估算。",
+                                it = "Il catalogo documentato copre il Laboratorio fino al livello 30. I costi successivi restano sconosciuti e non vengono stimati."),
+                                style = MaterialTheme.typography.bodySmall)
                         } else {
-                            val steps = ProgressionCatalog.labBuilding
+                            val catalogRows = ProgressionCatalog.labBuilding
                                 .filter { it.step.toLevel > labCurrentLevel && it.step.toLevel <= labGoal.targetLevel }
-                                .map { it.step }
+                            val steps = catalogRows.map { it.step }
                             val normalizedStocks = profile.resourceStocks.map {
                                 it.copy(resourceId = canonicalProgressionResourceId(it.resourceId))
                             }
                             val plan = ProgressionCoach.calculate(steps, normalizedStocks)
+                            val prerequisiteSummary = catalogRows.flatMap { it.prerequisiteNotes }.distinct()
+                            if (prerequisiteSummary.isNotEmpty()) {
+                                Text(text(fr = "Prérequis Bureau du directeur : ${prerequisiteSummary.joinToString()}",
+                                    en = "Warden's Office prerequisites: ${prerequisiteSummary.joinToString()}",
+                                    de = "Voraussetzungen Büro des Direktors: ${prerequisiteSummary.joinToString()}",
+                                    tr = "Müdür Ofisi gereksinimleri: ${prerequisiteSummary.joinToString()}",
+                                    ru = "Требования к офису директора: ${prerequisiteSummary.joinToString()}",
+                                    zh = "典狱长办公室前置条件：${prerequisiteSummary.joinToString()}",
+                                    it = "Prerequisiti Ufficio del Direttore: ${prerequisiteSummary.joinToString()}"),
+                                    style = MaterialTheme.typography.bodySmall)
+                            }
                             Text(text(fr = "Niveau $labCurrentLevel → ${labGoal.targetLevel}",
                                 en = "Level $labCurrentLevel → ${labGoal.targetLevel}",
                                 de = "Level $labCurrentLevel → ${labGoal.targetLevel}",
