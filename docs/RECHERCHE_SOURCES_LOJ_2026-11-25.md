@@ -26,6 +26,7 @@ Règles d'affichage :
 
 ## Bâtiments, recherches et prérequis
 
+- [LOJ Wiki — Bureau du directeur](https://lojwiki.com/buildings/wardens-office/) : coûts, temps de base, prérequis de bâtiments et déblocages pour les niveaux 2 à 30 ; au-delà, progression Forticlad par cinq paliers, avec noyau Forticlad et noyau avancé selon la saison. Les niveaux standard 2–30 sont intégrés au catalogue de progression en référence communautaire ; les paliers Forticlad restent séparés et ne sont pas extrapolés.
 - [LOJ Wiki — laboratoire](https://lojwiki.com/lab/) : le laboratoire principal requiert le Bureau du directeur niveau 9, plafond niveau 30 ; trois branches Logistique, Économie et Militaire. La page consultée indique 176 technologies et précise que les coûts/temps sont des valeurs de base avant bonus de vitesse. La recherche Forticlad est un bâtiment distinct.
 - [LOJ Wiki — bâtiment laboratoire](https://lojwiki.com/buildings/lab/) : détaille les niveaux, coûts, prérequis et temps. Exemple : Laboratoire niveau 2 = 300 bois, 9 secondes, Bureau niveau 9 ; niveau 6 = 35K bois, 7K acier, 1 750 essence et 9 minutes. Ces exemples ne remplacent pas une table complète versionnée.
 - [LOJ Wiki — Forticlad](https://lojwiki.com/calculator/forticlad/) : distingue les huit bâtiments, niveaux et paliers Forticlad ; chaque niveau comporte cinq étapes. Les niveaux supérieurs dépendent de la saison du serveur.
