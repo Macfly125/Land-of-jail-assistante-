@@ -59,9 +59,12 @@ data class ProgressionPlayerProfile(
         levels.filter { it.itemId == itemId && it.confirmed }
             .maxByOrNull { it.updatedAtEpochMillis }?.level
 
-    fun confirmedStock(resourceId: String): Long? =
-        resourceStocks.filter { it.resourceId == resourceId && it.confirmed }
-            .maxByOrNull { it.updatedAtEpochMillis }?.quantity
+    fun confirmedStock(resourceId: String): Long? {
+        val canonicalId = canonicalProgressionResourceId(resourceId)
+        return resourceStocks.filter {
+            canonicalProgressionResourceId(it.resourceId) == canonicalId && it.confirmed
+        }.maxByOrNull { it.updatedAtEpochMillis }?.quantity
+    }
 }
 
 /**
