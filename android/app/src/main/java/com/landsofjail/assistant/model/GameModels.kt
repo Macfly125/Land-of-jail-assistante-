@@ -614,7 +614,7 @@ object ResourceNameMatcher {
         "food" to listOf("nourriture", "food", "vivres", "nahrung", "yiyecek", "еда", "食物", "cibo"),
         "wood" to listOf("bois", "wood", "lumber", "holz", "odun", "дерево", "木材", "legno"),
         "steel" to listOf("acier", "steel", "fer", "iron", "stahl", "çelik", "сталь", "钢材", "acciaio"),
-        "gasoline" to listOf("essence", "gasoline", "fuel", "pétrole", "petrole", "benzin", "benzin", "бензин", "汽油", "benzina", "carburante")
+        "gasoline" to listOf("essence", "gasoline", "fuel", "pétrole", "petrole", "benzin", "бензин", "汽油", "benzina", "carburante")
     )
 
     fun matchesWardenCost(resourceName: String, resourceKey: String): Boolean {
