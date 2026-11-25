@@ -165,6 +165,41 @@ object ProgressionCatalog {
         )
     )
 
+    const val COMMAND_CENTER_SOURCE = "https://lojwiki.com/buildings/command-center/"
+    const val SHIELDBEARER_BARRACK_SOURCE = "https://lojwiki.com/buildings/shieldbearer-barracks/"
+    const val SHOOTER_BARRACK_SOURCE = "https://lojwiki.com/buildings/shooter-barracks/"
+    const val BOMBER_BARRACK_SOURCE = "https://lojwiki.com/buildings/bomber-barracks/"
+
+    // Exact, fully written quantities only. Level 5 starts with abbreviated 10K values.
+    val commandCenterBuilding = multiResourceBuilding(
+        "Command Center", COMMAND_CENTER_SOURCE, listOf(
+            MultiResourceBuildingLevel(2, listOf("wood" to 200L), 8, 10),
+            MultiResourceBuildingLevel(3, listOf("wood" to 1_200L), 34, 10),
+            MultiResourceBuildingLevel(4, listOf("wood" to 2_400L, "steel" to 480L), 105, 10)
+        )
+    )
+    val shieldbearerBarrackBuilding = multiResourceBuilding(
+        "Shieldbearer Barracks", SHIELDBEARER_BARRACK_SOURCE, listOf(
+            MultiResourceBuildingLevel(2, listOf("wood" to 300L), 9, 7),
+            MultiResourceBuildingLevel(3, listOf("wood" to 1_300L), 45, 7),
+            MultiResourceBuildingLevel(4, listOf("wood" to 3_000L, "steel" to 600L), 135, 7)
+        )
+    )
+    val shooterBarrackBuilding = multiResourceBuilding(
+        "Shooter Barracks", SHOOTER_BARRACK_SOURCE, listOf(
+            MultiResourceBuildingLevel(2, listOf("wood" to 300L), 9, 8),
+            MultiResourceBuildingLevel(3, listOf("wood" to 1_300L), 45, 8),
+            MultiResourceBuildingLevel(4, listOf("wood" to 3_000L, "steel" to 600L), 135, 8)
+        )
+    )
+    val bomberBarrackBuilding = multiResourceBuilding(
+        "Bomber Barracks", BOMBER_BARRACK_SOURCE, listOf(
+            MultiResourceBuildingLevel(2, listOf("wood" to 300L), 9, 9),
+            MultiResourceBuildingLevel(3, listOf("wood" to 1_300L), 45, 9),
+            MultiResourceBuildingLevel(4, listOf("wood" to 3_000L, "steel" to 600L), 135, 9)
+        )
+    )
+
     const val MEDICAL_STATION_SOURCE = "https://lojwiki.com/buildings/medical-station/"
     const val COMMUNICATION_CENTER_SOURCE = "https://lojwiki.com/buildings/communication-center/"
 
