@@ -36,7 +36,7 @@ object GiftCodeRepository {
     const val DISCORD_URL = "https://discord.gg/YGJqgcGpn"
     const val REDEEM_URL = "https://www.gamermall.net/global/loj/cdkey"
 
-    private val officialCodes = listOf(
+    private val communityListedCodes = listOf(
         "VIP777", "LOJ3648", "LOJNOW", "LOJ1478",
         "loj777", "loj888", "loj5791", "loj3579"
     )
@@ -54,7 +54,7 @@ object GiftCodeRepository {
 
     fun initialSnapshot(): GiftCodeSnapshot {
         val entries = buildList {
-            officialCodes.forEach {
+            communityListedCodes.forEach {
                 val rewards = when (it.lowercase(Locale.ROOT)) {
                     "vip777" -> "3 000 diamants, 10 fragments de héros épiques, 30 pièces d’équipement (100 EXP), 50 coffres de ressources au choix II et 30 objets d’endurance (10)."
                     "loj3648" -> "3 000 diamants, 3 fragments de héros légendaires et 4 accélérateurs (1 h) de construction, d’entraînement et de recherche."
