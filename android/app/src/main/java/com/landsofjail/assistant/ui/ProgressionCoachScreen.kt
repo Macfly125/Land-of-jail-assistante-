@@ -162,12 +162,13 @@ fun ProgressionCoachScreen(
                                         isPrimary = profile.objectives.none { it.isPrimary }, createdAtEpochMillis = now)
                                 val levels = profile.levels.filterNot { it.itemId == targetId.trim() } +
                                     ProgressionLevelRecord(targetId.trim(), current, true, now)
-                                val stocks = resources.mapNotNull { resource ->
+                                val observedStocks = resources.mapNotNull { resource ->
                                     val quantity = resource.quantiteNumerique?.takeIf { it.isFinite() && it >= 0 }?.toLong()
                                     if (quantity == null) null else PlayerResourceStock(
                                         resource.nom.lowercase(), quantity, !resource.incertain, now
                                     )
                                 }
+                                val stocks = mergeProgressionStocks(profile.resourceStocks, observedStocks)
                                 profile = profile.copy(objectives = objectives, levels = levels,
                                     resourceStocks = stocks, updatedAtEpochMillis = now)
                                 prefs.edit().putString("profile", ProgressionProfileCodec.encode(profile)).apply()
