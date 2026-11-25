@@ -3614,9 +3614,7 @@ private fun GiftCodesScreen(
                     if (entry.firstSeen.isNotBlank()) Text(labels[6] + " : " + entry.firstSeen, style = MaterialTheme.typography.bodySmall)
                     if (entry.lastChecked.isNotBlank()) Text(labels[5] + " : " + entry.lastChecked, style = MaterialTheme.typography.bodySmall)
                     Text(labels[7] + " : " + entry.expiresAt.ifBlank { labels[16] }, style = MaterialTheme.typography.bodySmall)
-                    Text(labels[8] + " : " + entry.source, style = MaterialTheme.typography.bodySmall)
                     if (entry.reward.isNotBlank()) Text(localizedUiText(language, "Récompenses : ", "Rewards: ", "Belohnungen: ", "Ödüller: ", "Награды: ", "奖励：", "Ricompense: ") + entry.reward, style = MaterialTheme.typography.bodySmall)
-                    if (entry.note.isNotBlank()) Text(entry.note, style = MaterialTheme.typography.bodySmall, color = Color(0xFFCBD5E1))
                     Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
                         TextButton(onClick = {
                             val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
