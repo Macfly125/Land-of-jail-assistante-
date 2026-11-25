@@ -287,4 +287,82 @@ class ProgressionCatalogTest {
         }
     }
 
+    @Test
+    fun wardensOfficeCatalogCoversStandardLevelsTwoToThirtyWithExplicitPrerequisites() {
+        val rows = ProgressionCatalog.wardensOffice
+
+        assertEquals((2..30).toList(), rows.map { it.step.toLevel })
+        assertTrue(rows.all { it.step.fromLevel == it.step.toLevel - 1 })
+        assertTrue(rows.all { it.step.itemName == "Warden's Office" })
+        assertTrue(rows.all { it.step.dataComplete })
+        assertTrue(rows.all { it.sourceUrl == ProgressionCatalog.WARDENS_OFFICE_SOURCE })
+        assertTrue(rows.all { it.checkedOn == ProgressionCatalog.SOURCE_CHECKED_ON })
+        assertTrue(rows.all { it.prerequisiteNotes.isNotEmpty() })
+        assertTrue(rows.all { row ->
+            row.step.costs.isNotEmpty() && row.step.costs.all {
+                it.confidence == CostConfidence.COMMUNITY_REFERENCE &&
+                    it.sourceUrl == ProgressionCatalog.WARDENS_OFFICE_SOURCE
+            }
+        })
+    }
+
+    @Test
+    fun wardensOfficeFirstLevelsKeepExactPublishedCostsAndBaseDurations() {
+        val firstFour = ProgressionCatalog.wardensOffice
+            .filter { it.step.toLevel in 2..5 }
+
+        assertEquals(listOf(6L, 60L, 180L, 600L), firstFour.map { it.step.durationSeconds })
+        assertEquals(
+            listOf(
+                mapOf("wood" to 350L),
+                mapOf("wood" to 1_600L),
+                mapOf("wood" to 3_600L, "steel" to 700L),
+                mapOf("wood" to 15_000L, "steel" to 3_000L)
+            ),
+            firstFour.map { row -> row.step.costs.associate { it.resourceId to it.quantity } }
+        )
+    }
+
+    @Test
+    fun wardensOfficePrerequisitesRemainNotesRatherThanInventedCatalogSteps() {
+        val levelSix = ProgressionCatalog.wardensOffice.single { it.step.toLevel == 6 }
+        val levelTen = ProgressionCatalog.wardensOffice.single { it.step.toLevel == 10 }
+
+        assertEquals(listOf("Supply Center Lv.1", "Shower Room 1 Lv.5"), levelSix.prerequisiteNotes)
+        assertEquals(emptyList<String>(), levelSix.step.prerequisites)
+        assertEquals(listOf("Shooter Barracks Lv.9", "Lab Lv.1"), levelTen.prerequisiteNotes)
+        assertEquals(emptyList<String>(), levelTen.step.prerequisites)
+    }
+
+    @Test
+    fun allPublishedCatalogDurationsAndCostsStayNonNegative() {
+        val catalogs = listOf(
+            ProgressionCatalog.labBuilding,
+            ProgressionCatalog.wardensOffice,
+            ProgressionCatalog.gateBuilding,
+            ProgressionCatalog.kitchenBuilding,
+            ProgressionCatalog.cellBuilding,
+            ProgressionCatalog.factoryBuilding,
+            ProgressionCatalog.utilityRoomBuilding,
+            ProgressionCatalog.guardRoomBuilding,
+            ProgressionCatalog.inventoryBuilding,
+            ProgressionCatalog.laundryBuilding,
+            ProgressionCatalog.playgroundBuilding,
+            ProgressionCatalog.showerRoomBuilding,
+            ProgressionCatalog.cafeteriaBuilding,
+            ProgressionCatalog.medicalStationBuilding,
+            ProgressionCatalog.communicationCenterBuilding,
+            ProgressionCatalog.commandCenterBuilding,
+            ProgressionCatalog.shieldbearerBarrackBuilding,
+            ProgressionCatalog.shooterBarrackBuilding,
+            ProgressionCatalog.bomberBarrackBuilding
+        )
+
+        catalogs.flatten().forEach { row ->
+            assertTrue(row.step.durationSeconds == null || row.step.durationSeconds >= 0)
+            assertTrue(row.step.costs.all { it.quantity >= 0 })
+            assertTrue(row.step.toLevel > row.step.fromLevel)
+        }
+    }
+
 }
