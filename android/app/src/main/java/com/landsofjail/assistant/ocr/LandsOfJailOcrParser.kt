@@ -144,7 +144,7 @@ object LandsOfJailOcrParser {
         val equipment = mutableListOf<EquipmentRecord>()
         val seenEquipmentKeys = mutableSetOf<String>()
         val seenRobotKeys = mutableSetOf<String>()
-        val knownRobotNames = listOf("Musashimaru", "Phantom Cat", "Ranger", "Infercore", "Hercules α", "Hercules Alpha", "Halo", "Light Cone", "Atlax", "Yokozuna", "Bastion", "Pluto", "Dauntless", "Valiant", "Scorpio")
+        val knownRobotNames = listOf("Musashimaru", "Phantom Cat", "Chat Fantôme", "Ranger", "Infercore", "Hercules α", "Hercules Alpha", "Halo", "Light Cone", "Atlax", "Yokozuna", "Bastion", "Pluto", "Dauntless", "Valiant", "Scorpio")
         val seenHeroKeys = mutableSetOf<String>()
         val seenResKeys = mutableSetOf<String>()
         var power: PowerMetric? = null
@@ -152,7 +152,7 @@ object LandsOfJailOcrParser {
 
         val powerRegex = Regex("""(?:puissance|power|comb\.?\s*power|cp)\s*[:\-]?\s*([0-9][0-9\s.,kmbKMB]+)""", RegexOption.IGNORE_CASE)
         val levelRegex = Regex("""(?:niv\.?|lv\.?|level)\s*([0-9]+)""", RegexOption.IGNORE_CASE)
-        val wardenRegex = Regex("""(?:warden\s*office|bureau\s*du\s*directeur|prison|qg|hq)\s*(?:niv\.?|lv\.?|level)?\s*([0-9]+)""", RegexOption.IGNORE_CASE)
+        val wardenRegex = Regex("""(?:(?:warden\s*office|bureau\s*du\s*directeur|prison|qg|hq)\s*(?:niv\.?|lv\.?|level)?\s*([0-9]{1,2})|\b([0-9]{1,2})\s+(?:warden\s*office|bureau\s*du\s*directeur|prison|qg|hq)\b)""", RegexOption.IGNORE_CASE)
 
         val resourcePatterns = listOf(
             "Nourriture (Food)" to Regex("""(?:nourriture|food|vivres|nahrung|yiyecek|еда|食物|cibo)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)?""", RegexOption.IGNORE_CASE),
@@ -160,13 +160,13 @@ object LandsOfJailOcrParser {
             "Acier (Steel)" to Regex("""(?:acier|steel|fer|iron|stahl|çelik|сталь|钢材|acciaio)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)?""", RegexOption.IGNORE_CASE),
             "Essence (Gasoline)" to Regex("""(?:essence|gasoline|fuel|p[ée]trole|benzina|carburante|benzin|бензин|汽油)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)?""", RegexOption.IGNORE_CASE),
             "Diamants (Gems)" to Regex("""(?:diamanti|diamants?|diamonds?|gemmes?|gems?|diamanten|elmas|алмазы|钻石|宝石)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)?""", RegexOption.IGNORE_CASE),
-            "Cash / Or" to Regex("""(?:cash|gold|g[oö]ld|altın|золото|金币|黄金|oro)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)?|^or\s*[:：\-]\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)?""", RegexOption.IGNORE_CASE)
+            "Cash / Or" to Regex("""(?:cash|gold|g[oö]ld|argent\s+liquide|altın|золото|金币|黄金|oro)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)?|^or\s*[:：\-]\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)?""", RegexOption.IGNORE_CASE)
         )
 
         for ((index, line) in lines.withIndex()) {
             wardenRegex.find(line)?.let { match ->
                 if (wardenLevel == null) {
-                    wardenLevel = "Niv. ${match.groupValues[1]}"
+                    wardenLevel = "Niv. ${match.groupValues[1].ifBlank { match.groupValues[2] }}"
                 }
             }
 
