@@ -104,8 +104,9 @@ fun ProgressionCoachScreen(
                 "warden_office", "warden's office", "bureau_du_directeur", "bureau du directeur", "hq"
             )
     }
-    val isLabGoal = supportedBuildingGoal?.targetId?.trim()?.lowercase() in
-        setOf("lab", "laboratory", "labo", "laboratoire")
+    val isLabGoal = supportedBuildingGoal?.targetId?.trim()?.lowercase()?.let {
+        it in setOf("lab", "laboratory", "labo", "laboratoire")
+    } == true
     val buildingCurrentLevel = supportedBuildingGoal?.let { profile.confirmedLevel(it.targetId) }
     fun text(fr: String, en: String, de: String, tr: String, ru: String, zh: String, it: String) =
         when (language) {
