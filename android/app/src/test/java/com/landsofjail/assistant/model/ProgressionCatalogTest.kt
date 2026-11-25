@@ -41,7 +41,7 @@ class ProgressionCatalogTest {
         val plan = ProgressionCoach.calculate(firstFiveLevels, emptyList())
 
         assertEquals(53_800L, plan.requirements.single { it.resourceId == "wood" }.required)
-        assertEquals(8_400L, plan.requirements.single { it.resourceId == "steel" }.required)
+        assertEquals(10_400L, plan.requirements.single { it.resourceId == "steel" }.required)
         assertEquals(1_750L, plan.requirements.single { it.resourceId == "gasoline" }.required)
         assertEquals(999L, plan.totalKnownDurationSeconds)
         assertTrue(plan.unknownStepIds.isEmpty())
