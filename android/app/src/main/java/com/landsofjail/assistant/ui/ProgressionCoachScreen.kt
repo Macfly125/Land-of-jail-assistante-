@@ -97,11 +97,20 @@ fun ProgressionCoachScreen(
     var currentLevel by remember(profileId) { mutableStateOf("") }
     var targetLevel by remember(profileId) { mutableStateOf("") }
     var statusMessage by remember(profileId) { mutableStateOf("") }
-    val labGoal = profile.objectives.firstOrNull {
+    val supportedBuildingGoal = profile.objectives.firstOrNull {
         it.domain == ProgressionDomain.BUILDING &&
-            it.targetId.trim().lowercase() in setOf("lab", "laboratory", "labo", "laboratoire")
+            it.targetId.trim().lowercase() in setOf(
+                "lab", "laboratory", "labo", "laboratoire",
+                "warden_office", "warden's office", "bureau_du_directeur", "bureau du directeur", "hq"
+            )
     }
-    val labCurrentLevel = labGoal?.let { profile.confirmedLevel(it.targetId) }
+    val isLabGoal = supportedBuildingGoal?.targetId?.trim()?.lowercase() in
+        setOf("lab", "laboratory", "labo", "laboratoire")
+    val buildingCurrentLevel = supportedBuildingGoal?.let { profile.confirmedLevel(it.targetId) }
+    val buildingDisplayName = if (isLabGoal)
+        text("Laboratoire", "Laboratory", "Labor", "Laboratuvar", "Лаборатория", "实验室", "Laboratorio")
+    else
+        text("Bureau du directeur", "Warden's Office", "Büro des Direktors", "Müdür Ofisi", "Офис директора", "典狱长办公室", "Ufficio del Direttore")
 
     fun text(fr: String, en: String, de: String, tr: String, ru: String, zh: String, it: String) =
         when (language) {
@@ -259,13 +268,16 @@ fun ProgressionCoachScreen(
             }
         }
 
-        if (labGoal != null) {
+        if (supportedBuildingGoal != null) {
             item {
                 Card(Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(text(fr = "Calculateur du laboratoire", en = "Laboratory calculator", de = "Labor-Rechner",
+                        Text(if (isLabGoal) text(fr = "Calculateur du laboratoire", en = "Laboratory calculator", de = "Labor-Rechner",
                             tr = "Laboratuvar hesaplayıcısı", ru = "Калькулятор лаборатории", zh = "实验室计算器",
-                            it = "Calcolatore del laboratorio"), style = MaterialTheme.typography.titleMedium)
+                            it = "Calcolatore del laboratorio")
+                            else text(fr = "Calculateur du Bureau du directeur", en = "Warden's Office calculator", de = "Rechner Büro des Direktors",
+                            tr = "Müdür Ofisi hesaplayıcısı", ru = "Калькулятор офиса директора", zh = "典狱长办公室计算器",
+                            it = "Calcolatore Ufficio del Direttore"), style = MaterialTheme.typography.titleMedium)
                         Text(text(fr = "Référence communautaire LOJ Wiki · consultée le 25/11/2026 · temps de base sans bonus.",
                             en = "LOJ Wiki community reference · checked 25/11/2026 · base time before bonuses.",
                             de = "Community-Referenz LOJ Wiki · geprüft am 25.11.2026 · Grundzeit ohne Boni.",
@@ -274,31 +286,32 @@ fun ProgressionCoachScreen(
                             zh = "LOJ Wiki 社区参考数据 · 2026/11/25 核对 · 不含加成的基础时间。",
                             it = "Riferimento community LOJ Wiki · verificato il 25/11/2026 · tempo base senza bonus."),
                             style = MaterialTheme.typography.bodySmall)
-                        if (labCurrentLevel == null) {
-                            Text(text(fr = "Niveau actuel du laboratoire non confirmé : renseigne-le dans l’objectif.",
-                                en = "Current Lab level is not confirmed: enter it in the goal.",
-                                de = "Das aktuelle Labor-Level ist nicht bestätigt: Gib es im Ziel ein.",
-                                tr = "Mevcut laboratuvar seviyesi doğrulanmadı: hedefe gir.",
-                                ru = "Текущий уровень лаборатории не подтверждён: укажи его в цели.",
-                                zh = "实验室当前等级尚未确认，请在目标中填写。",
-                                it = "Il livello attuale del laboratorio non è confermato: inseriscilo nell'obiettivo."),
+                        if (buildingCurrentLevel == null) {
+                            Text(text(fr = "Niveau actuel non confirmé : renseigne-le dans l’objectif.",
+                                en = "Current level is not confirmed: enter it in the goal.",
+                                de = "Das aktuelle Level ist nicht bestätigt: Gib es im Ziel ein.",
+                                tr = "Mevcut seviye doğrulanmadı: hedefe gir.",
+                                ru = "Текущий уровень не подтверждён: укажи его в цели.",
+                                zh = "当前等级尚未确认，请在目标中填写。",
+                                it = "Il livello attuale non è confermato: inseriscilo nell'obiettivo."),
                                 style = MaterialTheme.typography.bodySmall)
-                        } else if (labGoal.targetLevel <= labCurrentLevel) {
+                        } else if (supportedBuildingGoal.targetLevel <= buildingCurrentLevel) {
                             Text(text(fr = "Objectif déjà atteint.", en = "Target already reached.", de = "Ziel bereits erreicht.",
                                 tr = "Hedefe ulaşıldı.", ru = "Цель уже достигнута.", zh = "目标已达成。",
                                 it = "Obiettivo già raggiunto."), style = MaterialTheme.typography.bodySmall)
-                        } else if (labGoal.targetLevel > 30) {
-                            Text(text(fr = "Le catalogue sourcé couvre le laboratoire jusqu’au niveau 30. Le coût au-delà reste inconnu et n’est pas estimé.",
-                                en = "The sourced catalog covers the Laboratory through level 30. Costs beyond that remain unknown and are not estimated.",
-                                de = "Der belegte Katalog reicht bis Labor-Level 30. Weitere Kosten sind unbekannt und werden nicht geschätzt.",
-                                tr = "Kaynaklı katalog Laboratuvar 30. seviyeye kadar kapsar. Sonraki maliyetler bilinmiyor ve tahmin edilmez.",
-                                ru = "Каталог содержит данные лаборатории до 30-го уровня. Дальнейшие затраты неизвестны и не оцениваются.",
-                                zh = "有来源的目录仅覆盖实验室至 30 级，之后的费用未知，不作估算。",
-                                it = "Il catalogo documentato copre il Laboratorio fino al livello 30. I costi successivi restano sconosciuti e non vengono stimati."),
+                        } else if (supportedBuildingGoal.targetLevel > 30) {
+                            Text(text(fr = "Le catalogue sourcé couvre ce bâtiment jusqu’au niveau 30. Les coûts au-delà restent inconnus et ne sont pas estimés.",
+                                en = "The sourced catalog covers this building through level 30. Costs beyond that remain unknown and are not estimated.",
+                                de = "Der belegte Katalog reicht für dieses Gebäude bis Level 30. Weitere Kosten sind unbekannt.",
+                                tr = "Kaynaklı katalog bu binayı 30. seviyeye kadar kapsar. Sonraki maliyetler bilinmiyor.",
+                                ru = "Каталог содержит данные по этому зданию до 30-го уровня. Дальнейшие затраты неизвестны.",
+                                zh = "有来源的目录仅覆盖此建筑至 30 级，之后费用未知，不作估算。",
+                                it = "Il catalogo documentato copre questo edificio fino al livello 30. I costi successivi restano sconosciuti."),
                                 style = MaterialTheme.typography.bodySmall)
                         } else {
-                            val catalogRows = ProgressionCatalog.labBuilding
-                                .filter { it.step.toLevel > labCurrentLevel && it.step.toLevel <= labGoal.targetLevel }
+                            val catalog = if (isLabGoal) ProgressionCatalog.labBuilding else ProgressionCatalog.wardensOffice
+                            val catalogRows = catalog
+                                .filter { it.step.toLevel > buildingCurrentLevel && it.step.toLevel <= supportedBuildingGoal.targetLevel }
                             val steps = catalogRows.map { it.step }
                             val normalizedStocks = profile.resourceStocks.map {
                                 it.copy(resourceId = canonicalProgressionResourceId(it.resourceId))
@@ -306,16 +319,16 @@ fun ProgressionCoachScreen(
                             val plan = ProgressionCoach.calculate(steps, normalizedStocks)
                             val prerequisiteSummary = catalogRows.flatMap { it.prerequisiteNotes }.distinct()
                             if (prerequisiteSummary.isNotEmpty()) {
-                                Text(text(fr = "Prérequis Bureau du directeur : ${prerequisiteSummary.joinToString()}",
-                                    en = "Warden's Office prerequisites: ${prerequisiteSummary.joinToString()}",
-                                    de = "Voraussetzungen Büro des Direktors: ${prerequisiteSummary.joinToString()}",
-                                    tr = "Müdür Ofisi gereksinimleri: ${prerequisiteSummary.joinToString()}",
-                                    ru = "Требования к офису директора: ${prerequisiteSummary.joinToString()}",
-                                    zh = "典狱长办公室前置条件：${prerequisiteSummary.joinToString()}",
-                                    it = "Prerequisiti Ufficio del Direttore: ${prerequisiteSummary.joinToString()}"),
+                                Text(text(fr = "Prérequis : ${prerequisiteSummary.joinToString()}",
+                                    en = "Prerequisites: ${prerequisiteSummary.joinToString()}",
+                                    de = "Voraussetzungen: ${prerequisiteSummary.joinToString()}",
+                                    tr = "Ön koşullar: ${prerequisiteSummary.joinToString()}",
+                                    ru = "Требования: ${prerequisiteSummary.joinToString()}",
+                                    zh = "前置条件：${prerequisiteSummary.joinToString()}",
+                                    it = "Prerequisiti: ${prerequisiteSummary.joinToString()}"),
                                     style = MaterialTheme.typography.bodySmall)
                             }
-                            Text(text(fr = "Niveau $labCurrentLevel → ${labGoal.targetLevel}",
+                            Text(text(fr = "$buildingDisplayName : $buildingCurrentLevel → ${supportedBuildingGoal.targetLevel}",
                                 en = "Level $labCurrentLevel → ${labGoal.targetLevel}",
                                 de = "Level $labCurrentLevel → ${labGoal.targetLevel}",
                                 tr = "Seviye $labCurrentLevel → ${labGoal.targetLevel}",
