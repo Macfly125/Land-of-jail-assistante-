@@ -418,10 +418,11 @@ class LandsOfJailOcrParserTest {
             imageHeight = 1600
         )
         assertEquals(6, result.resources.size)
-        assertEquals("Nourriture (Food)", result.resources[0].nom)
-        assertEquals("Bois (Wood)", result.resources[1].nom)
-        assertEquals("Acier (Steel)", result.resources[2].nom)
-        assertEquals("Essence (Gasoline)", result.resources[3].nom)
+        assertEquals("Cash / Or", result.resources[0].nom)
+        assertEquals("Nourriture (Food)", result.resources[1].nom)
+        assertEquals("Bois (Wood)", result.resources[2].nom)
+        assertEquals("Acier (Steel)", result.resources[3].nom)
+        assertEquals("Essence (Gasoline)", result.resources[4].nom)
         assertTrue(result.resources.all { it.incertain && it.quantiteNumerique != null })
     }
 
@@ -776,7 +777,7 @@ Potential Coil x 8"""
     @Test
     fun readsWardenOfficeLevelWhenTheBadgeNumberPrecedesTheBuildingName() {
         val result = LandsOfJailOcrParser.parseLocalOcrText(
-            "6 Bureau du directeur\\nCapacité des prisonniers 40/40\\nNiveau de danger 9"
+            "509 256 511\\n6 Bureau du directeur\\nCapacité des prisonniers 40/40\\nNiveau de danger 9"
         )
         assertEquals("Niv. 6", result.power?.niveauPrisonOuQG)
     }
@@ -792,7 +793,7 @@ Potential Coil x 8"""
     @Test
     fun doesNotUsePrisonerDangerLevelAsWardenOfficeLevel() {
         val result = LandsOfJailOcrParser.parseLocalOcrText(
-            "Bureau du directeur\\nCapacité des prisonniers 40/40\\nNiveau de danger 9"
+            "509 256 511\\nBureau du directeur\\nCapacité des prisonniers 40/40\\nNiveau de danger 9"
         )
         assertNull(result.power?.niveauPrisonOuQG)
     }
