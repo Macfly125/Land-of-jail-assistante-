@@ -88,4 +88,39 @@ class ProgressionCatalogTest {
         assertTrue(ProgressionCatalog.gateBuilding.none { it.step.toLevel > 7 })
     }
 
+
+    @Test
+    fun fiveAdditionalBuildingCatalogsContainOnlyPublishedExactEarlyLevels() {
+        val catalogs = listOf(
+            ProgressionCatalog.kitchenBuilding to ProgressionCatalog.KITCHEN_SOURCE,
+            ProgressionCatalog.cellBuilding to ProgressionCatalog.CELL_SOURCE,
+            ProgressionCatalog.factoryBuilding to ProgressionCatalog.FACTORY_SOURCE,
+            ProgressionCatalog.utilityRoomBuilding to ProgressionCatalog.UTILITY_ROOM_SOURCE,
+            ProgressionCatalog.guardRoomBuilding to ProgressionCatalog.GUARD_ROOM_SOURCE
+        )
+
+        catalogs.forEach { (rows, source) ->
+            assertEquals((2..6).toList(), rows.map { it.step.toLevel })
+            assertTrue(rows.all { it.step.fromLevel == it.step.toLevel - 1 })
+            assertTrue(rows.all { it.step.costs.size == 1 })
+            assertTrue(rows.all { it.step.costs.single().resourceId == "gold" })
+            assertTrue(rows.all { it.step.costs.single().confidence == CostConfidence.COMMUNITY_REFERENCE })
+            assertTrue(rows.all { it.step.costs.single().sourceUrl == source })
+            assertTrue(rows.all { it.sourceUrl == source && it.checkedOn == ProgressionCatalog.SOURCE_CHECKED_ON })
+            assertTrue(rows.all { it.prerequisiteNotes.isNotEmpty() && it.step.durationSeconds != null })
+        }
+    }
+
+    @Test
+    fun cashOnlyBuildingCatalogsDoNotInventRoundedHigherLevelCosts() {
+        val catalogs = listOf(
+            ProgressionCatalog.kitchenBuilding,
+            ProgressionCatalog.cellBuilding,
+            ProgressionCatalog.factoryBuilding,
+            ProgressionCatalog.utilityRoomBuilding,
+            ProgressionCatalog.guardRoomBuilding
+        )
+        assertTrue(catalogs.all { rows -> rows.none { it.step.toLevel > 6 } })
+    }
+
 }
