@@ -847,7 +847,7 @@ private enum class AssistantTab {
 }
 
 private enum class ResourceSubTab {
-    INVENTAIRE, ROBOTS, EVENEMENTS, BATIMENTS, HEROS_OBJETS, DEVELOPPEMENTS, ROUTINE;
+    INVENTAIRE, ROBOTS, EVENEMENTS, BATIMENTS, HEROS_OBJETS, DEVELOPPEMENTS, ROUTINE, PROGRESSION;
 
     fun labelFor(lang: AppLanguage): String = when (this) {
         INVENTAIRE -> when (lang) {
@@ -894,6 +894,15 @@ private enum class ResourceSubTab {
             AppLanguage.DE -> "Offline-Routine"
             AppLanguage.EN -> "Offline Routine"
             AppLanguage.IT -> "Routine offline"
+        }
+        PROGRESSION -> when (lang) {
+            AppLanguage.FR -> "Objectifs"
+            AppLanguage.TR -> "Hedefler"
+            AppLanguage.RU -> "Цели"
+            AppLanguage.ZH -> "目标"
+            AppLanguage.DE -> "Ziele"
+            AppLanguage.EN -> "Goals"
+            AppLanguage.IT -> "Obiettivi"
         }
         ROBOTS -> when (lang) {
             AppLanguage.FR -> "Robots"
@@ -4589,6 +4598,15 @@ private fun ResourcesScreen(
                             }
                         }
                     }
+                }
+            }
+            ResourceSubTab.PROGRESSION -> {
+                item {
+                    ProgressionCoachScreen(
+                        profileId = profileId.ifBlank { "default" },
+                        language = currentLang,
+                        resources = resources
+                    )
                 }
             }
         }
