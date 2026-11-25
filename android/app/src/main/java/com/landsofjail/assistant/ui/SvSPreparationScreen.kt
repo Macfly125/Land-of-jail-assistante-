@@ -90,7 +90,16 @@ private val svsScoreItems=listOf(
  SvSScoreItem("Engrenage de précision","Precision Gear",6000),
  SvSScoreItem("Bobine de potentiel","Potential Coil",60000),
  SvSScoreItem("Aimant","Magnet",3000),
- SvSScoreItem("Note de collection","Collection Rating",108)
+ SvSScoreItem("Note de collection","Collection Rating",108),
+ SvSScoreItem("Coffre de module Solo","Solo Module Chest",1824),
+ SvSScoreItem("Coffre de module Formation","Formation Module Chest",3600),
+ SvSScoreItem("Coffre de module Barrière","Barrier Module Chest",5400),
+ SvSScoreItem("Module de puissance","Power Module",1920),
+ SvSScoreItem("Module de puissance avancé","Advanced Power Module",9600),
+ SvSScoreItem("Puce satellite","Satellite Chip",9800),
+ SvSScoreItem("Noyau Orbit","Orbit Core",3500),
+ SvSScoreItem("Noyau Cosmic","Cosmic Core",43750),
+ SvSScoreItem("Rallye de bête lancé","Beast Rally Launched",90000)
 )
 
 @Composable
