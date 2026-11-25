@@ -6,6 +6,7 @@ import java.net.URL
 import java.time.Instant
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.format.ResolverStyle
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -189,10 +190,10 @@ object GiftCodeRepository {
     private fun parseExpiryDate(value: String): LocalDate? {
         if (value.isBlank()) return null
         val patterns = listOf(
-            DateTimeFormatter.ofPattern("d/M/yyyy", Locale.ROOT),
-            DateTimeFormatter.ofPattern("d.M.yyyy", Locale.ROOT),
-            DateTimeFormatter.ofPattern("d-M-yyyy", Locale.ROOT),
-            DateTimeFormatter.ISO_LOCAL_DATE
+            DateTimeFormatter.ofPattern("d/M/uuuu", Locale.ROOT).withResolverStyle(ResolverStyle.STRICT),
+            DateTimeFormatter.ofPattern("d.M.uuuu", Locale.ROOT).withResolverStyle(ResolverStyle.STRICT),
+            DateTimeFormatter.ofPattern("d-M-uuuu", Locale.ROOT).withResolverStyle(ResolverStyle.STRICT),
+            DateTimeFormatter.ISO_LOCAL_DATE.withResolverStyle(ResolverStyle.STRICT)
         )
         return patterns.firstNotNullOfOrNull { pattern ->
             runCatching { LocalDate.parse(value.trim(), pattern) }.getOrNull()
