@@ -435,6 +435,19 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun doesNotMistakeNamedTopBarResourceAmountsForPlayerPower() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            "Food: 12.4M\\nWood: 8.2M\\nSteel: 3.1M"
+        )
+
+        assertEquals(3, result.resources.size)
+        assertTrue(result.resources.any { it.nom == "Nourriture (Food)" })
+        assertTrue(result.resources.any { it.nom == "Bois (Wood)" })
+        assertTrue(result.resources.any { it.nom == "Acier (Steel)" })
+        assertNull(result.power)
+    }
+
+    @Test
     fun extractsTopBarResourceQuantitiesByIconSlotPositionWhenNamesAreNotOcrText() {
         val boxes = listOf("1.2M", "850K", "42M", "3.4M", "120", "7.8M").mapIndexed { index, value ->
             OcrTextBox(value, left = 40 + index * 120, top = 50, right = 95 + index * 120, bottom = 82)
