@@ -196,6 +196,49 @@ object ProgressionCatalog {
         )
     }
 
+
+    const val INVENTORY_SOURCE = "https://lojwiki.com/buildings/inventory/"
+
+    /**
+     * Inventory upgrades Lv.1 -> Lv.7. The source publishes exact resource
+     * quantities and base durations for these levels; later rounded values
+     * are deliberately not imported.
+     */
+    val inventoryBuilding: List<ProgressionCatalogRecord> = listOf(
+        inventoryRow(2, listOf("wood" to 200L), 9),
+        inventoryRow(3, listOf("wood" to 1_000L), 45),
+        inventoryRow(4, listOf("wood" to 2_000L, "steel" to 400L), 135),
+        inventoryRow(5, listOf("wood" to 8_000L, "steel" to 1_600L), 270),
+        inventoryRow(6, listOf("wood" to 20_000L, "steel" to 4_000L, "gasoline" to 1_000L), 540),
+        inventoryRow(7, listOf("wood" to 70_000L, "steel" to 14_000L, "gasoline" to 3_500L), 1_080)
+    )
+
+    private fun inventoryRow(
+        targetLevel: Int,
+        costs: List<Pair<String, Long>>,
+        baseDurationSeconds: Long
+    ): ProgressionCatalogRecord {
+        val sourcedCosts = costs.map { (resourceId, quantity) ->
+            ResourceCost(resourceId, quantity, CostConfidence.COMMUNITY_REFERENCE, INVENTORY_SOURCE)
+        }
+        return ProgressionCatalogRecord(
+            step = ProgressionStep(
+                id = "inventory-${targetLevel - 1}-$targetLevel",
+                domain = ProgressionDomain.BUILDING,
+                itemName = "Inventory",
+                fromLevel = targetLevel - 1,
+                toLevel = targetLevel,
+                costs = sourcedCosts,
+                durationSeconds = baseDurationSeconds,
+                dataComplete = true
+            ),
+            prerequisiteNotes = listOf("Warden's Office Lv.9"),
+            sourceLabel = "LOJ Wiki — Inventory upgrade costs",
+            sourceUrl = INVENTORY_SOURCE,
+            checkedOn = SOURCE_CHECKED_ON
+        )
+    }
+
     const val GATE_SOURCE = "https://lojwiki.com/buildings/gate/"
 
     /**
