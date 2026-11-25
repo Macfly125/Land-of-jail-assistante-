@@ -107,7 +107,7 @@ fun ProgressionCoachScreen(
                 "factory", "usine", "utility_room", "utility room", "salle utilitaire",
                 "guard_room", "guard room", "salle de garde",
                 "inventory", "warehouse", "entrepot", "entrepôt", "lager",
-                "laundry", "buanderie", "wäsche", "playground", "terrain de jeu", "spielplatz"
+                "laundry", "buanderie", "wäsche", "playground", "terrain de jeu", "spielplatz", "shower_room", "shower room", "douche", "shower"
             )
     }
     val isLabGoal = supportedBuildingGoal?.targetId?.trim()?.lowercase()?.let {
@@ -126,6 +126,7 @@ fun ProgressionCoachScreen(
         "inventory", "warehouse", "entrepot", "entrepôt", "lager" -> ProgressionCatalog.inventoryBuilding
         "laundry", "buanderie", "wäsche" -> ProgressionCatalog.laundryBuilding
         "playground", "terrain de jeu", "spielplatz" -> ProgressionCatalog.playgroundBuilding
+        "shower_room", "shower room", "douche", "shower" -> ProgressionCatalog.showerRoomBuilding
         "warden_office", "warden's office", "bureau_du_directeur", "bureau du directeur", "hq" -> ProgressionCatalog.wardensOffice
         else -> emptyList()
     }
@@ -148,6 +149,7 @@ fun ProgressionCoachScreen(
         "inventory", "warehouse", "entrepot", "entrepôt", "lager" -> text("Entrepôt", "Inventory", "Lager", "Depo", "Склад", "仓库", "Magazzino")
         "laundry", "buanderie", "wäsche" -> text("Buanderie", "Laundry", "Wäscherei", "Çamaşırhane", "Прачечная", "洗衣房", "Lavanderia")
         "playground", "terrain de jeu", "spielplatz" -> text("Terrain de jeu", "Playground", "Spielplatz", "Oyun alanı", "Игровая площадка", "游乐场", "Parco giochi")
+        "shower_room", "shower room", "douche", "shower" -> text("Salle de douche", "Shower Room", "Duschraum", "Duş Odası", "Душевая", "淋浴间", "Sala docce")
         else -> text("Bureau du directeur", "Warden's Office", "Büro des Direktors", "Müdür Ofisi", "Офис директора", "典狱长办公室", "Ufficio del Direttore")
     }
 
