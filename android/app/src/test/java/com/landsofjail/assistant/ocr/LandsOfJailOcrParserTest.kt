@@ -43,6 +43,59 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun addsOnlyConfirmedRobotPortraitMatchesWithoutInventingDetails() {
+        val confirmed = RobotPortraitMatch(
+            robotId = "phantom_cat",
+            displayName = "Phantom Cat",
+            similarity = 0.97f,
+            runnerUpSimilarity = 0.81f,
+            isConfirmed = true,
+            reason = "portrait_correspondance_confirmee"
+        )
+        val ambiguous = RobotPortraitMatch(
+            robotId = null,
+            displayName = null,
+            similarity = 0.95f,
+            runnerUpSimilarity = 0.93f,
+            isConfirmed = false,
+            reason = "correspondances_trop_proches"
+        )
+
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            rawText = "Robot Center",
+            visualRobotMatches = listOf(confirmed, ambiguous)
+        )
+
+        assertEquals(1, result.robots.size)
+        val robot = result.robots.single()
+        assertEquals("phantom_cat", robot.id)
+        assertEquals("Phantom Cat", robot.nom)
+        assertEquals("portrait_local", robot.source)
+        assertTrue(robot.incertain)
+        assertTrue(robot.niveau.isBlank())
+        assertTrue(robot.bonus.isBlank())
+        assertTrue(robot.competences.isBlank())
+    }
+
+    @Test
+    fun doesNotDuplicateRobotAlreadyRecognizedByOcrAndPortrait() {
+        val match = RobotPortraitMatch(
+            robotId = "phantom_cat",
+            displayName = "Phantom Cat",
+            similarity = 0.99f,
+            runnerUpSimilarity = 0.70f,
+            isConfirmed = true,
+            reason = "portrait_correspondance_confirmee"
+        )
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            rawText = "Phantom Cat",
+            visualRobotMatches = listOf(match)
+        )
+        assertEquals(1, result.robots.size)
+        assertEquals("ocr_local", result.robots.single().source)
+    }
+
+    @Test
     fun parsesGroupedPowerWithoutTreatingThousandsAsDecimals() {
         val result = LandsOfJailOcrParser.parseLocalOcrText("Puissance : 8,450,120")
 
