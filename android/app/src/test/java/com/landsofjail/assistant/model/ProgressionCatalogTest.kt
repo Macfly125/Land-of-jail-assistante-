@@ -251,4 +251,40 @@ class ProgressionCatalogTest {
         assertTrue(rows.none { it.step.toLevel > 5 })
     }
 
+    @Test
+    fun commandCenterCatalogStopsBeforeAbbreviatedCashAmounts() {
+        val rows = ProgressionCatalog.commandCenterBuilding
+        assertEquals((2..4).toList(), rows.map { it.step.toLevel })
+        assertEquals(listOf(8L, 34L, 105L), rows.map { it.step.durationSeconds })
+        assertEquals(listOf(
+            mapOf("wood" to 200L),
+            mapOf("wood" to 1_200L),
+            mapOf("wood" to 2_400L, "steel" to 480L)
+        ), rows.map { row -> row.step.costs.associate { it.resourceId to it.quantity } })
+        assertTrue(rows.all { it.prerequisiteNotes == listOf("Warden's Office Lv.10") })
+        assertTrue(rows.all { it.sourceUrl == ProgressionCatalog.COMMAND_CENTER_SOURCE })
+        assertTrue(rows.none { it.step.toLevel > 4 })
+    }
+
+    @Test
+    fun threeBarracksCatalogsUseTheirOwnWardenPrerequisites() {
+        val catalogs = listOf(
+            Triple(ProgressionCatalog.shieldbearerBarrackBuilding, ProgressionCatalog.SHIELDBEARER_BARRACK_SOURCE, 7),
+            Triple(ProgressionCatalog.shooterBarrackBuilding, ProgressionCatalog.SHOOTER_BARRACK_SOURCE, 8),
+            Triple(ProgressionCatalog.bomberBarrackBuilding, ProgressionCatalog.BOMBER_BARRACK_SOURCE, 9)
+        )
+        catalogs.forEach { (rows, source, wardenLevel) ->
+            assertEquals((2..4).toList(), rows.map { it.step.toLevel })
+            assertEquals(listOf(9L, 45L, 135L), rows.map { it.step.durationSeconds })
+            assertEquals(listOf(
+                mapOf("wood" to 300L),
+                mapOf("wood" to 1_300L),
+                mapOf("wood" to 3_000L, "steel" to 600L)
+            ), rows.map { row -> row.step.costs.associate { it.resourceId to it.quantity } })
+            assertTrue(rows.all { it.prerequisiteNotes == listOf("Warden's Office Lv.$wardenLevel") })
+            assertTrue(rows.all { it.sourceUrl == source && it.checkedOn == ProgressionCatalog.SOURCE_CHECKED_ON })
+            assertTrue(rows.none { it.step.toLevel > 4 })
+        }
+    }
+
 }
