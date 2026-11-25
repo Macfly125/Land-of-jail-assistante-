@@ -378,6 +378,19 @@ fun ProgressionCoachScreen(
                                     zh = "等级 ${step.fromLevel} → ${step.toLevel}：$stepCosts",
                                     it = "Liv. ${step.fromLevel} → ${step.toLevel}: $stepCosts"),
                                     style = MaterialTheme.typography.bodySmall)
+                                catalogRows.firstOrNull { it.step.id == step.id }
+                                    ?.prerequisiteNotes
+                                    ?.takeIf { it.isNotEmpty() }
+                                    ?.let { prerequisites ->
+                                        Text(text(fr = "Prérequis : ${prerequisites.joinToString()}",
+                                            en = "Prerequisites: ${prerequisites.joinToString()}",
+                                            de = "Voraussetzungen: ${prerequisites.joinToString()}",
+                                            tr = "Ön koşullar: ${prerequisites.joinToString()}",
+                                            ru = "Требования: ${prerequisites.joinToString()}",
+                                            zh = "前置条件：${prerequisites.joinToString()}",
+                                            it = "Prerequisiti: ${prerequisites.joinToString()}"),
+                                            style = MaterialTheme.typography.labelSmall)
+                                    }
                             }
                             plan.requirements.forEach { requirement ->
                                 val label = when (requirement.resourceId) {
