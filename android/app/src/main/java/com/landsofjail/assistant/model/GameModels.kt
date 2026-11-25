@@ -642,12 +642,22 @@ object ResourceNameMatcher {
 object ForticladSelection {
     fun currentLevels(): IntRange = 1..9
     fun completedSteps(): IntRange = 0..4
-    fun targetLevels(currentLevel: Int): IntRange =
-        (currentLevel.coerceIn(1, 9) + 1)..10
 
+    fun normalizeCurrentLevel(currentLevel: Int): Int = currentLevel.coerceIn(1, 9)
+
+    fun targetLevels(currentLevel: Int): IntRange =
+        (normalizeCurrentLevel(currentLevel) + 1)..10
+
+    /**
+     * Keeps the target strictly above the current level. This is also used
+     * when restoring persisted values, which may be stale after profile changes
+     * or older app versions.
+     */
     fun targetAfterCurrentChange(currentLevel: Int, targetLevel: Int): Int {
-        val current = currentLevel.coerceIn(1, 9)
-        return if (targetLevel <= current) (current + 1).coerceAtMost(10)
+        val current = normalizeCurrentLevel(currentLevel)
+        return if (targetLevel <= current) current + 1
         else targetLevel.coerceIn(current + 1, 10)
     }
+
+    fun normalizeCompletedSteps(completedSteps: Int): Int = completedSteps.coerceIn(0, 4)
 }
