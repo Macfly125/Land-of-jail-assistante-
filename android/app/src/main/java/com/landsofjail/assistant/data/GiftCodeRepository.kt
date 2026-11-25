@@ -35,8 +35,6 @@ object GiftCodeRepository {
     const val XLAB_URL = "https://lojxlab.com/promo-codes/"
     const val GUIDE_URL = "https://guideloj.com/fr/codes"
     const val GUIDE_HOME_URL = "https://guideloj.com/fr/home"
-    const val DISCORD_URL = "https://discord.gg/YGJqgcGpn"
-    const val REDEEM_URL = "https://www.gamermall.net/global/loj/cdkey"
 
     private val communityListedCodes = listOf(
         "VIP777", "LOJ3648", "LOJNOW", "LOJ1478",
