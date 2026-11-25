@@ -56,6 +56,95 @@ object ProgressionCatalog {
         row(30, listOf("food" to 230_000_000L, "wood" to 230_000_000L, "steel" to 46_000_000L, "gasoline" to 11_500_000L), 520_800, 30)
     )
 
+
+    const val WARDENS_OFFICE_SOURCE = "https://lojwiki.com/buildings/wardens-office/"
+
+    /**
+     * Warden's Office standard upgrades Lv.1 -> Lv.30.
+     * Forticlad tiers beyond Lv.30 are deliberately kept out of this table.
+     */
+    val wardensOffice: List<ProgressionCatalogRecord> = listOf(
+        hqRow(2, listOf("wood" to 350L), 6, "Kitchen Lv.1"),
+        hqRow(3, listOf("wood" to 1_600L), 60, "Cell 1 Lv.2"),
+        hqRow(4, listOf("wood" to 3_600L, "steel" to 700L), 180, "Factory Lv.3"),
+        hqRow(5, listOf("wood" to 15_000L, "steel" to 3_000L), 600, "Cell 3 Lv.3"),
+        hqRow(6, listOf("wood" to 40_000L, "steel" to 8_000L, "gasoline" to 2_000L), 1_800,
+            "Supply Center Lv.1", "Shower Room 1 Lv.5"),
+        hqRow(7, listOf("wood" to 140_000L, "steel" to 28_000L, "gasoline" to 7_000L), 3_600, "Playground Lv.5"),
+        hqRow(8, listOf("wood" to 240_000L, "steel" to 48_000L, "gasoline" to 12_000L), 9_000, "Shieldbearer Barracks Lv.7"),
+        hqRow(9, listOf("wood" to 500_000L, "steel" to 100_000L, "gasoline" to 25_000L), 16_200,
+            "Communication Center Lv.8", "Medical Station Lv.1"),
+        hqRow(10, listOf("wood" to 900_000L, "steel" to 180_000L, "gasoline" to 45_000L), 21_600,
+            "Shooter Barracks Lv.9", "Lab Lv.1"),
+        hqRow(11, listOf("food" to 2_500_000L, "wood" to 2_500_000L, "steel" to 500_000L, "gasoline" to 125_000L), 27_000,
+            "Communication Center Lv.10", "Bomber Barracks Lv.10"),
+        hqRow(12, listOf("food" to 3_000_000L, "wood" to 3_000_000L, "steel" to 600_000L, "gasoline" to 150_000L), 32_400,
+            "Communication Center Lv.11", "Command Center Lv.1"),
+        hqRow(13, listOf("food" to 4_500_000L, "wood" to 4_500_000L, "steel" to 900_000L, "gasoline" to 225_000L), 39_600,
+            "Communication Center Lv.12", "Shieldbearer Barracks Lv.12"),
+        hqRow(14, listOf("food" to 6_000_000L, "wood" to 6_000_000L, "steel" to 1_200_000L, "gasoline" to 300_000L), 50_400,
+            "Communication Center Lv.13", "Shooter Barracks Lv.13"),
+        hqRow(15, listOf("food" to 9_000_000L, "wood" to 9_000_000L, "steel" to 1_800_000L, "gasoline" to 450_000L), 64_800,
+            "Communication Center Lv.14", "Bomber Barracks Lv.14"),
+        hqRow(16, listOf("food" to 12_000_000L, "wood" to 12_000_000L, "steel" to 2_400_000L, "gasoline" to 600_000L), 108_000,
+            "Communication Center Lv.15", "Lab Lv.15"),
+        hqRow(17, listOf("food" to 18_000_000L, "wood" to 18_000_000L, "steel" to 3_600_000L, "gasoline" to 900_000L), 129_600,
+            "Communication Center Lv.16", "Shieldbearer Barracks Lv.16"),
+        hqRow(18, listOf("food" to 25_000_000L, "wood" to 25_000_000L, "steel" to 5_000_000L, "gasoline" to 1_300_000L), 154_800,
+            "Communication Center Lv.17", "Shooter Barracks Lv.17"),
+        hqRow(19, listOf("food" to 30_000_000L, "wood" to 30_000_000L, "steel" to 6_000_000L, "gasoline" to 1_500_000L), 234_000,
+            "Communication Center Lv.18", "Bomber Barracks Lv.18"),
+        hqRow(20, listOf("food" to 40_000_000L, "wood" to 40_000_000L, "steel" to 8_000_000L, "gasoline" to 2_000_000L), 295_200,
+            "Communication Center Lv.19", "Lab Lv.19"),
+        hqRow(21, listOf("food" to 50_000_000L, "wood" to 50_000_000L, "steel" to 10_000_000L, "gasoline" to 2_500_000L), 381_600,
+            "Communication Center Lv.20", "Shieldbearer Barracks Lv.20"),
+        hqRow(22, listOf("food" to 70_000_000L, "wood" to 70_000_000L, "steel" to 14_000_000L, "gasoline" to 3_500_000L), 576_000,
+            "Communication Center Lv.21", "Shooter Barracks Lv.21"),
+        hqRow(23, listOf("food" to 90_000_000L, "wood" to 90_000_000L, "steel" to 18_000_000L, "gasoline" to 4_500_000L), 806_400,
+            "Communication Center Lv.22", "Bomber Barracks Lv.22"),
+        hqRow(24, listOf("food" to 120_000_000L, "wood" to 120_000_000L, "steel" to 24_000_000L, "gasoline" to 6_000_000L), 1_130_400,
+            "Communication Center Lv.23", "Lab Lv.23"),
+        hqRow(25, listOf("food" to 160_000_000L, "wood" to 160_000_000L, "steel" to 32_000_000L, "gasoline" to 8_000_000L), 1_584_000,
+            "Communication Center Lv.24", "Shieldbearer Barracks Lv.24"),
+        hqRow(26, listOf("food" to 210_000_000L, "wood" to 210_000_000L, "steel" to 42_000_000L, "gasoline" to 10_500_000L), 1_821_600,
+            "Communication Center Lv.25", "Shooter Barracks Lv.25"),
+        hqRow(27, listOf("food" to 300_000_000L, "wood" to 300_000_000L, "steel" to 60_000_000L, "gasoline" to 15_000_000L), 2_185_200,
+            "Communication Center Lv.26", "Bomber Barracks Lv.26"),
+        hqRow(28, listOf("food" to 350_000_000L, "wood" to 350_000_000L, "steel" to 70_000_000L, "gasoline" to 17_500_000L), 2_512_800,
+            "Communication Center Lv.27", "Lab Lv.27"),
+        hqRow(29, listOf("food" to 450_000_000L, "wood" to 450_000_000L, "steel" to 90_000_000L, "gasoline" to 22_500_000L), 2_890_800,
+            "Communication Center Lv.28", "Shieldbearer Barracks Lv.28"),
+        hqRow(30, listOf("food" to 600_000_000L, "wood" to 600_000_000L, "steel" to 120_000_000L, "gasoline" to 30_000_000L), 3_470_400,
+            "Communication Center Lv.29", "Shooter Barracks Lv.29")
+    )
+
+    private fun hqRow(
+        targetLevel: Int,
+        costs: List<Pair<String, Long>>,
+        baseDurationSeconds: Long,
+        vararg prerequisites: String
+    ): ProgressionCatalogRecord {
+        val sourcedCosts = costs.map { (resourceId, quantity) ->
+            ResourceCost(resourceId, quantity, CostConfidence.COMMUNITY_REFERENCE, WARDENS_OFFICE_SOURCE)
+        }
+        return ProgressionCatalogRecord(
+            step = ProgressionStep(
+                id = "wardens-office-${targetLevel - 1}-$targetLevel",
+                domain = ProgressionDomain.BUILDING,
+                itemName = "Warden's Office",
+                fromLevel = targetLevel - 1,
+                toLevel = targetLevel,
+                costs = sourcedCosts,
+                durationSeconds = baseDurationSeconds,
+                dataComplete = true
+            ),
+            prerequisiteNotes = prerequisites.toList(),
+            sourceLabel = "LOJ Wiki — Warden's Office upgrade costs",
+            sourceUrl = WARDENS_OFFICE_SOURCE,
+            checkedOn = SOURCE_CHECKED_ON
+        )
+    }
+
     private fun row(
         targetLevel: Int,
         costs: List<Pair<String, Long>>,
