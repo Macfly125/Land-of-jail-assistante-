@@ -4,6 +4,8 @@ import kotlinx.serialization.Serializable
 import java.net.HttpURLConnection
 import java.net.URL
 import java.time.Instant
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -153,7 +155,8 @@ object GiftCodeRepository {
             }
         }
 
-        val merged = found.values.sortedWith(
+        val today = LocalDate.now()
+        val merged = applyPublishedExpiryDates(found.values.toList(), today).sortedWith(
             compareBy<GiftCodeEntry> {
                 when (it.status) {
                     "COMMUNITY_LISTED" -> 0
@@ -164,9 +167,37 @@ object GiftCodeRepository {
             }.thenBy { it.code.lowercase(Locale.ROOT) }
         )
         return if (errors.size == sources.size) {
-            previous.copy(sourceErrors = errors)
+            previous.copy(sourceErrors = errors, entries = applyPublishedExpiryDates(previous.entries, today))
         } else {
             GiftCodeSnapshot(updatedAt = now, sourceErrors = errors, entries = merged)
+        }
+    }
+
+    /** Applies only an explicit published expiry date; never infers expiry from silence. */
+    internal fun applyPublishedExpiryDates(
+        entries: List<GiftCodeEntry>,
+        today: LocalDate
+    ): List<GiftCodeEntry> = entries.map { entry ->
+        val expiry = parseExpiryDate(entry.expiresAt)
+        if (expiry != null && !expiry.isAfter(today) && entry.status != "EXPIRED") {
+            entry.copy(
+                status = "EXPIRED",
+                note = listOf(entry.note, "Date d'expiration publiée dépassée ; statut actualisé automatiquement.")
+                    .filter { it.isNotBlank() }.joinToString(" ")
+            )
+        } else entry
+    }
+
+    private fun parseExpiryDate(value: String): LocalDate? {
+        if (value.isBlank()) return null
+        val patterns = listOf(
+            DateTimeFormatter.ofPattern("d/M/yyyy", Locale.ROOT),
+            DateTimeFormatter.ofPattern("d.M.yyyy", Locale.ROOT),
+            DateTimeFormatter.ofPattern("d-M-yyyy", Locale.ROOT),
+            DateTimeFormatter.ISO_LOCAL_DATE
+        )
+        return patterns.firstNotNullOfOrNull { pattern ->
+            runCatching { LocalDate.parse(value.trim(), pattern) }.getOrNull()
         }
     }
 
