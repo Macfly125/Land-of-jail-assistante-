@@ -796,6 +796,28 @@ Potential Coil x 8"""
     }
 
     @Test
+    fun readsExplicitWardenLevelOnTheLineImmediatelyAfterBuildingName() {
+        val samples = listOf(
+            "Bureau du directeur\nNiveau 6\nCapacité des prisonniers 40/40",
+            "Warden Office\nLevel 18\nPrisoner capacity 40/40",
+            "QG\nNiv. 12\nCapacité 40/40"
+        )
+        val expected = listOf("Niv. 6", "Niv. 18", "Niv. 12")
+        samples.forEachIndexed { index, sample ->
+            val result = LandsOfJailOcrParser.parseLocalOcrText(sample)
+            assertEquals("Niveau incorrect pour : $sample", expected[index], result.power?.niveauPrisonOuQG)
+        }
+    }
+
+    @Test
+    fun doesNotReadAnUnlabelledNumberOnTheLineAfterBuildingNameAsItsLevel() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            "Bureau du directeur\n40/40\nNiveau de danger 9"
+        )
+        assertNull(result.power?.niveauPrisonOuQG)
+    }
+
+    @Test
     fun readsCashResourceWhenTheGameCallsItArgentLiquide() {
         val result = LandsOfJailOcrParser.parseLocalOcrText("Argent liquide: 1.0B")
         val cash = result.resources.single { it.nom == "Cash / Or" }
