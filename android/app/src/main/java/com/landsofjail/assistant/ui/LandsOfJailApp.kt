@@ -904,7 +904,15 @@ private enum class ResourceSubTab {
             AppLanguage.EN -> "Goals"
             AppLanguage.IT -> "Obiettivi"
         }
-        SVS -> when (lang) {\n            AppLanguage.FR -> "Prépa SVS"\n            AppLanguage.EN -> "SvS Prep"\n            AppLanguage.DE -> "SvS-Plan"\n            AppLanguage.TR -> "SvS Planı"\n            AppLanguage.RU -> "План SvS"\n            AppLanguage.ZH -> "SVS计划"\n            AppLanguage.IT -> "Piano SvS"\n        }\n        ROBOTS -> when (lang) {
+        SVS -> when (lang) {
+            AppLanguage.FR -> "Prépa SVS"
+            AppLanguage.TR -> "SvS Planı"
+            AppLanguage.RU -> "План SvS"
+            AppLanguage.ZH -> "SVS计划"
+            AppLanguage.DE -> "SvS-Plan"
+            AppLanguage.EN -> "SvS Prep"
+            AppLanguage.IT -> "Piano SvS"
+        }\n        ROBOTS -> when (lang) {
             AppLanguage.FR -> "Robots"
             AppLanguage.TR -> "Robotlar"
             AppLanguage.RU -> "Роботы"
@@ -3810,6 +3818,7 @@ private fun ResourcesScreen(
         }
 
         when (subTab) {
+            ResourceSubTab.SVS -> { item { SvSPreparationScreen(language = currentLang) } }
             ResourceSubTab.INVENTAIRE -> {
                 item {
                     Text(
