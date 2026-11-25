@@ -1027,21 +1027,35 @@ fun LandsOfJailAssistantApp(
         }.getOrElse { GiftCodeRepository.initialSnapshot() })
     }
     var giftCodesRefreshing by remember { mutableStateOf(false) }
+    // Le callback de cycle de vie reste enregistré entre les recompositions :
+    // lire le snapshot le plus récent évite d'écraser les codes ajoutés depuis
+    // la première ouverture de l'écran.
+    val latestGiftCodeSnapshot = rememberUpdatedState(giftCodeSnapshot)
+    val giftCodeRefreshMutex = remember { kotlinx.coroutines.sync.Mutex() }
+    suspend fun refreshGiftCodesSafely() {
+        if (!giftCodeRefreshMutex.tryLock()) return
+        giftCodesRefreshing = true
+        try {
+            val previous = latestGiftCodeSnapshot.value
+            val refreshed = withContext(Dispatchers.IO) { GiftCodeRepository.refresh(previous) }
+            giftCodeSnapshot = refreshed
+            giftCodePrefs.edit().putString("snapshot", giftCodeJson.encodeToString(refreshed)).apply()
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            giftCodeSnapshot = latestGiftCodeSnapshot.value.copy(
+                sourceErrors = listOf(error.message ?: "Actualisation impossible")
+            )
+        } finally {
+            giftCodesRefreshing = false
+            giftCodeRefreshMutex.unlock()
+        }
+    }
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_START && !giftCodesRefreshing) {
-                // Une actualisation déclenchée par le cycle de vie doit survivre
-                // aux recompositions et ne pas dépendre du scope Compose.
-                lifecycleOwner.lifecycleScope.launch {
-                    giftCodesRefreshing = true
-                    try {
-                        val refreshed = withContext(Dispatchers.IO) { GiftCodeRepository.refresh(giftCodeSnapshot) }
-                        giftCodeSnapshot = refreshed
-                        giftCodePrefs.edit().putString("snapshot", giftCodeJson.encodeToString(refreshed)).apply()
-                    } finally {
-                        giftCodesRefreshing = false
-                    }
-                }
+            if (event == Lifecycle.Event.ON_START) {
+                // Actualisation automatique à chaque ouverture/reprise de l'application.
+                lifecycleOwner.lifecycleScope.launch { refreshGiftCodesSafely() }
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -2476,17 +2490,7 @@ fun LandsOfJailAssistantApp(
                         language = currentLang,
                         snapshot = giftCodeSnapshot,
                         refreshing = giftCodesRefreshing,
-                        onRefresh = {
-                            scope.launch {
-                                if (!giftCodesRefreshing) {
-                                    giftCodesRefreshing = true
-                                    val refreshed = withContext(Dispatchers.IO) { GiftCodeRepository.refresh(giftCodeSnapshot) }
-                                    giftCodeSnapshot = refreshed
-                                    giftCodePrefs.edit().putString("snapshot", giftCodeJson.encodeToString(refreshed)).apply()
-                                    giftCodesRefreshing = false
-                                }
-                            }
-                        }
+                        onRefresh = { scope.launch { refreshGiftCodesSafely() } }
                     )
                     AssistantTab.HISTORIQUE -> HistoryScreen(analyses, onClearHistory = {
                             analyses.forEach { analysis ->
@@ -3579,9 +3583,6 @@ private fun GiftCodesScreen(
                             Spacer(Modifier.width(6.dp))
                             Text(labels[4])
                         }
-                    }
-                    OutlinedButton(onClick = { context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, Uri.parse(GiftCodeRepository.REDEEM_URL))) }, modifier = Modifier.fillMaxWidth()) {
-                        Text(labels[12])
                     }
                     if (snapshot.sourceErrors.isNotEmpty()) {
                         Text(labels[14], color = Color(0xFFFFC18A), style = MaterialTheme.typography.bodySmall)
