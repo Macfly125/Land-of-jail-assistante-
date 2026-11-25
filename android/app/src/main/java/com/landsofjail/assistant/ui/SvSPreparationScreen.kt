@@ -10,6 +10,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -38,9 +42,33 @@ private val svsDays=listOf(
  ))
 )
 
+private data class SvSScoreItem(val fr:String,val en:String,val points:Long) {
+ fun label(language:AppLanguage)=when(language){AppLanguage.FR->fr;else->en}
+}
+private val svsScoreItems=listOf(
+ SvSScoreItem("Noyau Forticlad","Forticlad Core",3000),
+ SvSScoreItem("Hyperalliage","Hyperalloy",1500),
+ SvSScoreItem("Noyau Forticlad avancé","Advanced Forticlad Core",45000),
+ SvSScoreItem("Minute d'accélérateur","Speedup minute",90),
+ SvSScoreItem("Fragment rare","Rare Hero Shard",1050),
+ SvSScoreItem("Fragment épique","Epic Hero Shard",3660),
+ SvSScoreItem("Fragment légendaire","Legendary Hero Shard",9120),
+ SvSScoreItem("Spin de renforcement","Reinforcement Spin",24000),
+ SvSScoreItem("Pièce équipement exclusif","Exclusive Equipment Part",12000),
+ SvSScoreItem("Engrenage de précision","Precision Gear",6000),
+ SvSScoreItem("Bobine de potentiel","Potential Coil",60000),
+ SvSScoreItem("Aimant","Magnet",3000),
+ SvSScoreItem("Note de collection","Collection Rating",108)
+)
+
 @Composable
 fun SvSPreparationScreen(language:AppLanguage){
  var selectedDay by remember { mutableIntStateOf(1) }
+ var scoreIndex by remember { mutableIntStateOf(0) }
+ var quantity by remember { mutableStateOf("0") }
+ var scoreMenu by remember { mutableStateOf(false) }
+ val scoreItem=svsScoreItems[scoreIndex]
+ val calculatedPoints=(quantity.toLongOrNull() ?: 0L).coerceAtLeast(0L)*scoreItem.points
  val day=svsDays.first{it.number==selectedDay}
  LazyColumn(verticalArrangement=Arrangement.spacedBy(10.dp)){
   item { Card(Modifier.fillMaxWidth()){Column(Modifier.padding(14.dp),verticalArrangement=Arrangement.spacedBy(6.dp)){
@@ -50,6 +78,17 @@ fun SvSPreparationScreen(language:AppLanguage){
   item { Card(Modifier.fillMaxWidth()){Column(Modifier.padding(14.dp),verticalArrangement=Arrangement.spacedBy(5.dp)){
    Text(when(language){AppLanguage.FR->"À économiser avant le SVS";AppLanguage.EN->"Save before SvS";else->"Save before SvS"},style=MaterialTheme.typography.titleSmall)
    listOf("• Nourriture, bois, acier, essence : garde tes réserves pour les améliorations ; organise surtout leur collecte au jour 2.","• Accélérateurs construction/recherche/entraînement et universels : jours 1, 2 et 5.","• Noyaux Forticlad, Hyperalliage, noyaux avancés, tomes et satellites : jours 1, 2 ou 5 selon l'objet.","• Fragments de héros et spins : jours 2 et 3.","• Endurance : réserve-la pour les fugitifs et départs de rallye au jour 3.","• Coffres de modules : jours 3 ou 5 ; équipements et objets de puissance : jours 4 ou 5.","• Prépare tes files de troupes avant le jour 4, puis entraîne/promus ce jour-là.").forEach{Text(it,style=MaterialTheme.typography.bodySmall)}
+  }}}
+  item { Card(Modifier.fillMaxWidth()){Column(Modifier.padding(14.dp),verticalArrangement=Arrangement.spacedBy(8.dp)){
+   Text(when(language){AppLanguage.FR->"Calculateur de points SVS";AppLanguage.EN->"SvS points calculator";AppLanguage.DE->"SvS-Punkterechner";AppLanguage.TR->"SvS puan hesaplayıcı";AppLanguage.RU->"Калькулятор очков SvS";AppLanguage.ZH->"SvS积分计算器";AppLanguage.IT->"Calcolatore punti SvS"},style=MaterialTheme.typography.titleSmall)
+   Text(scoreItem.label(language)+" · "+scoreItem.points+" pts/unité",style=MaterialTheme.typography.bodySmall)
+   Button(onClick={scoreMenu=true}){Text(when(language){AppLanguage.FR->"Choisir l'objet";AppLanguage.EN->"Choose item";else->"Choose item"})}
+   DropdownMenu(expanded=scoreMenu,onDismissRequest={scoreMenu=false}){
+    svsScoreItems.forEachIndexed{index,item->DropdownMenuItem(text={Text(item.label(language))},onClick={scoreIndex=index;scoreMenu=false})}
+   }
+   OutlinedTextField(value=quantity,onValueChange={quantity=it.filter{ch->ch.isDigit()}.take(12)},label={Text(when(language){AppLanguage.FR->"Quantité possédée / utilisée";AppLanguage.EN->"Owned / used quantity";AppLanguage.DE->"Besitzte / verwendete Menge";AppLanguage.TR->"Sahip olunan / kullanılan miktar";AppLanguage.RU->"Количество";AppLanguage.ZH->"拥有/使用数量";AppLanguage.IT->"Quantità posseduta / usata"})},singleLine=true)
+   Text(when(language){AppLanguage.FR->"Total estimé :";AppLanguage.EN->"Estimated total:";AppLanguage.DE->"Geschätzte Gesamtpunktzahl:";AppLanguage.TR->"Tahmini toplam:";AppLanguage.RU->"Примерное количество очков:";AppLanguage.ZH->"预计总积分：";AppLanguage.IT->"Totale stimato:"}+" "+ "%,d".format(java.util.Locale.US,calculatedPoints)+" pts",style=MaterialTheme.typography.titleMedium,color=MaterialTheme.colorScheme.primary)
+   Text(when(language){AppLanguage.FR->"Estimation indicative : vérifie les valeurs et les règles du SVS en cours avant de dépenser.";AppLanguage.EN->"Reference estimate: verify the current SvS values and rules before spending.";AppLanguage.DE->"Richtwert: Prüfe vor dem Ausgeben die aktuellen SvS-Werte.";AppLanguage.TR->"Tahmini değerdir; harcamadan önce etkinlik kurallarını kontrol et.";AppLanguage.RU->"Оценка; перед расходованием проверьте правила текущего события.";AppLanguage.ZH->"仅供估算，使用前请核对当前活动规则。";AppLanguage.IT->"Stima indicativa: verifica le regole dell'evento prima di spendere."},style=MaterialTheme.typography.bodySmall)
   }}}
   item { Row(horizontalArrangement=Arrangement.spacedBy(4.dp)){(1..5).forEach{n->FilterChip(selected=selectedDay==n,onClick={selectedDay=n},label={Text("J$n")})}}}
   item { Text("Jour $selectedDay · ${day.title.text(language)}",style=MaterialTheme.typography.titleMedium) }
