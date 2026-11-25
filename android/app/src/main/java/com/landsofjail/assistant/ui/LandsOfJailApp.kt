@@ -3711,9 +3711,11 @@ private fun ResourcesScreen(
         context.getSharedPreferences("development_tracker_" + profileId, Context.MODE_PRIVATE)
     }
     var fcBuildingKey by remember(profileId) { mutableStateOf(developmentPrefs.getString("fc_building", "warden_office") ?: "warden_office") }
-    var fcCurrentLevel by remember(profileId) { mutableIntStateOf(developmentPrefs.getInt("fc_current_level", 1).coerceIn(1, 9)) }
-    var fcCurrentProgress by remember(profileId) { mutableIntStateOf(developmentPrefs.getInt("fc_current_progress", 0).coerceIn(0, 4)) }
-    var fcTargetLevel by remember(profileId) { mutableIntStateOf(developmentPrefs.getInt("fc_target_level", 2).coerceIn(2, 10)) }
+    val restoredFcCurrentLevel = ForticladSelection.normalizeCurrentLevel(developmentPrefs.getInt("fc_current_level", 1))
+    val restoredFcTargetLevel = developmentPrefs.getInt("fc_target_level", 2)
+    var fcCurrentLevel by remember(profileId) { mutableIntStateOf(restoredFcCurrentLevel) }
+    var fcCurrentProgress by remember(profileId) { mutableIntStateOf(ForticladSelection.normalizeCompletedSteps(developmentPrefs.getInt("fc_current_progress", 0))) }
+    var fcTargetLevel by remember(profileId) { mutableIntStateOf(ForticladSelection.targetAfterCurrentChange(restoredFcCurrentLevel, restoredFcTargetLevel)) }
     var fcCoresOwned by remember(profileId) { mutableStateOf(developmentPrefs.getString("fc_cores_owned", "0") ?: "0") }
     var fcAdvancedOwned by remember(profileId) { mutableStateOf(developmentPrefs.getString("fc_advanced_owned", "0") ?: "0") }
     var gearFromTier by remember(profileId) { mutableIntStateOf(developmentPrefs.getInt("gear_from", 0).coerceIn(0, 9)) }
