@@ -70,21 +70,7 @@ jobs:
           heap-size: 512
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot -no-snapshot-save
-          script: |
-            cd android
-            adb wait-for-device
-            for attempt in 1 2 3; do
-              echo "Tests instrumentés Android — tentative $attempt/3"
-              if gradle connectedDebugAndroidTest --no-daemon --stacktrace --max-workers=2; then
-                exit 0
-              fi
-              if [ "$attempt" -lt 3 ]; then
-                echo "::warning::Échec Gradle ; nouvelle tentative après 25 secondes (les dépôts Maven peuvent limiter temporairement les téléchargements)."
-                sleep 25
-              fi
-            done
-            echo "::error::Les tests instrumentés ont échoué après 3 tentatives."
-            exit 1
+          script: cd android && adb wait-for-device && gradle connectedDebugAndroidTest --no-daemon --stacktrace --max-workers=2
 
   build-apk:
     runs-on: ubuntu-24.04
