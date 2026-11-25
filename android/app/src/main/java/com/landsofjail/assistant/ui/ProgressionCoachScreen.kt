@@ -218,11 +218,42 @@ fun ProgressionCoachScreen(
                         items(progressionDomains) { domain ->
                             FilterChip(
                                 selected = selectedDomain == domain,
-                                onClick = { selectedDomain = domain },
+                                onClick = {
+                                    if (selectedDomain != domain) {
+                                        selectedDomain = domain
+                                        targetId = ""
+                                        currentLevel = ""
+                                        targetLevel = ""
+                                        statusMessage = ""
+                                    }
+                                },
                                 label = { Text(progressionLabel(domain, language)) }
                             )
                         }
                     }
+                    Text(
+                        when (selectedDomain) {
+                            ProgressionDomain.BUILDING -> text(
+                                "Les coûts sourcés sont disponibles uniquement pour les bâtiments présents dans le catalogue. Les niveaux absents restent inconnus.",
+                                "Sourced costs are available only for buildings present in the catalog. Missing levels remain unknown.",
+                                "Belegte Kosten gibt es nur für Gebäude im Katalog. Fehlende Stufen bleiben unbekannt.",
+                                "Kaynaklı maliyetler yalnızca katalogdaki binalar için vardır. Eksik seviyeler bilinmiyor.",
+                                "Стоимость из источников доступна только для зданий в каталоге. Остальные уровни неизвестны.",
+                                "仅目录中列出的建筑提供有来源的费用，缺失等级保持未知。",
+                                "I costi documentati sono disponibili solo per gli edifici nel catalogo. I livelli mancanti restano sconosciuti."
+                            )
+                            else -> text(
+                                "Les objectifs de cette catégorie peuvent être enregistrés, mais son catalogue détaillé de coûts et prérequis reste à compléter.",
+                                "Goals in this category can be saved, but its detailed cost and prerequisite catalog is still pending.",
+                                "Ziele dieser Kategorie können gespeichert werden; der detaillierte Kosten- und Voraussetzungenkatalog fehlt noch.",
+                                "Bu kategorideki hedefler kaydedilebilir; ayrıntılı maliyet ve ön koşul kataloğu henüz tamamlanmadı.",
+                                "Цели этой категории можно сохранить, но подробный каталог затрат и требований еще не готов.",
+                                "可以保存此类别的目标，但详细费用和前置条件目录仍待补充。",
+                                "Gli obiettivi di questa categoria possono essere salvati, ma il catalogo dettagliato di costi e prerequisiti è ancora da completare."
+                            )
+                        },
+                        style = MaterialTheme.typography.bodySmall
+                    )
                     OutlinedTextField(
                         value = targetId,
                         onValueChange = { targetId = it },
