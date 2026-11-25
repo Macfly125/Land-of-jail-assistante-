@@ -121,7 +121,11 @@ object LandsOfJailOcrParser {
             }
             .maxByOrNull { it.size }
             .orEmpty()
-        return if (bestRow.size >= 4) bestRow.distinctBy { it.left to it.text }.sortedBy { it.left } else emptyList()
+        val alignedRow = bestRow.distinctBy { it.left to it.text }.sortedBy { it.left }
+        // La barre attendue contient six emplacements. S'il en manque ou s'il y en a
+        // davantage, l'OCR a probablement mélangé un compteur voisin : ne pas décaler
+        // les associations ni enregistrer de faux stocks.
+        return alignedRow.takeIf { it.size == 6 }.orEmpty()
     }
 
     /**
