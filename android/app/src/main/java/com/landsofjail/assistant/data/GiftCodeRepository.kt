@@ -66,9 +66,9 @@ object GiftCodeRepository {
                     "loj5791" -> "1 000 diamants, 3 équipements de précision, 10 coffres de ressources au choix II et 5 accélérateurs universels (1 h)."
                     else -> "1 000 diamants, 5 cartes de ravitaillement avancées, 10 coffres de ressources au choix II et 3 accélérateurs universels (1 h)."
                 }
-                add(GiftCodeEntry(it, "OFFICIAL_LISTED", "LOJ XLab · Discord officiel #gift-codes",
+                add(GiftCodeEntry(it, "COMMUNITY_LISTED", "LOJ XLab · annonce communautaire du canal #gift-codes",
                     "21/09/2026", "01/11/2026", reward = rewards,
-                    note = "Publié le 21/09/2026 selon LOJ XLab ; testé en jeu le 13/10/2026 et page revérifiée le 01/11/2026. Aucune date d’expiration annoncée. Récompenses issues des listes communautaires."))
+                    note = "LOJ XLab rapporte une publication du 21/09/2026 et des tests communautaires le 13/10/2026 ; sa dernière vérification publiée date du 01/11/2026. Ce code n’est pas vérifié en direct par l’application : confirmer le résultat dans le jeu. Aucune expiration annoncée par cette source."))
             }
             expiredCodes.forEach { (code, expiry) ->
                 add(GiftCodeEntry(code, "EXPIRED", "LOJ XLab · historique", expiresAt = expiry,
@@ -157,7 +157,7 @@ object GiftCodeRepository {
         val merged = found.values.sortedWith(
             compareBy<GiftCodeEntry> {
                 when (it.status) {
-                    "OFFICIAL_LISTED" -> 0
+                    "COMMUNITY_LISTED" -> 0
                     "UNVERIFIED", "NEEDS_REVIEW" -> 1
                     "EXPIRED" -> 2
                     else -> 3
