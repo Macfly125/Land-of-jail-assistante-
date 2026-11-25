@@ -65,8 +65,6 @@ class ProgressionPlayerProfileTest {
         assertNotNull(updated.primaryObjective)
         assertEquals("warden_office", updated.primaryObjective?.targetId)
     }
-}
-
     @Test
     fun stockMergeNeverLetsAnUncertainCaptureReplaceAConfirmedValue() {
         val existing = listOf(PlayerResourceStock("wood", 900L, true, 100L))
