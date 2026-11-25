@@ -49,7 +49,6 @@ object GiftCodeRepository {
         "2026HERDAY" to "11/03/2026",
         "LOJLOVE2026" to "18/02/2026",
         "XMASG2025" to "28/12/2025",
-        "N4HDYuJxkQKur5" to "30/11/2025"
     )
     private val unverifiedCodes = listOf("RuStore777", "HeartofWar777", "R8K3L7T5", "C5F2R9A1")
 
@@ -74,6 +73,11 @@ object GiftCodeRepository {
                 add(GiftCodeEntry(code, "EXPIRED", "LOJ XLab · historique", expiresAt = expiry,
                     note = "Code classé expiré par la source communautaire."))
             }
+            // Pocket Gamer affiche encore N4HDYuJxkQKur5 avec une échéance
+            // au 30/11/2026 ; l'ancien catalogue contenait par erreur 2025.
+            add(GiftCodeEntry("N4HDYuJxkQKur5", "NEEDS_REVIEW", "Pocket Gamer · 22/11/2026",
+                firstSeen = "22/11/2026", expiresAt = "30/11/2026",
+                note = "Échéance publiée au 30/11/2026 par Pocket Gamer ; disponibilité non testée par l'application."))
             unverifiedCodes.forEach {
                 add(GiftCodeEntry(it, "UNVERIFIED", "LOJ XLab · autres sites",
                     note = "Non publié dans la liste officielle ; disponibilité non confirmée."))
