@@ -248,25 +248,6 @@ object LandsOfJailOcrParser {
                 }
             }
 
-            // Les portraits confirmés complètent l'OCR uniquement pour l'identité.
-            // Aucun niveau, bonus ou compétence n'est déduit de l'image.
-            for (portrait in visualRobotMatches.filter { it.isConfirmed }) {
-                val robotId = portrait.robotId?.trim().orEmpty()
-                val displayName = portrait.displayName?.trim().orEmpty()
-                if (robotId.isBlank() || displayName.isBlank()) continue
-                val key = normalizeHeroText(robotId)
-                if (!seenRobotKeys.add(key)) continue
-                robots.add(
-                    RobotRecord(
-                        id = robotId,
-                        nom = displayName,
-                        incertain = true,
-                        raisonIncertitude = "Identité proposée par comparaison du portrait ; détails à vérifier en jeu",
-                        source = "portrait_local"
-                    )
-                )
-            }
-
             // Équipements de héros : ne remplir que les valeurs réellement visibles dans l'OCR.
             val equipmentPartLabels = mapOf(
                 "Arme" to listOf("weapon", "arme", "waffe", "silah", "оружие", "武器", "arma"),
@@ -398,6 +379,25 @@ object LandsOfJailOcrParser {
                     )
                 }
             }
+        }
+
+        // Les portraits confirmés sont fusionnés après l'OCR, même si aucune ligne de texte n'a été lue.
+        // Aucun niveau, bonus ou compétence n'est déduit de l'image.
+        for (portrait in visualRobotMatches.filter { it.isConfirmed }) {
+            val robotId = portrait.robotId?.trim().orEmpty()
+            val displayName = portrait.displayName?.trim().orEmpty()
+            if (robotId.isBlank() || displayName.isBlank()) continue
+            val key = normalizeHeroText(robotId)
+            if (!seenRobotKeys.add(key)) continue
+            robots.add(
+                RobotRecord(
+                    id = robotId,
+                    nom = displayName,
+                    incertain = true,
+                    raisonIncertitude = "Identité proposée par comparaison du portrait ; détails à vérifier en jeu",
+                    source = "portrait_local"
+                )
+            )
         }
 
         // Profil joueur : la puissance est affichée avec une icône de poing,
