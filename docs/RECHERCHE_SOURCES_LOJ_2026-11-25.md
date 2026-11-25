@@ -8,7 +8,7 @@ Ce document sert de registre de provenance pour les calculateurs, le coach de pr
 
 | Source | Ce qu'elle apporte | Limite de confiance |
 |---|---|---|
-| [GuideLOJ — codes](https://guideloj.com/fr/codes) | Liste des codes signalés actifs et récompenses publiées | Le site indique sur sa page d'accueil une dernière vérification au 26/09/2026 ; ne pas interpréter son affichage « actif » comme un test à la date d'ouverture de l'application |
+| [GuideLOJ — codes](https://guideloj.com/fr/codes) | Page consultée le 25/11/2026 : 8 codes dans la section « Active codes », avec récompenses publiées | Site indépendant non officiel ; le libellé « actif » est celui de GuideLOJ et ne constitue pas un test de redemption réalisé par l'application. GuideLOJ avertit lui-même que des codes peuvent expirer, être limités ou dépendre de la région |
 | [LOJ XLab — promo codes](https://lojxlab.com/promo-codes/) | Rapporte 8 codes provenant du canal Discord officiel #gift-codes, testés en jeu le 13/10/2026, avec une vérification annoncée au 01/11/2026 | Agrégateur communautaire ; la date du test n'est pas celle de l'ouverture de l'application |
 | [Dookee — codes](https://loj.dookee.ru/en/codes/) | Compare les listes et distingue codes signalés, contestés et expirés | Comparaison communautaire datée du 01/11/2026, pas un test en direct |
 | [Pocket Gamer — codes](https://www.pocketgamer.com/lands-of-jail/codes/) | Détecte des codes récents et des dates d'expiration publiées | Source éditoriale tierce ; les codes récents restent à confirmer dans le jeu |
@@ -26,14 +26,14 @@ Règles d'affichage :
 
 ## Bâtiments, recherches et prérequis
 
-- [LOJ Wiki — laboratoire](https://lojwiki.com/lab/) : le laboratoire principal requiert le Bureau du directeur niveau 9, plafond niveau 30 ; trois branches Logistique, Économie et Militaire. Les coûts/temps sont des valeurs de base avant bonus de vitesse. La recherche Forticlad est un bâtiment distinct.
+- [LOJ Wiki — laboratoire](https://lojwiki.com/lab/) : le laboratoire principal requiert le Bureau du directeur niveau 9, plafond niveau 30 ; trois branches Logistique, Économie et Militaire. La page consultée indique 176 technologies et précise que les coûts/temps sont des valeurs de base avant bonus de vitesse. La recherche Forticlad est un bâtiment distinct.
 - [LOJ Wiki — bâtiment laboratoire](https://lojwiki.com/buildings/lab/) : détaille les niveaux, coûts, prérequis et temps. Exemple : Laboratoire niveau 2 = 300 bois, 9 secondes, Bureau niveau 9 ; niveau 6 = 35K bois, 7K acier, 1 750 essence et 9 minutes. Ces exemples ne remplacent pas une table complète versionnée.
 - [LOJ Wiki — Forticlad](https://lojwiki.com/calculator/forticlad/) : distingue les huit bâtiments, niveaux et paliers Forticlad ; chaque niveau comporte cinq étapes. Les niveaux supérieurs dépendent de la saison du serveur.
 - [GuideLOJ — calculateur Forticlad](https://guideloj.com/en/calculators/forticlad) : récapitulatif par bâtiment et niveau ; certaines parties sont réservées à l'offre Pro. Ne pas dépendre d'un accès payant.
 
 ## Équipements de héros
 
-- [LOJ Wiki — calculateur équipement](https://lojwiki.com/calculator/gear/) : sépare l'EXP d'équipement, les aimants, les bobines potentielles et les engrenages de précision. Le niveau 40 débloque la réforme ; la promotion de qualité et la réforme sont des pistes de coût distinctes.
+- [LOJ Wiki — calculateur équipement](https://lojwiki.com/calculator/gear/) : sépare l'EXP d'équipement, les aimants, les bobines potentielles et les engrenages de précision. Le niveau 40 débloque la réforme ; la promotion de qualité et la réforme sont des pistes de coût distinctes. Les promotions au-delà de Légendaire exigent aussi des niveaux de réforme minimums : Légendaire 10, Légendaire T1 11, Légendaire T2 12, Exotique 13, Exotique T1 14, Exotique T2 15.
 - [LOJ Wiki — équipement](https://lojwiki.com/gear/) : Arsenal requis et Bureau du directeur niveau 15.
 - [Dookee — matériaux équipement](https://loj.dookee.ru/en/knowledge/materials/) : intervalle 100 → 120 pour une pièce = 117 000 pièces/bolts, 600 aimants et 20 bobines potentielles. Ne pas interpoler un coût partiel si la table ne le donne pas ; réforme et équipement exclusif restent séparés.
 - Les coûts doivent être liés à la qualité, au niveau, au niveau de réforme et à la saison si applicable. Ne jamais confondre équipement standard, équipement exclusif et équipement d'armure.
