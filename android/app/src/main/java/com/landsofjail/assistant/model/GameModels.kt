@@ -603,6 +603,25 @@ object HeroCatalog {
  * Pure selection rules for the Forticlad calculator. Keeping the bounds here
  * makes the level picker deterministic and directly testable.
  */
+/**
+ * Matches OCR resource names across supported game/app languages.
+ * Labels passed here are stable resource keys, not translated display strings.
+ */
+object ResourceNameMatcher {
+    private val aliases = mapOf(
+        "food" to listOf("nourriture", "food", "vivres", "cibo"),
+        "wood" to listOf("bois", "wood", "lumber", "legno"),
+        "steel" to listOf("acier", "steel", "fer", "iron", "acciaio"),
+        "gasoline" to listOf("essence", "gasoline", "fuel", "pétrole", "petrole", "benzina", "carburante")
+    )
+
+    fun matchesWardenCost(resourceName: String, resourceKey: String): Boolean {
+        val normalizedName = resourceName.lowercase().trim()
+        val candidates = aliases[resourceKey.lowercase()] ?: return false
+        return normalizedName.isNotBlank() && candidates.any(normalizedName::contains)
+    }
+}
+
 object ForticladSelection {
     fun currentLevels(): IntRange = 1..9
     fun completedSteps(): IntRange = 0..4
