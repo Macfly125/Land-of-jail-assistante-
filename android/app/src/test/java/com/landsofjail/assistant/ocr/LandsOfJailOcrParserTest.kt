@@ -243,6 +243,21 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun classifiesAllDocumentedRobotNamesAsRobotScreens() {
+        listOf(
+            "Light Cone", "Hercules", "Pluto", "Ranger", "Infercore", "Atlax",
+            "Phantom Cat", "Halo", "Yokozuna", "Musashimaru", "Bastion",
+            "Dauntless", "Valiant", "Scorpio"
+        ).forEach { name ->
+            assertEquals(
+                "Mauvaise catégorie pour $name",
+                "robots",
+                ScreenRecognitionEngine.analyze(name).category
+            )
+        }
+    }
+
+    @Test
     fun identifiesRobotScreensWithoutInventingRobotStats() {
         val result = LandsOfJailOcrParser.parseLocalOcrText("Robot\nUpgrade level")
 
