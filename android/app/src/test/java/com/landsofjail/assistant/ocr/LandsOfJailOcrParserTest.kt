@@ -224,6 +224,22 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun recognizesAllFourteenDocumentedRobotNamesWithoutInventingLevels() {
+        val names = listOf(
+            "Light Cone", "Hercules", "Pluto", "Ranger", "Infercore", "Atlax",
+            "Phantom Cat", "Halo", "Yokozuna", "Musashimaru", "Bastion",
+            "Dauntless", "Valiant", "Scorpio"
+        )
+        names.forEach { name ->
+            val result = LandsOfJailOcrParser.parseLocalOcrText(name)
+            assertTrue("Robot non reconnu : $name", result.robots.any { it.nom.equals(name, true) })
+            val robot = result.robots.first { it.nom.equals(name, true) }
+            assertTrue("Niveau inventé pour $name", robot.niveau.isBlank())
+            assertTrue("La fiche sans niveau doit rester incertaine : $name", robot.incertain)
+        }
+    }
+
+    @Test
     fun identifiesRobotScreensWithoutInventingRobotStats() {
         val result = LandsOfJailOcrParser.parseLocalOcrText("Robot\nUpgrade level")
 
