@@ -27,7 +27,28 @@ class RobotPortraitMatcherTest {
     }
 
     @Test
-    fun refusesToGuessWhenTwoPortraitsAreEquallySimilar() {
+    fun groupsAlternatePortraitTemplatesByRobotIdentity() {
+        val target = intArrayOf(0xFFFF0000.toInt(), 0xFF00FF00.toInt(), 0xFF0000FF.toInt(), 0xFFFFFFFF.toInt())
+        val alternate = intArrayOf(0xFFEE0000.toInt(), 0xFF00EE00.toInt(), 0xFF0000EE.toInt(), 0xFFEEEEEE.toInt())
+        val unrelated = intArrayOf(0xFF101010.toInt(), 0xFF202020.toInt(), 0xFF303030.toInt(), 0xFF404040.toInt())
+
+        val result = RobotPortraitMatcher.match(
+            2, 2, target,
+            listOf(
+                template("robot-a", "Robot A", target),
+                template("robot-a", "Robot A", alternate),
+                template("robot-b", "Robot B", unrelated)
+            )
+        )
+
+        assertTrue(result.isConfirmed)
+        assertEquals("robot-a", result.robotId)
+        assertEquals("Robot A", result.displayName)
+        assertEquals(1f, result.similarity, 0.0001f)
+    }
+
+    @Test
+    fun refusesToGuessWhenTwoDifferentRobotsHaveEquallySimilarPortraits() {
         val target = intArrayOf(0xFF112233.toInt(), 0xFF223344.toInt(), 0xFF334455.toInt(), 0xFF445566.toInt())
 
         val result = RobotPortraitMatcher.match(
