@@ -777,7 +777,7 @@ Potential Coil x 8"""
     @Test
     fun readsWardenOfficeLevelWhenTheBadgeNumberPrecedesTheBuildingName() {
         val result = LandsOfJailOcrParser.parseLocalOcrText(
-            "509 256 511\\n6 Bureau du directeur\\nCapacité des prisonniers 40/40\\nNiveau de danger 9"
+            "509 256 511\n6 Bureau du directeur\nCapacité des prisonniers 40/40\nNiveau de danger 9"
         )
         assertEquals("Niv. 6", result.power?.niveauPrisonOuQG)
     }
@@ -793,7 +793,7 @@ Potential Coil x 8"""
     @Test
     fun doesNotUsePrisonerDangerLevelAsWardenOfficeLevel() {
         val result = LandsOfJailOcrParser.parseLocalOcrText(
-            "509 256 511\\nBureau du directeur\\nCapacité des prisonniers 40/40\\nNiveau de danger 9"
+            "509 256 511\nBureau du directeur\nCapacité des prisonniers 40/40\nNiveau de danger 9"
         )
         assertNull(result.power?.niveauPrisonOuQG)
     }
