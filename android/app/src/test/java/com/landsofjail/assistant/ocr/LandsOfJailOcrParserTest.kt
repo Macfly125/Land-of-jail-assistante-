@@ -637,7 +637,7 @@ Potential Coil x 8"""
         assertEquals("Équipement de héros", result.equipment.single().piece)
         assertTrue(result.equipment.single().incertain)
         assertTrue(result.equipment.single().texteObserve.contains("Magnet x 120"))
-        assertTrue(result.uncertainItems.any { it.champ == "Équipement" })
+        assertTrue(result.equipment.single().raisonIncertitude?.contains("pièce ou niveau") == true)
     }
 
     @Test
