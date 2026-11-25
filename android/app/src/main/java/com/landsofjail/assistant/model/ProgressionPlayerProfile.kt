@@ -73,13 +73,19 @@ fun canonicalProgressionResourceId(rawId: String): String {
         .replace("é", "e").replace("è", "e").replace("ê", "e")
         .replace("à", "a").replace("â", "a").replace("î", "i")
         .replace("ô", "o").replace("û", "u").replace("ç", "c")
+        .replace(Regex("[^a-z0-9]+"), " ")
+        .trim()
+        .replace(Regex("\\s+"), " ")
     return when (key) {
-        "food", "nourriture", "alimento", "essen" -> "food"
-        "wood", "bois", "holz", "madera", "legno" -> "wood"
-        "steel", "acier", "stahl", "acero", "acciaio" -> "steel"
-        "gasoline", "gas", "essence", "benzine", "benzin", "gasolina", "benzina" -> "gasoline"
-        "gold", "or", "cash", "argent", "oro" -> "gold"
-        "diamond", "diamonds", "diamant", "diamants", "gem", "gems", "gemme" -> "diamonds"
+        "food", "nourriture", "alimento", "essen", "cibo", "nahrung", "yiyecek",
+        "nourriture food" -> "food"
+        "wood", "bois", "holz", "madera", "legno", "odun", "bois wood" -> "wood"
+        "steel", "acier", "stahl", "acero", "acciaio", "celik", "acier steel" -> "steel"
+        "gasoline", "gas", "essence", "benzine", "benzin", "gasolina", "benzina",
+        "essence gasoline" -> "gasoline"
+        "gold", "or", "cash", "argent", "oro", "altin", "gold cash or", "cash or" -> "gold"
+        "diamond", "diamonds", "diamant", "diamants", "gem", "gems", "gemme",
+        "diamants gems" -> "diamonds"
         else -> key
     }
 }
