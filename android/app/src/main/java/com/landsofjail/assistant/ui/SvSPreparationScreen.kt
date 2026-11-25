@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -189,7 +190,7 @@ fun SvSPreparationScreen(language:AppLanguage){
  val scoreItem=availableScoreItems.getOrElse(scoreIndex) { availableScoreItems.first() }
  val calculatedPoints=(quantity.toLongOrNull() ?: 0L).coerceAtLeast(0L)*scoreItem.points
  val day=svsDays.first{it.number==selectedDay}
- LazyColumn(verticalArrangement=Arrangement.spacedBy(10.dp)){
+ LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = 640.dp), verticalArrangement=Arrangement.spacedBy(10.dp)){
   item { Card(Modifier.fillMaxWidth()){Column(Modifier.padding(14.dp),verticalArrangement=Arrangement.spacedBy(6.dp)){
    Text("SVS · "+when(language){AppLanguage.FR->"Préparation en 5 jours";AppLanguage.EN->"5-day preparation";AppLanguage.DE->"5-Tage-Vorbereitung";AppLanguage.TR->"5 günlük hazırlık";AppLanguage.RU->"Подготовка за 5 дней";AppLanguage.ZH->"五天备战";AppLanguage.IT->"Preparazione in 5 giorni"},style=MaterialTheme.typography.titleMedium)
     Text(when(language){
