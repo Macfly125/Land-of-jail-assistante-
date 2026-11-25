@@ -152,7 +152,17 @@ object LandsOfJailOcrParser {
 
         val powerRegex = Regex("""(?:puissance|power|comb\.?\s*power|cp)\s*[:\-]?\s*([0-9][0-9\s.,kmbKMB]+)""", RegexOption.IGNORE_CASE)
         val levelRegex = Regex("""(?:niv\.?|lv\.?|level)\s*([0-9]+)""", RegexOption.IGNORE_CASE)
-        val wardenRegex = Regex("""(?:(?:warden\s*office|bureau\s*du\s*directeur|prison|qg|hq)\s*(?:niv\.?|lv\.?|level)?\s*([0-9]{1,2})|\b([0-9]{1,2})\s+(?:warden\s*office|bureau\s*du\s*directeur|prison|qg|hq)\b)""", RegexOption.IGNORE_CASE)
+        val wardenRegex = Regex("""(?:(?:warden\s*office|bureau\s*du\s*directeur|prison|qg|hq)\s*(?:(?:niv(?:eau)?|lv|level)\.?\s*)?([0-9]{1,2})|\b([0-9]{1,2})\s+(?:warden\s*office|bureau\s*du\s*directeur|prison|qg|hq)\b)""", RegexOption.IGNORE_CASE)
+        // Certains écrans affichent le nom du bâtiment et son niveau sur deux lignes.
+        // N'accepter que le niveau explicitement étiqueté sur la ligne immédiatement suivante.
+        val explicitBuildingLevelRegex = Regex(
+            """(?:niv(?:eau)?|lv|level)\.?\s*[:：#-]?\s*([0-9]{1,2})""",
+            RegexOption.IGNORE_CASE
+        )
+        val wardenBuildingLabelRegex = Regex(
+            """(?:warden\s*office|bureau\s*du\s*directeur|\bprison\b|\bqg\b|\bhq\b)""",
+            RegexOption.IGNORE_CASE
+        )
 
         val resourcePatterns = listOf(
             "Nourriture (Food)" to Regex("""(?:nourriture|food|vivres|nahrung|yiyecek|еда|食物|cibo)\s*[:：\-]?\s*([0-9]+(?:[.,][0-9]+)?\s*[kmbKMB]?)?""", RegexOption.IGNORE_CASE),
@@ -167,6 +177,12 @@ object LandsOfJailOcrParser {
             wardenRegex.find(line)?.let { match ->
                 if (wardenLevel == null) {
                     wardenLevel = "Niv. ${match.groupValues[1].ifBlank { match.groupValues[2] }}"
+                }
+            }
+            if (wardenLevel == null && wardenBuildingLabelRegex.containsMatchIn(line)) {
+                val followingLine = lines.getOrNull(index + 1).orEmpty()
+                explicitBuildingLevelRegex.find(followingLine)?.groupValues?.get(1)?.let { level ->
+                    wardenLevel = "Niv. $level"
                 }
             }
 
