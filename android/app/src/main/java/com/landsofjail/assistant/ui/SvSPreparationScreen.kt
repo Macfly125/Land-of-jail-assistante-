@@ -20,6 +20,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.landsofjail.assistant.model.AppLanguage
+import com.landsofjail.assistant.model.SvSScoreCalculator
 
 private data class SvSAction(val fr:String,val en:String,val de:String,val tr:String,val ru:String,val zh:String,val it:String,val points:String="")
 private data class SvSDay(val number:Int,val title:SvSAction,val actions:List<SvSAction>)
@@ -185,10 +186,13 @@ fun SvSPreparationScreen(language:AppLanguage){
  var selectedDay by remember { mutableIntStateOf(1) }
  var scoreIndex by remember { mutableIntStateOf(0) }
  var quantity by remember { mutableStateOf("0") }
+ var targetPoints by remember { mutableStateOf("100000") }
  var scoreMenu by remember { mutableStateOf(false) }
  val availableScoreItems=svsScoreItems.filter { selectedDay in it.days }
  val scoreItem=availableScoreItems.getOrElse(scoreIndex) { availableScoreItems.first() }
- val calculatedPoints=(quantity.toLongOrNull() ?: 0L).coerceAtLeast(0L)*scoreItem.points
+ val calculatedPoints=SvSScoreCalculator.totalPoints(quantity.toLongOrNull() ?: 0L,scoreItem.points)
+ val targetUnits=SvSScoreCalculator.unitsNeeded(targetPoints.toLongOrNull() ?: 0L,scoreItem.points)
+ val additionalUnits=(targetUnits-(quantity.toLongOrNull() ?: 0L).coerceAtLeast(0L)).coerceAtLeast(0L)
  val day=svsDays.first{it.number==selectedDay}
  LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = 640.dp), verticalArrangement=Arrangement.spacedBy(10.dp)){
   item { Card(Modifier.fillMaxWidth()){Column(Modifier.padding(14.dp),verticalArrangement=Arrangement.spacedBy(6.dp)){
@@ -225,6 +229,9 @@ fun SvSPreparationScreen(language:AppLanguage){
    }
    OutlinedTextField(value=quantity,onValueChange={quantity=it.filter{ch->ch.isDigit()}.take(12)},label={Text(when(language){AppLanguage.FR->"Quantité possédée / utilisée";AppLanguage.EN->"Owned / used quantity";AppLanguage.DE->"Besitzte / verwendete Menge";AppLanguage.TR->"Sahip olunan / kullanılan miktar";AppLanguage.RU->"Количество";AppLanguage.ZH->"拥有/使用数量";AppLanguage.IT->"Quantità posseduta / usata"})},singleLine=true)
    Text(when(language){AppLanguage.FR->"Total estimé :";AppLanguage.EN->"Estimated total:";AppLanguage.DE->"Geschätzte Gesamtpunktzahl:";AppLanguage.TR->"Tahmini toplam:";AppLanguage.RU->"Примерное количество очков:";AppLanguage.ZH->"预计总积分：";AppLanguage.IT->"Totale stimato:"}+" "+ "%,d".format(java.util.Locale.US,calculatedPoints)+" pts",style=MaterialTheme.typography.titleMedium,color=MaterialTheme.colorScheme.primary)
+   OutlinedTextField(value=targetPoints,onValueChange={targetPoints=it.filter{ch->ch.isDigit()}.take(15)},label={Text(when(language){AppLanguage.FR->"Objectif de points";AppLanguage.EN->"Target points";AppLanguage.DE->"Punkteziel";AppLanguage.TR->"Hedef puan";AppLanguage.RU->"Целевое количество очков";AppLanguage.ZH->"目标积分";AppLanguage.IT->"Obiettivo punti"})},singleLine=true)
+   Text(when(language){AppLanguage.FR->"Quantité totale nécessaire :";AppLanguage.EN->"Total quantity required:";AppLanguage.DE->"Benötigte Gesamtmenge:";AppLanguage.TR->"Gerekli toplam miktar:";AppLanguage.RU->"Всего требуется единиц:";AppLanguage.ZH->"所需总数量：";AppLanguage.IT->"Quantità totale necessaria:"}+" "+ "%,d".format(java.util.Locale.US,targetUnits),style=MaterialTheme.typography.bodyMedium)
+   Text(when(language){AppLanguage.FR->"Quantité supplémentaire :";AppLanguage.EN->"Additional quantity:";AppLanguage.DE->"Zusätzliche Menge:";AppLanguage.TR->"Ek miktar:";AppLanguage.RU->"Дополнительно требуется:";AppLanguage.ZH->"还需数量：";AppLanguage.IT->"Quantità aggiuntiva:"}+" "+ "%,d".format(java.util.Locale.US,additionalUnits),style=MaterialTheme.typography.titleSmall,color=MaterialTheme.colorScheme.primary)
    Text(when(language){AppLanguage.FR->"Estimation indicative : vérifie les valeurs et les règles du SVS en cours avant de dépenser.";AppLanguage.EN->"Reference estimate: verify the current SvS values and rules before spending.";AppLanguage.DE->"Richtwert: Prüfe vor dem Ausgeben die aktuellen SvS-Werte.";AppLanguage.TR->"Tahmini değerdir; harcamadan önce etkinlik kurallarını kontrol et.";AppLanguage.RU->"Оценка; перед расходованием проверьте правила текущего события.";AppLanguage.ZH->"仅供估算，使用前请核对当前活动规则。";AppLanguage.IT->"Stima indicativa: verifica le regole dell'evento prima di spendere."},style=MaterialTheme.typography.bodySmall)
   }}}
   item { Row(horizontalArrangement=Arrangement.spacedBy(4.dp)){(1..5).forEach{n->FilterChip(selected=selectedDay==n,onClick={selectedDay=n;scoreIndex=0;quantity="0"},label={Text("J$n")})}}}
