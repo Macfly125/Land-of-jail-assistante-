@@ -279,12 +279,12 @@ class LandsOfJailOcrParserTest {
     @Test
     fun recognizesWardenAndDirectorsOfficeLevelsWithApostrophesAndLocalizedLevelLabels() {
         val samples = listOf(
-            "Warden's Office\\nLevel 18\\nPower: 12,345" to "Niv. 18",
-            "Warden’s Office Lv. 21\\nPower: 12,345" to "Niv. 21",
-            "Director's Office\\nLvl 16\\nPower: 12,345" to "Niv. 16",
-            "Bureau du directeur\\nNiv. 14\\nPuissance: 12,345" to "Niv. 14",
-            "QG\\nNiveau 9\\nPuissance: 8,500" to "Niv. 9",
-            "HQ 12\\nPower: 15,000" to "Niv. 12"
+            "Warden's Office\nLevel 18\nPower: 12,345" to "Niv. 18",
+            "Warden’s Office Lv. 21\nPower: 12,345" to "Niv. 21",
+            "Director's Office\nLvl 16\nPower: 12,345" to "Niv. 16",
+            "Bureau du directeur\nNiv. 14\nPuissance: 12,345" to "Niv. 14",
+            "QG\nNiveau 9\nPuissance: 8,500" to "Niv. 9",
+            "HQ 12\nPower: 15,000" to "Niv. 12"
         )
         samples.forEach { (sample, expectedLevel) ->
             val result = LandsOfJailOcrParser.parseLocalOcrText(sample)
@@ -439,7 +439,7 @@ class LandsOfJailOcrParserTest {
     @Test
     fun doesNotMistakeNamedTopBarResourceAmountsForPlayerPower() {
         val result = LandsOfJailOcrParser.parseLocalOcrText(
-            "Food: 12.4M\\nWood: 8.2M\\nSteel: 3.1M"
+            "Food: 12.4M\nWood: 8.2M\nSteel: 3.1M"
         )
 
         assertEquals(3, result.resources.size)
