@@ -181,20 +181,37 @@ class ProgressionCatalogTest {
 
 
     @Test
-    fun showerRoomCatalogContainsExactCashCostsThroughLevelTen() {
+    fun showerRoomCatalogStopsBeforeRoundedCashValues() {
         val rows = ProgressionCatalog.showerRoomBuilding
-        assertEquals((2..10).toList(), rows.map { it.step.toLevel })
-        assertEquals(listOf(174L, 208L, 250L, 1_125L, 2_813L, 5_626L, 18_600L, 22_300L, 26_700L),
+        assertEquals((2..7).toList(), rows.map { it.step.toLevel })
+        assertEquals(listOf(174L, 208L, 250L, 1_125L, 2_813L, 5_626L),
             rows.map { it.step.costs.single().quantity })
-        assertEquals(listOf(11L, 18L, 31L, 123L, 233L, 450L, 640L, 883L, 1_104L),
+        assertEquals(listOf(11L, 18L, 31L, 123L, 233L, 450L),
             rows.map { it.step.durationSeconds })
-        assertEquals((2..10).toList(), rows.map {
+        assertEquals((2..7).toList(), rows.map {
             it.prerequisiteNotes.single().substringAfter("Lv.").toInt()
         })
         assertTrue(rows.all { it.step.costs.single().resourceId == "gold" })
         assertTrue(rows.all { it.sourceUrl == ProgressionCatalog.SHOWER_ROOM_SOURCE })
         assertTrue(rows.all { it.checkedOn == ProgressionCatalog.SOURCE_CHECKED_ON })
-        assertTrue(rows.none { it.step.toLevel > 10 })
+        assertTrue(rows.none { it.step.toLevel > 7 })
+    }
+
+    @Test
+    fun cafeteriaCatalogContainsExactCashCostsThroughLevelSeven() {
+        val rows = ProgressionCatalog.cafeteriaBuilding
+        assertEquals((2..7).toList(), rows.map { it.step.toLevel })
+        assertEquals(listOf(185L, 222L, 267L, 1_200L, 3_000L, 6_001L),
+            rows.map { it.step.costs.single().quantity })
+        assertEquals(listOf(12L, 19L, 33L, 131L, 249L, 480L),
+            rows.map { it.step.durationSeconds })
+        assertEquals((2..7).toList(), rows.map {
+            it.prerequisiteNotes.single().substringAfter("Lv.").toInt()
+        })
+        assertTrue(rows.all { it.step.costs.single().resourceId == "gold" })
+        assertTrue(rows.all { it.sourceUrl == ProgressionCatalog.CAFETERIA_SOURCE })
+        assertTrue(rows.all { it.checkedOn == ProgressionCatalog.SOURCE_CHECKED_ON })
+        assertTrue(rows.none { it.step.toLevel > 7 })
     }
 
 }
