@@ -253,15 +253,18 @@ object LandsOfJailOcrParser {
                 "Arme" to listOf("weapon", "arme", "waffe", "silah", "оружие", "武器", "arma"),
                 "Armure" to listOf("armor", "armour", "armure", "rüstung", "zırh", "броня", "护甲", "armatura"),
                 "Casque" to listOf("helmet", "casque", "helm", "miğfer", "шлем", "头盔", "elmo"),
-                "Gants" to listOf("gloves", "gants", "handschuhe", "eldiven", "перчатки", "手套", "guanti"),
-                "Bottes" to listOf("boots", "bottes", "stiefel", "bot", "сапоги", "靴子", "stivali"),
+                "Gants" to listOf("glove", "gloves", "gant", "gants", "handschuh", "handschuhe", "eldiven", "перчатка", "перчатки", "手套", "guanto", "guanti"),
+                "Bottes" to listOf("boot", "boots", "botte", "bottes", "stiefel", "bot", "сапог", "сапоги", "靴", "stivale", "stivali"),
                 "Accessoire" to listOf("accessory", "accessoire", "zubehör", "aksesuar", "аксессуар", "配件", "accessorio")
             )
-            // Preserve Cyrillic and Chinese characters: normalizeHeroText is Latin-only and strips them.
-            val normalizedEquipmentLine = line.lowercase().trim().replace(Regex("\\s+"), " ")
+            // Normalisation Unicode : conserve cyrillique/chinois et ignore les accents OCR.
+            val normalizedEquipmentLine = normalizeEquipmentText(line)
             for ((partName, aliases) in equipmentPartLabels) {
-                if (aliases.none { alias -> normalizedEquipmentLine == alias.lowercase() ||
-                        normalizedEquipmentLine.startsWith(alias.lowercase() + " ") }) continue
+                if (aliases.none { alias ->
+                        val normalizedAlias = normalizeEquipmentText(alias)
+                        normalizedEquipmentLine == normalizedAlias ||
+                            normalizedEquipmentLine.startsWith(normalizedAlias + " ")
+                    }) continue
                 val context = lines.subList(index, minOf(lines.size, index + 4)).joinToString(" ")
                 val level = Regex("""(?:lv\.?|level|niv\.?|niveau|stufe|seviye|уровень|等级|livello)\s*[:+]?\s*([0-9]{1,3})""", RegexOption.IGNORE_CASE)
                     .find(context)?.groupValues?.get(1)
@@ -576,6 +579,12 @@ object LandsOfJailOcrParser {
             equipment = equipment
         )
     }
+
+    private fun normalizeEquipmentText(value: String): String =
+        java.text.Normalizer.normalize(value.lowercase(), java.text.Normalizer.Form.NFD)
+            .replace(Regex("\\p{Mn}+"), "")
+            .replace(Regex("[^\\p{L}\\p{N}]+"), " ")
+            .trim()
 
     private fun normalizeHeroText(value: String): String =
         java.text.Normalizer.normalize(value.lowercase(), java.text.Normalizer.Form.NFD)
