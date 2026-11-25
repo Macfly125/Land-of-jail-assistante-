@@ -93,6 +93,32 @@ class ProgressionPlayerProfileTest {
     }
 
     @Test
+    fun confirmedStockLookupAcceptsLocalizedAliasesAndPrefersLatestConfirmedValue() {
+        val profile = ProgressionPlayerProfile(
+            profileId = "main",
+            resourceStocks = listOf(
+                PlayerResourceStock("Bois", 400L, true, 100L),
+                PlayerResourceStock("wood", 650L, true, 200L),
+                PlayerResourceStock("Holz", 999L, false, 300L)
+            )
+        )
+
+        assertEquals(650L, profile.confirmedStock("Bois"))
+        assertEquals(650L, profile.confirmedStock("WOOD"))
+        assertNull(profile.confirmedStock("acier"))
+    }
+
+    @Test
+    fun stockMergeWithNoNewObservationPreservesExistingConfirmedAndUnknownValues() {
+        val existing = listOf(
+            PlayerResourceStock("wood", 700L, true, 100L),
+            PlayerResourceStock("steel", 250L, false, 110L)
+        )
+
+        assertEquals(existing, mergeProgressionStocks(existing, emptyList()))
+    }
+
+    @Test
     fun canonicalResourceIdsNormalizeAllSixMainResourceFamilies() {
         val aliases = mapOf(
             "Nourriture (Food)" to "food",
