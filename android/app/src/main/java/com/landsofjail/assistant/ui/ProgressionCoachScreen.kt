@@ -102,12 +102,15 @@ fun ProgressionCoachScreen(
         it.domain == ProgressionDomain.BUILDING &&
             it.targetId.trim().lowercase() in setOf(
                 "lab", "laboratory", "labo", "laboratoire",
-                "warden_office", "warden's office", "bureau_du_directeur", "bureau du directeur", "hq"
+                "warden_office", "warden's office", "bureau_du_directeur", "bureau du directeur", "hq",
+                "gate", "porte"
             )
     }
     val isLabGoal = supportedBuildingGoal?.targetId?.trim()?.lowercase()?.let {
         it in setOf("lab", "laboratory", "labo", "laboratoire")
     } == true
+    val isGateGoal = supportedBuildingGoal?.targetId?.trim()?.lowercase()?.let { it in setOf("gate", "porte") } == true
+    val buildingMaxLevel = if (isGateGoal) 7 else 30
     val buildingCurrentLevel = supportedBuildingGoal?.let { profile.confirmedLevel(it.targetId) }
     fun text(fr: String, en: String, de: String, tr: String, ru: String, zh: String, it: String) =
         when (language) {
@@ -115,10 +118,11 @@ fun ProgressionCoachScreen(
             AppLanguage.TR -> tr; AppLanguage.RU -> ru; AppLanguage.ZH -> zh; AppLanguage.IT -> it
         }
 
-    val buildingDisplayName = if (isLabGoal)
-        text("Laboratoire", "Laboratory", "Labor", "Laboratuvar", "Лаборатория", "实验室", "Laboratorio")
-    else
-        text("Bureau du directeur", "Warden's Office", "Büro des Direktors", "Müdür Ofisi", "Офис директора", "典狱长办公室", "Ufficio del Direttore")
+    val buildingDisplayName = when {
+        isLabGoal -> text("Laboratoire", "Laboratory", "Labor", "Laboratuvar", "Лаборатория", "实验室", "Laboratorio")
+        isGateGoal -> text("Porte", "Gate", "Tor", "Kapı", "Ворота", "大门", "Cancello")
+        else -> text("Bureau du directeur", "Warden's Office", "Büro des Direktors", "Müdür Ofisi", "Офис директора", "典狱长办公室", "Ufficio del Direttore")
+    }
 
     // Keep the coach inventory synchronized with every new resource capture.
     // Empty or uncertain OCR observations cannot erase confirmed quantities.
@@ -318,17 +322,21 @@ fun ProgressionCoachScreen(
                             Text(text(fr = "Objectif déjà atteint.", en = "Target already reached.", de = "Ziel bereits erreicht.",
                                 tr = "Hedefe ulaşıldı.", ru = "Цель уже достигнута.", zh = "目标已达成。",
                                 it = "Obiettivo già raggiunto."), style = MaterialTheme.typography.bodySmall)
-                        } else if (supportedBuildingGoal.targetLevel > 30) {
-                            Text(text(fr = "Le catalogue sourcé couvre ce bâtiment jusqu’au niveau 30. Les coûts au-delà restent inconnus et ne sont pas estimés.",
-                                en = "The sourced catalog covers this building through level 30. Costs beyond that remain unknown and are not estimated.",
-                                de = "Der belegte Katalog reicht für dieses Gebäude bis Level 30. Weitere Kosten sind unbekannt.",
-                                tr = "Kaynaklı katalog bu binayı 30. seviyeye kadar kapsar. Sonraki maliyetler bilinmiyor.",
-                                ru = "Каталог содержит данные по этому зданию до 30-го уровня. Дальнейшие затраты неизвестны.",
-                                zh = "有来源的目录仅覆盖此建筑至 30 级，之后费用未知，不作估算。",
-                                it = "Il catalogo documentato copre questo edificio fino al livello 30. I costi successivi restano sconosciuti."),
+                        } else if (supportedBuildingGoal.targetLevel > buildingMaxLevel) {
+                            Text(text(fr = "Les données sourcées disponibles couvrent ce bâtiment jusqu’au niveau $buildingMaxLevel seulement. Les coûts suivants restent inconnus et ne sont pas estimés.",
+                                en = "Sourced data currently covers this building only through level $buildingMaxLevel. Later costs remain unknown and are not estimated.",
+                                de = "Belegte Daten decken dieses Gebäude nur bis Level $buildingMaxLevel ab. Weitere Kosten sind unbekannt.",
+                                tr = "Kaynaklı veriler bu binayı yalnızca $buildingMaxLevel. seviyeye kadar kapsar. Sonraki maliyetler bilinmiyor.",
+                                ru = "Источники содержат данные по этому зданию только до уровня $buildingMaxLevel. Дальнейшие затраты неизвестны.",
+                                zh = "有来源的数据仅覆盖此建筑至 $buildingMaxLevel 级，之后费用未知，不作估算。",
+                                it = "I dati documentati coprono questo edificio solo fino al livello $buildingMaxLevel. I costi successivi restano sconosciuti."),
                                 style = MaterialTheme.typography.bodySmall)
                         } else {
-                            val catalog = if (isLabGoal) ProgressionCatalog.labBuilding else ProgressionCatalog.wardensOffice
+                            val catalog = when {
+                                isLabGoal -> ProgressionCatalog.labBuilding
+                                isGateGoal -> ProgressionCatalog.gateBuilding
+                                else -> ProgressionCatalog.wardensOffice
+                            }
                             val catalogRows = catalog
                                 .filter { it.step.toLevel > buildingCurrentLevel && it.step.toLevel <= supportedBuildingGoal.targetLevel }
                             val steps = catalogRows.map { it.step }
