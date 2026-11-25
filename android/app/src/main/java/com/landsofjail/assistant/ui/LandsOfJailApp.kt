@@ -3167,6 +3167,7 @@ private fun HeroesScreen(
     onAddHero: (HeroCatalogEntry) -> HeroRecord,
     onUpdateHero: (HeroRecord, HeroRecord) -> Unit
 ) {
+    val uriHandler = LocalUriHandler.current
     var editingHero by remember { mutableStateOf<HeroRecord?>(null) }
     var search by remember { mutableStateOf("") }
     var selectedClass by remember { mutableStateOf("Tous") }
