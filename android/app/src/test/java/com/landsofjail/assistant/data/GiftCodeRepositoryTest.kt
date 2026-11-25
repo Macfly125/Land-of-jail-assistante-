@@ -78,6 +78,26 @@ class GiftCodeRepositoryTest {
     }
 
     @Test
+    fun parserRecognizesFrenchActiveAndExpiredGiftCodeHeadings() {
+        val html = """
+            <h2>Codes cadeaux actifs</h2>
+            <ul><li>LOJ2026FR</li><li>JAIL2026FR</li></ul>
+            <h2>Récompenses récentes</h2>
+            <ul><li>HERO2026FR</li></ul>
+            <h2>Codes expirés</h2>
+            <ul><li>OLD2026FR</li></ul>
+        """.trimIndent()
+
+        val parsed = GiftCodeRepository.extractCandidatesFromHtml(html).associateBy { it.first }
+
+        assertTrue(parsed.containsKey("LOJ2026FR"))
+        assertTrue(parsed.containsKey("JAIL2026FR"))
+        assertFalse(parsed.containsKey("HERO2026FR"))
+        assertTrue(parsed.containsKey("OLD2026FR"))
+        assertTrue(parsed.getValue("OLD2026FR").second.contains("codes expir"))
+    }
+
+    @Test
     fun parserKeepsExplicitCodeTagsEvenWithoutNearbyHeading() {
         val html = "<div><code>AbC123xy</code></div>"
         val parsed = GiftCodeRepository.extractCandidatesFromHtml(html)
