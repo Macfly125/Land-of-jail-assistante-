@@ -197,6 +197,17 @@ object ProgressionCatalog {
     }
 
 
+    const val LAUNDRY_SOURCE = "https://lojwiki.com/buildings/laundry/"
+
+    // Laundry: only exact, un-abbreviated Cash values through level 7.
+    val laundryBuilding = cashBuilding(
+        "Laundry", LAUNDRY_SOURCE, listOf(
+            CashBuildingLevel(2, 113, 7, 5), CashBuildingLevel(3, 136, 12, 5),
+            CashBuildingLevel(4, 163, 20, 5), CashBuildingLevel(5, 733, 80, 5),
+            CashBuildingLevel(6, 1_834, 152, 6), CashBuildingLevel(7, 3_667, 293, 7)
+        )
+    )
+
     const val INVENTORY_SOURCE = "https://lojwiki.com/buildings/inventory/"
 
     /**
