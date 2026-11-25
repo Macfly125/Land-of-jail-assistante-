@@ -214,17 +214,17 @@ object GiftCodeRepository {
         val token = Regex("(?<![A-Za-z0-9])[A-Za-z0-9]{6,20}(?![A-Za-z0-9])")
         val codeContext = Regex("(?i)\\b(gift\\s*codes?|promo\\s*codes?|coupon\\s*codes?|codes?\\s*(?:cadeaux?|for\\s+lands|of\\s+lands)|lands?\\s+of\\s+jail\\s+codes?)\\b")
         val excluded = setOf("ACTIVE", "EXPIRED", "LATEST", "REWARDS", "GIFTCO", "COUPON")
-        blocks.findAll(html).forEach { block ->
+        blocks.findAll(html).forEach blockLoop@ { block ->
             val plain = decodeHtml(stripTags(block.groupValues[1]))
-            if (!codeContext.containsMatchIn(plain)) return@forEach
+            if (!codeContext.containsMatchIn(plain)) return@blockLoop
             val context = plain.lowercase(Locale.ROOT)
-            token.findAll(plain).forEach { foundToken ->
+            token.findAll(plain).forEach tokenLoop@ { foundToken ->
                 val code = foundToken.value
                 val normalized = code.uppercase(Locale.ROOT)
                 // The fallback requires a digit or the game's LOJ prefix to avoid
                 // treating ordinary uppercase words as redeemable codes.
-                if (normalized in excluded || !(code.any(Char::isDigit) || normalized.startsWith("LOJ"))) return@forEach
-                candidates.putIfAbsent(code.lowercase(Locale.ROOT), code to context)
+                if (normalized in excluded || !(code.any(Char::isDigit) || normalized.startsWith("LOJ"))) return@tokenLoop
+                if (!candidates.containsKey(code.lowercase(Locale.ROOT))) candidates[code.lowercase(Locale.ROOT)] = code to context
             }
         }
         return candidates.values.toList()
