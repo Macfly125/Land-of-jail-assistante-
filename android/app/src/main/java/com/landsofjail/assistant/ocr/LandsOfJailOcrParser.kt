@@ -305,11 +305,25 @@ object LandsOfJailOcrParser {
                     "磁铁", "精密齿轮", "潜能线圈",
                     "magnete", "ingranaggio di precisione", "bobina potenziale", "componente equipaggiamento"
                 )
-                val materials = materialAliases.firstOrNull { context.contains(it, ignoreCase = true) }
-                    ?.let { alias ->
-                        lines.subList(index, minOf(lines.size, index + 4))
-                            .firstOrNull { it.contains(alias, ignoreCase = true) }?.trim()?.take(80) ?: alias
-                    }.orEmpty()
+                val equipmentContextLines = lines.subList(index, minOf(lines.size, index + 4))
+                // Les matériaux et leur quantité sont souvent affichés sur deux lignes.
+                // Conserver uniquement les quantités explicitement adjacentes à un libellé connu.
+                val materials = materialAliases.mapNotNull { alias ->
+                    val materialIndex = equipmentContextLines.indexOfFirst {
+                        it.contains(alias, ignoreCase = true)
+                    }
+                    if (materialIndex < 0) null else {
+                        val materialLine = equipmentContextLines[materialIndex].trim()
+                        val quantityLine = equipmentContextLines.getOrNull(materialIndex + 1)
+                            ?.trim()
+                            ?.takeIf {
+                                Regex("""^(?:x\\s*)?[0-9][0-9.,\\s]*[kmbKMB]?$""", RegexOption.IGNORE_CASE)
+                                    .matches(it)
+                            }
+                        if (quantityLine.isNullOrBlank()) materialLine.take(80)
+                        else "$materialLine: $quantityLine".take(100)
+                    }
+                }.distinct().take(4).joinToString(" | ")
                 val key = (partName + "-" + level.ifBlank { "?" }).lowercase()
                 if (seenEquipmentKeys.add(key)) equipment.add(
                     EquipmentRecord(
