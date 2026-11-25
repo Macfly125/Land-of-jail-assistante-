@@ -54,4 +54,38 @@ class ProgressionCatalogTest {
         assertEquals(listOf("Warden's Office Lv.10"), levelTen.prerequisiteNotes)
         assertTrue(levelTen.step.prerequisites.isEmpty())
     }
+    @Test
+    fun gateCatalogContainsOnlyPreciselyPublishedLevelsTwoToSeven() {
+        val rows = ProgressionCatalog.gateBuilding
+
+        assertEquals((2..7).toList(), rows.map { it.step.toLevel })
+        assertTrue(rows.all { it.step.fromLevel == it.step.toLevel - 1 })
+        assertTrue(rows.all { it.step.itemName == "Gate" })
+        assertTrue(rows.all { it.step.dataComplete })
+        assertTrue(rows.all { it.sourceUrl == ProgressionCatalog.GATE_SOURCE })
+        assertTrue(rows.all { it.checkedOn == ProgressionCatalog.SOURCE_CHECKED_ON })
+        assertTrue(rows.all { it.prerequisiteNotes.isNotEmpty() })
+        assertTrue(rows.all { row ->
+            row.step.costs.isNotEmpty() && row.step.costs.all {
+                it.confidence == CostConfidence.COMMUNITY_REFERENCE &&
+                    it.sourceUrl == ProgressionCatalog.GATE_SOURCE
+            }
+        })
+    }
+
+    @Test
+    fun gateLevelThreeHasPublishedCostsAndBaseDuration() {
+        val levelThree = ProgressionCatalog.gateBuilding.single { it.step.toLevel == 3 }.step
+
+        assertEquals(1_290L, levelThree.durationSeconds)
+        assertEquals(180_000L, levelThree.costs.single { it.resourceId == "wood" }.quantity)
+        assertEquals(36_000L, levelThree.costs.single { it.resourceId == "steel" }.quantity)
+        assertEquals(9_000L, levelThree.costs.single { it.resourceId == "gasoline" }.quantity)
+    }
+
+    @Test
+    fun gateHigherLevelsAreNotEstimatedFromRoundedWikiAmounts() {
+        assertTrue(ProgressionCatalog.gateBuilding.none { it.step.toLevel > 7 })
+    }
+
 }
