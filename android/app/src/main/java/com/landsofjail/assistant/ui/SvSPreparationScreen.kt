@@ -102,7 +102,9 @@ private val svsScoreTranslations=mapOf(
  "Puce satellite" to listOf("Satellitenchip","Uydu çipi","Спутниковый чип","卫星芯片","Chip satellitare"),
  "Noyau Orbit" to listOf("Orbit-Kern","Orbit çekirdeği","Ядро Orbit","Orbit核心","Nucleo Orbit"),
  "Noyau Cosmic" to listOf("Cosmic-Kern","Cosmic çekirdeği","Ядро Cosmic","Cosmic核心","Nucleo Cosmic"),
- "Rallye de bête lancé" to listOf("Gestartete Bestien-Rallye","Başlatılan canavar rallisi","Запущенный рейд на зверя","已发起的野兽集结","Rally bestia avviato")
+ "Rallye de bête lancé" to listOf("Gestartete Bestien-Rallye","Başlatılan canavar rallisi","Запущенный рейд на зверя","已发起的野兽集结","Rally bestia avviato"),
+ "Lot de collecte" to listOf("Sammelpaket","Toplama paketi","Партия сбора","采集批次","Lotto di raccolta"),
+ "Point de tome / rating" to listOf("Folianten-/Wertungspunkt","Cilt / puan değeri","Очко фолианта / рейтинга","典籍/评分点","Punto tomo / valutazione")
 )
 private val svsScoreItems=listOf(
  SvSScoreItem("Noyau Forticlad","Forticlad Core",3000),
@@ -126,7 +128,9 @@ private val svsScoreItems=listOf(
  SvSScoreItem("Puce satellite","Satellite Chip",9800),
  SvSScoreItem("Noyau Orbit","Orbit Core",3500),
  SvSScoreItem("Noyau Cosmic","Cosmic Core",43750),
- SvSScoreItem("Rallye de bête lancé","Beast Rally Launched",90000)
+ SvSScoreItem("Rallye de bête lancé","Beast Rally Launched",90000),
+ SvSScoreItem("Lot de collecte","Gathering batch",6),
+ SvSScoreItem("Point de tome / rating","Tome / rating point",210)
 )
 
 @Composable
