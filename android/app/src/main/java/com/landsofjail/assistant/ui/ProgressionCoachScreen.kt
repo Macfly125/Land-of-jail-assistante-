@@ -354,6 +354,31 @@ fun ProgressionCoachScreen(
                                 ru = "$buildingDisplayName: $buildingCurrentLevel → ${supportedBuildingGoal.targetLevel}",
                                 zh = "$buildingDisplayName：$buildingCurrentLevel → ${supportedBuildingGoal.targetLevel}",
                                 it = "$buildingDisplayName: $buildingCurrentLevel → ${supportedBuildingGoal.targetLevel}"))
+                            Text(text(fr = "Détail des étapes", en = "Step-by-step costs", de = "Kosten je Stufe",
+                                tr = "Aşama maliyetleri", ru = "Стоимость каждого этапа", zh = "逐级费用", it = "Costi per livello"),
+                                style = MaterialTheme.typography.titleSmall)
+                            plan.steps.forEach { step ->
+                                val stepCosts = step.costs.joinToString(" · ") { cost ->
+                                    val resourceLabel = when (canonicalProgressionResourceId(cost.resourceId)) {
+                                        "food" -> text("Nourriture", "Food", "Nahrung", "Yiyecek", "Еда", "食物", "Cibo")
+                                        "wood" -> text("Bois", "Wood", "Holz", "Odun", "Дерево", "木材", "Legno")
+                                        "steel" -> text("Acier", "Steel", "Stahl", "Çelik", "Сталь", "钢材", "Acciaio")
+                                        "gasoline" -> text("Essence", "Gasoline", "Benzin", "Benzin", "Бензин", "汽油", "Benzina")
+                                        "gold" -> text("Argent", "Cash", "Bargeld", "Nakit", "Наличные", "现金", "Contanti")
+                                        "diamonds" -> text("Diamants", "Diamonds", "Diamanten", "Elmas", "Алмазы", "钻石", "Diamanti")
+                                        else -> cost.resourceId
+                                    }
+                                    "$resourceLabel ${NumberFormat.getIntegerInstance().format(cost.quantity)}"
+                                }
+                                Text(text(fr = "Niv. ${step.fromLevel} → ${step.toLevel} : $stepCosts",
+                                    en = "Lv. ${step.fromLevel} → ${step.toLevel}: $stepCosts",
+                                    de = "Lvl. ${step.fromLevel} → ${step.toLevel}: $stepCosts",
+                                    tr = "Sv. ${step.fromLevel} → ${step.toLevel}: $stepCosts",
+                                    ru = "Ур. ${step.fromLevel} → ${step.toLevel}: $stepCosts",
+                                    zh = "等级 ${step.fromLevel} → ${step.toLevel}：$stepCosts",
+                                    it = "Liv. ${step.fromLevel} → ${step.toLevel}: $stepCosts"),
+                                    style = MaterialTheme.typography.bodySmall)
+                            }
                             plan.requirements.forEach { requirement ->
                                 val label = when (requirement.resourceId) {
                                     "food" -> text("Nourriture", "Food", "Nahrung", "Yiyecek", "Еда", "食物", "Cibo")
