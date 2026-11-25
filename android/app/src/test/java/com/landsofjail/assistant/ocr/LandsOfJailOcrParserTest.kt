@@ -417,12 +417,11 @@ class LandsOfJailOcrParserTest {
             imageWidth = 900,
             imageHeight = 1600
         )
-        assertEquals(5, result.resources.size)
-        assertEquals("Cash / Or", result.resources[0].nom)
-        assertEquals("Nourriture (Food)", result.resources[1].nom)
-        assertEquals("Bois (Wood)", result.resources[2].nom)
-        assertEquals("Acier (Steel)", result.resources[3].nom)
-        assertEquals("Essence (Gasoline)", result.resources[4].nom)
+        assertEquals(6, result.resources.size)
+        assertEquals(
+            listOf("Cash / Or", "Nourriture (Food)", "Bois (Wood)", "Acier (Steel)", "Essence (Gasoline)", "Diamants (Gems)"),
+            result.resources.map { it.nom }
+        )
         assertTrue(result.resources.all { it.incertain && it.quantiteNumerique != null })
     }
 
@@ -444,8 +443,22 @@ class LandsOfJailOcrParserTest {
             imageWidth = 900,
             imageHeight = 1600
         )
-        assertEquals(5, result.resources.size)
-        assertEquals(listOf("1.2M", "850K", "42M", "3.4M", "120"), result.resources.map { it.quantiteTexte })
+        assertEquals(6, result.resources.size)
+        assertEquals(listOf("1.2M", "850K", "42M", "3.4M", "120", "7.8M"), result.resources.map { it.quantiteTexte })
+    }
+
+    @Test
+    fun refusesPositionalMappingWhenOneOfTheSixResourceSlotsIsMissing() {
+        val boxes = listOf("1.2M", "850K", "42M", "3.4M", "120").mapIndexed { index, value ->
+            OcrTextBox(value, left = 40 + index * 120, top = 50, right = 95 + index * 120, bottom = 82)
+        }
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            rawText = "Main screen",
+            textBoxes = boxes,
+            imageWidth = 900,
+            imageHeight = 1600
+        )
+        assertTrue(result.resources.isEmpty())
     }
 
     @Test
