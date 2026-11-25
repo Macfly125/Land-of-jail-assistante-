@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.FilterChip
@@ -24,7 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.landsofjail.assistant.model.AppLanguage
-import com.landsofjail.assistant.model.CostConfidence
 import com.landsofjail.assistant.model.PlayerResourceStock
 import com.landsofjail.assistant.model.ProgressionDomain
 import com.landsofjail.assistant.model.ProgressionLevelRecord
@@ -32,7 +32,6 @@ import com.landsofjail.assistant.model.ProgressionObjective
 import com.landsofjail.assistant.model.ProgressionPlayerProfile
 import com.landsofjail.assistant.model.ProgressionProfileCodec
 import com.landsofjail.assistant.model.ResourceRecord
-import com.landsofjail.assistant.model.ProgressionCoach
 
 private val progressionDomains = listOf(
     ProgressionDomain.BUILDING,
@@ -102,7 +101,7 @@ fun ProgressionCoachScreen(
     LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
         item {
             Text(
-                text(text = "", fr = "Coach de progression", en = "Progression coach", de = "Fortschrittscoach",
+                text(fr = "Coach de progression", en = "Progression coach", de = "Fortschrittscoach",
                     tr = "İlerleme koçu", ru = "Помощник прогресса", zh = "成长助手", it = "Coach di progressione"),
                 style = MaterialTheme.typography.titleLarge
             )
