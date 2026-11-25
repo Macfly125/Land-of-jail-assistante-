@@ -462,6 +462,20 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun refusesPositionalMappingWhenAnExtraNumberSharesTheTopRow() {
+        val boxes = listOf("1.2M", "850K", "42M", "3.4M", "120", "7.8M", "99").mapIndexed { index, value ->
+            OcrTextBox(value, left = 40 + index * 100, top = 50, right = 95 + index * 100, bottom = 82)
+        }
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            rawText = "Main screen",
+            textBoxes = boxes,
+            imageWidth = 900,
+            imageHeight = 1600
+        )
+        assertTrue("Une rangée ambiguë ne doit pas produire de faux stocks", result.resources.isEmpty())
+    }
+
+    @Test
     fun doesNotMixPositionGuessesWithResourcesAlreadyReadByName() {
         val boxes = listOf(
             OcrTextBox("1.2M", 40, 50, 95, 82),
