@@ -1021,7 +1021,9 @@ fun LandsOfJailAssistantApp(
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_START && !giftCodesRefreshing) {
-                scope.launch {
+                // Une actualisation déclenchée par le cycle de vie doit survivre
+                // aux recompositions et ne pas dépendre du scope Compose.
+                lifecycleOwner.lifecycleScope.launch {
                     giftCodesRefreshing = true
                     try {
                         val refreshed = withContext(Dispatchers.IO) { GiftCodeRepository.refresh(giftCodeSnapshot) }
