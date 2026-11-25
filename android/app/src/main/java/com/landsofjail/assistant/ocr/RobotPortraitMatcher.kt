@@ -39,7 +39,10 @@ object RobotPortraitMatcher {
 
     /**
      * Compare a pre-cropped, normalized screenshot against verified templates.
-     * If the top candidate is weak or too close to the runner-up, no identity is
+     * Multiple templates may represent alternate crops/states of the same robot.
+     * They are consolidated by robotId before calculating the runner-up margin,
+     * so variants of one robot cannot make that robot appear ambiguous with itself.
+     * If the top candidate is weak or too close to another robot, no identity is
      * returned. A portrait alone never supplies level, rarity, modules or skills.
      */
     fun match(
@@ -64,20 +67,28 @@ object RobotPortraitMatcher {
             return RobotPortraitMatch(null, null, 0f, null, false, "dimensions_incompatibles")
         }
 
-        val ranked = compatible
-            .map { template -> template to similarity(argbPixels, template.argbPixels) }
-            .sortedByDescending { it.second }
+        // Keep the strongest matching template for each real robot identity.
+        // A catalog may legitimately contain several verified portrait variants.
+        val rankedRobots = compatible
+            .groupBy { it.robotId }
+            .mapNotNull { (robotId, variants) ->
+                val bestVariant = variants
+                    .map { template -> template to similarity(argbPixels, template.argbPixels) }
+                    .maxByOrNull { it.second } ?: return@mapNotNull null
+                Triple(robotId, bestVariant.first, bestVariant.second)
+            }
+            .sortedByDescending { it.third }
 
-        val best = ranked.first()
-        val runnerUp = ranked.getOrNull(1)?.second
-        val margin = if (runnerUp == null) 1f else best.second - runnerUp
-        val confirmed = best.second >= minSimilarity && margin >= minMargin
+        val best = rankedRobots.first()
+        val runnerUp = rankedRobots.getOrNull(1)?.third
+        val margin = if (runnerUp == null) 1f else best.third - runnerUp
+        val confirmed = best.third >= minSimilarity && margin >= minMargin
 
         return if (confirmed) {
             RobotPortraitMatch(
-                best.first.robotId,
-                best.first.displayName,
-                best.second,
+                best.first,
+                best.second.displayName,
+                best.third,
                 runnerUp,
                 true,
                 "portrait_correspondance_confirmee"
@@ -86,10 +97,10 @@ object RobotPortraitMatcher {
             RobotPortraitMatch(
                 null,
                 null,
-                best.second,
+                best.third,
                 runnerUp,
                 false,
-                if (best.second < minSimilarity) "similarite_insuffisante" else "correspondances_trop_proches"
+                if (best.third < minSimilarity) "similarite_insuffisante" else "correspondances_trop_proches"
             )
         }
     }
