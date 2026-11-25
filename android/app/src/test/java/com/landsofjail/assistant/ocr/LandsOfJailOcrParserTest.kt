@@ -277,6 +277,26 @@ class LandsOfJailOcrParserTest {
         assertTrue(result.uncertainItems.isNotEmpty())
     }
     @Test
+    fun recognizesWardenAndDirectorsOfficeLevelsWithApostrophesAndLocalizedLevelLabels() {
+        val samples = listOf(
+            "Warden's Office\\nLevel 18\\nPower: 12,345",
+            "Warden’s Office Lv. 21\\nPower: 12,345",
+            "Director's Office\\nLvl 16\\nPower: 12,345",
+            "Bureau du directeur\\nNiv. 14\\nPuissance: 12,345"
+        )
+        samples.forEach { sample ->
+            val result = LandsOfJailOcrParser.parseLocalOcrText(sample)
+            assertEquals("Le niveau du bâtiment doit être lu : $sample", true,
+                result.power?.niveauPrisonOuQG?.startsWith("Niv.") == true)
+        }
+        assertEquals(
+            "Niv. 18",
+            LandsOfJailOcrParser.parseLocalOcrText("Warden's Office Level 18\\nPower: 12,345")
+                .power?.niveauPrisonOuQG
+        )
+    }
+
+    @Test
     fun recognizesBuildingScreensSeparatelyFromResources() {
         val result = ScreenRecognitionEngine.analyze(
             "Warden Office Level 18\nUpgrade building\nRequired resources"
