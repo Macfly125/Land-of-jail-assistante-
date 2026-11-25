@@ -212,7 +212,7 @@ object GiftCodeRepository {
 
         val blocks = Regex("(?is)<(?:li|p|td)[^>]*>(.*?)</(?:li|p|td)>")
         val token = Regex("(?<![A-Za-z0-9])[A-Za-z0-9]{6,20}(?![A-Za-z0-9])")
-        val codeContext = Regex("(?i)\\b(gift\\s*codes?|promo\\s*codes?|coupon\\s*codes?|codes?\\s*(?:cadeaux?|for\\s+lands|of\\s+lands)|lands?\\s+of\\s+jail\\s+codes?)\\b")
+        val codeContext = Regex("(?i)\\b(gift\\s*codes?|promo\\s*codes?|coupon\\s*codes?|(?:active|expired|working|new)\\s+codes?|codes?\\s*(?:cadeaux?|for\\s+lands|of\\s+lands)|lands?\\s+of\\s+jail\\s+codes?)\\b")
         val excluded = setOf("ACTIVE", "EXPIRED", "LATEST", "REWARDS", "GIFTCO", "COUPON")
         blocks.findAll(html).forEach blockLoop@ { block ->
             val plain = decodeHtml(stripTags(block.groupValues[1]))
