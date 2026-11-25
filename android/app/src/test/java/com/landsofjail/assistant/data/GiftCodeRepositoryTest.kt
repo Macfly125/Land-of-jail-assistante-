@@ -5,6 +5,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.LocalDate
 
 class GiftCodeRepositoryTest {
     @Test
@@ -81,6 +82,49 @@ class GiftCodeRepositoryTest {
         val html = "<div><code>AbC123xy</code></div>"
         val parsed = GiftCodeRepository.extractCandidatesFromHtml(html)
         assertTrue(parsed.any { it.first == "AbC123xy" })
+    }
+
+    @Test
+    fun onlyPublishedExpiryDatesCanAutomaticallyMoveCodesToExpired() {
+        val entries = listOf(
+            GiftCodeEntry("EXPIRED1", "NEEDS_REVIEW", "source", expiresAt = "24/11/2026"),
+            GiftCodeEntry("TODAY1", "NEEDS_REVIEW", "source", expiresAt = "25/11/2026"),
+            GiftCodeEntry("FUTURE1", "NEEDS_REVIEW", "source", expiresAt = "30/11/2026"),
+            GiftCodeEntry("NO_DATE", "UNVERIFIED", "source"),
+            GiftCodeEntry("NO_GUESS", "COMMUNITY_LISTED", "source", note = "Aucune expiration annoncée")
+        )
+
+        val updated = GiftCodeRepository.applyPublishedExpiryDates(
+            entries,
+            LocalDate.of(2026, 11, 25)
+        ).associateBy { it.code }
+
+        assertEquals("EXPIRED", updated.getValue("EXPIRED1").status)
+        assertEquals("EXPIRED", updated.getValue("TODAY1").status)
+        assertEquals("NEEDS_REVIEW", updated.getValue("FUTURE1").status)
+        assertEquals("UNVERIFIED", updated.getValue("NO_DATE").status)
+        assertEquals("COMMUNITY_LISTED", updated.getValue("NO_GUESS").status)
+        assertTrue(updated.getValue("EXPIRED1").note.contains("expiration"))
+    }
+
+    @Test
+    fun parsesSupportedExpiryDateFormatsWithoutGuessingInvalidDates() {
+        val entries = listOf(
+            GiftCodeEntry("SLASH", "UNVERIFIED", "source", expiresAt = "24/11/2026"),
+            GiftCodeEntry("DOT", "UNVERIFIED", "source", expiresAt = "24.11.2026"),
+            GiftCodeEntry("DASH", "UNVERIFIED", "source", expiresAt = "24-11-2026"),
+            GiftCodeEntry("ISO", "UNVERIFIED", "source", expiresAt = "2026-11-24"),
+            GiftCodeEntry("INVALID", "UNVERIFIED", "source", expiresAt = "31/02/2026")
+        )
+        val updated = GiftCodeRepository.applyPublishedExpiryDates(
+            entries,
+            LocalDate.of(2026, 11, 25)
+        ).associateBy { it.code }
+
+        listOf("SLASH", "DOT", "DASH", "ISO").forEach {
+            assertEquals("EXPIRED", updated.getValue(it).status)
+        }
+        assertEquals("UNVERIFIED", updated.getValue("INVALID").status)
     }
 
 }
