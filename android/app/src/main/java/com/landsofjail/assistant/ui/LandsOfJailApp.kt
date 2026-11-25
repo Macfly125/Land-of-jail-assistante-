@@ -3171,7 +3171,6 @@ private fun HeroesScreen(
     var search by remember { mutableStateOf("") }
     var selectedClass by remember { mutableStateOf("Tous") }
     var expandedHeroName by remember { mutableStateOf<String?>(null) }
-    val uriHandler = LocalUriHandler.current
     val profileByName = remember(heroes) { heroes.associateBy { it.nom.trim().lowercase() } }
     val verifiedHeroes = heroes.count { hero ->
         !hero.niveauTexte.isBlank() && !hero.etoiles.isNullOrBlank() &&
@@ -3569,20 +3568,9 @@ private fun GiftCodesScreen(
                             Spacer(Modifier.width(6.dp))
                             Text(labels[4])
                         }
-                        OutlinedButton(onClick = { uriHandler.openUri(GiftCodeRepository.DISCORD_URL) }) {
-                            Icon(Icons.Outlined.Forum, contentDescription = null)
-                            Spacer(Modifier.width(4.dp))
-                            Text(labels[11])
-                        }
                     }
-                    OutlinedButton(onClick = { uriHandler.openUri(GiftCodeRepository.REDEEM_URL) }, modifier = Modifier.fillMaxWidth()) {
+                    OutlinedButton(onClick = { context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, Uri.parse(GiftCodeRepository.REDEEM_URL))) }, modifier = Modifier.fillMaxWidth()) {
                         Text(labels[12])
-                    }
-                    TextButton(
-                        onClick = { uriHandler.openUri(GiftCodeRepository.GUIDE_URL) },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(localizedUiText(language, "Consulter les codes sur GuideLOJ", "View codes on GuideLOJ", "Codes auf GuideLOJ ansehen", "Kodları GuideLOJ'de görüntüle", "Посмотреть коды на GuideLOJ", "在 GuideLOJ 查看兑换码", "Vedi i codici su GuideLOJ"))
                     }
                     if (snapshot.sourceErrors.isNotEmpty()) {
                         Text(labels[14], color = Color(0xFFFFC18A), style = MaterialTheme.typography.bodySmall)
