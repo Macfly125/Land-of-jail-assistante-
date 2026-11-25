@@ -74,7 +74,7 @@ private val svsDays=listOf(
  ))
 )
 
-private data class SvSScoreItem(val fr:String,val en:String,val points:Long) {
+private data class SvSScoreItem(val fr:String,val en:String,val points:Long,val days:Set<Int>) {
  fun label(language:AppLanguage):String {
   val t=svsScoreTranslations[fr]
   return when(language){AppLanguage.FR->fr;AppLanguage.EN->en;AppLanguage.DE->t?.get(0)?:en;AppLanguage.TR->t?.get(1)?:en;AppLanguage.RU->t?.get(2)?:en;AppLanguage.ZH->t?.get(3)?:en;AppLanguage.IT->t?.get(4)?:en}
@@ -103,34 +103,56 @@ private val svsScoreTranslations=mapOf(
  "Noyau Orbit" to listOf("Orbit-Kern","Orbit çekirdeği","Ядро Orbit","Orbit核心","Nucleo Orbit"),
  "Noyau Cosmic" to listOf("Cosmic-Kern","Cosmic çekirdeği","Ядро Cosmic","Cosmic核心","Nucleo Cosmic"),
  "Rallye de bête lancé" to listOf("Gestartete Bestien-Rallye","Başlatılan canavar rallisi","Запущенный рейд на зверя","已发起的野兽集结","Rally bestia avviato"),
- "Lot de collecte" to listOf("Sammelpaket","Toplama paketi","Партия сбора","采集批次","Lotto di raccolta"),
+ "Collecte nourriture · lot de 1 000" to listOf("Nahrung sammeln · Paket mit 1.000","Yiyecek toplama · 1.000'lik paket","Сбор еды · партия 1 000","采集食物·每批1,000","Raccolta cibo · lotto da 1.000"),
+ "Collecte bois · lot de 1 000" to listOf("Holz sammeln · Paket mit 1.000","Odun toplama · 1.000'lik paket","Сбор дерева · партия 1 000","采集木材·每批1,000","Raccolta legno · lotto da 1.000"),
+ "Collecte acier · lot de 200" to listOf("Stahl sammeln · Paket mit 200","Çelik toplama · 200'lük paket","Сбор стали · партия 200","采集钢材·每批200","Raccolta acciaio · lotto da 200"),
+ "Collecte essence · lot de 50" to listOf("Benzin sammeln · Paket mit 50","Benzin toplama · 50'lik paket","Сбор бензина · партия 50","采集汽油·每批50","Raccolta benzina · lotto da 50"),
  "Point de tome / rating" to listOf("Folianten-/Wertungspunkt","Cilt / puan değeri","Очко фолианта / рейтинга","典籍/评分点","Punto tomo / valutazione")
 )
 private val svsScoreItems=listOf(
- SvSScoreItem("Noyau Forticlad","Forticlad Core",3000),
- SvSScoreItem("Hyperalliage","Hyperalloy",1500),
- SvSScoreItem("Noyau Forticlad avancé","Advanced Forticlad Core",45000),
- SvSScoreItem("Minute d'accélérateur","Speedup minute",90),
- SvSScoreItem("Fragment rare","Rare Hero Shard",1050),
- SvSScoreItem("Fragment épique","Epic Hero Shard",3660),
- SvSScoreItem("Fragment légendaire","Legendary Hero Shard",9120),
- SvSScoreItem("Spin de renforcement","Reinforcement Spin",24000),
- SvSScoreItem("Pièce équipement exclusif","Exclusive Equipment Part",12000),
- SvSScoreItem("Engrenage de précision","Precision Gear",6000),
- SvSScoreItem("Bobine de potentiel","Potential Coil",60000),
- SvSScoreItem("Aimant","Magnet",3000),
- SvSScoreItem("Note de collection","Collection Rating",108),
- SvSScoreItem("Coffre de module Solo","Solo Module Chest",1824),
- SvSScoreItem("Coffre de module Formation","Formation Module Chest",3600),
- SvSScoreItem("Coffre de module Barrière","Barrier Module Chest",5400),
- SvSScoreItem("Module de puissance","Power Module",1920),
- SvSScoreItem("Module de puissance avancé","Advanced Power Module",9600),
- SvSScoreItem("Puce satellite","Satellite Chip",9800),
- SvSScoreItem("Noyau Orbit","Orbit Core",3500),
- SvSScoreItem("Noyau Cosmic","Cosmic Core",43750),
- SvSScoreItem("Rallye de bête lancé","Beast Rally Launched",90000),
- SvSScoreItem("Lot de collecte","Gathering batch",6),
- SvSScoreItem("Point de tome / rating","Tome / rating point",210)
+ SvSScoreItem("Noyau Forticlad","Forticlad Core",3000,setOf(1,2,5)),
+ SvSScoreItem("Hyperalliage","Hyperalloy",1500,setOf(1,2,5)),
+ SvSScoreItem("Noyau Forticlad avancé","Advanced Forticlad Core",45000,setOf(1,2,5)),
+ SvSScoreItem("Minute d'accélérateur","Speedup minute",90,setOf(1,2,5)),
+ SvSScoreItem("Fragment rare","Rare Hero Shard",1050,setOf(2,3)),
+ SvSScoreItem("Fragment épique","Epic Hero Shard",3660,setOf(2,3)),
+ SvSScoreItem("Fragment légendaire","Legendary Hero Shard",9120,setOf(2,3)),
+ SvSScoreItem("Spin de renforcement","Reinforcement Spin",24000,setOf(2,3)),
+ SvSScoreItem("Pièce équipement exclusif","Exclusive Equipment Part",12000,setOf(4,5)),
+ SvSScoreItem("Engrenage de précision","Precision Gear",6000,setOf(4,5)),
+ SvSScoreItem("Bobine de potentiel","Potential Coil",60000,setOf(4,5)),
+ SvSScoreItem("Aimant","Magnet",3000,setOf(4,5)),
+ SvSScoreItem("Note de collection","Collection Rating",108,setOf(5)),
+ SvSScoreItem("Coffre de module Solo","Solo Module Chest",1824,setOf(3,5)),
+ SvSScoreItem("Coffre de module Formation","Formation Module Chest",3600,setOf(3,5)),
+ SvSScoreItem("Coffre de module Barrière","Barrier Module Chest",5400,setOf(3,5)),
+ SvSScoreItem("Module de puissance","Power Module",1920,setOf(3,5)),
+ SvSScoreItem("Module de puissance avancé","Advanced Power Module",9600,setOf(3,5)),
+ SvSScoreItem("Puce satellite","Satellite Chip",9800,setOf(1,4)),
+ SvSScoreItem("Noyau Orbit","Orbit Core",3500,setOf(1,4)),
+ SvSScoreItem("Noyau Cosmic","Cosmic Core",43750,setOf(1,4)),
+ SvSScoreItem("Rallye de bête lancé","Beast Rally Launched",90000,setOf(3)),
+ SvSScoreItem("Collecte nourriture · lot de 1 000","Gather Food · bundle of 1,000",6,setOf(2)),
+ SvSScoreItem("Collecte bois · lot de 1 000","Gather Wood · bundle of 1,000",6,setOf(2)),
+ SvSScoreItem("Collecte acier · lot de 200","Gather Steel · bundle of 200",6,setOf(2)),
+ SvSScoreItem("Collecte essence · lot de 50","Gather Gasoline · bundle of 50",6,setOf(2)),
+ SvSScoreItem("Point de tome / rating","Tome / rating point",210,setOf(1,3,4)),
+ SvSScoreItem("Fugitif niveau 1–10","Level 1–10 Fugitive",27000,setOf(3)),
+ SvSScoreItem("Fugitif niveau 11–15","Level 11–15 Fugitive",29250,setOf(3)),
+ SvSScoreItem("Fugitif niveau 16–20","Level 16–20 Fugitive",31500,setOf(3)),
+ SvSScoreItem("Fugitif niveau 21–25","Level 21–25 Fugitive",33750,setOf(3)),
+ SvSScoreItem("Fugitif niveau 26–30","Level 26–30 Fugitive",36000,setOf(3)),
+ SvSScoreItem("Soldat niveau 1 entraîné","Level 1 soldier trained",9,setOf(4)),
+ SvSScoreItem("Soldat niveau 2 entraîné","Level 2 soldier trained",12,setOf(4)),
+ SvSScoreItem("Soldat niveau 3 entraîné","Level 3 soldier trained",15,setOf(4)),
+ SvSScoreItem("Soldat niveau 4 entraîné","Level 4 soldier trained",24,setOf(4)),
+ SvSScoreItem("Soldat niveau 5 entraîné","Level 5 soldier trained",36,setOf(4)),
+ SvSScoreItem("Soldat niveau 6 entraîné","Level 6 soldier trained",54,setOf(4)),
+ SvSScoreItem("Soldat niveau 7 entraîné","Level 7 soldier trained",75,setOf(4)),
+ SvSScoreItem("Soldat niveau 8 entraîné","Level 8 soldier trained",105,setOf(4)),
+ SvSScoreItem("Soldat niveau 9 entraîné","Level 9 soldier trained",135,setOf(4)),
+ SvSScoreItem("Soldat niveau 10 entraîné","Level 10 soldier trained",180,setOf(4)),
+ SvSScoreItem("Soldat niveau 11 entraîné","Level 11 soldier trained",216,setOf(4))
 )
 
 @Composable
@@ -139,7 +161,8 @@ fun SvSPreparationScreen(language:AppLanguage){
  var scoreIndex by remember { mutableIntStateOf(0) }
  var quantity by remember { mutableStateOf("0") }
  var scoreMenu by remember { mutableStateOf(false) }
- val scoreItem=svsScoreItems[scoreIndex]
+ val availableScoreItems=svsScoreItems.filter { selectedDay in it.days }
+ val scoreItem=availableScoreItems.getOrElse(scoreIndex) { availableScoreItems.first() }
  val calculatedPoints=(quantity.toLongOrNull() ?: 0L).coerceAtLeast(0L)*scoreItem.points
  val day=svsDays.first{it.number==selectedDay}
  LazyColumn(verticalArrangement=Arrangement.spacedBy(10.dp)){
@@ -173,13 +196,13 @@ fun SvSPreparationScreen(language:AppLanguage){
    Text(scoreItem.label(language)+" · "+scoreItem.points+" pts/unité",style=MaterialTheme.typography.bodySmall)
    Button(onClick={scoreMenu=true}){Text(when(language){AppLanguage.FR->"Choisir l'objet";AppLanguage.EN->"Choose item";AppLanguage.DE->"Gegenstand wählen";AppLanguage.TR->"Öğe seç";AppLanguage.RU->"Выбрать предмет";AppLanguage.ZH->"选择物品";AppLanguage.IT->"Scegli oggetto"})}
    DropdownMenu(expanded=scoreMenu,onDismissRequest={scoreMenu=false}){
-    svsScoreItems.forEachIndexed{index,item->DropdownMenuItem(text={Text(item.label(language))},onClick={scoreIndex=index;scoreMenu=false})}
+    availableScoreItems.forEachIndexed{index,item->DropdownMenuItem(text={Text(item.label(language))},onClick={scoreIndex=index;scoreMenu=false})}
    }
    OutlinedTextField(value=quantity,onValueChange={quantity=it.filter{ch->ch.isDigit()}.take(12)},label={Text(when(language){AppLanguage.FR->"Quantité possédée / utilisée";AppLanguage.EN->"Owned / used quantity";AppLanguage.DE->"Besitzte / verwendete Menge";AppLanguage.TR->"Sahip olunan / kullanılan miktar";AppLanguage.RU->"Количество";AppLanguage.ZH->"拥有/使用数量";AppLanguage.IT->"Quantità posseduta / usata"})},singleLine=true)
    Text(when(language){AppLanguage.FR->"Total estimé :";AppLanguage.EN->"Estimated total:";AppLanguage.DE->"Geschätzte Gesamtpunktzahl:";AppLanguage.TR->"Tahmini toplam:";AppLanguage.RU->"Примерное количество очков:";AppLanguage.ZH->"预计总积分：";AppLanguage.IT->"Totale stimato:"}+" "+ "%,d".format(java.util.Locale.US,calculatedPoints)+" pts",style=MaterialTheme.typography.titleMedium,color=MaterialTheme.colorScheme.primary)
    Text(when(language){AppLanguage.FR->"Estimation indicative : vérifie les valeurs et les règles du SVS en cours avant de dépenser.";AppLanguage.EN->"Reference estimate: verify the current SvS values and rules before spending.";AppLanguage.DE->"Richtwert: Prüfe vor dem Ausgeben die aktuellen SvS-Werte.";AppLanguage.TR->"Tahmini değerdir; harcamadan önce etkinlik kurallarını kontrol et.";AppLanguage.RU->"Оценка; перед расходованием проверьте правила текущего события.";AppLanguage.ZH->"仅供估算，使用前请核对当前活动规则。";AppLanguage.IT->"Stima indicativa: verifica le regole dell'evento prima di spendere."},style=MaterialTheme.typography.bodySmall)
   }}}
-  item { Row(horizontalArrangement=Arrangement.spacedBy(4.dp)){(1..5).forEach{n->FilterChip(selected=selectedDay==n,onClick={selectedDay=n},label={Text("J$n")})}}}
+  item { Row(horizontalArrangement=Arrangement.spacedBy(4.dp)){(1..5).forEach{n->FilterChip(selected=selectedDay==n,onClick={selectedDay=n;scoreIndex=0},label={Text("J$n")})}}}
   item { Text(when(language){AppLanguage.FR->"Jour $selectedDay";AppLanguage.EN->"Day $selectedDay";AppLanguage.DE->"Tag $selectedDay";AppLanguage.TR->"$selectedDay. gün";AppLanguage.RU->"День $selectedDay";AppLanguage.ZH->"第 $selectedDay 天";AppLanguage.IT->"Giorno $selectedDay"}+" · "+day.title.text(language),style=MaterialTheme.typography.titleMedium) }
   items(day.actions){action->Card(Modifier.fillMaxWidth()){Column(Modifier.padding(12.dp),verticalArrangement=Arrangement.spacedBy(4.dp)){Text(action.text(language));if(action.points.isNotBlank())Text(action.points,color=MaterialTheme.colorScheme.primary,style=MaterialTheme.typography.labelMedium)}}}
   item { Card(Modifier.fillMaxWidth()){Column(Modifier.padding(12.dp),verticalArrangement=Arrangement.spacedBy(4.dp)){
