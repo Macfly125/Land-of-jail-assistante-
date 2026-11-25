@@ -127,4 +127,24 @@ class GiftCodeRepositoryTest {
         assertEquals("UNVERIFIED", updated.getValue("INVALID").status)
     }
 
+    @Test
+    fun parserInheritsGiftCodeContextFromSectionHeadingsOnlyWithinThatSection() {
+        val html = """
+            <h2>Active Gift Codes</h2>
+            <ul><li>LOJ2026A</li><li>JAIL2026B</li></ul>
+            <h2>Latest rewards</h2>
+            <ul><li>DIAMONDS2026</li><li>HEROES2026</li></ul>
+            <h2>Expired Codes</h2>
+            <ul><li>OLD2026A</li></ul>
+        """.trimIndent()
+
+        val parsed = GiftCodeRepository.extractCandidatesFromHtml(html).associateBy { it.first }
+
+        assertTrue(parsed.containsKey("LOJ2026A"))
+        assertTrue(parsed.containsKey("JAIL2026B"))
+        assertFalse(parsed.containsKey("DIAMONDS2026"))
+        assertFalse(parsed.containsKey("HEROES2026"))
+        assertTrue(parsed.getValue("OLD2026A").second.contains("expired codes"))
+    }
+
 }
