@@ -179,4 +179,22 @@ class ProgressionCatalogTest {
         assertTrue(rows.none { it.step.toLevel > 6 })
     }
 
+
+    @Test
+    fun showerRoomCatalogContainsExactCashCostsThroughLevelTen() {
+        val rows = ProgressionCatalog.showerRoomBuilding
+        assertEquals((2..10).toList(), rows.map { it.step.toLevel })
+        assertEquals(listOf(174L, 208L, 250L, 1_125L, 2_813L, 5_626L, 18_600L, 22_300L, 26_700L),
+            rows.map { it.step.costs.single().quantity })
+        assertEquals(listOf(11L, 18L, 31L, 123L, 233L, 450L, 640L, 883L, 1_104L),
+            rows.map { it.step.durationSeconds })
+        assertEquals((2..10).toList(), rows.map {
+            it.prerequisiteNotes.single().substringAfter("Lv.").toInt()
+        })
+        assertTrue(rows.all { it.step.costs.single().resourceId == "gold" })
+        assertTrue(rows.all { it.sourceUrl == ProgressionCatalog.SHOWER_ROOM_SOURCE })
+        assertTrue(rows.all { it.checkedOn == ProgressionCatalog.SOURCE_CHECKED_ON })
+        assertTrue(rows.none { it.step.toLevel > 10 })
+    }
+
 }
