@@ -140,12 +140,12 @@ internal fun localizedCaptureCategory(language: AppLanguage, raw: String): Strin
 internal fun localizedResourceName(language: AppLanguage, raw: String): String {
     val key = raw.lowercase()
     if (language == AppLanguage.IT) return when {
-        key.contains("nourriture") || key.contains("food") -> "Cibo"
-        key.contains("bois") || key.contains("wood") -> "Legno"
-        key.contains("acier") || key.contains("steel") -> "Acciaio"
-        key.contains("essence") || key.contains("gasoline") -> "Benzina"
+        key.contains("nourriture") || key.contains("food") || key.contains("cibo") -> "Cibo"
+        key.contains("bois") || key.contains("wood") || key.contains("legno") -> "Legno"
+        key.contains("acier") || key.contains("steel") || key.contains("acciaio") -> "Acciaio"
+        key.contains("essence") || key.contains("gasoline") || key.contains("benzina") || key.contains("carburante") -> "Benzina"
         key.contains("diamant") || key.contains("gem") -> "Diamanti"
-        key.contains("cash") || key == "or" || key.contains("gold") || key.contains("altın") || key.contains("золото") || key.contains("金币") || key.contains("黄金") -> "Oro"
+        key.contains("cash") || key == "or" || key.contains("gold") || key.contains("oro") || key.contains("altın") || key.contains("золото") || key.contains("金币") || key.contains("黄金") -> "Oro"
         else -> raw
     }
     return when {
@@ -162,12 +162,12 @@ internal fun localizedResourceName(language: AppLanguage, raw: String): String {
 private fun resourceIcon(raw: String): String {
     val key = raw.lowercase()
     return when {
-        key.contains("nourriture") || key.contains("food") || key.contains("vivres") -> "🍖"
-        key.contains("bois") || key.contains("wood") -> "🪵"
-        key.contains("acier") || key.contains("steel") || key.contains("iron") -> "⚙️"
-        key.contains("essence") || key.contains("gasoline") || key.contains("fuel") -> "⛽"
+        key.contains("nourriture") || key.contains("food") || key.contains("vivres") || key.contains("cibo") -> "🍖"
+        key.contains("bois") || key.contains("wood") || key.contains("legno") -> "🪵"
+        key.contains("acier") || key.contains("steel") || key.contains("iron") || key.contains("acciaio") -> "⚙️"
+        key.contains("essence") || key.contains("gasoline") || key.contains("fuel") || key.contains("benzina") -> "⛽"
         key.contains("diamant") || key.contains("gem") -> "💎"
-        key.contains("gold") || key.contains("or") || key.contains("cash") -> "🪙"
+        key.contains("gold") || key.contains("or") || key.contains("oro") || key.contains("cash") -> "🪙"
         key.contains("forticlad") -> "🔷"
         key.contains("hyperalloy") || key.contains("hyperalliage") -> "🧩"
         else -> "📦"
