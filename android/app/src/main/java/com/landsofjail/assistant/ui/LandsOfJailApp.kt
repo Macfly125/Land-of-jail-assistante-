@@ -114,26 +114,26 @@ internal fun localizedCaptureCategory(language: AppLanguage, raw: String): Strin
         else -> "Altra schermata"
     }
     return when (key) {
-        "heros", "heroes" -> localizedUiText(language, "Héros", "Heroes", "Helden", "Kahramanlar", "Герои", "英雄")
-        "robots" -> localizedUiText(language, "Robots", "Robots", "Roboter", "Robotlar", "Роботы", "机器人")
-        "power_armor" -> localizedUiText(language, "Hangar d’armure de puissance", "Power Armor Hangar", "Power-Armor-Hangar", "Güç Zırhı Hangarı", "Ангар силовой брони", "动力装甲机库")
-        "forticlad_lab" -> localizedUiText(language, "Laboratoire Forticlad", "Forticlad Lab", "Forticlad-Labor", "Forticlad Laboratuvarı", "Лаборатория Forticlad", "Forticlad 实验室")
-        "lab" -> localizedUiText(language, "Laboratoire", "Lab", "Labor", "Laboratuvar", "Лаборатория", "实验室")
-        "cosmos_hub" -> localizedUiText(language, "Centre cosmique", "Cosmos Hub", "Kosmos-Zentrum", "Kozmos Merkezi", "Космический центр", "宇宙中心")
-        "dungeon" -> localizedUiText(language, "Donjon", "Dungeon", "Verlies", "Zindan", "Подземелье", "地牢")
-        "equipements", "equipment", "gear" -> localizedUiText(language, "Amélioration d'équipements", "Equipment upgrades", "Ausrüstungsverbesserung", "Ekipman geliştirme", "Улучшение снаряжения", "装备升级")
-        "ressources", "resources" -> localizedUiText(language, "Ressources", "Resources", "Ressourcen", "Kaynaklar", "Ресурсы", "资源")
-        "batiments", "buildings" -> localizedUiText(language, "Bâtiments", "Buildings", "Gebäude", "Binalar", "Здания", "建筑")
-        "troupes", "troops" -> localizedUiText(language, "Troupes", "Troops", "Truppen", "Birlikler", "Войска", "部队")
-        "profil", "profile" -> localizedUiText(language, "Profil", "Profile", "Profil", "Profil", "Профиль", "个人资料")
-        "gorilla_legion" -> localizedUiText(language, "Légion de Gorilla", "Gorilla Legion", "Gorilla-Legion", "Goril Lejyonu", "Легион горилл", "大猩猩军团")
-        "trial_cage" -> localizedUiText(language, "Cage d’essai", "Trial Cage", "Prüfungskäfig", "Deneme Kafesi", "Испытательная клетка", "试炼笼")
-        "crystal_clash" -> localizedUiText(language, "Conflit cristallin", "Crystal Clash", "Kristallkonflikt", "Kristal Çatışması", "Кристальная битва", "水晶冲突")
-        "sandsea_conquest" -> localizedUiText(language, "Conquête de sable", "Sandsea Conquest", "Sandmeer-Eroberung", "Kum Denizi Fethi", "Покорение песчаного моря", "沙海征服")
+        "heros", "heroes" -> localizedUiText(language, "Héros", "Heroes", "Helden", "Kahramanlar", "Герои", "英雄", "Eroi")
+        "robots" -> localizedUiText(language, "Robots", "Robots", "Roboter", "Robotlar", "Роботы", "机器人", "Robot")
+        "power_armor" -> localizedUiText(language, "Hangar d’armure de puissance", "Power Armor Hangar", "Power-Armor-Hangar", "Güç Zırhı Hangarı", "Ангар силовой брони", "动力装甲机库", "Hangar delle armature potenziate")
+        "forticlad_lab" -> localizedUiText(language, "Laboratoire Forticlad", "Forticlad Lab", "Forticlad-Labor", "Forticlad Laboratuvarı", "Лаборатория Forticlad", "Forticlad 实验室", "Laboratorio Forticlad")
+        "lab" -> localizedUiText(language, "Laboratoire", "Lab", "Labor", "Laboratuvar", "Лаборатория", "实验室", "Laboratorio")
+        "cosmos_hub" -> localizedUiText(language, "Centre cosmique", "Cosmos Hub", "Kosmos-Zentrum", "Kozmos Merkezi", "Космический центр", "宇宙中心", "Centro cosmico")
+        "dungeon" -> localizedUiText(language, "Donjon", "Dungeon", "Verlies", "Zindan", "Подземелье", "地牢", "Prigione")
+        "equipements", "equipment", "gear" -> localizedUiText(language, "Amélioration d'équipements", "Equipment upgrades", "Ausrüstungsverbesserung", "Ekipman geliştirme", "Улучшение снаряжения", "装备升级", "Miglioramento equipaggiamento")
+        "ressources", "resources" -> localizedUiText(language, "Ressources", "Resources", "Ressourcen", "Kaynaklar", "Ресурсы", "资源", "Risorse")
+        "batiments", "buildings" -> localizedUiText(language, "Bâtiments", "Buildings", "Gebäude", "Binalar", "Здания", "建筑", "Edifici")
+        "troupes", "troops" -> localizedUiText(language, "Troupes", "Troops", "Truppen", "Birlikler", "Войска", "部队", "Truppe")
+        "profil", "profile" -> localizedUiText(language, "Profil", "Profile", "Profil", "Profil", "Профиль", "个人资料", "Profilo")
+        "gorilla_legion" -> localizedUiText(language, "Légion de Gorilla", "Gorilla Legion", "Gorilla-Legion", "Goril Lejyonu", "Легион горилл", "大猩猩军团", "Legione dei Gorilla")
+        "trial_cage" -> localizedUiText(language, "Cage d’essai", "Trial Cage", "Prüfungskäfig", "Deneme Kafesi", "Испытательная клетка", "试炼笼", "Gabbia di prova")
+        "crystal_clash" -> localizedUiText(language, "Conflit cristallin", "Crystal Clash", "Kristallkonflikt", "Kristal Çatışması", "Кристальная битва", "水晶冲突", "Scontro cristallino")
+        "sandsea_conquest" -> localizedUiText(language, "Conquête de sable", "Sandsea Conquest", "Sandmeer-Eroberung", "Kum Denizi Fethi", "Покорение песчаного моря", "沙海征服", "Conquista del Mare di Sabbia")
         "svs" -> "SvS"
-        "turmoil_surge" -> localizedUiText(language, "Vague de chaos", "Turmoil Surge", "Chaoswelle", "Kaos Dalgası", "Волна хаоса", "混乱浪潮")
-        "gold_hunter" -> localizedUiText(language, "Chasseur d’or", "Gold Hunter", "Goldjäger", "Altın Avcısı", "Золотой охотник", "黄金猎人")
-        else -> localizedUiText(language, "Autre capture", "Other capture", "Andere Aufnahme", "Diğer yakalama", "Другая запись", "其他截图")
+        "turmoil_surge" -> localizedUiText(language, "Vague de chaos", "Turmoil Surge", "Chaoswelle", "Kaos Dalgası", "Волна хаоса", "混乱浪潮", "Ondata di caos")
+        "gold_hunter" -> localizedUiText(language, "Chasseur d’or", "Gold Hunter", "Goldjäger", "Altın Avcısı", "Золотой охотник", "黄金猎人", "Cacciatore d'oro")
+        else -> localizedUiText(language, "Autre capture", "Other capture", "Andere Aufnahme", "Diğer yakalama", "Другая запись", "其他截图", "Altra schermata")
     }
 }
 
@@ -149,12 +149,12 @@ internal fun localizedResourceName(language: AppLanguage, raw: String): String {
         else -> raw
     }
     return when {
-        key.contains("nourriture") || key.contains("food") -> localizedUiText(language, "Nourriture", "Food", "Nahrung", "Yiyecek", "Еда", "食物")
-        key.contains("bois") || key.contains("wood") -> localizedUiText(language, "Bois", "Wood", "Holz", "Odun", "Дерево", "木材")
-        key.contains("acier") || key.contains("steel") -> localizedUiText(language, "Acier", "Steel", "Stahl", "Çelik", "Сталь", "钢材")
-        key.contains("essence") || key.contains("gasoline") -> localizedUiText(language, "Essence", "Gasoline", "Benzin", "Benzin", "Бензин", "汽油")
-        key.contains("diamant") || key.contains("gem") -> localizedUiText(language, "Diamants", "Gems", "Diamanten", "Elmas", "Алмазы", "钻石")
-        key.contains("cash") || key == "or" || key.contains("gold") || key.contains("altın") || key.contains("золото") || key.contains("金币") || key.contains("黄金") -> localizedUiText(language, "Or", "Gold", "Gold", "Altın", "Золото", "金币")
+        key.contains("nourriture") || key.contains("food") -> localizedUiText(language, "Nourriture", "Food", "Nahrung", "Yiyecek", "Еда", "食物", "Cibo")
+        key.contains("bois") || key.contains("wood") -> localizedUiText(language, "Bois", "Wood", "Holz", "Odun", "Дерево", "木材", "Legno")
+        key.contains("acier") || key.contains("steel") -> localizedUiText(language, "Acier", "Steel", "Stahl", "Çelik", "Сталь", "钢材", "Acciaio")
+        key.contains("essence") || key.contains("gasoline") -> localizedUiText(language, "Essence", "Gasoline", "Benzin", "Benzin", "Бензин", "汽油", "Benzina")
+        key.contains("diamant") || key.contains("gem") -> localizedUiText(language, "Diamants", "Gems", "Diamanten", "Elmas", "Алмазы", "钻石", "Gemme")
+        key.contains("cash") || key == "or" || key.contains("gold") || key.contains("altın") || key.contains("золото") || key.contains("金币") || key.contains("黄金") -> localizedUiText(language, "Or", "Gold", "Gold", "Altın", "Золото", "金币", "Oro")
         else -> raw
     }
 }
@@ -187,17 +187,17 @@ internal fun localizedEquipmentPiece(language: AppLanguage, raw: String): String
     }
     return when {
         key.contains("arme") || key.contains("weapon") || key.contains("waffe") || key.contains("silah") || key.contains("оруж") || key.contains("武器") ->
-            localizedUiText(language, "Arme", "Weapon", "Waffe", "Silah", "Оружие", "武器")
+            localizedUiText(language, "Arme", "Weapon", "Waffe", "Silah", "Оружие", "武器", "Arma")
         key.contains("armure") || key.contains("armor") || key.contains("rüstung") || key.contains("zırh") || key.contains("брон") || key.contains("护甲") ->
-            localizedUiText(language, "Armure", "Armor", "Rüstung", "Zırh", "Броня", "护甲")
+            localizedUiText(language, "Armure", "Armor", "Rüstung", "Zırh", "Броня", "护甲", "Armatura")
         key.contains("casque") || key.contains("helmet") || key.contains("helm") || key.contains("miğfer") || key.contains("шлем") || key.contains("头盔") ->
-            localizedUiText(language, "Casque", "Helmet", "Helm", "Miğfer", "Шлем", "头盔")
+            localizedUiText(language, "Casque", "Helmet", "Helm", "Miğfer", "Шлем", "头盔", "Elmo")
         key.contains("gant") || key.contains("glove") || key.contains("handschuh") || key.contains("eldiven") || key.contains("перчат") || key.contains("手套") ->
-            localizedUiText(language, "Gants", "Gloves", "Handschuhe", "Eldiven", "Перчатки", "手套")
+            localizedUiText(language, "Gants", "Gloves", "Handschuhe", "Eldiven", "Перчатки", "手套", "Guanti")
         key.contains("botte") || key.contains("boot") || key.contains("stiefel") || key == "bot" || key.contains("сапог") || key.contains("靴") ->
-            localizedUiText(language, "Bottes", "Boots", "Stiefel", "Bot", "Сапоги", "靴子")
+            localizedUiText(language, "Bottes", "Boots", "Stiefel", "Bot", "Сапоги", "靴子", "Stivali")
         key.contains("accessoire") || key.contains("accessory") || key.contains("zubehör") || key.contains("aksesuar") || key.contains("аксессуар") || key.contains("配件") ->
-            localizedUiText(language, "Accessoire", "Accessory", "Zubehör", "Aksesuar", "Аксессуар", "配件")
+            localizedUiText(language, "Accessoire", "Accessory", "Zubehör", "Aksesuar", "Аксессуар", "配件", "Accessorio")
         else -> raw
     }
 }
@@ -205,32 +205,32 @@ internal fun localizedEquipmentPiece(language: AppLanguage, raw: String): String
 private fun localizedCaptureSummary(item: ScreenshotAnalysis, language: AppLanguage): String {
     val parts = buildList {
         item.puissance?.puissanceTotaleTexte?.takeIf { it.isNotBlank() }?.let {
-            add(if (language == AppLanguage.IT) "Potenza: $it" else localizedUiText(language, "Puissance : $it", "Power: $it", "Macht: $it", "Güç: $it", "Мощь: $it", "战力：$it"))
+            add(if (language == AppLanguage.IT) "Potenza: $it" else localizedUiText(language, "Puissance : $it", "Power: $it", "Macht: $it", "Güç: $it", "Мощь: $it", "战力：$it", "Potenza: $it"))
         }
         if (item.ressources.isNotEmpty()) {
             val values = item.ressources.joinToString(" · ") {
                 "${localizedResourceName(language, it.nom)}: ${it.quantiteTexte}"
             }
-            add(if (language == AppLanguage.IT) "Risorse: $values" else localizedUiText(language, "Ressources : $values", "Resources: $values", "Ressourcen: $values", "Kaynaklar: $values", "Ресурсы: $values", "资源：$values"))
+            add(if (language == AppLanguage.IT) "Risorse: $values" else localizedUiText(language, "Ressources : $values", "Resources: $values", "Ressourcen: $values", "Kaynaklar: $values", "Ресурсы: $values", "资源：$values", "Risorse: $values"))
         }
         if (item.heros.isNotEmpty()) {
             val names = item.heros.take(4).joinToString(", ") { it.nom }
-            add(if (language == AppLanguage.IT) "Eroi: $names" else localizedUiText(language, "Héros : $names", "Heroes: $names", "Helden: $names", "Kahramanlar: $names", "Герои: $names", "英雄：$names"))
+            add(if (language == AppLanguage.IT) "Eroi: $names" else localizedUiText(language, "Héros : $names", "Heroes: $names", "Helden: $names", "Kahramanlar: $names", "Герои: $names", "英雄：$names", "Eroi: $names"))
         }
         if (item.robots.isNotEmpty()) {
             val names = item.robots.take(3).joinToString(", ") { it.nom }
-            add(if (language == AppLanguage.IT) "Robot: $names" else localizedUiText(language, "Robots : $names", "Robots: $names", "Roboter: $names", "Robotlar: $names", "Роботы: $names", "机器人：$names"))
+            add(if (language == AppLanguage.IT) "Robot: $names" else localizedUiText(language, "Robots : $names", "Robots: $names", "Roboter: $names", "Robotlar: $names", "Роботы: $names", "机器人：$names", "Robot: $names"))
         }
         if (item.equipements.isNotEmpty()) {
             val details = item.equipements.take(4).joinToString(", ") {
-                if (it.niveau.isNotBlank()) "${localizedEquipmentPiece(language, it.piece)} ${if (language == AppLanguage.IT) "Liv." else localizedUiText(language, "Niv.", "Lv.", "Stufe", "Sv.", "Ур.", "等级")} ${it.niveau}" else localizedEquipmentPiece(language, it.piece)
+                if (it.niveau.isNotBlank()) "${localizedEquipmentPiece(language, it.piece)} ${if (language == AppLanguage.IT) "Liv." else localizedUiText(language, "Niv.", "Lv.", "Stufe", "Sv.", "Ур.", "等级", "Liv.")} ${it.niveau}" else localizedEquipmentPiece(language, it.piece)
             }
-            add(if (language == AppLanguage.IT) "Equipaggiamento: $details" else localizedUiText(language, "Équipements : $details", "Equipment: $details", "Ausrüstung: $details", "Ekipman: $details", "Снаряжение: $details", "装备：$details"))
+            add(if (language == AppLanguage.IT) "Equipaggiamento: $details" else localizedUiText(language, "Équipements : $details", "Equipment: $details", "Ausrüstung: $details", "Ekipman: $details", "Снаряжение: $details", "装备：$details", "Equipaggiamento: $details"))
         }
     }
     return parts.takeIf { it.isNotEmpty() }?.joinToString(" · ")
         ?: if (language == AppLanguage.IT) "Nessun valore letto con certezza; verifica lo screenshot."
-        else localizedUiText(language, "Aucune valeur lue avec certitude ; vérification de la capture nécessaire.", "No values read with confidence; screenshot review is needed.", "Keine Werte sicher gelesen; Screenshot muss geprüft werden.", "Hiçbir değer güvenle okunamadı; ekran görüntüsü kontrol edilmeli.", "Не удалось уверенно прочитать значения; снимок нужно проверить.", "未能可靠读取数值。")
+        else localizedUiText(language, "Aucune valeur lue avec certitude ; vérification de la capture nécessaire.", "No values read with confidence; screenshot review is needed.", "Keine Werte sicher gelesen; Screenshot muss geprüft werden.", "Hiçbir değer güvenle okunamadı; ekran görüntüsü kontrol edilmeli.", "Не удалось уверенно прочитать значения; снимок нужно проверить.", "未能可靠读取数值。", "Nessun valore è stato letto con certezza; è necessario controllare lo screenshot.")
 }
 
 
@@ -3990,7 +3990,7 @@ private fun ResourcesScreen(
                     "comms_center" to "📡 " + localizedUiText(currentLang, "Centre de communications", "Communication Center", "Kommunikationszentrum", "İletişim Merkezi", "Центр связи", "通讯中心"),
                     "command_center" to "🚩 " + localizedUiText(currentLang, "Centre de commandement", "Command Center", "Kommandozentrale", "Komuta Merkezi", "Командный центр", "指挥中心"),
                     "medical_station" to "➕ " + localizedUiText(currentLang, "Poste médical", "Medical Station", "Sanitätsstation", "Sağlık İstasyonu", "Медицинский пункт", "医疗站"),
-                    "forticlad_lab" to "🧪 " + localizedUiText(currentLang, "Laboratoire Forticlad", "Forticlad Lab", "Forticlad-Labor", "Forticlad Laboratuvarı", "Лаборатория Forticlad", "Forticlad 实验室")
+                    "forticlad_lab" to "🧪 " + localizedUiText(currentLang, "Laboratoire Forticlad", "Forticlad Lab", "Forticlad-Labor", "Forticlad Laboratuvarı", "Лаборатория Forticlad", "Forticlad 实验室", "Laboratorio Forticlad")
                 )
                 val selectedCosts = fcCosts[fcBuildingKey] ?: fcCosts.getValue("warden_office")
                 val startStep = (fcCurrentLevel - 1) * 5 + fcCurrentProgress
@@ -4291,12 +4291,12 @@ private fun ResourcesScreen(
                 item {
                     val systems = listOf(
                         Triple("🛡️", localizedUiText(currentLang, "Arsenal", "Arsenal", "Arsenal", "Cephanelik", "Арсенал", "军械库"), localizedUiText(currentLang, "Niv. 15 · Équipement héros : EXP, aimants, bobines potentielles et engrenages de précision", "Lv. 15 · Hero equipment: EXP, Magnets, Potential Coils and Precision Gears", "Stufe 15 · Heldenausrüstung: EXP, Magnete, Potenzialspulen und Präzisionszahnräder", "Sv. 15 · Kahraman ekipmanı: EXP, Mıknatıs, Potansiyel Bobin ve Hassas Dişli", "Ур. 15 · Снаряжение героев: опыт, магниты, потенциальные катушки и точные шестерни", "15级 · 英雄装备：经验、磁铁、潜能线圈和精密齿轮")),
-                        Triple("🧪", localizedUiText(currentLang, "Laboratoire", "Lab", "Labor", "Laboratuvar", "Лаборатория", "实验室"), localizedUiText(currentLang, "Niv. 9 · Recherches Logistique, Économie et Militaire", "Lv. 9 · Logistics, Economy and Military research", "Stufe 9 · Forschung in Logistik, Wirtschaft und Militär", "Sv. 9 · Lojistik, Ekonomi ve Askerî araştırmalar", "Ур. 9 · Исследования логистики, экономики и военного дела", "9级 · 后勤、经济和军事研究")),
-                        Triple("🤖", localizedUiText(currentLang, "Hangar d’armure de puissance", "Power Armor Hangar", "Power-Armor-Hangar", "Güç Zırhı Hangarı", "Ангар силовой брони", "动力装甲机库"), localizedUiText(currentLang, "Niv. 25 · Armure du prisonnier, données d’armure, modules et noyaux I–V", "Lv. 25 · Prisoner Armor, Armor Data, modules and Core I–V", "Stufe 25 · Gefangenenrüstung, Rüstungsdaten, Module und Kerne I–V", "Sv. 25 · Mahkûm Zırhı, zırh verisi, modüller ve Çekirdek I–V", "Ур. 25 · Броня заключённого, данные брони, модули и ядра I–V", "25级 · 囚犯动力装甲、装甲数据、模块和核心 I–V")),
-                        Triple("🛰️", localizedUiText(currentLang, "Centre cosmique (Cosmos Hub)", "Cosmos Hub", "Kosmos-Zentrum", "Kozmos Merkezi", "Космический центр", "宇宙中心"), localizedUiText(currentLang, "Niv. 20 · Satellites, disques de données et puces", "Lv. 20 · Satellites, Data Disks and chips", "Stufe 20 · Satelliten, Datendisks und Chips", "Sv. 20 · Uydular, Veri Diskleri ve çipler", "Ур. 20 · Спутники, диски данных и чипы", "20级 · 卫星、数据盘和芯片")),
+                        Triple("🧪", localizedUiText(currentLang, "Laboratoire", "Lab", "Labor", "Laboratuvar", "Лаборатория", "实验室", "Laboratorio"), localizedUiText(currentLang, "Niv. 9 · Recherches Logistique, Économie et Militaire", "Lv. 9 · Logistics, Economy and Military research", "Stufe 9 · Forschung in Logistik, Wirtschaft und Militär", "Sv. 9 · Lojistik, Ekonomi ve Askerî araştırmalar", "Ур. 9 · Исследования логистики, экономики и военного дела", "9级 · 后勤、经济和军事研究")),
+                        Triple("🤖", localizedUiText(currentLang, "Hangar d’armure de puissance", "Power Armor Hangar", "Power-Armor-Hangar", "Güç Zırhı Hangarı", "Ангар силовой брони", "动力装甲机库", "Hangar delle armature potenziate"), localizedUiText(currentLang, "Niv. 25 · Armure du prisonnier, données d’armure, modules et noyaux I–V", "Lv. 25 · Prisoner Armor, Armor Data, modules and Core I–V", "Stufe 25 · Gefangenenrüstung, Rüstungsdaten, Module und Kerne I–V", "Sv. 25 · Mahkûm Zırhı, zırh verisi, modüller ve Çekirdek I–V", "Ур. 25 · Броня заключённого, данные брони, модули и ядра I–V", "25级 · 囚犯动力装甲、装甲数据、模块和核心 I–V")),
+                        Triple("🛰️", localizedUiText(currentLang, "Centre cosmique (Cosmos Hub)", "Cosmos Hub", "Kosmos-Zentrum", "Kozmos Merkezi", "Космический центр", "宇宙中心", "Centro cosmico"), localizedUiText(currentLang, "Niv. 20 · Satellites, disques de données et puces", "Lv. 20 · Satellites, Data Disks and chips", "Stufe 20 · Satelliten, Datendisks und Chips", "Sv. 20 · Uydular, Veri Diskleri ve çipler", "Ур. 20 · Спутники, диски данных и чипы", "20级 · 卫星、数据盘和芯片")),
                         Triple("🏰", localizedUiText(currentLang, "Donjon · Bureau et surveillance", "Dungeon · Office and Surveillance", "Verlies · Büro und Überwachung", "Zindan · Ofis ve Gözetim", "Подземелье · офис и наблюдение", "地牢 · 办公室与监控"), localizedUiText(currentLang, "Suivi des prisonniers fugitifs et criminels, avec les salles du donjon", "Track fugitive and criminal prisoners and dungeon rooms", "Flüchtige und kriminelle Gefangene sowie Verliesräume verfolgen", "Kaçak ve suçlu mahkûmları ve zindan odalarını takip et", "Учёт беглых и преступных заключённых и помещений подземелья", "追踪逃犯、罪犯囚犯及地牢房间")),
                         Triple("⚡", localizedUiText(currentLang, "Station d’énergie Forticlad", "Forticlad Energy Station", "Forticlad-Energiestation", "Forticlad Enerji İstasyonu", "Энергостанция Forticlad", "Forticlad 能源站"), localizedUiText(currentLang, "Niv. 30 · Production quotidienne de noyaux Forticlad", "Lv. 30 · Daily Forticlad Core supply", "Stufe 30 · Tägliche Versorgung mit Forticlad-Kernen", "Sv. 30 · Günlük Forticlad Çekirdeği üretimi", "Ур. 30 · Ежедневная выдача ядер Forticlad", "30级 · 每日供应 Forticlad 核心")),
-                        Triple("🔬", localizedUiText(currentLang, "Laboratoire Forticlad", "Forticlad Lab", "Forticlad-Labor", "Forticlad Laboratuvarı", "Лаборатория Forticlad", "Forticlad 实验室"), localizedUiText(currentLang, "Niv. 30 · Technologie Forticlad et Hyperalliage pour les troupes", "Lv. 30 · Forticlad Technology and Hyperalloy for troops", "Stufe 30 · Forticlad-Technologie und Hyperlegierung für Truppen", "Sv. 30 · Birlikler için Forticlad Teknolojisi ve Hiperalaşım", "Ур. 30 · Технология Forticlad и гиперсплав для войск", "30级 · 部队 Forticlad 科技和超合金"))
+                        Triple("🔬", localizedUiText(currentLang, "Laboratoire Forticlad", "Forticlad Lab", "Forticlad-Labor", "Forticlad Laboratuvarı", "Лаборатория Forticlad", "Forticlad 实验室", "Laboratorio Forticlad"), localizedUiText(currentLang, "Niv. 30 · Technologie Forticlad et Hyperalliage pour les troupes", "Lv. 30 · Forticlad Technology and Hyperalloy for troops", "Stufe 30 · Forticlad-Technologie und Hyperlegierung für Truppen", "Sv. 30 · Birlikler için Forticlad Teknolojisi ve Hiperalaşım", "Ур. 30 · Технология Forticlad и гиперсплав для войск", "30级 · 部队 Forticlad 科技和超合金"))
                     )
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         systems.forEach { (icon, name, description) ->
