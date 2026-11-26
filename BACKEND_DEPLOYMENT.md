@@ -1,6 +1,6 @@
-# Fonctionnement sans service cloud payant
+# Fonctionnement Android local avec API Render conservée
 
-Le projet privilégie une architecture Android locale et gratuite.
+Le projet privilégie une architecture Android locale et gratuite. Le service Render `https://land-of-jail-assistant-api.onrender.com/` est conservé pour le site et les API distantes utiles à Android. Vercel et Bolt ne font pas partie du circuit de déploiement.
 
 - Les données déjà téléchargées restent consultables hors ligne grâce au cache local.
 - La vérification des mises à jour doit être déclenchée à l'ouverture de l'application, une seule fois par session.
@@ -13,6 +13,13 @@ Le projet privilégie une architecture Android locale et gratuite.
 Les sources publiques peuvent changer, limiter les accès ou ne pas fournir de flux structuré. L'application doit afficher la date de dernière vérification et distinguer les données confirmées des informations incertaines. En l'absence de réseau, elle conserve les dernières données valides.
 
 La veille ne doit pas effectuer de surveillance permanente ni lancer des rafraîchissements répétés en arrière-plan. Une tâche ponctuelle peut terminer un rafraîchissement déjà lancé, puis s'arrêter.
+
+## Hébergement Render
+
+- Conserver le serveur Express et ses routes `/api/*`.
+- Conserver le service Render existant ; ne pas le remplacer par Vercel.
+- Le site web servi par Express en production doit continuer à être compilé dans `dist`.
+- Une indisponibilité de Render ne doit pas bloquer les fonctions Android locales.
 
 ## Développement
 
