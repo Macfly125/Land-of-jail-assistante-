@@ -136,6 +136,23 @@ fun mergeProgressionStocks(
 }
 
 /**
+ * Insert or replace a goal without accidentally losing the primary-goal flag.
+ * Also normalizes legacy profiles to exactly one primary objective.
+ */
+fun upsertProgressionObjective(
+    objectives: List<ProgressionObjective>,
+    objective: ProgressionObjective
+): List<ProgressionObjective> {
+    val replaced = objectives.firstOrNull { it.id == objective.id }
+    val shouldBePrimary = replaced?.isPrimary ?: objectives.none { it.isPrimary }
+    val updated = objectives.filterNot { it.id == objective.id } +
+        objective.copy(isPrimary = shouldBePrimary)
+    val primaryId = updated.firstOrNull { it.isPrimary }?.id
+        ?: updated.firstOrNull()?.id
+    return updated.map { it.copy(isPrimary = it.id == primaryId) }
+}
+
+/**
  * Remove one objective and keep exactly one primary objective when any remain.
  * An existing primary is preserved; otherwise the first remaining objective
  * becomes primary.
