@@ -2261,7 +2261,6 @@ fun LandsOfJailAssistantApp(
                             onClick = {
                                 context.startActivity(
                                     Intent(context, ScreenCaptureConsentActivity::class.java).apply {
-                                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                     }
                                 )
                             },
@@ -2426,7 +2425,6 @@ fun LandsOfJailAssistantApp(
                                 Intent(context, ScreenCaptureConsentActivity::class.java).apply {
                                     putExtra(ScreenCaptureConsentActivity.EXTRA_AUTO_CAPTURE, true)
                                     putExtra(ScreenCaptureConsentActivity.EXTRA_INTERVAL_MILLIS, autoCaptureIntervalSeconds * 1000L)
-                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 }
                             )
                         },
@@ -2448,7 +2446,6 @@ fun LandsOfJailAssistantApp(
                         onAnalyzeScreenNow = {
                             context.startActivity(
                                 Intent(context, ScreenCaptureConsentActivity::class.java).apply {
-                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 }
                             )
                         },
