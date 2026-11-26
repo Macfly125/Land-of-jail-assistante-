@@ -951,3 +951,48 @@ Potential Coil x 8"""
     }
 
 }
+
+
+    @Test
+    fun classifiesTheCompleteSupportedScreenCategoryMatrixWithoutCrossCategoryDrift() {
+        val cases = listOf(
+            "Gorilla Legion\\nGorilla Warlord\\nGorilla Chieftain" to "gorilla_legion",
+            "Trial Cage\\nDamage Ranking\\nDamage Dealt" to "trial_cage",
+            "Crystal Clash\\nIronhold\\nEnergy Hub" to "crystal_clash",
+            "Sandsea Conquest\\nVessel Station\\nLighthouse" to "sandsea_conquest",
+            "Supreme Honor\\nWar Preparation\\nSVS" to "svs",
+            "Turmoil Surge\\nSentry Turret\\nWave" to "turmoil_surge",
+            "Gold Hunter\\nHunter Points" to "gold_hunter",
+            "Robot Center\\nRobot Upgrade\\nPhantom Cat" to "robots",
+            "Power Armor Hangar\\nSolo Module\\nBarrier Module" to "power_armor",
+            "Forticlad Lab\\nHyperalloy\\nForticlad Technology" to "forticlad_lab",
+            "Logistics Technology\\nEconomy Technology\\nMilitary Technology" to "lab",
+            "Cosmos Hub\\nCosmic Core\\nOrbital Core" to "cosmos_hub",
+            "Dungeon Office\\nSurveillance Room\\nCriminal Prison" to "dungeon",
+            "Hero Equipment\\nEquipment Upgrade\\nPotential Coil" to "equipements",
+            "Heroes\\nSkills\\nStars" to "heros",
+            "Warden's Office\\nBuilding Upgrade\\nBarracks" to "batiments",
+            "Shieldbearers\\nBombers\\nShooters\\nTroops" to "troupes",
+            "Food\\nWood\\nSteel\\nGasoline" to "ressources",
+            "Satellite Launch\\nData Disks\\nPlanet Coins" to "satellites",
+            "Haven Island\\nMansion\\nDecorations\\nTreasure Cube" to "haven_island",
+            "Arrest Stage\\nArrest Battle\\nContraband Search" to "arrest",
+            "Warden's Trove\\nCollection Pieces\\nTomes" to "trove",
+            "Alliance Territory\\nAlliance Technology\\nAlliance Shop" to "alliance",
+            "Item Inventory\\nChest Contents\\nDrop Rate" to "items",
+            "Player Profile\\nPower\\nEliminations" to "profil"
+        )
+
+        cases.forEach { (sample, expected) ->
+            val result = ScreenRecognitionEngine.analyze(sample)
+            assertEquals(
+                "La catégorie '$expected' est mal classée pour la capture textuelle : $sample",
+                expected,
+                result.category
+            )
+            assertTrue(
+                "La classification '$expected' doit demander une confirmation visuelle si elle est peu sûre",
+                result.confidence >= 0.52f
+            )
+        }
+    }
