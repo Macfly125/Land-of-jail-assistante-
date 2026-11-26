@@ -103,4 +103,19 @@ class ProgressionCoachTest {
         assertEquals("steel", plan.requirements.single { it.resourceId == "steel" }.resourceId)
     }
 
+    @Test
+    fun resourceTotalsSaturateInsteadOfOverflowing() {
+        val step = ProgressionStep(
+            "hq-overflow", ProgressionDomain.BUILDING, "Bureau", 1, 2,
+            listOf(
+                ResourceCost("wood", Long.MAX_VALUE, CostConfidence.VERIFIED_IN_GAME),
+                ResourceCost("wood", 1L, CostConfidence.VERIFIED_IN_GAME)
+            )
+        )
+        val plan = ProgressionCoach.calculate(listOf(step), emptyList())
+
+        assertEquals(Long.MAX_VALUE, plan.requirements.single().required)
+        assertNull(plan.requirements.single().missing)
+    }
+
 }
