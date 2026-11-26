@@ -483,6 +483,8 @@ fun ProgressionCoachScreen(
                                     "wood" -> text("Bois", "Wood", "Holz", "Odun", "Дерево", "木材", "Legno")
                                     "steel" -> text("Acier", "Steel", "Stahl", "Çelik", "Сталь", "钢材", "Acciaio")
                                     "gasoline" -> text("Essence", "Gasoline", "Benzin", "Benzin", "Бензин", "汽油", "Benzina")
+                                    "gold" -> text("Argent liquide", "Cash", "Bargeld", "Nakit", "Наличные", "现金", "Contanti")
+                                    "diamonds" -> text("Diamants", "Diamonds", "Diamanten", "Elmas", "Алмазы", "钻石", "Diamanti")
                                     else -> requirement.resourceId
                                 }
                                 val required = NumberFormat.getIntegerInstance().format(requirement.required)
