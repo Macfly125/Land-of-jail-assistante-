@@ -114,6 +114,41 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun separatesHomePowerFromFoodCounterAcrossScreenshotResolutions() {
+        val baseWidth = 698
+        val baseHeight = 1536
+        val baseBoxes = listOf(
+            OcrTextBox("509 256 511", 18, 166, 203, 215),
+            OcrTextBox("177.1M", 238, 122, 353, 158)
+        )
+
+        listOf(0.5f, 1.0f, 1.5f, 2.0f).forEach { scale ->
+            val scaledBoxes = baseBoxes.map { box ->
+                OcrTextBox(
+                    text = box.text,
+                    left = (box.left * scale).toInt(),
+                    top = (box.top * scale).toInt(),
+                    right = (box.right * scale).toInt(),
+                    bottom = (box.bottom * scale).toInt()
+                )
+            }
+            val result = LandsOfJailOcrParser.parseLocalOcrText(
+                rawText = "VIP8",
+                textBoxes = scaledBoxes,
+                imageWidth = (baseWidth * scale).toInt(),
+                imageHeight = (baseHeight * scale).toInt()
+            )
+
+            assertEquals("La puissance doit rester distincte à l'échelle $scale", 509_256_511L,
+                result.power?.puissanceTotaleNumerique)
+            assertEquals("La nourriture ne doit jamais devenir la puissance à l'échelle $scale",
+                "509 256 511", result.power?.puissanceTotaleTexte)
+            assertTrue("La valeur de nourriture ne doit pas être inventée comme stock sans libellé à l'échelle $scale",
+                result.resources.isEmpty())
+        }
+    }
+
+    @Test
     fun doesNotTreatTopResourceCounterAsHomeScreenPower() {
         val result = LandsOfJailOcrParser.parseLocalOcrText(
             rawText = "VIP8",
