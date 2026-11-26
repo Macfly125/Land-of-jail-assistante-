@@ -96,6 +96,44 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun recognizesHomeScreenPowerBadgeByItsPositionWithoutReadingFoodAsPower() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            rawText = "VIP8",
+            textBoxes = listOf(
+                OcrTextBox("509 256 511", 18, 166, 203, 215),
+                OcrTextBox("177.1M", 238, 122, 353, 158)
+            ),
+            imageWidth = 698,
+            imageHeight = 1536
+        )
+
+        assertEquals("509 256 511", result.power?.puissanceTotaleTexte)
+        assertEquals(509_256_511L, result.power?.puissanceTotaleNumerique)
+        assertFalse(result.power?.incertain ?: true)
+        assertTrue("La nourriture ne doit pas devenir une puissance", result.resources.isEmpty())
+    }
+
+    @Test
+    fun doesNotTreatTopResourceCounterAsHomeScreenPower() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            rawText = "VIP8",
+            textBoxes = listOf(OcrTextBox("177.1M", 238, 122, 353, 158)),
+            imageWidth = 698,
+            imageHeight = 1536
+        )
+
+        assertNull(result.power)
+    }
+
+    @Test
+    fun extractsForticladHeadquartersLevelOnlyWhenExplicitlyLabeled() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText("QG Forticlad\\nNiveau 6")
+
+        assertEquals("Niv. 6", result.power?.niveauPrisonOuQG)
+        assertEquals("Non mesurée", result.power?.puissanceTotaleTexte)
+    }
+
+    @Test
     fun parsesGroupedPowerWithoutTreatingThousandsAsDecimals() {
         val result = LandsOfJailOcrParser.parseLocalOcrText("Puissance : 8,450,120")
 
