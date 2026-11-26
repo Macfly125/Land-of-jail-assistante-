@@ -134,3 +134,40 @@ Aucun binaire image n'a été ajouté : cette étape ajoute des références et 
 - La source précise que ces visuels correspondent à l'art du jeu, et que les données viennent des écrans héros et équipement d'Edwin capturés sur S216 en septembre–octobre 2026 ; les six compétences proviennent des écrans Skills d'octobre 2026.
 - Les images sont utiles comme références visuelles de l'identité du héros et de l'équipement, mais elles ne montrent pas nécessairement les panneaux UI complets avec niveaux, chiffres et boutons. Elles ne constituent donc pas, seules, des fixtures OCR d'écran complet.
 - [ ] Demander les captures d'écran complètes et autorisées à l'auteur ; garder le portrait/équipement comme gabarits secondaires seulement si les droits et la résolution le permettent.
+
+
+## Forticlad, laboratoires et robots — approfondissement — 26/11/2026
+
+### Forticlad — calculateur de progression RUS
+- https://loj.dookee.ru/en/development/forticlad/ — calculateur interactif couvrant le Bureau du directeur, les trois casernes et le Centre de communication, avec étapes payées, inventaire FC/AFC partagé, coûts manquants et ordre d'amélioration.
+- Exemple de référence FC5 → FC6 : Bureau 1 800 FC / 120 AFC ; chaque caserne 800 FC / 50 AFC ; Centre de communication 450 FC / 25 AFC. Total multi-bâtiments 4 650 FC / 295 AFC. Il s'agit des valeurs du scénario par défaut du calculateur, pas d'un coût universel pour tout profil.
+- La page avertit que les prérequis du Centre de communication pour le Bureau FC9–FC10 ne sont pas confirmés ; coûts de laboratoire après FC6 et infirmerie après FC8 non extrapolés.
+- Mise à jour du jeu du 23/11/2026 : tâches Strongest Alliance comprenant désormais des dépenses de Forticlad Cores ; la source officielle citée ne donne pas les points ni le jour exact. À traiter comme contexte événementiel, pas comme coût.
+- La page est un calculateur/tableau, pas une capture brute complète du jeu. Elle référence néanmoins des panneaux et valeurs observés.
+
+### Forticlad Lab — niveaux et technologie
+- https://lojxlab.com/library/lands-of-jail-forticlad-lab-upgrade-cost/ — détail par technologie et palier, avec valeurs d'Hyperalliage, nourriture, bois, acier, gaz et Gold Cards.
+- Observations de panneaux en jeu attribuées à MIRÖX, S216, 06/10/2026. Image référencée « Forticlad Lab in game, with the Lab hero card » ; fichier source non téléchargé ni ajouté au dépôt.
+- Données de référence : 25 730 Hyperalliage pour atteindre le déblocage Bastion T11 d'un type de troupe ; 48 150 pour un laboratoire complet d'un type ; 144 450 pour les trois types. À utiliser comme vérification de cohérence, en conservant la date et la source.
+- Les paliers sont distincts : T1 expédition (5 niveaux), T2 quatre technologies × 10, T3 rallye (12), T4 déblocage T11 (1), T5 soins et entraînement (2 × 10). Ne pas fusionner T2 ou T5 en une seule technologie.
+- Les tableaux ne sont pas des fixtures OCR. Il faut récupérer l'image originale et les écrans complets autorisés.
+
+### Robots — captures de joueurs citées
+- https://loj.dookee.ru/en/development/hangar/ — catalogue 14 robots. La page cite des captures joueurs identifiées : Light Cone niveau 60 (30/01/2026), Yokozuna niveau 10 et Musashimaru niveau 40. Pour ces deux derniers, les chiffres verts après la flèche sont des aperçus d'amélioration et ne doivent pas être confondus avec les valeurs actuelles.
+- Les valeurs des robots non observées restent inconnues ; les statistiques maximales d'affiches communautaires ne sont pas les valeurs actuelles du compte.
+- La page mentionne une mise à jour annoncée le 23/10 et publiée le 26/10 sur la réduction de dégâts en Arrest Combat : les panneaux/effets doivent être revérifiés dans le client du jeu, sans recopier d'anciens pourcentages comme actuels.
+- Le classement Trial Cage cité (Dauntless, Phantom Cat, Musashimaru, Infercore) est une recommandation communautaire à tester à niveaux, troupes et héros constants ; ce n'est pas une règle universelle.
+
+### Laboratoire principal
+- https://lojwiki.com/lab/ — trois arbres distincts : Logistique, Économie et Militaire ; prérequis par niveau et bâtiment Laboratoire requis. Le Laboratoire Forticlad est un bâtiment séparé, débloqué après le niveau 30.
+- À utiliser pour construire le graphe des prérequis et le calculateur, mais les tables web ne remplacent pas des captures réelles pour l'OCR.
+
+### État
+- [x] Identifier le calculateur FC/AFC multi-bâtiments et relever ses limites de données.
+- [x] Distinguer les cinq tiers du Forticlad Lab et leurs types de technologies.
+- [x] Repérer les captures joueurs explicitement citées pour Light Cone, Yokozuna et Musashimaru.
+- [x] Consigner la modification de jeu du 23/11/2026 sur les tâches Strongest Alliance Forticlad.
+- [ ] Obtenir les captures originales avec accord des auteurs ; aucun binaire image ajouté.
+- [ ] Créer fixtures OCR indépendantes pour les panneaux de robot, les noyaux, les étapes FC/AFC, les arbres du laboratoire principal et les technologies Forticlad.
+- [ ] Confirmer dans le client les valeurs contestées et les effets après mise à jour ; aucune donnée incertaine ne doit alimenter un calcul ferme.
+
