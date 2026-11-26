@@ -123,6 +123,21 @@ fun mergeProgressionStocks(
     return merged.values.sortedBy { it.resourceId }
 }
 
+/**
+ * Remove one objective and keep exactly one primary objective when any remain.
+ * An existing primary is preserved; otherwise the first remaining objective
+ * becomes primary.
+ */
+fun removeProgressionObjective(
+    objectives: List<ProgressionObjective>,
+    objectiveId: String
+): List<ProgressionObjective> {
+    val remaining = objectives.filterNot { it.id == objectiveId }
+    val primaryId = remaining.firstOrNull { it.isPrimary }?.id
+        ?: remaining.firstOrNull()?.id
+    return remaining.map { it.copy(isPrimary = it.id == primaryId) }
+}
+
 object ProgressionProfileCodec {
     private val json = Json {
         ignoreUnknownKeys = true
