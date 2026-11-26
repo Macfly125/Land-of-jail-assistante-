@@ -498,7 +498,7 @@ class LandsOfJailOcrParserTest {
     @Test
     fun doesNotReuseFoodQuantityAsPlayerPowerBeforeEliminations() {
         val result = LandsOfJailOcrParser.parseLocalOcrText(
-            "Food: 12.4M\\nEliminations: 350"
+            "Food: 12.4M\nEliminations: 350"
         )
 
         assertEquals(1, result.resources.size)
@@ -510,7 +510,7 @@ class LandsOfJailOcrParserTest {
     @Test
     fun keepsExplicitPowerSeparateFromFoodQuantity() {
         val result = LandsOfJailOcrParser.parseLocalOcrText(
-            "Food: 12.4M\\nPower: 8.6M\\nEliminations: 350"
+            "Food: 12.4M\nPower: 8.6M\nEliminations: 350"
         )
 
         assertEquals(12_400_000.0, result.resources.single().quantiteNumerique ?: 0.0, 0.1)
