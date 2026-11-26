@@ -1222,4 +1222,24 @@ Potential Coil x 8"""
         }.isFailure)
     }
 
+
+    @Test
+    fun robotGuideCatalogContainsTwelveRobotsAndGroundedRecommendations() {
+        val catalog = com.landsofjail.assistant.model.RobotCatalog.entries
+        assertEquals(12, catalog.size)
+        assertEquals("Shooter", com.landsofjail.assistant.model.RobotCatalog.find("Phantom Cat")?.troopType)
+        assertEquals("90–100", com.landsofjail.assistant.model.RobotCatalog.find("Musashimaru")?.recommendedLevel)
+        assertEquals("Bomber", com.landsofjail.assistant.model.RobotCatalog.find("Bastion")?.troopType)
+        assertEquals("Shieldbearer", com.landsofjail.assistant.model.RobotCatalog.find("Atlax")?.troopType)
+        assertTrue(com.landsofjail.assistant.model.RobotCatalog.find("Bastion")?.recommendedLevel.isNullOrBlank())
+    }
+
+    @Test
+    fun robotGuideNamesAreRecognizedByLocalOcr() {
+        com.landsofjail.assistant.model.RobotCatalog.entries.forEach { entry ->
+            val result = LandsOfJailOcrParser.parseLocalOcrText(entry.name)
+            assertTrue("Robot du guide non reconnu : ${entry.name}", result.robots.any { it.nom == entry.name })
+        }
+    }
+
 }
