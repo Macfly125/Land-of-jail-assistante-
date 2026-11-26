@@ -118,4 +118,17 @@ class ProgressionCoachTest {
         assertNull(plan.requirements.single().missing)
     }
 
+    @Test
+    fun knownDurationTotalsSaturateInsteadOfOverflowing() {
+        val steps = listOf(
+            ProgressionStep("build-a", ProgressionDomain.BUILDING, "A", 1, 2,
+                emptyList(), durationSeconds = Long.MAX_VALUE),
+            ProgressionStep("build-b", ProgressionDomain.BUILDING, "B", 1, 2,
+                emptyList(), durationSeconds = 1L)
+        )
+        val plan = ProgressionCoach.calculate(steps, emptyList())
+
+        assertEquals(Long.MAX_VALUE, plan.totalKnownDurationSeconds)
+    }
+
 }
