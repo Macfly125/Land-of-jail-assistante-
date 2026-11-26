@@ -76,6 +76,25 @@ object LandsOfJailOcrParser {
             val recognized = runCatching { recognizeWith(createRecognizer(), bitmap) }.getOrDefault(emptyList())
             boxes += recognized
         }
+
+        // Second pass for small/low-contrast UI text. The original image remains
+        // authoritative; enhanced coordinates are mapped back before merging.
+        val enhancedBitmap = runCatching {
+            OcrImagePreprocessor.enhanceForOcr(bitmap)
+        }.getOrNull()
+        if (enhancedBitmap != null) {
+            try {
+                val enhancedBoxes = runCatching {
+                    recognizeWith(
+                        TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS),
+                        enhancedBitmap
+                    )
+                }.getOrDefault(emptyList())
+                boxes += OcrImagePreprocessor.mapBoxesToOriginal(enhancedBoxes)
+            } finally {
+                if (!enhancedBitmap.isRecycled) enhancedBitmap.recycle()
+            }
+        }
         val unique = boxes
             .distinctBy { box -> box.text.trim().lowercase() to (box.left / 8 to box.top / 8) }
             .sortedWith(compareBy<OcrTextBox> { it.top }.thenBy { it.left })
