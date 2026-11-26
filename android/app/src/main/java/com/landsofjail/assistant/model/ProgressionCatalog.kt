@@ -474,4 +474,218 @@ object ProgressionCatalog {
             checkedOn = SOURCE_CHECKED_ON
         )
     }
+    const val ROBOT_UPGRADE_SOURCE = "https://lojxlab.com/library/lands-of-jail-robot-upgrade-cost/"
+    const val ROBOT_SOURCE_CHECKED_ON = "2026-10-07"
+
+    /**
+     * Robot level bands published by LOJ XLab. The source reports one cost per
+     * 10-level band, not per individual level. A current level inside a band
+     * therefore cannot be prorated safely by this catalog.
+     */
+    val robotLeveling: List<ProgressionCatalogRecord> = listOf(
+        robotLevelRow(1, 10, 1_200, 20, 0),
+        robotLevelRow(10, 20, 2_310, 30, 0),
+        robotLevelRow(20, 30, 3_600, 40, 10),
+        robotLevelRow(30, 40, 5_320, 60, 15),
+        robotLevelRow(40, 50, 7_560, 80, 20),
+        robotLevelRow(50, 60, 10_260, 100, 30),
+        // XLab records a source conflict for this one cell: 40 vs 140.
+        // Keep it visible as uncertain and exclude it from calculated totals.
+        robotLevelRow(60, 70, 19_400, 130, 40, advancedNeedsConfirmation = true),
+        robotLevelRow(70, 80, 24_800, 160, 50),
+        robotLevelRow(80, 90, 30_300, 190, 70),
+        robotLevelRow(90, 100, 36_300, 230, 90)
+    )
+
+    /** Costs for one robot module (Solo, Barrier or Formation), Core I to V. */
+    val robotCore: List<ProgressionCatalogRecord> = listOf(
+        robotCoreRow(1, 3_640),
+        robotCoreRow(2, 7_180),
+        robotCoreRow(3, 19_320),
+        robotCoreRow(4, 36_360),
+        robotCoreRow(5, 49_960)
+    )
+
+    const val HERO_EQUIPMENT_SOURCE = "https://lojwiki.com/calculator/gear/"
+
+    /** Equipment EXP, magnets and potential coils per published 20-level band. */
+    val heroEquipmentLeveling: List<ProgressionCatalogRecord> = listOf(
+        equipmentRow(0, 20, 2_300, 20, 0),
+        equipmentRow(20, 40, 6_980, 40, 0),
+        equipmentRow(40, 60, 19_220, 120, 0),
+        equipmentRow(60, 80, 41_140, 200, 0),
+        equipmentRow(80, 100, 77_000, 400, 0),
+        equipmentRow(100, 120, 117_000, 600, 20),
+        equipmentRow(120, 140, 157_000, 1_000, 40),
+        equipmentRow(140, 160, 197_000, 1_000, 60),
+        equipmentRow(160, 180, 258_000, 2_000, 80),
+        equipmentRow(180, 200, 338_200, 2_000, 100)
+    )
+
+    /** Reformation is a separate track from equipment level promotion. */
+    val heroEquipmentReform: List<ProgressionCatalogRecord> = listOf(
+        ProgressionCatalogRecord(
+            step = ProgressionStep(
+                id = "hero-equipment-reform-0-20",
+                domain = ProgressionDomain.EQUIPMENT,
+                itemName = "Hero Equipment Reform",
+                fromLevel = 0,
+                toLevel = 20,
+                costs = listOf(
+                    ResourceCost("magnets", 11_000, CostConfidence.COMMUNITY_REFERENCE, HERO_EQUIPMENT_SOURCE),
+                    ResourceCost("precision_gears", 4_200, CostConfidence.COMMUNITY_REFERENCE, HERO_EQUIPMENT_SOURCE)
+                ),
+                dataComplete = true
+            ),
+            prerequisiteNotes = listOf("Reformation is separate from equipment level promotion."),
+            sourceLabel = "LOJ Wiki — Hero equipment calculator",
+            sourceUrl = HERO_EQUIPMENT_SOURCE,
+            checkedOn = SOURCE_CHECKED_ON
+        )
+    )
+
+    const val HERO_SHARDS_SOURCE = "https://lojwiki.com/calculator/shards/"
+
+    /** All heroes share this published shard cost sequence: recruit through 5 stars. */
+    val heroShardProgression: List<ProgressionCatalogRecord> = listOf(
+        10L to "Recruit",
+        1L to "0-Star Tier 1",
+        1L to "0-Star Tier 2",
+        2L to "0-Star Tier 3",
+        2L to "0-Star Tier 4",
+        2L to "0-Star Tier 5",
+        2L to "1-Star Tier 0",
+        5L to "1-Star Tier 1",
+        5L to "1-Star Tier 2",
+        5L to "1-Star Tier 3",
+        5L to "1-Star Tier 4",
+        5L to "1-Star Tier 5",
+        15L to "2-Star Tier 0",
+        15L to "2-Star Tier 1",
+        15L to "2-Star Tier 2",
+        15L to "2-Star Tier 3",
+        15L to "2-Star Tier 4",
+        15L to "2-Star Tier 5",
+        40L to "3-Star Tier 0",
+        40L to "3-Star Tier 1",
+        40L to "3-Star Tier 2",
+        40L to "3-Star Tier 3",
+        40L to "3-Star Tier 4",
+        40L to "3-Star Tier 5",
+        100L to "4-Star Tier 0",
+        100L to "4-Star Tier 1",
+        100L to "4-Star Tier 2",
+        100L to "4-Star Tier 3",
+        100L to "4-Star Tier 4",
+        100L to "4-Star Tier 5",
+        100L to "5-Star Tier 0"
+    ).mapIndexed { index, (quantity, stageName) ->
+        ProgressionCatalogRecord(
+            step = ProgressionStep(
+                id = "hero-shards-${index}-${index + 1}",
+                domain = ProgressionDomain.HERO,
+                itemName = stageName,
+                fromLevel = index,
+                toLevel = index + 1,
+                costs = listOf(
+                    ResourceCost("hero_shards", quantity, CostConfidence.COMMUNITY_REFERENCE, HERO_SHARDS_SOURCE)
+                ),
+                dataComplete = true
+            ),
+            prerequisiteNotes = emptyList(),
+            sourceLabel = "LOJ Wiki — Hero shard calculator",
+            sourceUrl = HERO_SHARDS_SOURCE,
+            checkedOn = SOURCE_CHECKED_ON
+        )
+    }
+
+    private fun robotLevelRow(
+        fromLevel: Int,
+        toLevel: Int,
+        armorData: Long,
+        powerModules: Long,
+        advancedPowerModules: Long,
+        advancedNeedsConfirmation: Boolean = false
+    ): ProgressionCatalogRecord {
+        val costs = mutableListOf(
+            ResourceCost("prisoner_armor_data", armorData, CostConfidence.COMMUNITY_REFERENCE, ROBOT_UPGRADE_SOURCE),
+            ResourceCost("power_modules", powerModules, CostConfidence.COMMUNITY_REFERENCE, ROBOT_UPGRADE_SOURCE)
+        )
+        if (advancedPowerModules > 0) {
+            costs += ResourceCost(
+                "advanced_power_modules",
+                advancedPowerModules,
+                if (advancedNeedsConfirmation) CostConfidence.NEEDS_CONFIRMATION else CostConfidence.COMMUNITY_REFERENCE,
+                ROBOT_UPGRADE_SOURCE
+            )
+        }
+        return ProgressionCatalogRecord(
+            step = ProgressionStep(
+                id = "robot-level-$fromLevel-$toLevel",
+                domain = ProgressionDomain.ROBOT,
+                itemName = "Robot Leveling",
+                fromLevel = fromLevel,
+                toLevel = toLevel,
+                costs = costs,
+                dataComplete = !advancedNeedsConfirmation
+            ),
+            prerequisiteNotes = if (advancedNeedsConfirmation) listOf(
+                "LOJ XLab notes a conflict for Advanced Power Modules at Lv.60–70 (40 vs 140); confirm in-game."
+            ) else emptyList(),
+            sourceLabel = "LOJ XLab — Robot upgrade costs",
+            sourceUrl = ROBOT_UPGRADE_SOURCE,
+            checkedOn = ROBOT_SOURCE_CHECKED_ON
+        )
+    }
+
+    private fun robotCoreRow(tier: Int, chips: Long): ProgressionCatalogRecord =
+        ProgressionCatalogRecord(
+            step = ProgressionStep(
+                id = "robot-core-${tier - 1}-$tier",
+                domain = ProgressionDomain.ROBOT_CORE,
+                itemName = "Robot Core module",
+                fromLevel = tier - 1,
+                toLevel = tier,
+                costs = listOf(
+                    ResourceCost("core_chips", chips, CostConfidence.COMMUNITY_REFERENCE, ROBOT_UPGRADE_SOURCE)
+                ),
+                dataComplete = true
+            ),
+            prerequisiteNotes = listOf("Per module: Solo, Barrier or Formation."),
+            sourceLabel = "LOJ XLab — Robot Core evolution",
+            sourceUrl = ROBOT_UPGRADE_SOURCE,
+            checkedOn = ROBOT_SOURCE_CHECKED_ON
+        )
+
+    private fun equipmentRow(
+        fromLevel: Int,
+        toLevel: Int,
+        equipmentExp: Long,
+        magnets: Long,
+        potentialCoils: Long
+    ): ProgressionCatalogRecord {
+        val costs = mutableListOf(
+            ResourceCost("equipment_exp", equipmentExp, CostConfidence.COMMUNITY_REFERENCE, HERO_EQUIPMENT_SOURCE),
+            ResourceCost("magnets", magnets, CostConfidence.COMMUNITY_REFERENCE, HERO_EQUIPMENT_SOURCE)
+        )
+        if (potentialCoils > 0) {
+            costs += ResourceCost("potential_coils", potentialCoils, CostConfidence.COMMUNITY_REFERENCE, HERO_EQUIPMENT_SOURCE)
+        }
+        return ProgressionCatalogRecord(
+            step = ProgressionStep(
+                id = "hero-equipment-$fromLevel-$toLevel",
+                domain = ProgressionDomain.EQUIPMENT,
+                itemName = "Hero Equipment",
+                fromLevel = fromLevel,
+                toLevel = toLevel,
+                costs = costs,
+                dataComplete = true
+            ),
+            prerequisiteNotes = emptyList(),
+            sourceLabel = "LOJ Wiki — Hero equipment calculator",
+            sourceUrl = HERO_EQUIPMENT_SOURCE,
+            checkedOn = SOURCE_CHECKED_ON
+        )
+    }
+
 }
