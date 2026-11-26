@@ -45,6 +45,14 @@ class ScreenRecognitionEngineTest {
     }
 
     @Test
+    fun doesNotClassifyTheGenericWordLabWithoutResearchContext() {
+        val result = ScreenRecognitionEngine.analyze("Lab")
+
+        assertEquals("ocr_local", result.category)
+        assertFalse(result.needsVisualConfirmation)
+    }
+
+    @Test
     fun doesNotClassifyAnUnqualifiedLaboratoryBuildingAsResearchLab() {
         val result = ScreenRecognitionEngine.analyze("Laboratory\nLevel 12")
 
