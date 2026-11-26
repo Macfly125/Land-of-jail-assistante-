@@ -313,6 +313,14 @@ fun ProgressionCoachScreen(
     }
     val buildingMaxLevel = buildingCatalog.maxOfOrNull { it.step.toLevel } ?: 0
     val buildingCurrentLevel = supportedBuildingGoal?.let { profile.confirmedLevel(it.targetId) }
+    val supportedNonBuildingGoals = profile.objectives
+        .sortedByDescending { it.isPrimary }
+        .filter { it.domain in setOf(
+            ProgressionDomain.HERO,
+            ProgressionDomain.ROBOT,
+            ProgressionDomain.ROBOT_CORE,
+            ProgressionDomain.EQUIPMENT
+        ) }
     fun text(fr: String, en: String, de: String, tr: String, ru: String, zh: String, it: String) =
         when (language) {
             AppLanguage.FR -> fr; AppLanguage.EN -> en; AppLanguage.DE -> de
@@ -409,6 +417,42 @@ fun ProgressionCoachScreen(
                                 "仅目录中列出的建筑提供有来源的费用，缺失等级保持未知。",
                                 "I costi documentati sono disponibili solo per gli edifici nel catalogo. I livelli mancanti restano sconosciuti."
                             )
+                            ProgressionDomain.HERO -> text(
+                                "Les fragments sont communs à tous les héros. Utilise l'étape 0–31 : 0 = non recruté, 1 = recruté, 31 = 5★.",
+                                "Shard costs are shared by all heroes. Use stage 0–31: 0 = not recruited, 1 = recruited, 31 = 5★.",
+                                "Splitterkosten sind für alle Helden gleich. Stufe 0–31: 0 = nicht rekrutiert, 1 = rekrutiert, 31 = 5★.",
+                                "Parça maliyetleri tüm kahramanlarda aynıdır. 0–31 aşamasını kullan: 0 = alınmadı, 1 = alındı, 31 = 5★.",
+                                "Стоимость осколков одинакова для всех героев. Этап 0–31: 0 — не нанят, 1 — нанят, 31 — 5★.",
+                                "所有英雄的碎片费用相同。使用阶段 0–31：0=未招募，1=已招募，31=5★。",
+                                "I costi dei frammenti sono uguali per tutti gli eroi. Usa la fase 0–31: 0 = non reclutato, 1 = reclutato, 31 = 5★."
+                            )
+                            ProgressionDomain.ROBOT -> text(
+                                "Les coûts des robots sont publiés par tranches de 10 niveaux. Les tranches partielles ne sont pas estimées ; le coût des modules avancés 60–70 reste à confirmer.",
+                                "Robot costs are published in 10-level bands. Partial bands are not estimated; the 60–70 Advanced Power Module value needs confirmation.",
+                                "Roboterkosten sind in 10-Level-Bereichen veröffentlicht. Teilbereiche werden nicht geschätzt; der Wert für erweiterte Module 60–70 muss bestätigt werden.",
+                                "Robot maliyetleri 10 seviyelik aralıklarla yayımlanır. Kısmi aralıklar tahmin edilmez; 60–70 gelişmiş modül değeri doğrulanmalıdır.",
+                                "Стоимость роботов опубликована диапазонами по 10 уровней. Частичные диапазоны не оцениваются; значение улучшенных модулей 60–70 требует подтверждения.",
+                                "机器人费用按 10 级区间发布，不估算部分区间；60–70 级高级能量模块费用待确认。",
+                                "I costi dei robot sono pubblicati per fasce di 10 livelli. Le fasce parziali non vengono stimate; il valore dei moduli avanzati 60–70 va confermato."
+                            )
+                            ProgressionDomain.ROBOT_CORE -> text(
+                                "Les coûts Core I–V sont par module : Solo, Barrière ou Formation.",
+                                "Core I–V costs are per module: Solo, Barrier or Formation.",
+                                "Core-I–V-Kosten gelten pro Modul: Solo, Barriere oder Formation.",
+                                "Core I–V maliyetleri modül başınadır: Solo, Bariyer veya Formasyon.",
+                                "Стоимость Core I–V указана за модуль: Solo, Barrier или Formation.",
+                                "Core I–V 费用按单个模块计算：Solo、Barrier 或 Formation。",
+                                "I costi Core I–V sono per modulo: Solo, Barriera o Formazione."
+                            )
+                            ProgressionDomain.EQUIPMENT -> text(
+                                "Les promotions d'équipement sont publiées par tranches de 20 niveaux. Pour la réforme séparée, utilise l'identifiant « reform ».",
+                                "Equipment promotions are published in 20-level bands. For the separate reform track, use ID “reform”.",
+                                "Ausrüstungsaufwertungen sind in 20-Level-Bereichen veröffentlicht. Für die separate Reform verwende die ID „reform“.",
+                                "Ekipman yükseltmeleri 20 seviyelik aralıklarla yayımlanır. Ayrı reform için “reform” kimliğini kullan.",
+                                "Улучшение снаряжения опубликовано диапазонами по 20 уровней. Для отдельной реформы используй ID «reform».",
+                                "装备晋升按 20 级区间发布。单独的改造路线请使用 ID“reform”。",
+                                "Le promozioni dell'equipaggiamento sono pubblicate per fasce di 20 livelli. Per la riforma separata usa l'ID «reform»."
+                            )
                             else -> text(
                                 "Les objectifs de cette catégorie peuvent être enregistrés, mais son catalogue détaillé de coûts et prérequis reste à compléter.",
                                 "Goals in this category can be saved, but its detailed cost and prerequisite catalog is still pending.",
@@ -425,7 +469,7 @@ fun ProgressionCoachScreen(
                         value = targetId,
                         onValueChange = { targetId = it },
                         modifier = Modifier.fillMaxWidth(),
-                        label = { Text(text(fr = "Identifiant / nom", en = "ID / name", de = "ID / Name", tr = "Kimlik / ad", ru = "ID / название", zh = "标识 / 名称", it = "ID / nome")) },
+                        label = { Text(text(fr = "Identifiant / nom (ex. ADA, Solo, casque, reform)", en = "ID / name (e.g. ADA, Solo, helmet, reform)", de = "ID / Name (z. B. ADA, Solo, Helm, reform)", tr = "Kimlik / ad (örn. ADA, Solo, miğfer, reform)", ru = "ID / название (например ADA, Solo, шлем, reform)", zh = "标识/名称（如 ADA、Solo、头盔、reform）", it = "ID / nome (es. ADA, Solo, elmo, reform)")) },
                         singleLine = true
                     )
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -687,6 +731,21 @@ fun ProgressionCoachScreen(
                         }
                     }
                 }
+            }
+        }
+        items(supportedNonBuildingGoals.size) { index ->
+            val goal = supportedNonBuildingGoals[index]
+            val catalog = when (goal.domain) {
+                ProgressionDomain.HERO -> ProgressionCatalog.heroShardProgression
+                ProgressionDomain.ROBOT -> ProgressionCatalog.robotLeveling
+                ProgressionDomain.ROBOT_CORE -> ProgressionCatalog.robotCore
+                ProgressionDomain.EQUIPMENT -> if (goal.targetId.trim().lowercase() in
+                    setOf("reform", "equipment_reform", "reformation")
+                ) ProgressionCatalog.heroEquipmentReform else ProgressionCatalog.heroEquipmentLeveling
+                else -> emptyList()
+            }
+            if (catalog.isNotEmpty()) {
+                ProgressionCatalogGoalCard(goal, profile, catalog, language)
             }
         }
         item {
