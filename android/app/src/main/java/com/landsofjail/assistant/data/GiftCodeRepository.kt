@@ -225,26 +225,26 @@ object GiftCodeRepository {
         }
     }
 
+    internal fun parseSourceDate(value: String): LocalDate? {
+        if (value.isBlank()) return null
+        val patterns = listOf(
+            DateTimeFormatter.ofPattern("d/M/uuuu", Locale.ROOT),
+            DateTimeFormatter.ofPattern("d.M.uuuu", Locale.ROOT),
+            DateTimeFormatter.ofPattern("d-M-uuuu", Locale.ROOT),
+            DateTimeFormatter.ofPattern("d MMM uuuu", Locale.ENGLISH),
+            DateTimeFormatter.ofPattern("d MMMM uuuu", Locale.FRENCH),
+            DateTimeFormatter.ofPattern("d MMM uuuu", Locale.FRENCH),
+            DateTimeFormatter.ofPattern("MMM d, uuuu", Locale.ENGLISH)
+        ).map { it.withResolverStyle(ResolverStyle.STRICT) }
+        return patterns.firstNotNullOfOrNull { pattern ->
+            runCatching { LocalDate.parse(value.trim(), pattern) }.getOrNull()
+        }
+    }
+
     private fun newerDate(existing: String, candidate: String): String {
-        if (candidate.isBlank()) return existing
-        if (existing.isBlank()) return candidate
-        fun millis(value: String): Long? = runCatching {
-            val patterns = listOf(
-                java.time.format.DateTimeFormatter.ofPattern("d/M/yyyy", Locale.FRENCH),
-                java.time.format.DateTimeFormatter.ofPattern("d.M.yyyy", Locale.FRENCH),
-                java.time.format.DateTimeFormatter.ofPattern("d-M-yyyy", Locale.FRENCH),
-                java.time.format.DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH),
-                java.time.format.DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.FRENCH),
-                java.time.format.DateTimeFormatter.ofPattern("d MMM yyyy", Locale.FRENCH),
-                java.time.format.DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.ENGLISH)
-            )
-            patterns.firstNotNullOfOrNull { pattern ->
-                runCatching { java.time.LocalDate.parse(value.trim(), pattern).toEpochDay() }.getOrNull()
-            }
-        }.getOrNull()
-        val oldValue = millis(existing)
-        val newValue = millis(candidate)
-        return if (oldValue != null && newValue != null && newValue > oldValue) candidate else existing
+        val oldValue = parseSourceDate(existing)
+        val newValue = parseSourceDate(candidate)
+        return if (newValue != null && (oldValue == null || newValue.isAfter(oldValue))) candidate else existing
     }
 
     /**
