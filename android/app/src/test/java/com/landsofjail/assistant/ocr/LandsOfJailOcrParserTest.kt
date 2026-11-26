@@ -496,6 +496,28 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun doesNotReuseFoodQuantityAsPlayerPowerBeforeEliminations() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            "Food: 12.4M\\nEliminations: 350"
+        )
+
+        assertEquals(1, result.resources.size)
+        assertEquals("Nourriture (Food)", result.resources.single().nom)
+        assertEquals(12_400_000.0, result.resources.single().quantiteNumerique ?: 0.0, 0.1)
+        assertNull("Une quantité Food ne doit jamais devenir la puissance", result.power)
+    }
+
+    @Test
+    fun keepsExplicitPowerSeparateFromFoodQuantity() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            "Food: 12.4M\\nPower: 8.6M\\nEliminations: 350"
+        )
+
+        assertEquals(12_400_000.0, result.resources.single().quantiteNumerique ?: 0.0, 0.1)
+        assertEquals(8_600_000L, result.power?.puissanceTotaleNumerique)
+    }
+
+    @Test
     fun extractsTopBarResourceQuantitiesByIconSlotPositionWhenNamesAreNotOcrText() {
         val boxes = listOf("1.2M", "850K", "42M", "3.4M", "120", "7.8M").mapIndexed { index, value ->
             OcrTextBox(value, left = 40 + index * 120, top = 50, right = 95 + index * 120, bottom = 82)
