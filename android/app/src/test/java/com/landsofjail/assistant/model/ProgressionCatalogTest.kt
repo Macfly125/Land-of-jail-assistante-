@@ -365,4 +365,68 @@ class ProgressionCatalogTest {
         }
     }
 
+    @Test
+    fun robotLevelCatalogKeepsThePublishedBandsAndFlagsTheConflictingCell() {
+        val rows = ProgressionCatalog.robotLeveling
+        assertEquals(listOf(10, 20, 30, 40, 50, 60, 70, 80, 90, 100), rows.map { it.step.toLevel })
+        assertTrue(rows.all { it.step.domain == ProgressionDomain.ROBOT })
+        assertTrue(rows.all { it.sourceUrl == ProgressionCatalog.ROBOT_UPGRADE_SOURCE })
+        assertTrue(rows.all { it.checkedOn == ProgressionCatalog.ROBOT_SOURCE_CHECKED_ON })
+
+        val conflicting = rows.single { it.step.fromLevel == 60 }
+        assertFalse(conflicting.step.dataComplete)
+        assertEquals(CostConfidence.NEEDS_CONFIRMATION,
+            conflicting.step.costs.single { it.resourceId == "advanced_power_modules" }.confidence)
+
+        val plan = ProgressionCoach.calculate(rows.map { it.step }, emptyList())
+        assertEquals(listOf(conflicting.step.id), plan.unknownStepIds)
+        assertEquals(141_050L, plan.requirements.single { it.resourceId == "prisoner armor data" }.required)
+        assertEquals(1_040L, plan.requirements.single { it.resourceId == "power modules" }.required)
+        assertEquals(285L, plan.requirements.single { it.resourceId == "advanced power modules" }.required)
+    }
+
+    @Test
+    fun robotCoreCatalogTotalsOneModuleAndKeepsModuleScopeExplicit() {
+        val rows = ProgressionCatalog.robotCore
+        assertEquals((1..5).toList(), rows.map { it.step.toLevel })
+        assertTrue(rows.all { it.step.domain == ProgressionDomain.ROBOT_CORE })
+        assertTrue(rows.all { it.prerequisiteNotes.single().contains("per module") })
+        val plan = ProgressionCoach.calculate(rows.map { it.step }, emptyList())
+        assertEquals(116_460L, plan.requirements.single { it.resourceId == "core chips" }.required)
+    }
+
+    @Test
+    fun heroEquipmentCatalogMatchesPublishedPromotionTotals() {
+        val rows = ProgressionCatalog.heroEquipmentLeveling
+        assertEquals(10, rows.size)
+        assertEquals(listOf(20, 40, 60, 80, 100, 120, 140, 160, 180, 200),
+            rows.map { it.step.toLevel })
+        assertTrue(rows.all { it.step.domain == ProgressionDomain.EQUIPMENT })
+        assertTrue(rows.all { it.sourceUrl == ProgressionCatalog.HERO_EQUIPMENT_SOURCE })
+        val plan = ProgressionCoach.calculate(rows.map { it.step }, emptyList())
+        assertEquals(1_213_840L, plan.requirements.single { it.resourceId == "equipment exp" }.required)
+        assertEquals(18_380L, plan.requirements.single { it.resourceId == "magnets" }.required)
+        assertEquals(300L, plan.requirements.single { it.resourceId == "potential coils" }.required)
+    }
+
+    @Test
+    fun heroEquipmentReformIsSeparateAndUsesPrecisionGears() {
+        val plan = ProgressionCoach.calculate(
+            ProgressionCatalog.heroEquipmentReform.map { it.step },
+            emptyList()
+        )
+        assertEquals(11_000L, plan.requirements.single { it.resourceId == "magnets" }.required)
+        assertEquals(4_200L, plan.requirements.single { it.resourceId == "precision gears" }.required)
+    }
+
+    @Test
+    fun heroShardProgressionTotalsOneRecruitmentThroughFiveStars() {
+        val rows = ProgressionCatalog.heroShardProgression
+        assertEquals(31, rows.size)
+        assertTrue(rows.all { it.step.domain == ProgressionDomain.HERO })
+        assertTrue(rows.all { it.sourceUrl == ProgressionCatalog.HERO_SHARDS_SOURCE })
+        val plan = ProgressionCoach.calculate(rows.map { it.step }, emptyList())
+        assertEquals(1_075L, plan.requirements.single { it.resourceId == "hero shards" }.required)
+    }
+
 }
