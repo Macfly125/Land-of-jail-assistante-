@@ -3,7 +3,11 @@ package com.landsofjail.assistant.ocr
 import android.graphics.Bitmap
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
+import com.google.mlkit.vision.text.TextRecognizer
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import com.google.mlkit.vision.text.chinese.ChineseTextRecognizerOptions
+import com.google.mlkit.vision.text.japanese.JapaneseTextRecognizerOptions
+import com.google.mlkit.vision.text.korean.KoreanTextRecognizerOptions
 import com.landsofjail.assistant.model.*
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
@@ -55,8 +59,39 @@ object LandsOfJailOcrParser {
         "Terry Bogard" to listOf("Terry")
     )
 
-    suspend fun recognizeBitmapDetailed(bitmap: Bitmap): OcrRecognition = suspendCancellableCoroutine { cont ->
-        val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+    /**
+     * Run all bundled script recognizers against one still image. The game UI can
+     * use Latin, Chinese, Japanese or Korean independently of the app language.
+     */
+    suspend fun recognizeBitmapDetailed(bitmap: Bitmap): OcrRecognition {
+        val boxes = mutableListOf<OcrTextBox>()
+        val recognizers = listOf(
+            TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS),
+            TextRecognition.getClient(ChineseTextRecognizerOptions.Builder().build()),
+            TextRecognition.getClient(JapaneseTextRecognizerOptions.Builder().build()),
+            TextRecognition.getClient(KoreanTextRecognizerOptions.Builder().build())
+        )
+        for (recognizer in recognizers) {
+            boxes += recognizeWith(recognizer, bitmap)
+        }
+        val unique = boxes
+            .distinctBy { box -> box.text.trim().lowercase() to (box.left / 8 to box.top / 8) }
+            .sortedWith(compareBy<OcrTextBox> { it.top }.thenBy { it.left })
+        return OcrRecognition(
+            text = unique.joinToString("\n") { it.text },
+            boxes = unique,
+            imageWidth = bitmap.width,
+            imageHeight = bitmap.height
+        )
+    }
+
+    suspend fun recognizeBitmap(bitmap: Bitmap): String =
+        recognizeBitmapDetailed(bitmap).text
+
+    private suspend fun recognizeWith(
+        recognizer: TextRecognizer,
+        bitmap: Bitmap
+    ): List<OcrTextBox> = suspendCancellableCoroutine { cont ->
         val image = InputImage.fromBitmap(bitmap, 0)
         cont.invokeOnCancellation { recognizer.close() }
         recognizer.process(image)
@@ -69,26 +104,11 @@ object LandsOfJailOcrParser {
                         }
                     }
                 }
-                if (cont.isActive) cont.resume(OcrRecognition(result.text, boxes, bitmap.width, bitmap.height))
+                if (cont.isActive) cont.resume(boxes)
             }
-            .addOnFailureListener { err ->
+            .addOnFailureListener { error ->
                 recognizer.close()
-                if (cont.isActive) cont.resumeWithException(err)
-            }
-    }
-
-    suspend fun recognizeBitmap(bitmap: Bitmap): String = suspendCancellableCoroutine { cont ->
-        val recognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
-        val image = InputImage.fromBitmap(bitmap, 0)
-        cont.invokeOnCancellation { recognizer.close() }
-        recognizer.process(image)
-            .addOnSuccessListener { result ->
-                recognizer.close()
-                if (cont.isActive) cont.resume(result.text)
-            }
-            .addOnFailureListener { err ->
-                recognizer.close()
-                if (cont.isActive) cont.resumeWithException(err)
+                if (cont.isActive) cont.resumeWithException(error)
             }
     }
 
