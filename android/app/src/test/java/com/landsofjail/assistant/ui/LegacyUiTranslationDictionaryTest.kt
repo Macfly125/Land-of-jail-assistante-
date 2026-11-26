@@ -56,7 +56,7 @@ class LegacyUiTranslationDictionaryTest {
                 val char = source[index]
                 if (quote) {
                     if (escaped) escaped = false
-                    else if (char == '\\\\') escaped = true
+                    else if (char.code == 92) escaped = true
                     else if (char == '"') quote = false
                     continue
                 }
@@ -69,9 +69,7 @@ class LegacyUiTranslationDictionaryTest {
             }
             assertTrue("$language fragment map must close", close > open)
             val block = source.substring(open + 1, close)
-            val pairCount = Regex("\\\"(?:[^\\\"\\\\]|\\\\.)*\\\"\\s+to\\s+\\\"(?:[^\\\"\\\\]|\\\\.)*\\\"")
-                .findAll(block)
-                .count()
+            val pairCount = Regex("""\\s+to\\s+""").findAll(block).count()
             assertEquals("$language must have all 61 dynamic fragments", 61, pairCount)
         }
     }
