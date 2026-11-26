@@ -317,6 +317,21 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun nestedRobotLabelsDoNotArtificiallyIncreaseScreenConfidence() {
+        val singlePhrase = ScreenRecognitionEngine.analyze("Robot Center")
+
+        assertEquals("robots", singlePhrase.category)
+        assertEquals(listOf("robot center"), singlePhrase.matchedLabels)
+        assertTrue(singlePhrase.confidence < 0.8f)
+        assertTrue(singlePhrase.needsVisualConfirmation)
+
+        val independentPhrases = ScreenRecognitionEngine.analyze("Robot Center\nRobot Upgrade")
+        assertEquals(listOf("robot center", "robot upgrade"), independentPhrases.matchedLabels)
+        assertTrue(independentPhrases.confidence >= 0.8f)
+        assertFalse(independentPhrases.needsVisualConfirmation)
+    }
+
+    @Test
     fun recognizesTroopScreensAndRequestsVisualConfirmationWhenEvidenceIsWeak() {
         val result = ScreenRecognitionEngine.analyze("Shieldbearers")
         assertEquals("troupes", result.category)
