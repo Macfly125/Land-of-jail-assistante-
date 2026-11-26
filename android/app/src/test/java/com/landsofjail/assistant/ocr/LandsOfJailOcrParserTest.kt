@@ -476,6 +476,7 @@ class LandsOfJailOcrParserTest {
             imageHeight = 1600
         )
         assertEquals(6, result.resources.size)
+        assertNull("Les six nombres de la barre de ressources ne sont pas la puissance du joueur", result.power)
         assertEquals(
             listOf("Cash / Or", "Nourriture (Food)", "Bois (Wood)", "Acier (Steel)", "Essence (Gasoline)", "Diamants (Gems)"),
             result.resources.map { it.nom }
@@ -517,6 +518,7 @@ class LandsOfJailOcrParserTest {
             imageHeight = 1600
         )
         assertTrue(result.resources.isEmpty())
+        assertNull("Une rangée supérieure incomplète ne doit pas devenir une puissance", result.power)
     }
 
     @Test
@@ -531,6 +533,7 @@ class LandsOfJailOcrParserTest {
             imageHeight = 1600
         )
         assertTrue("Une rangée ambiguë ne doit pas produire de faux stocks", result.resources.isEmpty())
+        assertNull("Une rangée supérieure ambiguë ne doit pas devenir une puissance", result.power)
     }
 
     @Test
