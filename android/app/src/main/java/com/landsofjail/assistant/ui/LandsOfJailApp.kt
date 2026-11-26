@@ -5372,6 +5372,136 @@ private fun SupabaseAccountCard(onChangeLanguage: (AppLanguage) -> Unit) {
     }
 }
 
+
+private data class AllianceMessageTemplate(
+    val category: String,
+    val title: String,
+    val description: String,
+    val body: String
+)
+
+private val ALLIANCE_MESSAGE_TEMPLATES = listOf(
+    AllianceMessageTemplate("recruitment", "Recrutement YRo · Serveur 311", "Présentation chaleureuse de l'alliance avec dessin ASCII.", """[color=#F4C2C2,AAAAAA] ┻┳|―-∩
+┳┻|　　ヽ
+┻┳|　●   |
+┳┻|▼) _ノ Alliance Top,SBD,PRO,
+┻┳|￣　)  YRO,TRK Serveur 311
+┻ﾐ(￣  ／Entraide,famille.
+┻┳T￣| serveur, tranquille .viens nous voir!!!"""),
+    AllianceMessageTemplate("welcome", "Bienvenue dans YRo", "Accueil simple pour un nouveau membre.", """[color=#F4C2C2,AAAAAA]Bienvenue chez YRo !
+Ici, on avance ensemble, on s'entraide et on garde une bonne ambiance.
+Installe-toi, pose tes questions et amuse-toi avec nous !"""),
+    AllianceMessageTemplate("help", "Entraide entre membres", "Encourager les questions et les coups de main.", """[color=#F4C2C2,AAAAAA]Chez YRo, personne n'est laissé de côté !
+Besoin d'un conseil, d'un coup de main ou d'une info ?
+Écris dans le chat : on est là pour s'entraider."""),
+    AllianceMessageTemplate("motivation", "Motivation de l'équipe", "Petit message positif pour faire vivre le chat.", """[color=#F4C2C2,AAAAAA]Une alliance forte, c'est une équipe qui joue ensemble !
+Partageons nos astuces, nos réussites et nos questions.
+Chaque participation compte. Merci à tous pour votre énergie !"""),
+    AllianceMessageTemplate("cage", "Rappel · Événement de la Cage", "Rappel à adapter selon les consignes du R5.", """[color=#FF0011,AAAAAA]NESSUN RADUNO DI BESTIE DURANTE L'EVENTO DELLA GABBIA! GRAZIE
+
+   ∧,,∧
+（´･ω･)      ∧_∧
+⊂( ⊆ ￣ つ*))'Д'  )
+　＼　 ／  ⊂ ⊂~ﾉ
+　　と丿 ⊂と_ノ"""),
+    AllianceMessageTemplate("event", "Annonce d'événement", "Modèle neutre : complète l'heure et les consignes.", """[color=#F4C2C2,AAAAAA]Rappel événement !
+Rendez-vous : [heure à compléter]
+Préparation / consignes : [à compléter]
+Merci de vérifier les annonces et de prévenir l'alliance si tu ne peux pas participer.""")
+)
+
+@Composable
+private fun AllianceMessageTemplatesCard(language: AppLanguage) {
+    val context = LocalContext.current
+    var category by remember { mutableStateOf("all") }
+    var categoryMenuExpanded by remember { mutableStateOf(false) }
+    var selectedTemplate by remember { mutableStateOf<AllianceMessageTemplate?>(null) }
+    var draft by remember { mutableStateOf("") }
+    var notice by remember { mutableStateOf<String?>(null) }
+    val categoryOptions = listOf(
+        "all" to localizedUiText(language, "Toutes les catégories", "All categories", "Alle Kategorien", "Tüm kategoriler", "Все категории", "所有类别", "Tutte le categorie"),
+        "recruitment" to localizedUiText(language, "Recrutement", "Recruitment", "Rekrutierung", "Üye alımı", "Набор", "招募", "Reclutamento"),
+        "welcome" to localizedUiText(language, "Bienvenue", "Welcome", "Willkommen", "Hoş geldin", "Приветствие", "欢迎", "Benvenuto"),
+        "help" to localizedUiText(language, "Entraide", "Mutual help", "Gegenseitige Hilfe", "Yardımlaşma", "Взаимопомощь", "互助", "Aiuto reciproco"),
+        "motivation" to localizedUiText(language, "Motivation", "Motivation", "Motivation", "Motivasyon", "Мотивация", "鼓励", "Motivazione"),
+        "cage" to localizedUiText(language, "Cage et règles", "Cage and rules", "Käfig und Regeln", "Kafes ve kurallar", "Клетка и правила", "试炼笼与规则", "Gabbia e regole"),
+        "event" to localizedUiText(language, "Événements", "Events", "Events", "Etkinlikler", "События", "活动", "Eventi")
+    )
+    val visibleTemplates = ALLIANCE_MESSAGE_TEMPLATES.filter { category == "all" || it.category == category }
+
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+            Text(localizedUiText(language, "Suggestions de messages", "Message suggestions", "Nachrichtenvorschläge", "Mesaj önerileri", "Предложения сообщений", "消息建议", "Suggerimenti di messaggi"), fontWeight = FontWeight.Bold)
+            Text(
+                localizedUiText(language, "Des modèles prêts à copier dans le chat du jeu. Tu peux les charger, les modifier et conserver les couleurs BBCode ainsi que les dessins ASCII.", "Ready-to-copy templates for the game chat. Load and edit them while keeping BBCode colors and ASCII art.", "Vorlagen zum Kopieren in den Spielchat. Du kannst sie laden und bearbeiten; BBCode-Farben und ASCII-Zeichnungen bleiben erhalten.", "Oyun sohbetine kopyalanmaya hazır şablonlar. BBCode renklerini ve ASCII çizimlerini koruyarak düzenleyebilirsin.", "Шаблоны для игрового чата. Их можно загрузить и изменить, сохранив цвета BBCode и ASCII-рисунки.", "可复制到游戏聊天的模板。你可以编辑，同时保留 BBCode 颜色和 ASCII 图案。", "Modelli pronti da copiare nella chat del gioco. Puoi caricarli e modificarli mantenendo colori BBCode e disegni ASCII."),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Box {
+                OutlinedButton(onClick = { categoryMenuExpanded = true }, modifier = Modifier.fillMaxWidth()) {
+                    Text(categoryOptions.firstOrNull { it.first == category }?.second ?: categoryOptions.first().second)
+                }
+                DropdownMenu(expanded = categoryMenuExpanded, onDismissRequest = { categoryMenuExpanded = false }) {
+                    categoryOptions.forEach { option ->
+                        DropdownMenuItem(text = { Text(option.second) }, onClick = {
+                            category = option.first
+                            categoryMenuExpanded = false
+                        })
+                    }
+                }
+            }
+            visibleTemplates.forEach { template ->
+                Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF202B3A))) {
+                    Column(Modifier.fillMaxWidth().padding(10.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                        Text(template.title, fontWeight = FontWeight.SemiBold)
+                        Text(template.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        TextButton(onClick = {
+                            selectedTemplate = template
+                            draft = template.body
+                            notice = null
+                        }, modifier = Modifier.align(Alignment.End)) {
+                            Icon(Icons.Outlined.Edit, contentDescription = null)
+                            Spacer(Modifier.width(5.dp))
+                            Text(localizedUiText(language, "Charger et modifier", "Load and edit", "Laden und bearbeiten", "Yükle ve düzenle", "Загрузить и изменить", "载入并编辑", "Carica e modifica"))
+                        }
+                    }
+                }
+            }
+            if (selectedTemplate != null || draft.isNotBlank()) {
+                Text(selectedTemplate?.title ?: localizedUiText(language, "Message personnalisé", "Custom message", "Eigene Nachricht", "Özel mesaj", "Своё сообщение", "自定义消息", "Messaggio personalizzato"), fontWeight = FontWeight.SemiBold)
+                OutlinedTextField(
+                    value = draft,
+                    onValueChange = { draft = it.take(2000) },
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 5,
+                    maxLines = 14,
+                    label = { Text(localizedUiText(language, "Texte à copier", "Text to copy", "Zu kopierender Text", "Kopyalanacak metin", "Текст для копирования", "要复制的文本", "Testo da copiare")) }
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                    OutlinedButton(onClick = {
+                        draft = ""
+                        selectedTemplate = null
+                        notice = null
+                    }, modifier = Modifier.weight(1f)) {
+                        Text(localizedUiText(language, "Effacer", "Clear", "Leeren", "Temizle", "Очистить", "清空", "Pulisci"))
+                    }
+                    Button(onClick = {
+                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        clipboard.setPrimaryClip(ClipData.newPlainText("Suggestion alliance", draft))
+                        notice = localizedUiText(language, "Message copié. Tu peux le coller dans le jeu.", "Message copied. You can paste it in the game.", "Nachricht kopiert. Du kannst sie im Spiel einfügen.", "Mesaj kopyalandı. Oyuna yapıştırabilirsin.", "Сообщение скопировано. Его можно вставить в игру.", "消息已复制，可以粘贴到游戏中。", "Messaggio copiato. Puoi incollarlo nel gioco.")
+                    }, enabled = draft.isNotBlank(), modifier = Modifier.weight(1f)) {
+                        Icon(Icons.Outlined.ContentCopy, contentDescription = null)
+                        Spacer(Modifier.width(5.dp))
+                        Text(localizedUiText(language, "Copier", "Copy", "Kopieren", "Kopyala", "Копировать", "复制", "Copia"))
+                    }
+                }
+                notice?.let { Text(it, color = Color(0xFF86EFAC), style = MaterialTheme.typography.bodySmall) }
+            }
+        }
+    }
+}
+
+
 @Composable
 private fun AllianceScreen(
     language: AppLanguage,
@@ -5611,6 +5741,7 @@ private fun AllianceScreen(
                 }
             }
         }
+        item { AllianceMessageTemplatesCard(language) }
         item {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
