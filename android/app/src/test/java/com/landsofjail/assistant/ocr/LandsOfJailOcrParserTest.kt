@@ -1004,4 +1004,15 @@ Potential Coil x 8"""
         }
     }
 
+    @Test
+    fun doesNotInventHeroesFromArbitraryNamesFollowedByLevel() {
+        val building = LandsOfJailOcrParser.parseLocalOcrText("Warehouse\\nLevel 12")
+        val generic = LandsOfJailOcrParser.parseLocalOcrText("Training Center Lv 8")
+        val knownHero = LandsOfJailOcrParser.parseLocalOcrText("Ada\\nLevel 12")
+
+        assertTrue("Un bâtiment ne doit pas être ajouté à l'inventaire des héros", building.heroes.isEmpty())
+        assertTrue("Un libellé générique ne doit pas devenir un héros", generic.heroes.isEmpty())
+        assertEquals("Les héros connus du catalogue doivent rester détectés", listOf("Ada"), knownHero.heroes.map { it.nom })
+    }
+
 }
