@@ -5614,9 +5614,9 @@ private fun AllianceScreen(
         item {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                    Text("Messages importants · R4 / R5", fontWeight = FontWeight.Bold)
+                    Text(localizedUiText(language, "Messages importants · R4 / R5", "Important messages · R4 / R5", "Wichtige Nachrichten · R4 / R5", "Önemli mesajlar · R4 / R5", "Важные сообщения · R4 / R5", "重要消息 · R4 / R5", "Messaggi importanti · R4 / R5"), fontWeight = FontWeight.Bold)
                     Text(
-                        "Les R4 et R5 peuvent publier les consignes importantes de l'alliance. Les messages sont conservés dans le cloud et visibles par les membres. Seul le R5 ou le développeur de l'application peut les supprimer.",
+                        localizedUiText(language, "Les R4 et R5 peuvent publier les consignes importantes de l'alliance. Les messages sont conservés dans le cloud et visibles par les membres. Seul le R5 ou le développeur de l'application peut les supprimer.", "R4 and R5 can publish important alliance instructions. Messages are saved in the cloud and visible to members. Only the R5 or the app developer can delete them.", "R4 und R5 können wichtige Allianz-Anweisungen veröffentlichen. Nachrichten werden in der Cloud gespeichert und sind für Mitglieder sichtbar. Nur R5 oder der App-Entwickler können sie löschen.", "R4 ve R5 önemli ittifak talimatlarını yayınlayabilir. Mesajlar bulutta saklanır ve üyeler tarafından görülür. Bunları yalnızca R5 veya uygulama geliştiricisi silebilir.", "R4 и R5 могут публиковать важные указания альянса. Сообщения сохраняются в облаке и видны участникам. Удалять их может только R5 или разработчик приложения.", "R4 和 R5 可以发布联盟重要通知。消息保存在云端，所有成员可见。只有 R5 或应用开发者可以删除消息。", "R4 e R5 possono pubblicare comunicazioni importanti dell’alleanza. I messaggi vengono salvati nel cloud e sono visibili ai membri. Solo R5 o lo sviluppatore dell’app possono eliminarli."),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -5625,13 +5625,13 @@ private fun AllianceScreen(
                             value = allianceMessageDraft,
                             onValueChange = { allianceMessageDraft = it.take(2000) },
                             modifier = Modifier.fillMaxWidth(),
-                            label = { Text("Nouveau message important") },
-                            placeholder = { Text("Écris une consigne à conserver…") },
+                            label = { Text(localizedUiText(language, "Nouveau message important", "New important message", "Neue wichtige Nachricht", "Yeni önemli mesaj", "Новое важное сообщение", "新的重要消息", "Nuovo messaggio importante")) },
+                            placeholder = { Text(localizedUiText(language, "Écris une consigne à conserver…", "Write an instruction to save…", "Schreibe eine Anweisung zum Speichern…", "Kaydedilecek bir talimat yaz…", "Напишите указание для сохранения…", "写下需要保存的通知…", "Scrivi una comunicazione da conservare…")) },
                             minLines = 4,
                             maxLines = 10
                         )
                         TextButton(onClick = { allianceMessageDraft = DEFAULT_ALLIANCE_NOTICE }) {
-                            Text("Charger le message modèle de la Cage")
+                            Text(localizedUiText(language, "Charger le message modèle de la Cage", "Load the Cage message template", "Käfig-Nachrichtenvorlage laden", "Kafes mesaj şablonunu yükle", "Загрузить шаблон сообщения для Клетки", "载入试炼笼消息模板", "Carica il modello di messaggio della Gabbia"))
                         }
                         Button(
                             onClick = {
@@ -5660,11 +5660,11 @@ private fun AllianceScreen(
                             if (allianceMessagesBusy) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
                             else Icon(Icons.Outlined.Save, contentDescription = null)
                             Spacer(Modifier.width(7.dp))
-                            Text(if (allianceMessagesBusy) "Enregistrement…" else "Enregistrer le message")
+                            Text(if (allianceMessagesBusy) localizedUiText(language, "Enregistrement…", "Saving…", "Speichern…", "Kaydediliyor…", "Сохранение…", "正在保存…", "Salvataggio…") else localizedUiText(language, "Enregistrer le message", "Save message", "Nachricht speichern", "Mesajı kaydet", "Сохранить сообщение", "保存消息", "Salva messaggio"))
                         }
                     } else {
                         Text(
-                            "Lecture seule : la publication est réservée aux R4 et R5 confirmés par le serveur.",
+                            localizedUiText(language, "Lecture seule : la publication est réservée aux R4 et R5 confirmés par le serveur.", "Read only: publishing is restricted to R4 and R5 confirmed by the server.", "Nur Lesen: Veröffentlichen dürfen nur vom Server bestätigte R4 und R5.", "Salt okunur: yayınlama yalnızca sunucu tarafından doğrulanan R4 ve R5 üyelerine açıktır.", "Только чтение: публикация доступна только подтверждённым сервером R4 и R5.", "只读：仅服务器确认的 R4 和 R5 可以发布消息。", "Sola lettura: la pubblicazione è riservata ai membri R4 e R5 confermati dal server."),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -5677,7 +5677,7 @@ private fun AllianceScreen(
                                 cloudAuth.fetchAllianceMessages(linkedAllianceId)
                                     .onSuccess {
                                         allianceMessages = it
-                                        allianceMessagesNotice = "Messages actualisés."
+                                        allianceMessagesNotice = localizedUiText(language, "Messages actualisés.", "Messages refreshed.", "Nachrichten aktualisiert.", "Mesajlar yenilendi.", "Сообщения обновлены.", "消息已刷新。", "Messaggi aggiornati.")
                                         allianceMessagesError = false
                                     }
                                     .onFailure {
@@ -5692,13 +5692,13 @@ private fun AllianceScreen(
                     ) {
                         Icon(Icons.Outlined.Refresh, contentDescription = null)
                         Spacer(Modifier.width(7.dp))
-                        Text("Actualiser les messages")
+                        Text(localizedUiText(language, "Actualiser les messages", "Refresh messages", "Nachrichten aktualisieren", "Mesajları yenile", "Обновить сообщения", "刷新消息", "Aggiorna messaggi"))
                     }
                     allianceMessagesNotice?.let {
                         Text(it, color = if (allianceMessagesError) Color(0xFFFCA5A5) else Color(0xFF86EFAC), style = MaterialTheme.typography.bodySmall)
                     }
                     if (allianceMessages.isEmpty()) {
-                        Text("Aucun message enregistré pour le moment.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(localizedUiText(language, "Aucun message enregistré pour le moment.", "No messages saved yet.", "Noch keine Nachrichten gespeichert.", "Henüz kaydedilmiş mesaj yok.", "Пока нет сохранённых сообщений.", "目前没有已保存的消息。", "Nessun messaggio salvato.")), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     } else {
                         allianceMessages.forEach { message ->
                             Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF202B3A))) {
@@ -5720,7 +5720,7 @@ private fun AllianceScreen(
                                                         cloudAuth.deleteAllianceMessage(message.id)
                                                             .onSuccess {
                                                                 allianceMessages = allianceMessages.filterNot { it.id == message.id }
-                                                                allianceMessagesNotice = "Message supprimé."
+                                                                allianceMessagesNotice = localizedUiText(language, "Message supprimé.", "Message deleted.", "Nachricht gelöscht.", "Mesaj silindi.", "Сообщение удалено.", "消息已删除。", "Messaggio eliminato.")
                                                                 allianceMessagesError = false
                                                             }
                                                             .onFailure {
@@ -5734,7 +5734,7 @@ private fun AllianceScreen(
                                             ) {
                                                 Icon(Icons.Outlined.Delete, contentDescription = null)
                                                 Spacer(Modifier.width(4.dp))
-                                                Text("Supprimer")
+                                                Text(localizedUiText(language, "Supprimer", "Delete", "Löschen", "Sil", "Удалить", "删除", "Elimina"))
                                             }
                                         }
                                     }
