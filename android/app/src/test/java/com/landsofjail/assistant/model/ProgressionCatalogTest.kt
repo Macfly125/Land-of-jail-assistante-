@@ -437,11 +437,7 @@ class ProgressionCatalogTest {
 
     @Test
     fun sourcedPrerequisitesRequireAConfirmedStartingLevelAndStayWithinTarget() {
-        val catalog = listOf(
-            ProgressionCatalog.labBuilding.first(),
-            ProgressionCatalog.labBuilding[1],
-            ProgressionCatalog.labBuilding[2]
-        )
+        val catalog = ProgressionCatalog.wardensOffice.take(3)
 
         assertTrue(sourcedPrerequisitesForRange(catalog, null, 4).isEmpty())
         assertTrue(sourcedPrerequisitesForRange(catalog, 3, 3).isEmpty())
