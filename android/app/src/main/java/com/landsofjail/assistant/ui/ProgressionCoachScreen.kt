@@ -165,7 +165,7 @@ private fun ProgressionCatalogGoalCard(
                         it = "Il livello attuale non è confermato: inseriscilo nell'obiettivo."),
                     style = MaterialTheme.typography.bodySmall
                 )
-                target <= current -> Text(
+                current != null && target <= current -> Text(
                     text(fr = "Objectif déjà atteint.", en = "Target already reached.", de = "Ziel bereits erreicht.",
                         tr = "Hedefe ulaşıldı.", ru = "Цель уже достигнута.", zh = "目标已达成。",
                         it = "Obiettivo già raggiunto."),
