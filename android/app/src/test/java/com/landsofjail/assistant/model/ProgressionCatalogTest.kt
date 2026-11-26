@@ -442,7 +442,7 @@ class ProgressionCatalogTest {
         assertTrue(sourcedPrerequisitesForRange(catalog, null, 4).isEmpty())
         assertTrue(sourcedPrerequisitesForRange(catalog, 3, 3).isEmpty())
         assertEquals(
-            listOf(4 to "Warden's Office Lv.10"),
+            listOf(4 to "Factory Lv.3"),
             sourcedPrerequisitesForRange(catalog, 3, 4)
         )
     }
