@@ -166,4 +166,31 @@ class ProgressionPlayerProfileTest {
         assertEquals(listOf("one"), remaining.filter { it.isPrimary }.map { it.id })
     }
 
+    @Test
+    fun canonicalResourceIdsSupportRussianChineseAndLocalizedLabels() {
+        val aliases = mapOf(
+            "Еда" to "food",
+            "食物" to "food",
+            "Дерево" to "wood",
+            "木材" to "wood",
+            "Сталь" to "steel",
+            "钢材" to "steel",
+            "Бензин" to "gasoline",
+            "汽油" to "gasoline",
+            "Наличные" to "gold",
+            "现金" to "gold",
+            "Bargeld" to "gold",
+            "Nakit" to "gold",
+            "Алмазы" to "diamonds",
+            "钻石" to "diamonds",
+            "Diamanten" to "diamonds",
+            "Elmas" to "diamonds",
+            "Diamanti" to "diamonds",
+            "Contanti" to "gold"
+        )
+        aliases.forEach { (input, expected) ->
+            assertEquals(input, expected, canonicalProgressionResourceId(input))
+        }
+    }
+
 }
