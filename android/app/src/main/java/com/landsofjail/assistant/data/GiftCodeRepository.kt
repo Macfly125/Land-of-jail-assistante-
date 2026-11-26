@@ -118,7 +118,10 @@ object GiftCodeRepository {
             "GuideLOJ FR · codes" to GUIDE_URL,
             "GuideLOJ FR · accueil" to GUIDE_HOME_URL,
             "Pocket Gamer" to "https://www.pocketgamer.com/lands-of-jail/codes/",
-            "MrGuider" to "https://www.mrguider.org/codes/lands-of-jail-codes/"
+            "MrGuider" to "https://www.mrguider.org/codes/lands-of-jail-codes/",
+            // Independent, frequently compared community catalogue; its entries
+            // are still marked unverified until a player redeems them in-game.
+            "Alliance Portal · gift codes" to "https://loj.dookee.ru/en/codes/"
         )
         val downloaded = coroutineScope {
             sources.map { (sourceName, url) ->
