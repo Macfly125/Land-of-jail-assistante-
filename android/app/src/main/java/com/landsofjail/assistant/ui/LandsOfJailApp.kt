@@ -3000,7 +3000,7 @@ private fun DashboardScreen(
 
         // Objectifs calculés à partir des données réellement enregistrées pour ce profil.
         val heroesToComplete = heroes.filter { hero -> hero.niveauTexte.isBlank() || hero.etoiles.isNullOrBlank() || hero.puissanceHero.isNullOrBlank() || hero.competences.isEmpty() }
-        val currentWardenLevel = currentPower?.niveauPrisonOuQG?.filter(Char::isDigit)?.toIntOrNull()
+        val currentWardenLevel = currentPower?.confirmedWardenLevel()
         val nextWardenRequirement = currentWardenLevel?.let { current -> WARDEN_LEVELS_TABLE.firstOrNull { requirement -> requirement.level == current + 1 } }
 
         item {
@@ -3059,7 +3059,7 @@ private fun DashboardScreen(
                             val stock = resources.firstOrNull { resource ->
                                 ResourceNameMatcher.matchesWardenCost(resource.nom, resourceKey)
                             }
-                            val available = stock?.quantiteNumerique
+                            val available = stock?.confirmedQuantity()
                             val shortage = available?.let { (required.toDouble() - it).coerceAtLeast(0.0).toLong() }
                             Text(
                                 when (currentLang) {
