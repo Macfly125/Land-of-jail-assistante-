@@ -1018,9 +1018,9 @@ Potential Coil x 8"""
     @Test
     fun doesNotReadWordsContainingResourceNamesAsResourceLabels() {
         val samples = listOf(
-            "Wooden Statue\\n1200",
-            "Foodcourt Upgrade\\n850",
-            "Steelworks Level 4\\n300"
+            "Wooden Statue\n1200",
+            "Foodcourt Upgrade\n850",
+            "Steelworks Level 4\n300"
         )
         samples.forEach { sample ->
             val result = LandsOfJailOcrParser.parseLocalOcrText(sample)
@@ -1031,7 +1031,7 @@ Potential Coil x 8"""
     @Test
     fun stillReadsResourceLabelsImmediatelyFollowedByQuantities() {
         val result = LandsOfJailOcrParser.parseLocalOcrText(
-            "食物1200\\n木材850\\n钢材300\\n汽油450"
+            "食物1200\n木材850\n钢材300\n汽油450"
         )
         assertTrue("Les libellés chinois accolés aux nombres doivent rester reconnus",
             result.resources.any { it.nom == "Nourriture (Food)" && it.quantiteTexte == "1200" })
