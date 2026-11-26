@@ -319,7 +319,9 @@ fun ProgressionCoachScreen(
             ProgressionDomain.HERO,
             ProgressionDomain.ROBOT,
             ProgressionDomain.ROBOT_CORE,
-            ProgressionDomain.EQUIPMENT
+            ProgressionDomain.EQUIPMENT,
+            ProgressionDomain.RESEARCH,
+            ProgressionDomain.TROOPS
         ) }
     fun text(fr: String, en: String, de: String, tr: String, ru: String, zh: String, it: String) =
         when (language) {
@@ -746,6 +748,52 @@ fun ProgressionCoachScreen(
             }
             if (catalog.isNotEmpty()) {
                 ProgressionCatalogGoalCard(goal, profile, catalog, language)
+            } else {
+                val current = profile.confirmedLevel(goal.targetId)
+                Card(Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(
+                            text = "${progressionLabel(goal.domain, language)} · ${goal.targetId}",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            text = if (current == null) {
+                                text(
+                                    "Niveau actuel non confirmé · cible : ${goal.targetLevel}.",
+                                    "Current level unconfirmed · target: ${goal.targetLevel}.",
+                                    "Aktuelles Level unbestätigt · Ziel: ${goal.targetLevel}.",
+                                    "Mevcut seviye doğrulanmadı · hedef: ${goal.targetLevel}.",
+                                    "Текущий уровень не подтверждён · цель: ${goal.targetLevel}.",
+                                    "当前等级未确认 · 目标：${goal.targetLevel}。",
+                                    "Livello attuale non confermato · obiettivo: ${goal.targetLevel}."
+                                )
+                            } else {
+                                text(
+                                    "Progression : $current → ${goal.targetLevel}.",
+                                    "Progress: $current → ${goal.targetLevel}.",
+                                    "Fortschritt: $current → ${goal.targetLevel}.",
+                                    "İlerleme: $current → ${goal.targetLevel}.",
+                                    "Прогресс: $current → ${goal.targetLevel}.",
+                                    "进度：$current → ${goal.targetLevel}。",
+                                    "Progressione: $current → ${goal.targetLevel}."
+                                )
+                            },
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                        Text(
+                            text = text(
+                                "Catalogue de coûts et prérequis sourcés non encore intégré. Aucun coût, durée ou prérequis n'est estimé ; cet objectif sert uniquement au suivi du niveau.",
+                                "Sourced cost and prerequisite catalogue not integrated yet. No cost, duration or prerequisite is estimated; this goal currently tracks level only.",
+                                "Belegter Kosten- und Voraussetzungskatalog noch nicht integriert. Kosten, Dauer und Voraussetzungen werden nicht geschätzt; dieses Ziel verfolgt vorerst nur das Level.",
+                                "Kaynaklı maliyet ve ön koşul kataloğu henüz entegre edilmedi. Maliyet, süre veya ön koşul tahmin edilmez; bu hedef şimdilik yalnızca seviyeyi izler.",
+                                "Каталог подтверждённых затрат и требований ещё не подключён. Стоимость, время и требования не оцениваются; цель пока отслеживает только уровень.",
+                                "尚未接入有来源的费用和前置条件目录。不估算费用、时间或前置条件；此目标目前仅跟踪等级。",
+                                "Il catalogo dei costi e dei prerequisiti con fonti non è ancora integrato. Non vengono stimati costi, durata o prerequisiti; per ora l'obiettivo segue solo il livello."
+                            ),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
             }
         }
         item {
