@@ -154,10 +154,7 @@ private fun ProgressionCatalogGoalCard(
                 text = "${catalog.first().sourceLabel} · ${catalog.first().checkedOn}",
                 style = MaterialTheme.typography.bodySmall
             )
-            val sourcedPrerequisites = catalog
-                .filter { it.step.toLevel > (current ?: Int.MIN_VALUE) && it.step.toLevel <= target }
-                .flatMap { record -> record.prerequisiteNotes.map { note -> record.step.toLevel to note } }
-                .distinct()
+            val sourcedPrerequisites = sourcedPrerequisitesForRange(catalog, current, target)
             if (sourcedPrerequisites.isNotEmpty()) {
                 Text(
                     text(fr = "Prérequis indiqués par la source", en = "Prerequisites stated by the source",
