@@ -321,4 +321,31 @@ class ProgressionPlayerProfileTest {
         }
     }
 
+    @Test
+    fun canonicalResourceIdsNormalizeRobotEquipmentAndHeroMaterials() {
+        val aliases = mapOf(
+            "Prisoner Armor Data" to "prisoner armor data",
+            "Données d'armure prisonnier" to "prisoner armor data",
+            "Power Modules" to "power modules",
+            "Modules de puissance" to "power modules",
+            "Advanced Power Modules" to "advanced power modules",
+            "Modules de puissance avancés" to "advanced power modules",
+            "Core Chips" to "core chips",
+            "Puces de noyau" to "core chips",
+            "Equipment EXP" to "equipment exp",
+            "EXP équipement" to "equipment exp",
+            "Magnets" to "magnets",
+            "Aimants" to "magnets",
+            "Potential Coils" to "potential coils",
+            "Bobines de potentiel" to "potential coils",
+            "Precision Gears" to "precision gears",
+            "Engrenages de précision" to "precision gears",
+            "Hero Shards" to "hero shards",
+            "Fragments de héros" to "hero shards"
+        )
+        aliases.forEach { (input, expected) ->
+            assertEquals(input, expected, canonicalProgressionResourceId(input))
+        }
+    }
+
 }
