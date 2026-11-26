@@ -137,4 +137,33 @@ class ProgressionPlayerProfileTest {
             assertEquals(input, expected, canonicalProgressionResourceId(input))
         }
     }
+    @Test
+    fun deletingObjectivePreservesExactlyOnePrimaryGoal() {
+        val objectives = listOf(
+            ProgressionObjective("first", ProgressionDomain.BUILDING, "gate", 8, false),
+            ProgressionObjective("primary", ProgressionDomain.BUILDING, "warden_office", 20, true),
+            ProgressionObjective("secondary", ProgressionDomain.HERO, "ada", 5, false)
+        )
+
+        val afterDeletingSecondary = removeProgressionObjective(objectives, "secondary")
+        assertEquals(listOf("primary"), afterDeletingSecondary.filter { it.isPrimary }.map { it.id })
+
+        val afterDeletingPrimary = removeProgressionObjective(objectives, "primary")
+        assertEquals(listOf("first"), afterDeletingPrimary.filter { it.isPrimary }.map { it.id })
+
+        val afterDeletingLast = removeProgressionObjective(objectives, "first")
+            .let { removeProgressionObjective(it, "secondary") }
+        assertEquals(emptyList<ProgressionObjective>(), afterDeletingLast)
+    }
+
+    @Test
+    fun deletingFromLegacyMultiplePrimaryObjectivesNormalizesToOne() {
+        val objectives = listOf(
+            ProgressionObjective("one", ProgressionDomain.BUILDING, "gate", 8, true),
+            ProgressionObjective("two", ProgressionDomain.BUILDING, "lab", 10, true)
+        )
+        val remaining = removeProgressionObjective(objectives, "missing-id")
+        assertEquals(listOf("one"), remaining.filter { it.isPrimary }.map { it.id })
+    }
+
 }
