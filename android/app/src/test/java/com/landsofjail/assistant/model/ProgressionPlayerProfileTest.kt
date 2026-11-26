@@ -151,8 +151,8 @@ class ProgressionPlayerProfileTest {
         val afterDeletingPrimary = removeProgressionObjective(objectives, "primary")
         assertEquals(listOf("first"), afterDeletingPrimary.filter { it.isPrimary }.map { it.id })
 
-        val afterDeletingLast = removeProgressionObjective(objectives, "first")
-            .let { removeProgressionObjective(it, "secondary") }
+        val afterDeletingLast = removeProgressionObjective(afterDeletingPrimary, "secondary")
+            .let { removeProgressionObjective(it, "first") }
         assertEquals(emptyList<ProgressionObjective>(), afterDeletingLast)
     }
 
