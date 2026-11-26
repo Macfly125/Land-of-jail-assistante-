@@ -78,8 +78,14 @@ object ScreenRecognitionEngine {
             if (hits.isEmpty()) null else category to hits
         }.sortedByDescending { it.second.size }
 
-        val best = ranked.firstOrNull()
-        val second = ranked.getOrNull(1)
+        // Le titre explicite « Cosmos Hub » prime sur les libellés génériques
+        // Satellite / Data Disk présents dans certaines vues du hub.
+        val best = if (paddedText.contains(" cosmos hub ")) {
+            ranked.firstOrNull { it.first == "cosmos_hub" } ?: ranked.firstOrNull()
+        } else {
+            ranked.firstOrNull()
+        }
+        val second = ranked.firstOrNull { it.first != best?.first }
         val confidence = when {
             best == null -> 0f
             best.second.size >= 3 && (second == null || best.second.size > second.second.size) -> 0.95f
