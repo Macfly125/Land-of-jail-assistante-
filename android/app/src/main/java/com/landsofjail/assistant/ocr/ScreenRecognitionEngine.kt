@@ -69,7 +69,24 @@ object ScreenRecognitionEngine {
                         else -> paddedText.contains(" ${normalize(contextLabel)} ")
                     }
                 }
-                isMatch && (category != "lab" || labHasResearchContext)
+                // Quelques mots isolés sont trop génériques pour identifier un écran :
+                // ils ne deviennent des indices que si un autre libellé propre à la
+                // même catégorie est également présent.
+                val genericLabelContext = when (category to label) {
+                    "turmoil_surge" to "wave" -> listOf("turmoil", "sentry turret")
+                    "sandsea_conquest" to "fuel" -> listOf("sandsea", "vessel station", "lighthouse")
+                    "batiments" to "upgrade" -> listOf("building", "bâtiment", "construction", "warden office", "barracks", "laboratory")
+                    else -> null
+                }
+                val hasGenericContext = genericLabelContext == null || genericLabelContext.any { contextLabel ->
+                    val normalizedContext = normalize(contextLabel)
+                    if (normalizedContext.any { it.code in 0x3400..0x9FFF || it.code in 0xF900..0xFAFF }) {
+                        normalized.contains(normalizedContext)
+                    } else {
+                        paddedText.contains(" $normalizedContext ")
+                    }
+                }
+                isMatch && (category != "lab" || labHasResearchContext) && hasGenericContext
             }.distinct()
             // Un libellé court inclus dans une expression reconnue ne constitue
             // pas un indice indépendant (ex. « robot » dans « robot center »).
