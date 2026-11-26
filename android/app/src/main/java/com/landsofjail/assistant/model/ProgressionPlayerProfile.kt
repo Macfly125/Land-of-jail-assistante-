@@ -72,6 +72,17 @@ data class ProgressionPlayerProfile(
  * previously confirmed stock. An empty observation preserves saved values.
  */
 fun canonicalProgressionResourceId(rawId: String): String {
+    // Preserve non-Latin labels before the ASCII fallback below removes them.
+    when (rawId.trim().lowercase()) {
+        "еда", "食物" -> return "food"
+        "дерево", "木材" -> return "wood"
+        "сталь", "钢材" -> return "steel"
+        "бензин", "汽油" -> return "gasoline"
+        "наличные", "现金" -> return "gold"
+        "алмазы", "钻石" -> return "diamonds"
+        "bargeld", "nakit" -> return "gold"
+        "diamanten", "elmas", "diamanti" -> return "diamonds"
+    }
     val key = rawId.trim().lowercase()
         .replace("é", "e").replace("è", "e").replace("ê", "e")
         .replace("à", "a").replace("â", "a").replace("î", "i")
