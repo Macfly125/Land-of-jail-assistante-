@@ -175,6 +175,16 @@ class GiftCodeRepositoryTest {
     }
 
     @Test
+    fun sourceCheckDatesUseStrictCalendarValidation() {
+        assertEquals(LocalDate.of(2026, 11, 26), GiftCodeRepository.parseSourceDate("26/11/2026"))
+        assertEquals(LocalDate.of(2026, 11, 26), GiftCodeRepository.parseSourceDate("Nov 26, 2026"))
+        assertEquals(LocalDate.of(2026, 11, 26), GiftCodeRepository.parseSourceDate("26 novembre 2026"))
+        assertNull(GiftCodeRepository.parseSourceDate("31/02/2026"))
+        assertNull(GiftCodeRepository.parseSourceDate("32/11/2026"))
+        assertNull(GiftCodeRepository.parseSourceDate("not a date"))
+    }
+
+    @Test
     fun parserInheritsGiftCodeContextFromSectionHeadingsOnlyWithinThatSection() {
         val html = """
             <h2>Active Gift Codes</h2>
