@@ -454,31 +454,9 @@ object LandsOfJailOcrParser {
                 }
             }
 
-            // Héros générique avec motif Lv/Niv
-            val lvlMatch = levelRegex.find(line)
-            if (lvlMatch != null) {
-                val candidateName = line.substring(0, lvlMatch.range.first)
-                    .replace(Regex("""[^A-Za-zÀ-ÿ0-9\s\-']"""), " ")
-                    .trim()
-                val lvl = lvlMatch.groupValues[1].toIntOrNull()
-                if (candidateName.length in 3..24 &&
-                    !seenHeroKeys.contains(candidateName.lowercase()) &&
-                    !candidateName.contains("warden", true) &&
-                    !candidateName.contains("prison", true) &&
-                    !candidateName.contains("bureau", true)
-                ) {
-                    seenHeroKeys.add(candidateName.lowercase())
-                    heroes.add(
-                        HeroRecord(
-                            nom = candidateName,
-                            niveau = lvl,
-                            niveauTexte = "Niv. ${lvl ?: "?"}",
-                            incertain = true,
-                            raisonIncertitude = "Extrait par OCR local ; vérifiez le nom en jeu"
-                        )
-                    )
-                }
-            }
+            // Ne jamais créer un héros à partir d'un nom arbitraire suivi de « Lv ».
+            // Les héros valides sont déjà ajoutés par la correspondance stricte au catalogue
+            // ci-dessus ; un libellé de bâtiment (« Warehouse Lv 12 ») ne doit pas devenir héros.
         }
 
         // Les portraits confirmés sont fusionnés après l'OCR, même si aucune ligne de texte n'a été lue.
