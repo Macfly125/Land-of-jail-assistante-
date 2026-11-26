@@ -86,3 +86,55 @@ L'audit CI du 2026-11-26 a vérifié la disponibilité HTTP des 50 portraits con
 ## Prochaine étape
 
 Collecter et annoter au moins un échantillon authentique par catégorie, puis ajouter des cas difficiles (petit texte, nombres proches, plusieurs langues, éléments masqués). Tant que cette couverture n'existe pas, les scores heuristiques restent des indices de classement et ne doivent pas déclencher seuls une validation automatique.
+
+
+## Extension de la recherche Internet — inventaire par catégorie (26 novembre 2026)
+
+Cette section ajoute les références publiques découvertes pour préparer l'OCR. Elle distingue explicitement les **données dérivées d'écrans de jeu** des **fichiers image réellement accessibles**. Une page qui cite des captures ne signifie pas que les fichiers originaux sont téléchargeables ou réutilisables.
+
+### Sources transversales
+
+| Source | Informations accessibles | Utilité OCR | Nature de la preuve / limite |
+|---|---|---|---|
+| [LOJ Wiki FR](https://lojwiki.com/fr/) | 50 héros, 22 bâtiments, 3 quartiers de troupes, 176 technologies, 12 armures de puissance de prisonnier, 11 satellites, île du Refuge, arrestations, trésor, inventaire, alliance et événements. | Dictionnaires de noms, libellés, niveaux, catégories et champs attendus ; comparaison multilingue. | Base structurée de données de jeu, pas un corpus brut de captures. |
+| [LOJ XLab Library](https://lojxlab.com/library/) | Bibliothèque communautaire avec guides, vidéos, tableaux de coûts et statuts « Observed/Tested ». | Références de vocabulaire, nomenclature des écrans et cohérence des champs. | Chaque élément doit être évalué séparément ; les tableaux reconstruits ne sont pas des images OCR. |
+| [LOJ XLab HEROpedia](https://lojxlab.com/heropedia/) | Écrans Héros, équipement exclusif et compétences de 27 héros S1–S6 ; 4 héros S7 depuis un enregistrement d'écran du 16 novembre 2026. | Noms, classes, compétences, niveaux et champs des fiches héros. | La page indique une provenance par captures/recording, mais les illustrations de substitution générées ne sont pas des portraits de jeu. |
+| [LOJ XLab Upgrade Planner](https://lojxlab.com/upgrades/) | 10 tableaux de coûts et parcours d'amélioration ; signale quatre cellules contradictoires ou à confirmer. | Contrôles de cohérence après extraction, jamais vérité terrain pour un pixel ou une capture. | Données tabulaires reconstruites ; les quatre anomalies restent à confirmer en jeu. |
+| [LOJ Wiki Guides](https://lojwiki.com/fr/) | Guides et calculateurs pour bâtiments, troupes, labo, armures, satellites, équipement, événements. | Lexique et couverture des écrans supplémentaires. | Source secondaire ; valider les changements de version et la langue. |
+
+### Références détaillées à exploiter
+
+| Catégorie OCR | Références Internet | Champs/indices à intégrer au dictionnaire de reconnaissance | Statut image |
+|---|---|---|---|
+| Ressources / inventaire | [LOJ Wiki FR](https://lojwiki.com/fr/) ; [Upgrade Planner](https://lojxlab.com/upgrades/) | Nourriture, bois, acier, essence/gasoline, or/argent, diamants ; icône, libellé, quantité, séparateurs de milliers, position du compteur, bandeau supérieur et inventaire. Ne pas inférer un stock depuis un mot isolé. | Références de données seulement ; aucune capture de bandeau de ressources validée. |
+| Bâtiments / QG | [Détails des bâtiments LOJ Wiki](https://lojwiki.com/fr/) ; [Warden's Office](https://lojxlab.com/library/lands-of-jail-office-level-upgrade-requirements/) | 22 bâtiments ; nom, niveau courant/cible, bouton d'amélioration, coût par ressource, durée, prérequis, bâtiment requis, niveau du Bureau du directeur. | LOJ XLab cite les panneaux en jeu de MIRÖX (S216, 6 octobre 2026), mais les images brutes ne sont pas dans le dépôt. |
+| Bureau du directeur / Forticlad | [Table Warden's Office](https://lojxlab.com/library/lands-of-jail-office-level-upgrade-requirements/) ; [Planner](https://lojxlab.com/upgrades/) | Niveaux 2–30, niveaux Forticlad 1–8 répertoriés ; ressources, durées et paliers. Garder Forticlad 9–10 non mesurés tant qu'aucune preuve en jeu n'est fournie. | Observations de panneaux signalées ; pas de fichier image brut collecté. |
+| Héros | [HEROpedia](https://lojxlab.com/heropedia/) ; [Hero Star costs](https://lojxlab.com/library/lands-of-jail-hero-star-upgrade-cost/) ; [LOJ Wiki FR](https://lojwiki.com/fr/) | 50 héros répertoriés par le Wiki ; nom/alias, classe (Shieldbearer/Bomber/Shooter), rareté, niveau, étoiles, fragments, compétences, équipement exclusif. Pour le portrait, exiger une correspondance visuelle validée et ne pas utiliser l'art de substitution. | Provenance d'écrans héros et d'un enregistrement S7 déclarée par XLab ; originaux non encore intégrés au corpus. |
+| Robots / armure de prisonnier | [Robot Upgrade Cost](https://lojxlab.com/library/lands-of-jail-robot-upgrade-cost/) ; [LOJ Wiki FR](https://lojwiki.com/fr/) | 12 armures de puissance de prisonnier ; nom/type, niveau 1–100, modules de puissance, modules avancés, données d'armure, cœurs I–V, nœuds troupe/type, chips et statistiques. | XLab cite des écrans de nœuds observés le 7 octobre 2026 ; pas d'images brutes déposées. Conflit modules avancés 60–70 : 40 ou 140, à vérifier sur capture. |
+| Équipement héros | [Hero Equipment](https://lojxlab.com/library/lands-of-jail-hero-equipment-level-100-200/) ; [LOJ Wiki FR](https://lojwiki.com/fr/) | Emplacement, classe de troupe, niveau, EXP, boulons, aimants, bobines de potentiel, promotion, qualité/rareté, statistiques. | Données de tables ; retrouver les captures sources avant de les utiliser comme vérité terrain. |
+| Reformation / armes exclusives | [Equipment Reformation](https://lojxlab.com/library/lands-of-jail-equipment-reformation-cost/) ; [Exclusive Weapons](https://lojxlab.com/library/lands-of-jail-exclusive-weapons-upgrade-cost/) | Niveau de reformation 1–20, engrenages, aimants ; arme exclusive 0–10, pièces, niveau, bonus et classe concernée. | Tables retranscrites de sources communautaires ; captures originales non collectées. |
+| Forticlad / laboratoire Forticlad | [Forticlad Lab](https://lojxlab.com/library/lands-of-jail-forticlad-lab-upgrade-cost/) ; [Planner](https://lojxlab.com/upgrades/) ; [LOJ Wiki FR](https://lojwiki.com/fr/) | Tiers, arbres technologiques, cinq étapes, type de troupe, hyperalliage, coûts, niveaux Bastion, prérequis et progression. | XLab indique des panneaux et arbres observés en jeu ; pas de captures brutes présentes. Anomalie gaz T4/Bastion : 85M ou 8,5M à vérifier. |
+| Laboratoire standard | [LOJ Wiki FR](https://lojwiki.com/fr/) ; [LOJ Wiki Lab](https://lojwiki.com/lab/) | 176 technologies ; nom de recherche, branche, niveau, coût, durée, prérequis, effet et bouton de recherche. | Référentiel structuré, pas de capture authentique validée. |
+| Satellites | [LOJ Wiki FR](https://lojwiki.com/fr/) ; [LOJ XLab Library](https://lojxlab.com/library/) | 11 satellites, rareté R/SR/SSR, niveau, ascension, disques de données, pièces planétaires, compétences et statistiques. | Références et tableaux ; captures brutes à retrouver. |
+| Troupes / quartiers | [LOJ Wiki FR](https://lojwiki.com/fr/) ; [LOJ XLab Upgrade Planner](https://lojxlab.com/upgrades/) | 3 quartiers et types Shieldbearer/Bomber/Shooter ; tier, quantité, coût d'entraînement/soin, durée, déblocage, puissance et capacité. | Données structurées ; pas de capture d'entraînement/soin annotée. |
+| Cage / combats | [LOJ XLab Cage](https://lojxlab.com/) ; [LOJ Wiki Guides](https://lojwiki.com/fr/) | Écran de sélection, héros, troupes, rapports, dégâts infligés, résultats réellement visibles. Séparer dégâts infligés et statistiques défensives. | Guides et pages d'événements ; pas de capture de rapport Cage annotée dans le dépôt. |
+| Île du Refuge | [LOJ Wiki FR](https://lojwiki.com/fr/) ; [vidéo Island Guidance](https://www.youtube.com/watch?v=eTC0OB1jZwo) | Manoir, 9 bâtiments, décorations, objets de luxe, prisonniers, prospérité, coûts et tirages. | Une vidéo candidate est identifiée ; extraire les frames seulement après contrôle des horodatages et de la lisibilité. |
+| Trésor / collections / tomes | [LOJ Wiki FR](https://lojwiki.com/fr/) ; [LOJ XLab Library](https://lojxlab.com/library/) | 6 pièces de collection, 18 tomes, rareté/étoiles, monnaies, niveaux, bonus et coûts. | Tables communautaires ; aucune capture brute annotée. |
+| Alliance / sac / événements / arrestations | [LOJ Wiki FR](https://lojwiki.com/fr/) | Sac (1 350 objets répertoriés), alliance (technologies, bâtiments, boutique), calendrier d'événements, arrestation et récompenses. | Référentiel de vocabulaire et de catégories ; captures de chaque écran à collecter. |
+
+### Règles d'usage des données trouvées en ligne
+
+1. **Dictionnaire OCR :** utiliser les noms, alias, libellés, types de ressources, classes, technologies et termes des sources pour enrichir les listes de mots, sans faire d'un mot générique une preuve de catégorie.
+2. **Contrôle de cohérence :** utiliser les coûts et niveaux des tableaux pour signaler une valeur improbable ou demander confirmation ; ne jamais corriger silencieusement le texte lu par l'OCR.
+3. **Vraie vérité terrain :** seuls les pixels d'une capture de jeu ou d'une frame identifiée, annotée et relue peuvent alimenter les tests d'image. Une image générée, un pictogramme isolé, une bannière de site ou une table HTML ne compte pas.
+4. **Frames vidéo :** enregistrer URL, horodatage, résolution, langue et auteur ; une frame ne devient pas une capture originale du joueur.
+5. **Droits et provenance :** ne pas aspirer/repackager les images communautaires sans autorisation claire. Garder les liens et métadonnées tant que la réutilisation n'est pas établie.
+6. **Conflits :** conserver les deux valeurs candidates, la source et le niveau de confiance. Exemple : Advanced Power Modules 60–70 (40 contre 140) et Forticlad T4/Bastion Gas (85M contre 8,5M).
+7. **Statut de couverture :** toutes les références listées ici sont des sources documentaires candidates ; elles ne font pas passer une catégorie à `collected`, `annotated` ou `ocr-tested` sans fichiers et résultats de test réels.
+
+### Priorités de collecte à partir des sources
+
+- Priorité 1 : ressources/bandeau, bâtiments/QG/Bureau du directeur, héros, robots, équipements, Forticlad et laboratoire.
+- Priorité 2 : troupes, Cage/rapports, satellites, île du Refuge, trésor/tomes.
+- Priorité 3 : sac, alliance, arrestations et écrans d'événements.
+- Pour chaque priorité, rechercher d'abord les captures originales créditées sur les pages sources et les frames vidéo identifiables ; si elles ne sont pas accessibles ou réutilisables, conserver la référence et demander une capture utilisateur ultérieure.
