@@ -30,9 +30,9 @@ Une entrée ne devient un échantillon OCR exploitable que si elle correspond à
 | Bâtiments / QG | Vue bâtiment et panneau d'amélioration | pending | nom, niveau actuel, niveau cible, coût, prérequis |
 | Bureau du directeur | Panneau de niveau et exigences | located | niveau, conditions, ressources, valeurs manquantes |
 | Robots | Liste, fiche robot et amélioration | located | nom, portrait, niveau, rang, matériaux, statistiques |
-| Héros | Liste, fiche héros, fragments et compétences | pending | nom, portrait, rareté, niveau, étoiles, fragments, compétences |
+| Héros | Liste, fiche héros, fragments et compétences | located | nom, portrait, rareté, niveau, étoiles, fragments, compétences |
 | Équipements | Inventaire et panneau d'amélioration | located | emplacement, qualité, niveau, matériaux, statistiques |
-| Forticlad | Sélecteur, pièces et calculateur d'amélioration | pending | pièce, rang/niveau, matériau, quantité, coût |
+| Forticlad | Sélecteur, pièces et calculateur d'amélioration | located | pièce, rang/niveau, matériau, quantité, coût |
 | Laboratoire standard | Recherche, niveau et coûts | located | technologie, niveau, durée, coût, prérequis |
 | Troupes | Entraînement, capacités et composition | pending | type, quantité, niveau, puissance |
 | Événements / Cage | Écran de formation et rapport de combat | pending | unités, héros, dégâts, résultats explicitement visibles |
