@@ -299,6 +299,37 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun classifiesFrenchAndEnglishHeadquartersLabelsAsBuildingScreens() {
+        val samples = listOf(
+            "QG",
+            "QG\\nNiveau 9",
+            "HQ",
+            "HQ 12",
+            "Prison"
+        )
+        samples.forEach { sample ->
+            val result = ScreenRecognitionEngine.analyze(sample)
+            assertEquals("Le QG / HQ doit être classé comme bâtiment : $sample", "batiments", result.category)
+            assertTrue(result.needsVisualConfirmation)
+        }
+    }
+
+    @Test
+    fun extractsHeadquartersLevelEvenWhenPowerIsNotVisible() {
+        val samples = listOf(
+            "QG\\nNiveau 9" to "Niv. 9",
+            "HQ\\nLevel 12" to "Niv. 12",
+            "Prison\\nNiv. 7" to "Niv. 7"
+        )
+        samples.forEach { (sample, expected) ->
+            val result = LandsOfJailOcrParser.parseLocalOcrText(sample)
+            assertEquals("Le niveau du QG doit être conservé sans puissance : $sample",
+                expected, result.power?.niveauPrisonOuQG)
+            assertEquals("Non mesurée", result.power?.puissanceTotaleTexte)
+        }
+    }
+
+    @Test
     fun classifiesWardenOfficeWithApostropheAsBuildingScreen() {
         listOf("Warden's Office", "Warden’s Office", "Director's Office").forEach { label ->
             val result = ScreenRecognitionEngine.analyze(label)
