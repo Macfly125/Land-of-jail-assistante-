@@ -74,3 +74,28 @@ Ces pages exposent des images de gameplay identifiables. Elles sont référencé
 - [ ] Héros, équipement, recherche et Forticlad : trouver des captures brutes de ces écrans et leurs contextes.
 
 Aucun fichier image n'a été ajouté au dépôt : les sources sont externes et les droits de réutilisation doivent être vérifiés. Ne pas entraîner ni valider une métrique OCR sur les descriptions textuelles des pages ; utiliser les pixels d'une capture autorisée et une annotation humaine indépendante.
+
+
+## Références de robots et laboratoires — approfondissement 26/11/2026
+
+### Hangar robots / armures
+- LOJ Dookee, catalogue Power Armor : https://loj.dookee.ru/en/development/hangar/ — 14 fiches de robots, portraits, statistiques par niveau et descriptions de compétences. La page précise les cas où les données proviennent de captures joueurs, les chiffres non vérifiés et les valeurs non disponibles.
+- La fiche inclut notamment Light Cone (capture du 30/01/2026 au niveau 60), Ranger (statistiques au niveau 9), Yokozuna (niveau 10) et Musashimaru (niveau 40). Ces fiches permettent de construire des cas de contrôle de cohérence, mais leurs tableaux ne sont pas des images brutes pour évaluer l'OCR.
+- Vidéo Dauntless, robot n°12 / saison 7 : https://www.youtube.com/watch?v=LCYZfp55Ml0 — description annonce statistiques, compétences Arrest/War et les 15 noyaux des modules Barrier, Formation et Solo. Vidéo repérée, aucune image extraite.
+
+### Laboratoires et coûts
+- Forticlad Lab : https://lojxlab.com/library/lands-of-jail-forticlad-lab-upgrade-cost/ — tableau de coûts et observations en jeu datées du 06/10/2026 ; les captures d'origine sont créditées à MIRÖX (S216).
+- Robots niveaux 1–100 et Core I–V : https://lojxlab.com/library/lands-of-jail-robot-upgrade-cost/ — coûts documentés, avec conflit explicitement signalé sur les Advanced Power Modules 60–70 (40 contre 140). Ne pas masquer ce conflit dans les données de l'application.
+- Laboratoire principal : https://lojwiki.com/buildings/lab/ — niveaux du bâtiment, coûts et prérequis jusqu'au niveau 30 ; à distinguer du Forticlad Lab.
+- Bibliothèque LOJ XLab : https://lojxlab.com/library/ — catalogue des guides communautaires avec état de vérification (« Observed », « Tested ») et crédit aux auteurs.
+
+### Conséquences pour le développement
+- [x] Identifier une source de référence détaillée pour les 14 robots et leurs données connues.
+- [x] Identifier une vidéo de gameplay du robot Dauntless couvrant les 15 noyaux.
+- [x] Identifier les références distinctes pour le Laboratoire classique et le Forticlad Lab.
+- [x] Repérer et conserver explicitement le conflit de données 60–70 des modules avancés ; ne pas choisir une valeur comme vérité sans capture de l'écran du jeu.
+- [ ] Extraire les frames des vidéos avec horodatage et annotation humaine.
+- [ ] Obtenir les captures sources originales citées par les auteurs (notamment MIRÖX S216) avec autorisation d'usage en tests.
+- [ ] Ajouter des fixtures OCR séparées pour chaque panneau de robot, noyau, laboratoire classique et Forticlad ; conserver résolution, langue, saison et provenance.
+
+Aucune image binaire n'a été importée dans le dépôt dans cette étape. Les tableaux sont des références de cohérence, pas des preuves de reconnaissance d'image.
