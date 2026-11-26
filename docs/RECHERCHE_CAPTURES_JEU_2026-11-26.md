@@ -232,7 +232,7 @@ Aucun code source n'a été modifié dans cet audit ; il s'agit d'une inspection
 - [x] Ajouter une section « Messages importants · R4 / R5 » dans l'espace Alliance.
 - [x] Permettre aux rangs cloud R4 et R5 de rédiger et publier des messages (maximum 2 000 caractères).
 - [x] Enregistrer les messages dans Supabase afin qu'ils restent disponibles après fermeture/réouverture de l'application et soient visibles par les membres de l'alliance.
-- [x] Afficher auteur, date et contenu ; actualisation manuelle disponible.
+- [x] Afficher auteur, date et contenu ; actualisation manuelle et copie du texte intégral (BBCode + ASCII compris) disponibles.
 - [x] Ajouter le modèle fourni pour l'événement Cage : « NESSUN RADUNO DI BESTIE DURANTE L'EVENTO DELLA GABBIA! GRAZIE », avec le BBCode couleur et le dessin ASCII conservés comme texte.
 - [x] Traduire les libellés de la section dans les sept langues de l'application.
 
@@ -246,7 +246,7 @@ Aucun code source n'a été modifié dans cet audit ; il s'agit d'une inspection
 - [x] Test transactionnel : le compte R5/développeur courant a publié puis supprimé un message temporaire ; transaction annulée, aucun message de test conservé.
 - [x] Test transactionnel : un utilisateur non membre ne peut ni lire les messages, ni publier, ni supprimer un message temporaire ; les trois contrôles ont refusé l'accès comme attendu.
 - [ ] Le projet ne compte actuellement qu'un seul membre d'alliance (R5 et développeur) : les permissions R4 ont été vérifiées dans la logique SQL, mais pas encore exercées par un vrai compte R4 distinct.
-- [ ] Les workflows Android #825 et #535 doivent terminer avant de déclarer l'APK validé.
+- [ ] Les workflows Android #827 et #537 doivent terminer avant de déclarer l'APK validé.
 
 ### Sécurité Supabase
 - [x] Contrôle des grants et des fonctions : lecture authenticated oui, INSERT/DELETE directs non, anon sans accès, RPC réservés à authenticated.
