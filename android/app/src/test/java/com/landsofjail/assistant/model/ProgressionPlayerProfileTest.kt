@@ -119,6 +119,32 @@ class ProgressionPlayerProfileTest {
     }
 
     @Test
+    fun conflictingConfirmedAliasesAtSameTimestampBecomeUnconfirmedRegardlessOfOrder() {
+        val first = PlayerResourceStock("wood", 700L, true, 500L)
+        val second = PlayerResourceStock("Bois", 900L, true, 500L)
+
+        val forward = mergeProgressionStocks(listOf(first, second), emptyList())
+        val reverse = mergeProgressionStocks(listOf(second, first), emptyList())
+
+        assertEquals(forward, reverse)
+        assertEquals(1, forward.size)
+        assertEquals(false, forward.single().confirmed)
+        assertEquals(500L, forward.single().updatedAtEpochMillis)
+    }
+
+    @Test
+    fun newestConfirmedStockWinsOverNewerUncertainObservation() {
+        val merged = mergeProgressionStocks(
+            listOf(PlayerResourceStock("wood", 700L, true, 500L)),
+            listOf(PlayerResourceStock("Bois", 900L, false, 900L))
+        )
+
+        assertEquals(700L, merged.single().quantity)
+        assertEquals(true, merged.single().confirmed)
+        assertEquals(500L, merged.single().updatedAtEpochMillis)
+    }
+
+    @Test
     fun confirmedStockLookupAcceptsLocalizedAliasesAndPrefersLatestConfirmedValue() {
         val profile = ProgressionPlayerProfile(
             profileId = "main",
