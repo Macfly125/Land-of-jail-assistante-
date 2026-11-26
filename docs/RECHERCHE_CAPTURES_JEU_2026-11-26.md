@@ -171,3 +171,32 @@ Aucun binaire image n'a été ajouté : cette étape ajoute des références et 
 - [ ] Créer fixtures OCR indépendantes pour les panneaux de robot, les noyaux, les étapes FC/AFC, les arbres du laboratoire principal et les technologies Forticlad.
 - [ ] Confirmer dans le client les valeurs contestées et les effets après mise à jour ; aucune donnée incertaine ne doit alimenter un calcul ferme.
 
+
+
+## Audit du code Android OCR après la recherche — 26/11/2026
+
+Audit en lecture seule du commit de branche `f9b41f241eb1a25216d2453d6404f54ab4069dae`.
+
+### Reconnaissance des écrans
+- `ScreenRecognitionEngine` classe les catégories à partir de dictionnaires de libellés OCR multilingues. Le code indique lui-même que l'OCR seul ne prouve pas la reconnaissance graphique.
+- Les niveaux de confiance calculés reflètent le nombre de libellés concordants et la séparation avec la deuxième catégorie ; ce ne sont pas des probabilités calibrées sur des captures réelles.
+- Les tests actuels vérifient des textes OCR synthétiques, pas les pixels de captures réelles du jeu.
+
+### Portraits robots
+- `RobotPortraitMatcher` compare des pixels RGB à des gabarits locaux de mêmes dimensions ; il refuse correctement les correspondances faibles, les ambiguïtés et les dimensions incompatibles.
+- Le matcher ne télécharge ni ne crée de gabarits. Aucun catalogue de gabarits robot vérifiés n'a été repéré dans l'arborescence du dépôt au commit audité.
+- `RobotPortraitMatcherTest` couvre les cas exacts, variantes d'un même robot, égalité ambiguë, faible similarité et catalogue vide, avec de minuscules matrices artificielles 2×2. Ces tests valident la logique du matcher, pas la reconnaissance des portraits réels.
+- Étape nécessaire avant activation : définir des crops reproductibles (portrait seul, sans cadre/étoiles/texte), plusieurs états visuels par robot, normalisation de taille et de luminosité, puis gabarits issus d'images autorisées et annotations humaines.
+
+### Corpus existant
+- Les neuf fichiers historiques sous `public/assets/aistudio/` restent identifiés dans l'audit précédent comme captures de l'application/guides et non comme captures brutes de gameplay.
+- Aucune image brute de gameplay robot, ressource, QG, héros, équipement ou laboratoire n'a été ajoutée au commit audité.
+
+### Prochaines tâches de code
+- [ ] Ne pas interpréter le score lexical de catégorie comme une confiance OCR mesurée ; renommer/présenter le score comme heuristique ou le calibrer avec un corpus.
+- [ ] Ajouter des fixtures d'images réelles autorisées et des annotations attendues par catégorie/langue/résolution.
+- [ ] Construire et brancher le catalogue visuel robot ; mesurer faux positifs et faux négatifs avant activation.
+- [ ] Ajouter des tests de crop/normalisation et de variations de luminosité/compression, en plus des tests unitaires synthétiques.
+- [ ] Conserver le refus de résultat incertain et ne jamais remplir niveau, noyau ou matériaux à partir du seul portrait.
+
+Aucun code source n'a été modifié dans cet audit ; il s'agit d'une inspection de code et de tests existants.
