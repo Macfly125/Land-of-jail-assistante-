@@ -101,7 +101,7 @@ fun ProgressionCoachScreen(
     var currentLevel by remember(profileId) { mutableStateOf("") }
     var targetLevel by remember(profileId) { mutableStateOf("") }
     var statusMessage by remember(profileId) { mutableStateOf("") }
-    val supportedBuildingGoal = profile.objectives.firstOrNull {
+    val supportedBuildingGoal = profile.objectives.sortedByDescending { it.isPrimary }.firstOrNull {
         it.domain == ProgressionDomain.BUILDING &&
             it.targetId.trim().lowercase() in setOf(
                 "lab", "laboratory", "labo", "laboratoire",
