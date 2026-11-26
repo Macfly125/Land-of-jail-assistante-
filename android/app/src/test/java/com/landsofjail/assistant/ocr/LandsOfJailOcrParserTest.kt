@@ -1112,4 +1112,21 @@ Potential Coil x 8"""
         assertTrue(result.resources.any { it.nom == "Bois (Wood)" && it.quantiteTexte == "850" })
     }
 
+    @Test
+    fun topResourceRowPreventsProfilePowerFallbackBeforeEliminations() {
+        val boxes = listOf("1.2M", "850K", "42M", "3.4M", "120", "7.8M").mapIndexed { index, value ->
+            OcrTextBox(value, left = 40 + index * 120, top = 50, right = 95 + index * 120, bottom = 82)
+        }
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            rawText = "12.4M\\nEliminations: 350",
+            textBoxes = boxes,
+            imageWidth = 900,
+            imageHeight = 1600
+        )
+
+        assertNull("Une rangée de ressources détectée ne doit jamais devenir la puissance du profil", result.power)
+        assertEquals(6, result.resources.size)
+        assertTrue(result.resources.all { it.incertain })
+    }
+
 }
