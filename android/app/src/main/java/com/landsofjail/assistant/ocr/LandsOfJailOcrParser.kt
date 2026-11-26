@@ -260,6 +260,15 @@ object LandsOfJailOcrParser {
                 if (seenResKeys.contains(resLabel)) continue
                 val match = regex.find(line)
                 if (match != null) {
+                    // « Fuel » peut désigner la ressource Essence ou le carburant
+                    // d'un écran Sandsea. Seul, ce mot ne suffit pas à créer un stock.
+                    val isAmbiguousFuelOnly = resLabel == "Essence (Gasoline)" &&
+                        Regex("""^fuel\b""", RegexOption.IGNORE_CASE).containsMatchIn(line) &&
+                        !Regex(
+                            """\b(gasoline|essence|benzina|carburante|benzin|汽油|бензин|food|wood|steel|nourriture|bois|acier|diamonds|diamants|gold|cash)\b""",
+                            RegexOption.IGNORE_CASE
+                        ).containsMatchIn(rawText)
+                    if (isAmbiguousFuelOnly) continue
                     val inlineQuantity = match.groupValues.drop(1).firstOrNull { it.isNotBlank() }?.trim()
                     val nextLineQuantity = (index + 1..minOf(lines.lastIndex, index + 2))
                         .firstNotNullOfOrNull { candidateIndex ->
