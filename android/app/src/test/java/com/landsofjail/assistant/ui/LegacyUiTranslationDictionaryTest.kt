@@ -38,6 +38,45 @@ class LegacyUiTranslationDictionaryTest {
     }
 
     @Test
+    fun everyDynamicFragmentLanguageHasTheSameSixtyOneEntries() {
+        val source = sourceText()
+        val fragmentsStart = source.indexOf("val fragments = when (language)")
+        assertTrue("Dynamic fragment translations must exist", fragmentsStart >= 0)
+
+        listOf("EN", "DE", "TR", "RU", "ZH", "IT").forEach { language ->
+            val marker = "AppLanguage.$language -> mapOf("
+            val start = source.indexOf(marker, fragmentsStart)
+            assertTrue("$language fragment map must exist", start >= 0)
+            val open = source.indexOf("(", start)
+            var depth = 0
+            var quote = false
+            var escaped = false
+            var close = -1
+            for (index in open until source.length) {
+                val char = source[index]
+                if (quote) {
+                    if (escaped) escaped = false
+                    else if (char == '\\\\') escaped = true
+                    else if (char == '"') quote = false
+                    continue
+                }
+                if (char == '"') quote = true
+                else if (char == '(') depth++
+                else if (char == ')' && --depth == 0) {
+                    close = index
+                    break
+                }
+            }
+            assertTrue("$language fragment map must close", close > open)
+            val block = source.substring(open + 1, close)
+            val pairCount = Regex("\\\"(?:[^\\\"\\\\]|\\\\.)*\\\"\\s+to\\s+\\\"(?:[^\\\"\\\\]|\\\\.)*\\\"")
+                .findAll(block)
+                .count()
+            assertEquals("$language must have all 61 dynamic fragments", 61, pairCount)
+        }
+    }
+
+    @Test
     fun italianLegacyFallbackNeverSelectsTheEnglishValue() {
         val source = sourceText()
         assertFalse(source.contains("if (language == AppLanguage.IT) dictionary[source]?.getOrNull(1)"))
