@@ -97,7 +97,7 @@ object ScreenRecognitionEngine {
             category = best?.first ?: "ocr_local",
             confidence = confidence,
             matchedLabels = best?.second.orEmpty(),
-            alternativeCategories = ranked.drop(1).take(2).map { it.first },
+            alternativeCategories = ranked.filter { it.first != best?.first }.take(2).map { it.first },
             needsVisualConfirmation = confidence < 0.8f
         )
     }
