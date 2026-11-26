@@ -450,4 +450,4 @@ class ProgressionCatalogTest {
             sourcedPrerequisitesForRange(catalog, 3, 4)
         )
     }
-\n}\n
+}
