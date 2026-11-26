@@ -111,6 +111,15 @@ fun canonicalProgressionResourceId(rawId: String): String {
         "gold", "or", "cash", "argent", "oro", "altin", "gold cash or", "cash or" -> "gold"
         "diamond", "diamonds", "diamant", "diamants", "gem", "gems", "gemme",
         "diamants gems" -> "diamonds"
+        "prisoner armor data", "donnees armure prisonnier", "donnees d armure prisonnier" -> "prisoner armor data"
+        "power modules", "module de puissance", "modules de puissance" -> "power modules"
+        "advanced power modules", "modules de puissance avances", "module de puissance avance" -> "advanced power modules"
+        "core chips", "puces de noyau", "puces noyau" -> "core chips"
+        "equipment exp", "exp equipement", "experience equipement" -> "equipment exp"
+        "magnets", "aimants", "magneti" -> "magnets"
+        "potential coils", "bobines de potentiel" -> "potential coils"
+        "precision gears", "engrenages de precision" -> "precision gears"
+        "hero shards", "fragments de heros" -> "hero shards"
         else -> key
     }
 }
