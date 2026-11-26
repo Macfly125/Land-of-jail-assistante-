@@ -1764,7 +1764,7 @@ fun LandsOfJailAssistantApp(
             val doneCount = analysisQueue.count { it.status == "done" }
             if (doneCount > 0) {
                 currentTab = AssistantTab.TABLEAU
-                snackbarHostState.showSnackbar(localizedUiText(currentLang, "File terminée (100 %) : $doneCount capture(s) analysée(s)", "Queue complete (100%): $doneCount capture(s) analyzed", "Warteschlange abgeschlossen (100 %): $doneCount Aufnahme(n) analysiert", "Kuyruk tamamlandı (%100): $doneCount ekran görüntüsü analiz edildi", "Очередь завершена (100 %): проанализировано снимков: $doneCount", "队列已完成（100%）：已分析 $doneCount 张截图"))
+                snackbarHostState.showSnackbar(localizedUiText(currentLang, "File terminée (100 %) : $doneCount capture(s) analysée(s)", "Queue complete (100%): $doneCount capture(s) analyzed", "Warteschlange abgeschlossen (100 %): $doneCount Aufnahme(n) analysiert", "Kuyruk tamamlandı (%100): $doneCount ekran görüntüsü analiz edildi", "Очередь завершена (100 %): проанализировано снимков: $doneCount", "队列已完成（100%）：已分析 $doneCount 张截图", "Coda completata (100%): analisi di $doneCount schermate"))
             }
         } finally {
             isQueueRunning = false
@@ -1867,7 +1867,7 @@ fun LandsOfJailAssistantApp(
                 if (!autoModeStillActive) {
                     currentTab = AssistantTab.TABLEAU
                     snackbarHostState.showSnackbar(
-                        localizedUiText(currentLang, "Capture analysée 100 % (${result.heros.size} héros, ${result.robots.size} robot(s), ${result.ressources.size} ressource(s))", "Capture analyzed 100% (${result.heros.size} heroes, ${result.robots.size} robot(s), ${result.ressources.size} resource(s))", "Aufnahme zu 100 % analysiert (${result.heros.size} Helden, ${result.robots.size} Roboter, ${result.ressources.size} Ressourcen)", "Ekran görüntüsü %100 analiz edildi (${result.heros.size} kahraman, ${result.robots.size} robot, ${result.ressources.size} kaynak)", "Снимок проанализирован на 100 % (${result.heros.size} героев, ${result.robots.size} роботов, ${result.ressources.size} ресурсов)", "截图已完成 100% 分析（${result.heros.size} 位英雄、${result.robots.size} 个机器人、${result.ressources.size} 项资源）")
+                        localizedUiText(currentLang, "Capture analysée 100 % (${result.heros.size} héros, ${result.robots.size} robot(s), ${result.ressources.size} ressource(s))", "Capture analyzed 100% (${result.heros.size} heroes, ${result.robots.size} robot(s), ${result.ressources.size} resource(s))", "Aufnahme zu 100 % analysiert (${result.heros.size} Helden, ${result.robots.size} Roboter, ${result.ressources.size} Ressourcen)", "Ekran görüntüsü %100 analiz edildi (${result.heros.size} kahraman, ${result.robots.size} robot, ${result.ressources.size} kaynak)", "Снимок проанализирован на 100 % (${result.heros.size} героев, ${result.robots.size} роботов, ${result.ressources.size} ресурсов)", "截图已完成 100% 分析（${result.heros.size} 位英雄、${result.robots.size} 个机器人、${result.ressources.size} 项资源）", "Schermata analizzata al 100% (${result.heros.size} eroi, ${result.robots.size} robot, ${result.ressources.size} risorse)")
                     )
                 }
 
@@ -1885,7 +1885,7 @@ fun LandsOfJailAssistantApp(
                 // La capture reste dans le stockage local : elle sera restaurée à la reprise.
                 throw e
             } catch (e: Throwable) {
-                errorMessage = e.message ?: localizedUiText(currentLang, "Erreur pendant l'analyse OCR.", "Error during OCR analysis.", "Fehler bei der OCR-Analyse.", "OCR analizi sırasında hata oluştu.", "Ошибка при распознавании текста.", "OCR 分析时出错。")
+                errorMessage = e.message ?: localizedUiText(currentLang, "Erreur pendant l'analyse OCR.", "Error during OCR analysis.", "Fehler bei der OCR-Analyse.", "OCR analizi sırasında hata oluştu.", "Ошибка при распознавании текста.", "OCR 分析时出错。", "Errore durante l'analisi OCR.")
             } finally {
                 if (analysisCommitted) onConsumeCapturedScreen()
                 isAnalyzing = false
@@ -1934,10 +1934,10 @@ fun LandsOfJailAssistantApp(
         if (showProfileDialog) {
         AlertDialog(
             onDismissRequest = { showProfileDialog = false },
-            title = { Text(localizedUiText(currentLang, "Profils de jeu", "Game profiles", "Spielprofile", "Oyun profilleri", "Игровые профили", "游戏档案")) },
+            title = { Text(localizedUiText(currentLang, "Profils de jeu", "Game profiles", "Spielprofile", "Oyun profilleri", "Игровые профили", "游戏档案", "Profili di gioco")) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(localizedUiText(currentLang, "Chaque profil conserve séparément ses héros, robots, ressources, puissance, événements, minuteries et historique. Renomme-les selon le personnage ou le compte pour les retrouver facilement.", "Each profile keeps its heroes, robots, resources, power, events, timers and history separate. Rename profiles by character or account to find them easily.", "Jedes Profil speichert Helden, Roboter, Ressourcen, Stärke, Ereignisse, Timer und Verlauf getrennt. Benenne Profile nach Charakter oder Konto, damit du sie leichter findest.", "Her profil kahramanları, robotları, kaynakları, gücü, etkinlikleri, zamanlayıcıları ve geçmişi ayrı tutar. Kolay bulmak için profilleri karaktere veya hesaba göre yeniden adlandır.", "В каждом профиле отдельно хранятся герои, роботы, ресурсы, сила, события, таймеры и история. Переименуйте профиль по персонажу или аккаунту, чтобы его было легче найти.", "每个档案分别保存英雄、机器人、资源、战力、活动、计时器和历史记录。可按角色或账号重命名，方便查找。"))
+                    Text(localizedUiText(currentLang, "Chaque profil conserve séparément ses héros, robots, ressources, puissance, événements, minuteries et historique. Renomme-les selon le personnage ou le compte pour les retrouver facilement.", "Each profile keeps its heroes, robots, resources, power, events, timers and history separate. Rename profiles by character or account to find them easily.", "Jedes Profil speichert Helden, Roboter, Ressourcen, Stärke, Ereignisse, Timer und Verlauf getrennt. Benenne Profile nach Charakter oder Konto, damit du sie leichter findest.", "Her profil kahramanları, robotları, kaynakları, gücü, etkinlikleri, zamanlayıcıları ve geçmişi ayrı tutar. Kolay bulmak için profilleri karaktere veya hesaba göre yeniden adlandır.", "В каждом профиле отдельно хранятся герои, роботы, ресурсы, сила, события, таймеры и история. Переименуйте профиль по персонажу или аккаунту, чтобы его было легче найти.", "每个档案分别保存英雄、机器人、资源、战力、活动、计时器和历史记录。可按角色或账号重命名，方便查找。", "Ogni profilo conserva separatamente eroi, robot, risorse, potenza, eventi, timer e cronologia. Rinomina i profili per personaggio o account per trovarli facilmente."))
                     localProfiles.forEach { profile ->
                         Column(modifier = Modifier.fillMaxWidth()) {
                             Text(
@@ -1967,18 +1967,18 @@ fun LandsOfJailAssistantApp(
                                             routineRevision += 1
                                             activeProfileId = profile.id
                                             accountPrefs.edit().putString("active_game_profile_v1", profile.id).commit()
-                                        }.onFailure { errorMessage = localizedUiText(currentLang, "Impossible d'ouvrir ce profil : ${it.message}", "Could not open this profile: ${it.message}", "Dieses Profil konnte nicht geöffnet werden: ${it.message}", "Bu profil açılamadı: ${it.message}", "Не удалось открыть этот профиль: ${it.message}", "无法打开此档案：${it.message}") }
+                                        }.onFailure { errorMessage = localizedUiText(currentLang, "Impossible d'ouvrir ce profil : ${it.message}", "Could not open this profile: ${it.message}", "Dieses Profil konnte nicht geöffnet werden: ${it.message}", "Bu profil açılamadı: ${it.message}", "Не удалось открыть этот профиль: ${it.message}", "无法打开此档案：${it.message}", "Impossibile aprire questo profilo: ${it.message}") }
                                     }
                                     showProfileDialog = false
-                                }) { Text(if (profile.id == activeProfileId) localizedUiText(currentLang, "Actif", "Active", "Aktiv", "Etkin", "Активен", "当前") else localizedUiText(currentLang, "Ouvrir", "Open", "Öffnen", "Aç", "Открыть", "打开")) }
+                                }) { Text(if (profile.id == activeProfileId) localizedUiText(currentLang, "Actif", "Active", "Aktiv", "Etkin", "Активен", "当前", "Attivo") else localizedUiText(currentLang, "Ouvrir", "Open", "Öffnen", "Aç", "Открыть", "打开", "Apri")) }
                                 TextButton(enabled = !isAnalyzing && !isAutoCapturing, onClick = {
                                     editingProfileId = profile.id
                                     profileNameInput = profile.name
-                                }) { Text(localizedUiText(currentLang, "Renommer", "Rename", "Umbenennen", "Yeniden adlandır", "Переименовать", "重命名")) }
+                                }) { Text(localizedUiText(currentLang, "Renommer", "Rename", "Umbenennen", "Yeniden adlandır", "Переименовать", "重命名", "Rinomina")) }
                                 TextButton(
                                     enabled = localProfiles.size > 1 && !isAnalyzing && !isAutoCapturing,
                                     onClick = { deletingProfileId = profile.id }
-                                ) { Text(localizedUiText(currentLang, "Supprimer", "Delete", "Löschen", "Sil", "Удалить", "删除")) }
+                                ) { Text(localizedUiText(currentLang, "Supprimer", "Delete", "Löschen", "Sil", "Удалить", "删除", "Elimina")) }
                             }
                         }
                     }
@@ -2112,18 +2112,18 @@ fun LandsOfJailAssistantApp(
                     ) { Text(if (isProfileSyncing) localizedAppText(localizedAppText("Synchronisation…")) else localizedAppText(localizedAppText("Synchroniser avec le cloud"))) }
                 }
             },
-            confirmButton = { TextButton(onClick = { showProfileDialog = false }) { Text(localizedUiText(currentLang, "Fermer", "Close", "Schließen", "Kapat", "Закрыть", "关闭")) } }
+            confirmButton = { TextButton(onClick = { showProfileDialog = false }) { Text(localizedUiText(currentLang, "Fermer", "Close", "Schließen", "Kapat", "Закрыть", "关闭", "Chiudi")) } }
         )
     }
     if (editingProfileId != null) {
         AlertDialog(
             onDismissRequest = { editingProfileId = null },
-            title = { Text(localizedUiText(currentLang, "Renommer le profil", "Rename profile", "Profil umbenennen", "Profili yeniden adlandır", "Переименовать профиль", "重命名档案")) },
+            title = { Text(localizedUiText(currentLang, "Renommer le profil", "Rename profile", "Profil umbenennen", "Profili yeniden adlandır", "Переименовать профиль", "重命名档案", "Rinomina profilo")) },
             text = {
                 OutlinedTextField(
                     value = profileNameInput,
                     onValueChange = { profileNameInput = it.take(32) },
-                    label = { Text(localizedUiText(currentLang, "Nom du profil", "Profile name", "Profilname", "Profil adı", "Название профиля", "档案名称")) },
+                    label = { Text(localizedUiText(currentLang, "Nom du profil", "Profile name", "Profilname", "Profil adı", "Название профиля", "档案名称", "Nome del profilo")) },
                     singleLine = true
                 )
             },
@@ -2136,17 +2136,17 @@ fun LandsOfJailAssistantApp(
                         }
                     }
                     editingProfileId = null
-                }, enabled = profileNameInput.trim().isNotEmpty()) { Text(localizedUiText(currentLang, "Enregistrer", "Save", "Speichern", "Kaydet", "Сохранить", "保存")) }
+                }, enabled = profileNameInput.trim().isNotEmpty()) { Text(localizedUiText(currentLang, "Enregistrer", "Save", "Speichern", "Kaydet", "Сохранить", "保存", "Salva")) }
             },
-            dismissButton = { TextButton(onClick = { editingProfileId = null }) { Text(localizedUiText(currentLang, "Annuler", "Cancel", "Abbrechen", "İptal", "Отмена", "取消")) } }
+            dismissButton = { TextButton(onClick = { editingProfileId = null }) { Text(localizedUiText(currentLang, "Annuler", "Cancel", "Abbrechen", "İptal", "Отмена", "取消", "Annulla")) } }
         )
     }
     if (deletingProfileId != null) {
         val target = localProfiles.firstOrNull { it.id == deletingProfileId }
         AlertDialog(
             onDismissRequest = { deletingProfileId = null },
-            title = { Text(localizedUiText(currentLang, "Supprimer ce profil ?", "Delete this profile?", "Dieses Profil löschen?", "Bu profil silinsin mi?", "Удалить этот профиль?", "删除此档案？")) },
-            text = { Text(localizedUiText(currentLang, "Les données locales de « ${target?.name.orEmpty()} » seront supprimées de cet appareil. Cette action ne supprime aucune sauvegarde distante.", "The local data for “${target?.name.orEmpty()}” will be deleted from this device. This does not delete any cloud backup.", "Die lokalen Daten von „${target?.name.orEmpty()}“ werden von diesem Gerät gelöscht. Cloud-Sicherungen bleiben erhalten.", "“${target?.name.orEmpty()}” profilinin yerel verileri bu cihazdan silinecek. Bulut yedekleri silinmez.", "Локальные данные профиля «${target?.name.orEmpty()}» будут удалены с этого устройства. Облачные копии не удаляются.", "“${target?.name.orEmpty()}”的本地数据将从此设备删除。此操作不会删除云端备份。")) },
+            title = { Text(localizedUiText(currentLang, "Supprimer ce profil ?", "Delete this profile?", "Dieses Profil löschen?", "Bu profil silinsin mi?", "Удалить этот профиль?", "删除此档案？", "Eliminare questo profilo?")) },
+            text = { Text(localizedUiText(currentLang, "Les données locales de « ${target?.name.orEmpty()} » seront supprimées de cet appareil. Cette action ne supprime aucune sauvegarde distante.", "The local data for “${target?.name.orEmpty()}” will be deleted from this device. This does not delete any cloud backup.", "Die lokalen Daten von „${target?.name.orEmpty()}“ werden von diesem Gerät gelöscht. Cloud-Sicherungen bleiben erhalten.", "“${target?.name.orEmpty()}” profilinin yerel verileri bu cihazdan silinecek. Bulut yedekleri silinmez.", "Локальные данные профиля «${target?.name.orEmpty()}» будут удалены с этого устройства. Облачные копии не удаляются.", "“${target?.name.orEmpty()}”的本地数据将从此设备删除。此操作不会删除云端备份。", "I dati locali di “${target?.name.orEmpty()}” verranno eliminati da questo dispositivo. Il backup sul cloud non verrà eliminato.")) },
             confirmButton = {
                 TextButton(onClick = {
                     if (target != null && localProfiles.size > 1) {
@@ -2169,13 +2169,13 @@ fun LandsOfJailAssistantApp(
                                 activeProfileId = next.id
                                 accountPrefs.edit().putString("active_game_profile_v1", next.id).commit()
                                 localProfiles = localProfiles.filterNot { it.id == target.id }
-                            }.onFailure { errorMessage = localizedUiText(currentLang, "Suppression impossible : ${it.message}", "Could not delete: ${it.message}", "Löschen nicht möglich: ${it.message}", "Silinemedi: ${it.message}", "Не удалось удалить: ${it.message}", "无法删除：${it.message}") }
+                            }.onFailure { errorMessage = localizedUiText(currentLang, "Suppression impossible : ${it.message}", "Could not delete: ${it.message}", "Löschen nicht möglich: ${it.message}", "Silinemedi: ${it.message}", "Не удалось удалить: ${it.message}", "无法删除：${it.message}", "Impossibile eliminare: ${it.message}") }
                         } else {
                             localProfiles = localProfiles.filterNot { it.id == target.id }
                         }
                     }
                     deletingProfileId = null
-                }) { Text(localizedUiText(currentLang, "Supprimer", "Delete", "Löschen", "Sil", "Удалить", "删除")) }
+                }) { Text(localizedUiText(currentLang, "Supprimer", "Delete", "Löschen", "Sil", "Удалить", "删除", "Elimina")) }
             },
             dismissButton = { TextButton(onClick = { deletingProfileId = null }) { Text(localizedAppText(localizedAppText("Annuler"))) } }
         )
@@ -2607,9 +2607,9 @@ fun LandsOfJailAssistantApp(
                                 result.onSuccess { id ->
                                     if (isInitialR5) {
                                         accountPrefs.edit().putString("cloud_alliance_id", id).apply()
-                                        snackbarHostState.showSnackbar(localizedUiText(currentLang, "Espace créé : tu es directement R5, sans validation.", "Workspace created: you are R5 immediately, without approval.", "Bereich erstellt: Du bist sofort R5, ohne Bestätigung.", "Alan oluşturuldu: onay gerekmeden doğrudan R5 oldun.", "Пространство создано: вы сразу становитесь R5 без подтверждения.", "空间已创建：你直接成为 R5，无需审核。"))
+                                        snackbarHostState.showSnackbar(localizedUiText(currentLang, "Espace créé : tu es directement R5, sans validation.", "Workspace created: you are R5 immediately, without approval.", "Bereich erstellt: Du bist sofort R5, ohne Bestätigung.", "Alan oluşturuldu: onay gerekmeden doğrudan R5 oldun.", "Пространство создано: вы сразу становитесь R5 без подтверждения.", "空间已创建：你直接成为 R5，无需审核。", "Spazio creato: sei subito R5, senza approvazione."))
                                     } else {
-                                        snackbarHostState.showSnackbar(localizedUiText(currentLang, "Demande envoyée aux R4/R5 de l'alliance.", "Request sent to the alliance R4/R5 officers.", "Anfrage an die R4/R5 der Allianz gesendet.", "İstek ittifakın R4/R5 yetkililerine gönderildi.", "Запрос отправлен офицерам R4/R5 альянса.", "申请已发送给联盟 R4/R5 管理员。"))
+                                        snackbarHostState.showSnackbar(localizedUiText(currentLang, "Demande envoyée aux R4/R5 de l'alliance.", "Request sent to the alliance R4/R5 officers.", "Anfrage an die R4/R5 der Allianz gesendet.", "İstek ittifakın R4/R5 yetkililerine gönderildi.", "Запрос отправлен офицерам R4/R5 альянса.", "申请已发送给联盟 R4/R5 管理员。", "Richiesta inviata agli ufficiali R4/R5 dell'alleanza."))
                                     }
                                 }.onFailure {
                                     snackbarHostState.showSnackbar(it.message ?: if (isInitialR5) {
@@ -3019,13 +3019,13 @@ private fun DashboardScreen(
                             "Öncelikler bu profile göre hesaplanır. Eksik veya belirsiz değerler doğrulanmış sayılmaz.",
                             "Приоритеты рассчитаны по этому профилю. Отсутствующие и сомнительные значения не считаются подтверждёнными.",
                             "根据此档案计算优先事项。缺失或不确定的数据不会被视为已确认。"
-                        ),
+                        , "Le priorità sono calcolate in base a questo profilo. I valori mancanti o incerti non sono mai considerati confermati."),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     if (currentWardenLevel == null) {
                         Text(
-                            localizedUiText(currentLang, "• Niveau du QG / prison à mesurer", "• Measure HQ / Warden Office level", "• HQ-/Gefängnisstufe erfassen", "• Karargâh / Müdürlük seviyesini ölç", "• Определить уровень штаба / тюрьмы", "• 先识别总部 / 典狱长办公室等级"),
+                            localizedUiText(currentLang, "• Niveau du QG / prison à mesurer", "• Measure HQ / Warden Office level", "• HQ-/Gefängnisstufe erfassen", "• Karargâh / Müdürlük seviyesini ölç", "• Определить уровень штаба / тюрьмы", "• 先识别总部 / 典狱长办公室等级", "• Rileva il livello del QG / Ufficio del Direttore"),
                             fontWeight = FontWeight.SemiBold
                         )
                         Text(
@@ -3037,16 +3037,16 @@ private fun DashboardScreen(
                                 "Sonraki adım: seviyeyi belirlemek ve sonraki yükseltmeyi hesaplamak için ana bina ekran görüntüsünü içe aktar.",
                                 "Далее: импортируйте снимок главного здания, чтобы определить уровень и рассчитать улучшение.",
                                 "下一步：导入主建筑截图，以识别等级并计算下一次升级。"
-                            ),
+                            , "Prossimo passo: importa uno screenshot dell'edificio principale per identificarne il livello e calcolare il prossimo miglioramento."),
                             style = MaterialTheme.typography.bodySmall
                         )
                     } else if (nextWardenRequirement != null) {
                         Text(
-                            localizedUiText(currentLang, "• Prochain objectif bâtiment : niveau ${nextWardenRequirement.level}", "• Next building goal: level ${nextWardenRequirement.level}", "• Nächstes Gebäudeziel: Stufe ${nextWardenRequirement.level}", "• Sonraki bina hedefi: seviye ${nextWardenRequirement.level}", "• Следующая цель здания: уровень ${nextWardenRequirement.level}", "• 下一个建筑目标：等级 ${nextWardenRequirement.level}"),
+                            localizedUiText(currentLang, "• Prochain objectif bâtiment : niveau ${nextWardenRequirement.level}", "• Next building goal: level ${nextWardenRequirement.level}", "• Nächstes Gebäudeziel: Stufe ${nextWardenRequirement.level}", "• Sonraki bina hedefi: seviye ${nextWardenRequirement.level}", "• Следующая цель здания: уровень ${nextWardenRequirement.level}", "• 下一个建筑目标：等级 ${nextWardenRequirement.level}", "• Prossimo obiettivo edificio: livello ${nextWardenRequirement.level}"),
                             fontWeight = FontWeight.SemiBold
                         )
                         Text(
-                            localizedUiText(currentLang, "Prérequis : ${nextWardenRequirement.prereqs}", "Requirements: ${nextWardenRequirement.prereqs}", "Voraussetzungen: ${nextWardenRequirement.prereqs}", "Ön koşullar: ${nextWardenRequirement.prereqs}", "Требования: ${nextWardenRequirement.prereqs}", "前置条件：${nextWardenRequirement.prereqs}"),
+                            localizedUiText(currentLang, "Prérequis : ${nextWardenRequirement.prereqs}", "Requirements: ${nextWardenRequirement.prereqs}", "Voraussetzungen: ${nextWardenRequirement.prereqs}", "Ön koşullar: ${nextWardenRequirement.prereqs}", "Требования: ${nextWardenRequirement.prereqs}", "前置条件：${nextWardenRequirement.prereqs}", "Requisiti: ${nextWardenRequirement.prereqs}"),
                             style = MaterialTheme.typography.bodySmall
                         )
                         val requiredResources = listOf(
@@ -3076,19 +3076,19 @@ private fun DashboardScreen(
                         }
                         if (!nextWardenRequirement.verified) {
                             Text(
-                                localizedUiText(currentLang, "Coûts / prérequis estimés : à confirmer dans le jeu.", "Estimated costs / requirements: confirm in-game.", "Geschätzte Kosten / Voraussetzungen: im Spiel prüfen.", "Tahmini maliyetler / ön koşullar: oyunda doğrulayın.", "Расчётные затраты / требования: проверьте в игре.", "估算费用 / 前置条件：请在游戏内确认。"),
+                                localizedUiText(currentLang, "Coûts / prérequis estimés : à confirmer dans le jeu.", "Estimated costs / requirements: confirm in-game.", "Geschätzte Kosten / Voraussetzungen: im Spiel prüfen.", "Tahmini maliyetler / ön koşullar: oyunda doğrulayın.", "Расчётные затраты / требования: проверьте в игре.", "估算费用 / 前置条件：请在游戏内确认。", "Costi / requisiti stimati: verifica nel gioco."),
                                 color = Color(0xFFFBBF24),
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }
                     } else if (currentWardenLevel >= 30) {
-                        Text(localizedUiText(currentLang, "• Objectif bâtiment : niveau maximum actuellement référencé (30).", "• Building goal: currently documented maximum level (30).", "• Gebäudeziel: derzeit dokumentierte Höchststufe (30).", "• Bina hedefi: şu anda belgelenen en yüksek seviye (30).", "• Цель здания: максимальный уровень в текущих данных (30).", "• 建筑目标：当前资料记录的最高等级（30）。"), style = MaterialTheme.typography.bodySmall)
+                        Text(localizedUiText(currentLang, "• Objectif bâtiment : niveau maximum actuellement référencé (30).", "• Building goal: currently documented maximum level (30).", "• Gebäudeziel: derzeit dokumentierte Höchststufe (30).", "• Bina hedefi: şu anda belgelenen en yüksek seviye (30).", "• Цель здания: максимальный уровень в текущих данных (30).", "• 建筑目标：当前资料记录的最高等级（30）。", "• Obiettivo edificio: livello massimo attualmente documentato (30)."), style = MaterialTheme.typography.bodySmall)
                     } else {
-                        Text(localizedUiText(currentLang, "• Données de prérequis manquantes pour le niveau ${(currentWardenLevel ?: 0) + 1}.", "• Requirements are not documented for level ${(currentWardenLevel ?: 0) + 1}.", "• Voraussetzungen für Stufe ${(currentWardenLevel ?: 0) + 1} fehlen.", "• ${(currentWardenLevel ?: 0) + 1}. seviye için ön koşul verisi yok.", "• Нет данных о требованиях для уровня ${(currentWardenLevel ?: 0) + 1}.", "• 缺少等级 ${(currentWardenLevel ?: 0) + 1} 的前置条件数据。"), style = MaterialTheme.typography.bodySmall)
+                        Text(localizedUiText(currentLang, "• Données de prérequis manquantes pour le niveau ${(currentWardenLevel ?: 0) + 1}.", "• Requirements are not documented for level ${(currentWardenLevel ?: 0) + 1}.", "• Voraussetzungen für Stufe ${(currentWardenLevel ?: 0) + 1} fehlen.", "• ${(currentWardenLevel ?: 0) + 1}. seviye için ön koşul verisi yok.", "• Нет данных о требованиях для уровня ${(currentWardenLevel ?: 0) + 1}.", "• 缺少等级 ${(currentWardenLevel ?: 0) + 1} 的前置条件数据。", "• I requisiti per il livello ${(currentWardenLevel ?: 0) + 1} non sono documentati."), style = MaterialTheme.typography.bodySmall)
                     }
                     if (heroesToComplete.isNotEmpty()) {
                         Text(
-                            localizedUiText(currentLang, "• Héros à compléter : ${heroesToComplete.size}", "• Heroes to complete: ${heroesToComplete.size}", "• Zu ergänzende Helden: ${heroesToComplete.size}", "• Tamamlanacak kahraman: ${heroesToComplete.size}", "• Героев для заполнения: ${heroesToComplete.size}", "• 待补全英雄：${heroesToComplete.size}"),
+                            localizedUiText(currentLang, "• Héros à compléter : ${heroesToComplete.size}", "• Heroes to complete: ${heroesToComplete.size}", "• Zu ergänzende Helden: ${heroesToComplete.size}", "• Tamamlanacak kahraman: ${heroesToComplete.size}", "• Героев для заполнения: ${heroesToComplete.size}", "• 待补全英雄：${heroesToComplete.size}", "• Eroi da completare: ${heroesToComplete.size}"),
                             fontWeight = FontWeight.SemiBold
                         )
                         Text(
@@ -3104,20 +3104,20 @@ private fun DashboardScreen(
                             style = MaterialTheme.typography.bodySmall
                         )
                         Text(
-                            localizedUiText(currentLang, "À faire : ouvrir Héros et compléter les champs manquants avec les captures du jeu.", "Next: open Heroes and complete missing fields using game screenshots.", "Nächster Schritt: Helden öffnen und fehlende Felder anhand von Spiel-Screenshots ergänzen.", "Sonraki adım: Kahramanlar bölümünü açıp eksik alanları oyun ekran görüntüleriyle tamamlayın.", "Далее: откройте героев и заполните пропуски по игровым снимкам.", "下一步：打开英雄页面，使用游戏截图补全缺失字段。"),
+                            localizedUiText(currentLang, "À faire : ouvrir Héros et compléter les champs manquants avec les captures du jeu.", "Next: open Heroes and complete missing fields using game screenshots.", "Nächster Schritt: Helden öffnen und fehlende Felder anhand von Spiel-Screenshots ergänzen.", "Sonraki adım: Kahramanlar bölümünü açıp eksik alanları oyun ekran görüntüleriyle tamamlayın.", "Далее: откройте героев и заполните пропуски по игровым снимкам.", "下一步：打开英雄页面，使用游戏截图补全缺失字段。", "Prossimo passo: apri Eroi e completa i campi mancanti usando gli screenshot del gioco."),
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
                     if (resources.isEmpty()) {
-                        Text(localizedUiText(currentLang, "• Inventaire à renseigner", "• Resource inventory missing", "• Ressourceninventar fehlt", "• Kaynak envanteri eksik", "• Не заполнен запас ресурсов", "• 尚未记录资源库存"), fontWeight = FontWeight.SemiBold)
-                        Text(localizedUiText(currentLang, "À faire : importer une capture de l'inventaire pour comparer tes stocks aux prochains coûts.", "Next: import an inventory screenshot to compare your stock with upcoming costs.", "Nächster Schritt: Screenshot des Inventars importieren und Bestände mit künftigen Kosten vergleichen.", "Sonraki adım: stokları sonraki maliyetlerle karşılaştırmak için envanter ekranını içe aktarın.", "Далее: импортируйте снимок запасов, чтобы сравнить их с будущими затратами.", "下一步：导入库存截图，将现有资源与后续升级费用比较。"), style = MaterialTheme.typography.bodySmall)
+                        Text(localizedUiText(currentLang, "• Inventaire à renseigner", "• Resource inventory missing", "• Ressourceninventar fehlt", "• Kaynak envanteri eksik", "• Не заполнен запас ресурсов", "• 尚未记录资源库存", "• Inventario risorse mancante"), fontWeight = FontWeight.SemiBold)
+                        Text(localizedUiText(currentLang, "À faire : importer une capture de l'inventaire pour comparer tes stocks aux prochains coûts.", "Next: import an inventory screenshot to compare your stock with upcoming costs.", "Nächster Schritt: Screenshot des Inventars importieren und Bestände mit künftigen Kosten vergleichen.", "Sonraki adım: stokları sonraki maliyetlerle karşılaştırmak için envanter ekranını içe aktarın.", "Далее: импортируйте снимок запасов, чтобы сравнить их с будущими затратами.", "下一步：导入库存截图，将现有资源与后续升级费用比较。", "Prossimo passo: importa uno screenshot dell'inventario per confrontare le scorte con i costi futuri."), style = MaterialTheme.typography.bodySmall)
                     }
                     if (robots.isEmpty()) {
-                        Text(localizedUiText(currentLang, "• Profil robot à renseigner", "• Robot profile missing", "• Roboterprofil fehlt", "• Robot profili eksik", "• Не заполнен профиль робота", "• 尚未记录机器人资料"), fontWeight = FontWeight.SemiBold)
-                        Text(localizedUiText(currentLang, "À faire : importer les écrans du robot, de ses bonus et de ses compétences.", "Next: import the robot screens showing its bonuses and skills.", "Nächster Schritt: Screenshots des Roboters mit Boni und Fähigkeiten importieren.", "Sonraki adım: robotun bonuslarını ve becerilerini gösteren ekranları içe aktarın.", "Далее: импортируйте экраны робота, его бонусов и навыков.", "下一步：导入机器人、加成和技能页面。"), style = MaterialTheme.typography.bodySmall)
+                        Text(localizedUiText(currentLang, "• Profil robot à renseigner", "• Robot profile missing", "• Roboterprofil fehlt", "• Robot profili eksik", "• Не заполнен профиль робота", "• 尚未记录机器人资料", "• Profilo robot mancante"), fontWeight = FontWeight.SemiBold)
+                        Text(localizedUiText(currentLang, "À faire : importer les écrans du robot, de ses bonus et de ses compétences.", "Next: import the robot screens showing its bonuses and skills.", "Nächster Schritt: Screenshots des Roboters mit Boni und Fähigkeiten importieren.", "Sonraki adım: robotun bonuslarını ve becerilerini gösteren ekranları içe aktarın.", "Далее: импортируйте экраны робота, его бонусов и навыков.", "下一步：导入机器人、加成和技能页面。", "Prossimo passo: importa le schermate del robot che mostrano bonus e abilità."), style = MaterialTheme.typography.bodySmall)
                     }
                     if (heroesToComplete.isEmpty() && resources.isNotEmpty() && robots.isNotEmpty() && currentWardenLevel != null) {
-                        Text(localizedUiText(currentLang, "Les principales données du profil sont renseignées. Consulte Événements et Conseils pour définir tes prochains objectifs tactiques.", "The main profile data is complete. Check Events and Advice to set your next tactical goals.", "Die wichtigsten Profildaten sind erfasst. Prüfe Ereignisse und Tipps für deine nächsten taktischen Ziele.", "Profilin temel verileri tamamlandı. Sonraki taktik hedefler için Etkinlikler ve Tavsiyeler'e bakın.", "Основные данные профиля заполнены. Откройте события и советы, чтобы определить следующие тактические цели.", "主要档案数据已填写。请查看活动和建议，制定下一步战术目标。"), color = Color(0xFF34D399), style = MaterialTheme.typography.bodySmall)
+                        Text(localizedUiText(currentLang, "Les principales données du profil sont renseignées. Consulte Événements et Conseils pour définir tes prochains objectifs tactiques.", "The main profile data is complete. Check Events and Advice to set your next tactical goals.", "Die wichtigsten Profildaten sind erfasst. Prüfe Ereignisse und Tipps für deine nächsten taktischen Ziele.", "Profilin temel verileri tamamlandı. Sonraki taktik hedefler için Etkinlikler ve Tavsiyeler'e bakın.", "Основные данные профиля заполнены. Откройте события и советы, чтобы определить следующие тактические цели.", "主要档案数据已填写。请查看活动和建议，制定下一步战术目标。", "I dati principali del profilo sono completi. Controlla Eventi e Consigli per definire i prossimi obiettivi tattici."), color = Color(0xFF34D399), style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
@@ -3215,7 +3215,7 @@ private fun HeroesScreen(
     LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(localizedUiText(language, "Catalogue des héros", "Hero catalogue", "Heldenkatalog", "Kahraman kataloğu", "Каталог героев", "英雄目录"), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                Text(localizedUiText(language, "Catalogue des héros", "Hero catalogue", "Heldenkatalog", "Kahraman kataloğu", "Каталог героев", "英雄目录", "Catalogo eroi"), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                 Text(
                     localizedAppText("${HeroCatalog.entries.size} héros référencés · ${heroes.size} héros suivis sur ton compte"),
                     style = MaterialTheme.typography.bodySmall,
@@ -3223,7 +3223,7 @@ private fun HeroesScreen(
                 )
                 Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
                     Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(localizedUiText(language, "Progression de ton profil héros", "Hero profile progress", "Fortschritt deines Heldenprofils", "Kahraman profil ilerlemesi", "Прогресс профиля героев", "英雄档案进度"), fontWeight = FontWeight.SemiBold)
+                        Text(localizedUiText(language, "Progression de ton profil héros", "Hero profile progress", "Fortschritt deines Heldenprofils", "Kahraman profil ilerlemesi", "Прогресс профиля героев", "英雄档案进度", "Progressi del profilo eroi"), fontWeight = FontWeight.SemiBold)
                         Text(localizedAppText(localizedAppText("$verifiedHeroes profil(s) suffisamment renseigné(s) · $heroesToComplete à compléter")))
                         LinearProgressIndicator(
                             progress = { if (heroes.isEmpty()) 0f else verifiedHeroes.toFloat() / heroes.size.toFloat() },
@@ -3239,7 +3239,7 @@ private fun HeroesScreen(
                 OutlinedTextField(
                     value = search,
                     onValueChange = { search = it },
-                    label = { Text(localizedUiText(language, "Rechercher un héros", "Search heroes", "Helden suchen", "Kahraman ara", "Поиск героев", "搜索英雄")) },
+                    label = { Text(localizedUiText(language, "Rechercher un héros", "Search heroes", "Helden suchen", "Kahraman ara", "Поиск героев", "搜索英雄", "Cerca eroi")) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -3261,7 +3261,7 @@ private fun HeroesScreen(
         }
         item {
             Text(
-                localizedUiText(language, "Profils détectés en priorité · Catalogue complet ensuite", "Detected profiles first · Full catalogue below", "Erkannte Profile zuerst · Vollständiger Katalog darunter", "Önce algılanan profiller · Ardından tam katalog", "Сначала обнаруженные профили · Затем полный каталог", "优先显示已识别档案 · 下方为完整目录"),
+                localizedUiText(language, "Profils détectés en priorité · Catalogue complet ensuite", "Detected profiles first · Full catalogue below", "Erkannte Profile zuerst · Vollständiger Katalog darunter", "Önce algılanan profiller · Ardından tam katalog", "Сначала обнаруженные профили · Затем полный каталог", "优先显示已识别档案 · 下方为完整目录", "Prima i profili rilevati · Catalogo completo sotto"),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
@@ -3291,7 +3291,7 @@ private fun HeroesScreen(
                         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             Text(entry.nom, fontWeight = FontWeight.SemiBold)
                             Text(
-                                if (hero != null) localizedUiText(language, "Profil détecté", "Profile detected", "Profil erkannt", "Profil algılandı", "Профиль обнаружен", "已识别档案") else localizedUiText(language, "Catalogue", "Catalogue", "Katalog", "Katalog", "Каталог", "目录"),
+                                if (hero != null) localizedUiText(language, "Profil détecté", "Profile detected", "Profil erkannt", "Profil algılandı", "Профиль обнаружен", "已识别档案", "Profilo rilevato") else localizedUiText(language, "Catalogue", "Catalogue", "Katalog", "Katalog", "Каталог", "目录", "Catalogo"),
                                 color = if (hero != null) Color(0xFF34D399) else MaterialTheme.colorScheme.onSurfaceVariant,
                                 style = MaterialTheme.typography.labelSmall
                             )
@@ -3312,7 +3312,7 @@ private fun HeroesScreen(
                         )
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                             TextButton(onClick = { editingHero = hero }) {
-                                Text(localizedUiText(language, "Modifier mon héros", "Edit my hero", "Meinen Helden bearbeiten", "Kahramanımı düzenle", "Изменить героя", "编辑我的英雄"))
+                                Text(localizedUiText(language, "Modifier mon héros", "Edit my hero", "Meinen Helden bearbeiten", "Kahramanımı düzenle", "Изменить героя", "编辑我的英雄", "Modifica il mio eroe"))
                             }
                             TextButton(onClick = { expandedHeroName = if (expandedHeroName == entry.nom) null else entry.nom }) {
                                 Text(if (expandedHeroName == entry.nom) localizedAppText(localizedAppText("Masquer la fiche")) else localizedAppText(localizedAppText("Fiche complète")))
@@ -3357,7 +3357,7 @@ private fun HeroesScreen(
                     } else {
                         Text(localizedAppText(localizedAppText("Niveau, étoiles et compétences personnels : à scanner ou saisir depuis le jeu.")), style = MaterialTheme.typography.bodySmall)
                         TextButton(onClick = { editingHero = onAddHero(entry) }) {
-                            Text(localizedUiText(language, "Ajouter à mon profil", "Add to my profile", "Zu meinem Profil hinzufügen", "Profilime ekle", "Добавить в профиль", "添加到我的档案"))
+                            Text(localizedUiText(language, "Ajouter à mon profil", "Add to my profile", "Zu meinem Profil hinzufügen", "Profilime ekle", "Добавить в профиль", "添加到我的档案", "Aggiungi al mio profilo"))
                         }
                         TextButton(onClick = { expandedHeroName = if (expandedHeroName == entry.nom) null else entry.nom }) {
                             Text(if (expandedHeroName == entry.nom) localizedAppText(localizedAppText("Masquer la fiche")) else localizedAppText(localizedAppText("Voir la fiche complète")))
@@ -3406,7 +3406,7 @@ private fun HeroesScreen(
         }
         if (visibleHeroes.isEmpty()) {
             item {
-                Text(localizedUiText(language, "Aucun héros ne correspond à cette recherche.", "No heroes match this search.", "Keine Helden entsprechen dieser Suche.", "Bu aramayla eşleşen kahraman yok.", "Герои не найдены.", "没有符合此搜索的英雄。"))
+                Text(localizedUiText(language, "Aucun héros ne correspond à cette recherche.", "No heroes match this search.", "Keine Helden entsprechen dieser Suche.", "Bu aramayla eşleşen kahraman yok.", "Герои не найдены.", "没有符合此搜索的英雄。", "Nessun eroe corrisponde a questa ricerca."))
             }
         }
         val detectedOutsideCatalog = heroes.filter { detected ->
@@ -3932,17 +3932,17 @@ private fun ResourcesScreen(
                                     Column(Modifier.weight(1f)) {
                                         Text(robot.nom, fontWeight = FontWeight.SemiBold)
                                         if (robot.niveau.isNotBlank()) {
-                                            Text(localizedUiText(currentLang, "Niveau ${robot.niveau}", "Level ${robot.niveau}", "Stufe ${robot.niveau}", "Seviye ${robot.niveau}", "Уровень ${robot.niveau}", "等级 ${robot.niveau}"), style = MaterialTheme.typography.bodySmall)
+                                            Text(localizedUiText(currentLang, "Niveau ${robot.niveau}", "Level ${robot.niveau}", "Stufe ${robot.niveau}", "Seviye ${robot.niveau}", "Уровень ${robot.niveau}", "等级 ${robot.niveau}", "Livello ${robot.niveau}"), style = MaterialTheme.typography.bodySmall)
                                         }
                                     }
                                 }
-                                val meta = listOf(robot.niveau.takeIf { it.isNotBlank() }?.let { localizedUiText(currentLang, "Niv. $it", "Lv. $it", "Stufe $it", "Sv. $it", "Ур. $it", "等级 $it") }, robot.rarete, robot.puissance.takeIf { it.isNotBlank() }?.let { localizedUiText(currentLang, "Puissance $it", "Power $it", "Macht $it", "Güç $it", "Мощь $it", "战力 $it") }).filterNotNull()
+                                val meta = listOf(robot.niveau.takeIf { it.isNotBlank() }?.let { localizedUiText(currentLang, "Niv. $it", "Lv. $it", "Stufe $it", "Sv. $it", "Ур. $it", "等级 $it", "Liv. $it") }, robot.rarete, robot.puissance.takeIf { it.isNotBlank() }?.let { localizedUiText(currentLang, "Puissance $it", "Power $it", "Macht $it", "Güç $it", "Мощь $it", "战力 $it", "Potenza $it") }).filterNotNull()
                                 if (meta.isNotEmpty()) Text(meta.joinToString(" · "), style = MaterialTheme.typography.bodySmall)
-                                if (robot.bonus.isNotBlank()) Text(localizedUiText(currentLang, "Bonus : ${robot.bonus}", "Bonus: ${robot.bonus}", "Bonus: ${robot.bonus}", "Bonus: ${robot.bonus}", "Бонус: ${robot.bonus}", "加成：${robot.bonus}"), style = MaterialTheme.typography.bodySmall)
-                                if (robot.competences.isNotBlank()) Text(localizedUiText(currentLang, "Compétences : ${robot.competences}", "Skills: ${robot.competences}", "Fähigkeiten: ${robot.competences}", "Beceriler: ${robot.competences}", "Навыки: ${robot.competences}", "技能：${robot.competences}"), style = MaterialTheme.typography.bodySmall)
+                                if (robot.bonus.isNotBlank()) Text(localizedUiText(currentLang, "Bonus : ${robot.bonus}", "Bonus: ${robot.bonus}", "Bonus: ${robot.bonus}", "Bonus: ${robot.bonus}", "Бонус: ${robot.bonus}", "加成：${robot.bonus}", "Bonus: ${robot.bonus}"), style = MaterialTheme.typography.bodySmall)
+                                if (robot.competences.isNotBlank()) Text(localizedUiText(currentLang, "Compétences : ${robot.competences}", "Skills: ${robot.competences}", "Fähigkeiten: ${robot.competences}", "Beceriler: ${robot.competences}", "Навыки: ${robot.competences}", "技能：${robot.competences}", "Abilità: ${robot.competences}"), style = MaterialTheme.typography.bodySmall)
                                 if (robot.incertain) {
                                     Text(
-                                        robot.raisonIncertitude?.takeIf { it.isNotBlank() }?.let { localizedUiText(currentLang, "Nom du robot reconnu, niveau non lu explicitement", "Robot name recognized; level not read explicitly", "Robotername erkannt; Stufe nicht eindeutig gelesen", "Robot adı tanındı; seviye açıkça okunamadı", "Название робота распознано, уровень не прочитан", "已识别机器人名称，但未明确读取等级") } ?: localizedUiText(currentLang, "Données détectées à vérifier sur l’écran du jeu.", "Detected data must be checked against the game screen.", "Erkannte Daten müssen im Spiel überprüft werden.", "Algılanan veriler oyun ekranında doğrulanmalı.", "Распознанные данные нужно проверить по экрану игры.", "识别的数据需要与游戏画面核对。"),
+                                        robot.raisonIncertitude?.takeIf { it.isNotBlank() }?.let { localizedUiText(currentLang, "Nom du robot reconnu, niveau non lu explicitement", "Robot name recognized; level not read explicitly", "Robotername erkannt; Stufe nicht eindeutig gelesen", "Robot adı tanındı; seviye açıkça okunamadı", "Название робота распознано, уровень не прочитан", "已识别机器人名称，但未明确读取等级", "Nome del robot riconosciuto; livello non letto esplicitamente") } ?: localizedUiText(currentLang, "Données détectées à vérifier sur l’écran du jeu.", "Detected data must be checked against the game screen.", "Erkannte Daten müssen im Spiel überprüft werden.", "Algılanan veriler oyun ekranında doğrulanmalı.", "Распознанные данные нужно проверить по экрану игры.", "识别的数据需要与游戏画面核对。", "I dati rilevati devono essere verificati sulla schermata del gioco."),
                                         color = Color(0xFFFBBF24),
                                         style = MaterialTheme.typography.bodySmall
                                     )
@@ -3983,13 +3983,13 @@ private fun ResourcesScreen(
                     "forticlad_lab" to (listOf(150, 200, 250, 300, 160, 190, 220, 270, 270) to listOf(0, 0, 0, 0, 10, 15, 22, 30, 72))
                 )
                 val buildingLabels = listOf(
-                    "warden_office" to "🏛️ " + localizedUiText(currentLang, "Bureau du directeur", "Warden Office", "Direktorbüro", "Müdür Ofisi", "Кабинет надзирателя", "典狱长办公室"),
-                    "shield_barracks" to "🛡️ " + localizedUiText(currentLang, "Caserne Shieldbearer", "Shieldbearer Barracks", "Schildträger-Kaserne", "Kalkanlı Kışlası", "Казарма щитоносцев", "盾卫兵营"),
-                    "bomber_barracks" to "💥 " + localizedUiText(currentLang, "Caserne Bomber", "Bomber Barracks", "Bomber-Kaserne", "Bombacı Kışlası", "Казарма бомбардировщиков", "轰炸兵营"),
-                    "shooter_barracks" to "🎯 " + localizedUiText(currentLang, "Caserne Shooter", "Shooter Barracks", "Schützen-Kaserne", "Nişancı Kışlası", "Казарма стрелков", "射手兵营"),
-                    "comms_center" to "📡 " + localizedUiText(currentLang, "Centre de communications", "Communication Center", "Kommunikationszentrum", "İletişim Merkezi", "Центр связи", "通讯中心"),
-                    "command_center" to "🚩 " + localizedUiText(currentLang, "Centre de commandement", "Command Center", "Kommandozentrale", "Komuta Merkezi", "Командный центр", "指挥中心"),
-                    "medical_station" to "➕ " + localizedUiText(currentLang, "Poste médical", "Medical Station", "Sanitätsstation", "Sağlık İstasyonu", "Медицинский пункт", "医疗站"),
+                    "warden_office" to "🏛️ " + localizedUiText(currentLang, "Bureau du directeur", "Warden Office", "Direktorbüro", "Müdür Ofisi", "Кабинет надзирателя", "典狱长办公室", "Ufficio del Direttore"),
+                    "shield_barracks" to "🛡️ " + localizedUiText(currentLang, "Caserne Shieldbearer", "Shieldbearer Barracks", "Schildträger-Kaserne", "Kalkanlı Kışlası", "Казарма щитоносцев", "盾卫兵营", "Caserma degli Scudieri"),
+                    "bomber_barracks" to "💥 " + localizedUiText(currentLang, "Caserne Bomber", "Bomber Barracks", "Bomber-Kaserne", "Bombacı Kışlası", "Казарма бомбардировщиков", "轰炸兵营", "Caserma dei Bombardieri"),
+                    "shooter_barracks" to "🎯 " + localizedUiText(currentLang, "Caserne Shooter", "Shooter Barracks", "Schützen-Kaserne", "Nişancı Kışlası", "Казарма стрелков", "射手兵营", "Caserma dei Tiratori"),
+                    "comms_center" to "📡 " + localizedUiText(currentLang, "Centre de communications", "Communication Center", "Kommunikationszentrum", "İletişim Merkezi", "Центр связи", "通讯中心", "Centro comunicazioni"),
+                    "command_center" to "🚩 " + localizedUiText(currentLang, "Centre de commandement", "Command Center", "Kommandozentrale", "Komuta Merkezi", "Командный центр", "指挥中心", "Centro di comando"),
+                    "medical_station" to "➕ " + localizedUiText(currentLang, "Poste médical", "Medical Station", "Sanitätsstation", "Sağlık İstasyonu", "Медицинский пункт", "医疗站", "Infermeria"),
                     "forticlad_lab" to "🧪 " + localizedUiText(currentLang, "Laboratoire Forticlad", "Forticlad Lab", "Forticlad-Labor", "Forticlad Laboratuvarı", "Лаборатория Forticlad", "Forticlad 实验室", "Laboratorio Forticlad")
                 )
                 val selectedCosts = fcCosts[fcBuildingKey] ?: fcCosts.getValue("warden_office")
@@ -4009,7 +4009,7 @@ private fun ResourcesScreen(
                 item {
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Text("🔷 " + localizedUiText(currentLang, "Calculateur Forticlad · 8 bâtiments", "Forticlad calculator · 8 buildings", "Forticlad-Rechner · 8 Gebäude", "Forticlad hesaplayıcı · 8 bina", "Калькулятор Forticlad · 8 зданий", "Forticlad 计算器 · 8 栋建筑"), fontWeight = FontWeight.Bold)
+                            Text("🔷 " + localizedUiText(currentLang, "Calculateur Forticlad · 8 bâtiments", "Forticlad calculator · 8 buildings", "Forticlad-Rechner · 8 Gebäude", "Forticlad hesaplayıcı · 8 bina", "Калькулятор Forticlad · 8 зданий", "Forticlad 计算器 · 8 栋建筑", "Calcolatore Forticlad · 8 edifici"), fontWeight = FontWeight.Bold)
                             Text(
                                 localizedUiText(currentLang, "Chaque niveau comporte 5 étapes. Les coûts par étape proviennent des tableaux GuideLOJ/LOJ Wiki ; le coût du Poste médical sur le dernier palier est estimé à partir du Centre de commande. Vérifie les valeurs en jeu avant de dépenser.", "Each level has 5 steps. Per-step costs come from GuideLOJ/LOJ Wiki tables; the Medical Station cost at the final tier is estimated from the Command Center. Verify in-game before spending.", "Jede Stufe hat 5 Schritte. Die Kosten stammen aus GuideLOJ/LOJ-Wiki-Tabellen; die Kosten der Sanitätsstation auf der letzten Stufe sind vom Kommandozentrum abgeleitet. Vor dem Ausgeben im Spiel prüfen.", "Her seviyede 5 aşama vardır. Aşama maliyetleri GuideLOJ/LOJ Wiki tablolarından alınmıştır; son kademedeki Sağlık İstasyonu maliyeti Komuta Merkezi'nden tahmin edilmiştir. Harcamadan önce oyunda doğrula.", "Каждый уровень состоит из 5 этапов. Стоимость взята из таблиц GuideLOJ/LOJ Wiki; стоимость медпункта на последнем этапе оценена по командному центру. Перед тратой проверьте в игре.", "每级有 5 个阶段。每阶段成本来自 GuideLOJ/LOJ Wiki；最后阶段的医疗站成本按指挥中心估算。消耗前请在游戏中核对。"),
                                 style = MaterialTheme.typography.bodySmall,
@@ -4049,7 +4049,7 @@ private fun ResourcesScreen(
                                     }
                                 }
                                 Column(Modifier.weight(1f)) {
-                                    Text(localizedUiText(currentLang, "Étapes terminées (0–4)", "Completed steps (0–4)", "Abgeschlossene Schritte (0–4)", "Tamamlanan aşama (0–4)", "Завершённые этапы (0–4)", "已完成阶段（0–4）"), style = MaterialTheme.typography.labelSmall)
+                                    Text(localizedUiText(currentLang, "Étapes terminées (0–4)", "Completed steps (0–4)", "Abgeschlossene Schritte (0–4)", "Tamamlanan aşama (0–4)", "Завершённые этапы (0–4)", "已完成阶段（0–4）", "Fasi completate (0–4)"), style = MaterialTheme.typography.labelSmall)
                                     Box {
                                         OutlinedButton(onClick = { currentProgressMenu = true }, modifier = Modifier.fillMaxWidth()) {
                                             Text(fcCurrentProgress.toString())
@@ -4065,7 +4065,7 @@ private fun ResourcesScreen(
                                     }
                                 }
                                 Column(Modifier.weight(1f)) {
-                                    Text(localizedUiText(currentLang, "Niveau cible", "Target level", "Zielstufe", "Hedef seviye", "Целевой уровень", "目标等级"), style = MaterialTheme.typography.labelSmall)
+                                    Text(localizedUiText(currentLang, "Niveau cible", "Target level", "Zielstufe", "Hedef seviye", "Целевой уровень", "目标等级", "Livello obiettivo"), style = MaterialTheme.typography.labelSmall)
                                     Box {
                                         OutlinedButton(onClick = { targetLevelMenu = true }, modifier = Modifier.fillMaxWidth()) {
                                             Text(fcTargetLevel.toString())
@@ -4084,14 +4084,14 @@ private fun ResourcesScreen(
                             OutlinedTextField(
                                 value = fcCoresOwned,
                                 onValueChange = { fcCoresOwned = it.filter(Char::isDigit).take(9) },
-                                label = { Text("🔷 " + localizedUiText(currentLang, "Noyaux Forticlad possédés", "Forticlad Cores owned", "Forticlad-Kerne vorhanden", "Mevcut Forticlad Çekirdekleri", "Ядра Forticlad в наличии", "现有 Forticlad 核心")) },
+                                label = { Text("🔷 " + localizedUiText(currentLang, "Noyaux Forticlad possédés", "Forticlad Cores owned", "Forticlad-Kerne vorhanden", "Mevcut Forticlad Çekirdekleri", "Ядра Forticlad в наличии", "现有 Forticlad 核心", "Nuclei Forticlad posseduti")) },
                                 singleLine = true,
                                 modifier = Modifier.fillMaxWidth()
                             )
                             OutlinedTextField(
                                 value = fcAdvancedOwned,
                                 onValueChange = { fcAdvancedOwned = it.filter(Char::isDigit).take(9) },
-                                label = { Text("💠 " + localizedUiText(currentLang, "Noyaux Forticlad avancés possédés", "Advanced Forticlad Cores owned", "Erweiterte Forticlad-Kerne vorhanden", "Mevcut Gelişmiş Forticlad Çekirdekleri", "Улучшенные ядра Forticlad в наличии", "现有高级 Forticlad 核心")) },
+                                label = { Text("💠 " + localizedUiText(currentLang, "Noyaux Forticlad avancés possédés", "Advanced Forticlad Cores owned", "Erweiterte Forticlad-Kerne vorhanden", "Mevcut Gelişmiş Forticlad Çekirdekleri", "Улучшенные ядра Forticlad в наличии", "现有高级 Forticlad 核心", "Nuclei Forticlad avanzati posseduti")) },
                                 singleLine = true,
                                 modifier = Modifier.fillMaxWidth()
                             )
@@ -4100,16 +4100,16 @@ private fun ResourcesScreen(
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Card(Modifier.weight(1f), colors = CardDefaults.cardColors(containerColor = Color(0xFF172333))) {
                                     Column(Modifier.padding(12.dp)) {
-                                        Text("🔷 " + localizedUiText(currentLang, "Noyaux requis", "Cores required", "Benötigte Kerne", "Gerekli çekirdek", "Требуется ядер", "所需核心"), style = MaterialTheme.typography.labelSmall)
+                                        Text("🔷 " + localizedUiText(currentLang, "Noyaux requis", "Cores required", "Benötigte Kerne", "Gerekli çekirdek", "Требуется ядер", "所需核心", "Nuclei necessari"), style = MaterialTheme.typography.labelSmall)
                                         Text(formatCompactFr(requiredCores.toLong()), style = MaterialTheme.typography.titleLarge)
-                                        Text(localizedUiText(currentLang, "Manquants : ${formatCompactFr(missingCores.toLong())}", "Missing: ${formatCompactFr(missingCores.toLong())}", "Fehlend: ${formatCompactFr(missingCores.toLong())}", "Eksik: ${formatCompactFr(missingCores.toLong())}", "Не хватает: ${formatCompactFr(missingCores.toLong())}", "缺少：${formatCompactFr(missingCores.toLong())}"), style = MaterialTheme.typography.bodySmall)
+                                        Text(localizedUiText(currentLang, "Manquants : ${formatCompactFr(missingCores.toLong())}", "Missing: ${formatCompactFr(missingCores.toLong())}", "Fehlend: ${formatCompactFr(missingCores.toLong())}", "Eksik: ${formatCompactFr(missingCores.toLong())}", "Не хватает: ${formatCompactFr(missingCores.toLong())}", "缺少：${formatCompactFr(missingCores.toLong())}", "Mancanti: ${formatCompactFr(missingCores.toLong())}"), style = MaterialTheme.typography.bodySmall)
                                     }
                                 }
                                 Card(Modifier.weight(1f), colors = CardDefaults.cardColors(containerColor = Color(0xFF172333))) {
                                     Column(Modifier.padding(12.dp)) {
-                                        Text("💠 " + localizedUiText(currentLang, "Avancés requis", "Advanced required", "Erweiterte benötigt", "Gelişmiş gerekli", "Улучшенных требуется", "所需高级核心"), style = MaterialTheme.typography.labelSmall)
+                                        Text("💠 " + localizedUiText(currentLang, "Avancés requis", "Advanced required", "Erweiterte benötigt", "Gelişmiş gerekli", "Улучшенных требуется", "所需高级核心", "Nuclei avanzati necessari"), style = MaterialTheme.typography.labelSmall)
                                         Text(formatCompactFr(requiredAdvanced.toLong()), style = MaterialTheme.typography.titleLarge)
-                                        Text(localizedUiText(currentLang, "Manquants : ${formatCompactFr(missingAdvanced.toLong())}", "Missing: ${formatCompactFr(missingAdvanced.toLong())}", "Fehlend: ${formatCompactFr(missingAdvanced.toLong())}", "Eksik: ${formatCompactFr(missingAdvanced.toLong())}", "Не хватает: ${formatCompactFr(missingAdvanced.toLong())}", "缺少：${formatCompactFr(missingAdvanced.toLong())}"), style = MaterialTheme.typography.bodySmall)
+                                        Text(localizedUiText(currentLang, "Manquants : ${formatCompactFr(missingAdvanced.toLong())}", "Missing: ${formatCompactFr(missingAdvanced.toLong())}", "Fehlend: ${formatCompactFr(missingAdvanced.toLong())}", "Eksik: ${formatCompactFr(missingAdvanced.toLong())}", "Не хватает: ${formatCompactFr(missingAdvanced.toLong())}", "缺少：${formatCompactFr(missingAdvanced.toLong())}", "Mancanti: ${formatCompactFr(missingAdvanced.toLong())}"), style = MaterialTheme.typography.bodySmall)
                                     }
                                 }
                             }
@@ -4135,26 +4135,26 @@ private fun ResourcesScreen(
                     val ownedPrecision = gearPrecisionOwned.toIntOrNull() ?: 0
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("🛡️ " + localizedUiText(currentLang, "Arsenal · Équipements de héros", "Arsenal · Hero equipment", "Arsenal · Heldenausrüstung", "Cephanelik · Kahraman ekipmanı", "Арсенал · Снаряжение героев", "军械库 · 英雄装备"), fontWeight = FontWeight.Bold)
+                            Text("🛡️ " + localizedUiText(currentLang, "Arsenal · Équipements de héros", "Arsenal · Hero equipment", "Arsenal · Heldenausrüstung", "Cephanelik · Kahraman ekipmanı", "Арсенал · Снаряжение героев", "军械库 · 英雄装备", "Arsenale · Equipaggiamento eroi"), fontWeight = FontWeight.Bold)
                             Text(localizedUiText(currentLang, "Calcule l’EXP, les aimants et les bobines potentielles pour faire évoluer une pièce de niveau 0 à 200. Le niveau de réforme est suivi séparément.", "Calculate EXP, Magnets and Potential Coils to upgrade one piece from level 0 to 200. Reform level is tracked separately.", "Berechne EXP, Magnete und Potenzialspulen für ein Ausrüstungsteil von Stufe 0 bis 200. Reformstufen werden separat verfolgt.", "Bir ekipmanı 0'dan 200'e yükseltmek için EXP, Mıknatıs ve Potansiyel Bobinleri hesapla. Reform seviyesi ayrı izlenir.", "Рассчитайте опыт, магниты и потенциальные катушки для улучшения предмета с 0 до 200. Уровень перековки учитывается отдельно.", "计算单件装备从 0 升至 200 所需经验、磁铁和潜能线圈。重铸等级单独跟踪。"), style = MaterialTheme.typography.bodySmall)
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Column(Modifier.weight(1f)) {
-                                    Text(localizedUiText(currentLang, "Palier de départ (0–9)", "Starting tier (0–9)", "Startstufe (0–9)", "Başlangıç kademesi (0–9)", "Начальный этап (0–9)", "起始阶段（0–9）"), style = MaterialTheme.typography.labelSmall)
+                                    Text(localizedUiText(currentLang, "Palier de départ (0–9)", "Starting tier (0–9)", "Startstufe (0–9)", "Başlangıç kademesi (0–9)", "Начальный этап (0–9)", "起始阶段（0–9）", "Grado iniziale (0–9)"), style = MaterialTheme.typography.labelSmall)
                                     OutlinedTextField(gearFromTier.toString(), { gearFromTier = (it.toIntOrNull() ?: 0).coerceIn(0, 9); if (gearToTier <= gearFromTier) gearToTier = gearFromTier + 1 }, singleLine = true, modifier = Modifier.fillMaxWidth())
                                 }
                                 Column(Modifier.weight(1f)) {
-                                    Text(localizedUiText(currentLang, "Palier cible (1–10)", "Target tier (1–10)", "Zielstufe (1–10)", "Hedef kademe (1–10)", "Целевой этап (1–10)", "目标阶段（1–10）"), style = MaterialTheme.typography.labelSmall)
+                                    Text(localizedUiText(currentLang, "Palier cible (1–10)", "Target tier (1–10)", "Zielstufe (1–10)", "Hedef kademe (1–10)", "Целевой этап (1–10)", "目标阶段（1–10）", "Grado obiettivo (1–10)"), style = MaterialTheme.typography.labelSmall)
                                     OutlinedTextField(gearToTier.toString(), { gearToTier = (it.toIntOrNull() ?: (gearFromTier + 1)).coerceIn(gearFromTier + 1, 10) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                                 }
                             }
-                            OutlinedTextField(gearExpOwned, { gearExpOwned = it.filter(Char::isDigit).take(10) }, label = { Text("📘 " + localizedUiText(currentLang, "EXP équipement possédée", "Equipment EXP owned", "Ausrüstungs-EXP vorhanden", "Mevcut Ekipman EXP", "Опыт снаряжения в наличии", "现有装备经验")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(gearExpOwned, { gearExpOwned = it.filter(Char::isDigit).take(10) }, label = { Text("📘 " + localizedUiText(currentLang, "EXP équipement possédée", "Equipment EXP owned", "Ausrüstungs-EXP vorhanden", "Mevcut Ekipman EXP", "Опыт снаряжения в наличии", "现有装备经验", "EXP equipaggiamento posseduta")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                OutlinedTextField(gearMagnetsOwned, { gearMagnetsOwned = it.filter(Char::isDigit).take(9) }, label = { Text("🧲 " + localizedUiText(currentLang, "Aimants", "Magnets", "Magnete", "Mıknatıs", "Магниты", "磁铁")) }, singleLine = true, modifier = Modifier.weight(1f))
-                                OutlinedTextField(gearCoilsOwned, { gearCoilsOwned = it.filter(Char::isDigit).take(9) }, label = { Text("🌀 " + localizedUiText(currentLang, "Bobines potentielles", "Potential Coils", "Potenzialspulen", "Potansiyel Bobin", "Потенциальные катушки", "潜能线圈")) }, singleLine = true, modifier = Modifier.weight(1f))
+                                OutlinedTextField(gearMagnetsOwned, { gearMagnetsOwned = it.filter(Char::isDigit).take(9) }, label = { Text("🧲 " + localizedUiText(currentLang, "Aimants", "Magnets", "Magnete", "Mıknatıs", "Магниты", "磁铁", "Magneti")) }, singleLine = true, modifier = Modifier.weight(1f))
+                                OutlinedTextField(gearCoilsOwned, { gearCoilsOwned = it.filter(Char::isDigit).take(9) }, label = { Text("🌀 " + localizedUiText(currentLang, "Bobines potentielles", "Potential Coils", "Potenzialspulen", "Potansiyel Bobin", "Потенциальные катушки", "潜能线圈", "Bobine di potenziale")) }, singleLine = true, modifier = Modifier.weight(1f))
                             }
-                            OutlinedTextField(gearPrecisionOwned, { gearPrecisionOwned = it.filter(Char::isDigit).take(9) }, label = { Text("⚙️ " + localizedUiText(currentLang, "Engrenages de précision (réforme)", "Precision Gears (reform)", "Präzisionszahnräder (Reform)", "Hassas Dişliler (reform)", "Точные шестерни (перековка)", "精密齿轮（重铸）")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(gearPrecisionOwned, { gearPrecisionOwned = it.filter(Char::isDigit).take(9) }, label = { Text("⚙️ " + localizedUiText(currentLang, "Engrenages de précision (réforme)", "Precision Gears (reform)", "Präzisionszahnräder (Reform)", "Hassas Dişliler (reform)", "Точные шестерни (перековка)", "精密齿轮（重铸）", "Ingranaggi di precisione (riforgiatura)")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                             Divider()
-                            Text(localizedUiText(currentLang, "Nécessaire pour cette plage", "Required for this range", "Für diesen Bereich benötigt", "Bu aralık için gerekli", "Требуется для этого диапазона", "此阶段所需"), fontWeight = FontWeight.SemiBold)
+                            Text(localizedUiText(currentLang, "Nécessaire pour cette plage", "Required for this range", "Für diesen Bereich benötigt", "Bu aralık için gerekli", "Требуется для этого диапазона", "此阶段所需", "Necessario per questo intervallo"), fontWeight = FontWeight.SemiBold)
                             Text("📘 EXP : ${formatCompactFr(requiredExp.toLong())} · ${localizedUiText(currentLang, "manquant", "missing", "fehlend", "eksik", "не хватает", "缺少", "mancante")} ${formatCompactFr((requiredExp - ownedExp).coerceAtLeast(0).toLong())}")
                             Text("🧲 Aimants : ${formatCompactFr(requiredMagnets.toLong())} · ${localizedUiText(currentLang, "manquants", "missing", "fehlend", "eksik", "не хватает", "缺少", "mancante")} ${formatCompactFr((requiredMagnets - ownedMagnets).coerceAtLeast(0).toLong())}")
                             Text("🌀 Bobines : ${formatCompactFr(requiredCoils.toLong())} · ${localizedUiText(currentLang, "manquantes", "missing", "fehlend", "eksik", "не хватает", "缺少", "mancante")} ${formatCompactFr((requiredCoils - ownedCoils).coerceAtLeast(0).toLong())}")
@@ -4169,30 +4169,30 @@ private fun ResourcesScreen(
                     val missingChips = (requiredChips - ownedChips).coerceAtLeast(0)
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("🤖 " + localizedUiText(currentLang, "Robots · Noyaux I–V", "Robots · Cores I–V", "Roboter · Kerne I–V", "Robotlar · Çekirdekler I–V", "Роботы · Ядра I–V", "机器人 · 核心 I–V"), fontWeight = FontWeight.Bold)
+                            Text("🤖 " + localizedUiText(currentLang, "Robots · Noyaux I–V", "Robots · Cores I–V", "Roboter · Kerne I–V", "Robotlar · Çekirdekler I–V", "Роботы · Ядра I–V", "机器人 · 核心 I–V", "Robot · Nuclei I–V"), fontWeight = FontWeight.Bold)
                             Text(localizedUiText(currentLang, "Planifie les puces de noyau des robots pour les modules Solo, Formation ou Barrière. Le coût affiché est celui d’un module complet du palier choisi.", "Plan robot Core Chips for Solo, Formation or Barrier modules. The displayed cost is for one complete module at the selected tier.", "Plane Roboter-Kernchips für Solo-, Formations- oder Barriere-Module. Die Kosten gelten für ein vollständiges Modul der gewählten Stufe.", "Solo, Formasyon veya Bariyer robot modülleri için Çekirdek Çiplerini planla. Maliyet seçilen kademedeki bir tam modül içindir.", "Планируйте чипы ядер роботов для модулей «Соло», «Формирование» или «Барьер». Указана стоимость одного полного модуля выбранного уровня.", "规划机器人单人、编队或屏障模块的核心芯片。显示的是所选等级单个完整模块的成本。"), style = MaterialTheme.typography.bodySmall)
                             LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                 items(listOf("Solo", "Formation", "Barrier")) { module ->
                                     FilterChip(selected = armorCoreModule == module, onClick = { armorCoreModule = module }, label = {
                                         Text(when (module) {
-                                            "Solo" -> localizedUiText(currentLang, "Solo", "Solo", "Solo", "Solo", "Соло", "单人")
-                                            "Formation" -> localizedUiText(currentLang, "Formation", "Formation", "Formation", "Formasyon", "Формирование", "编队")
-                                            else -> localizedUiText(currentLang, "Barrière", "Barrier", "Barriere", "Bariyer", "Барьер", "屏障")
+                                            "Solo" -> localizedUiText(currentLang, "Solo", "Solo", "Solo", "Solo", "Соло", "单人", "Singolo")
+                                            "Formation" -> localizedUiText(currentLang, "Formation", "Formation", "Formation", "Formasyon", "Формирование", "编队", "Formazione")
+                                            else -> localizedUiText(currentLang, "Barrière", "Barrier", "Barriere", "Bariyer", "Барьер", "屏障", "Barriera")
                                         })
                                     })
                                 }
                             }
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Column(Modifier.weight(1f)) {
-                                    Text(localizedUiText(currentLang, "Noyau I–V", "Core I–V", "Kern I–V", "Çekirdek I–V", "Ядро I–V", "核心 I–V"), style = MaterialTheme.typography.labelSmall)
+                                    Text(localizedUiText(currentLang, "Noyau I–V", "Core I–V", "Kern I–V", "Çekirdek I–V", "Ядро I–V", "核心 I–V", "Nucleo I–V"), style = MaterialTheme.typography.labelSmall)
                                     OutlinedTextField(armorCoreTier.toString(), { armorCoreTier = (it.toIntOrNull() ?: 1).coerceIn(1, 5) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                                 }
                                 Column(Modifier.weight(1f)) {
-                                    Text(localizedUiText(currentLang, "Nombre de modules", "Number of modules", "Anzahl Module", "Modül sayısı", "Количество модулей", "模块数量"), style = MaterialTheme.typography.labelSmall)
+                                    Text(localizedUiText(currentLang, "Nombre de modules", "Number of modules", "Anzahl Module", "Modül sayısı", "Количество модулей", "模块数量", "Numero di moduli"), style = MaterialTheme.typography.labelSmall)
                                     OutlinedTextField(armorCoreModulesCount.toString(), { armorCoreModulesCount = (it.toIntOrNull() ?: 1).coerceIn(1, 3) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                                 }
                             }
-                            OutlinedTextField(armorCoreChipsOwned, { armorCoreChipsOwned = it.filter(Char::isDigit).take(10) }, label = { Text("🔹 " + localizedUiText(currentLang, "Puces de noyau possédées", "Core Chips owned", "Kernchips vorhanden", "Mevcut Çekirdek Çipleri", "Чипы ядра в наличии", "现有核心芯片")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(armorCoreChipsOwned, { armorCoreChipsOwned = it.filter(Char::isDigit).take(10) }, label = { Text("🔹 " + localizedUiText(currentLang, "Puces de noyau possédées", "Core Chips owned", "Kernchips vorhanden", "Mevcut Çekirdek Çipleri", "Чипы ядра в наличии", "现有核心芯片", "Chip nucleo posseduti")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                             Divider()
                             Text(localizedUiText(currentLang, "Coût : ${formatCompactFr(requiredChips.toLong())} puces · Manquantes : ${formatCompactFr(missingChips.toLong())}", "Cost: ${formatCompactFr(requiredChips.toLong())} chips · Missing: ${formatCompactFr(missingChips.toLong())}", "Kosten: ${formatCompactFr(requiredChips.toLong())} Chips · Fehlend: ${formatCompactFr(missingChips.toLong())}", "Maliyet: ${formatCompactFr(requiredChips.toLong())} çip · Eksik: ${formatCompactFr(missingChips.toLong())}", "Стоимость: ${formatCompactFr(requiredChips.toLong())} чипов · Не хватает: ${formatCompactFr(missingChips.toLong())}", "成本：${formatCompactFr(requiredChips.toLong())} 芯片 · 缺少：${formatCompactFr(missingChips.toLong())}"), fontWeight = FontWeight.SemiBold)
                         }
@@ -4207,7 +4207,7 @@ private fun ResourcesScreen(
                     val hyperalloyMissing = (hyperalloyRequired - (hyperalloyOwned.toIntOrNull() ?: 0)).coerceAtLeast(0)
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("🔬 " + localizedUiText(currentLang, "Laboratoire Forticlad · Hyperalliage", "Forticlad Lab · Hyperalloy", "Forticlad-Labor · Hyperlegierung", "Forticlad Laboratuvarı · Hiperalaşım", "Лаборатория Forticlad · Гиперсплав", "Forticlad 实验室 · 超合金"), fontWeight = FontWeight.Bold)
+                            Text("🔬 " + localizedUiText(currentLang, "Laboratoire Forticlad · Hyperalliage", "Forticlad Lab · Hyperalloy", "Forticlad-Labor · Hyperlegierung", "Forticlad Laboratuvarı · Hiperalaşım", "Лаборатория Forticlad · Гиперсплав", "Forticlad 实验室 · 超合金", "Laboratorio Forticlad · Iperlega"), fontWeight = FontWeight.Bold)
                             Text(localizedUiText(currentLang, "Objectifs documentés : débloquer les troupes niveau 11 Bastion, terminer un type de troupe ou les trois types.", "Documented goals: unlock Bastion level 11 troops, complete one troop type, or all three types.", "Dokumentierte Ziele: Bastion-Truppen Stufe 11 freischalten, einen Truppentyp oder alle drei abschließen.", "Belgelenen hedefler: 11. seviye Bastion birliklerini açmak, bir birlik türünü veya üçünü tamamlamak.", "Цели: открыть войска Bastion 11-го уровня, завершить один или все три типа войск.", "已记录目标：解锁 11 级 Bastion 部队、完成一种或全部三种部队科技。"), style = MaterialTheme.typography.bodySmall)
                             LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                 items(listOf("bastion", "one_type", "three_types")) { plan ->
@@ -4216,15 +4216,15 @@ private fun ResourcesScreen(
                                         onClick = { hyperalloyPlan = plan },
                                         label = {
                                             Text(when (plan) {
-                                                "bastion" -> localizedUiText(currentLang, "Débloquer Bastion Niv. 11", "Unlock Bastion Lv. 11", "Bastion Stufe 11 freischalten", "Bastion Sv. 11 aç", "Открыть Bastion ур. 11", "解锁 Bastion 11 级")
-                                                "one_type" -> localizedUiText(currentLang, "1 type de troupe", "1 troop type", "1 Truppentyp", "1 birlik türü", "1 тип войск", "1 种部队")
-                                                else -> localizedUiText(currentLang, "3 types de troupe", "3 troop types", "3 Truppentypen", "3 birlik türü", "3 типа войск", "3 种部队")
+                                                "bastion" -> localizedUiText(currentLang, "Débloquer Bastion Niv. 11", "Unlock Bastion Lv. 11", "Bastion Stufe 11 freischalten", "Bastion Sv. 11 aç", "Открыть Bastion ур. 11", "解锁 Bastion 11 级", "Sblocca Bastion Liv. 11")
+                                                "one_type" -> localizedUiText(currentLang, "1 type de troupe", "1 troop type", "1 Truppentyp", "1 birlik türü", "1 тип войск", "1 种部队", "1 tipo di truppa")
+                                                else -> localizedUiText(currentLang, "3 types de troupe", "3 troop types", "3 Truppentypen", "3 birlik türü", "3 типа войск", "3 种部队", "3 tipi di truppa")
                                             })
                                         }
                                     )
                                 }
                             }
-                            OutlinedTextField(hyperalloyOwned, { hyperalloyOwned = it.filter(Char::isDigit).take(9) }, label = { Text("🧩 " + localizedUiText(currentLang, "Hyperalliage possédé", "Hyperalloy owned", "Hyperlegierung vorhanden", "Mevcut Hiperalaşım", "Гиперсплав в наличии", "现有超合金")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(hyperalloyOwned, { hyperalloyOwned = it.filter(Char::isDigit).take(9) }, label = { Text("🧩 " + localizedUiText(currentLang, "Hyperalliage possédé", "Hyperalloy owned", "Hyperlegierung vorhanden", "Mevcut Hiperalaşım", "Гиперсплав в наличии", "现有超合金", "Iperlega posseduta")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                             Divider()
                             Text(localizedUiText(currentLang, "Requis : ${formatCompactFr(hyperalloyRequired.toLong())} · Manquant : ${formatCompactFr(hyperalloyMissing.toLong())}", "Required: ${formatCompactFr(hyperalloyRequired.toLong())} · Missing: ${formatCompactFr(hyperalloyMissing.toLong())}", "Benötigt: ${formatCompactFr(hyperalloyRequired.toLong())} · Fehlend: ${formatCompactFr(hyperalloyMissing.toLong())}", "Gerekli: ${formatCompactFr(hyperalloyRequired.toLong())} · Eksik: ${formatCompactFr(hyperalloyMissing.toLong())}", "Требуется: ${formatCompactFr(hyperalloyRequired.toLong())} · Не хватает: ${formatCompactFr(hyperalloyMissing.toLong())}", "需要：${formatCompactFr(hyperalloyRequired.toLong())} · 缺少：${formatCompactFr(hyperalloyMissing.toLong())}"), fontWeight = FontWeight.SemiBold)
                         }
@@ -4246,7 +4246,7 @@ private fun ResourcesScreen(
                     val missingCoins = (requiredPlanetCoins - (satelliteCoinsOwned.toIntOrNull() ?: 0)).coerceAtLeast(0)
                     Card(modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("🛰️ " + localizedUiText(currentLang, "Cosmos Hub · Calculateur de satellites", "Cosmos Hub · Satellite calculator", "Kosmos-Zentrum · Satellitenrechner", "Kozmos Merkezi · Uydu hesaplayıcı", "Космический центр · Калькулятор спутников", "宇宙中心 · 卫星计算器"), fontWeight = FontWeight.Bold)
+                            Text("🛰️ " + localizedUiText(currentLang, "Cosmos Hub · Calculateur de satellites", "Cosmos Hub · Satellite calculator", "Kosmos-Zentrum · Satellitenrechner", "Kozmos Merkezi · Uydu hesaplayıcı", "Космический центр · Калькулятор спутников", "宇宙中心 · 卫星计算器", "Centro cosmico · Calcolatore satelliti"), fontWeight = FontWeight.Bold)
                             Text(localizedUiText(currentLang, "Calcule les disques de données et pièces planétaires pour les paliers de 10 niveaux. Les coûts R, SR et SSR sont issus des tableaux communautaires XLab ; les niveaux intermédiaires ne sont pas calculés.", "Calculate Data Disks and Planet Coins for 10-level milestones. R, SR and SSR costs come from community XLab tables; intermediate levels are not calculated.", "Berechne Datendisks und Planet-Münzen für 10-Level-Meilensteine. R-, SR- und SSR-Kosten stammen aus Community-XLab-Tabellen; Zwischenstufen werden nicht berechnet.", "10 seviyelik aşamalar için Veri Diski ve Gezegen Parası hesapla. R, SR ve SSR maliyetleri topluluk XLab tablolarından alınmıştır; ara seviyeler hesaplanmaz.", "Рассчитайте диски данных и планетные монеты для этапов по 10 уровней. Стоимость R, SR и SSR взята из таблиц сообщества XLab; промежуточные уровни не рассчитываются.", "计算每 10 级阶段所需的数据盘和行星币。R、SR、SSR 成本来自社区 XLab 表格；不计算中间等级。"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                 items(listOf("R", "SR", "SSR")) { rarity ->
@@ -4260,7 +4260,7 @@ private fun ResourcesScreen(
                             }
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Column(Modifier.weight(1f)) {
-                                    Text(localizedUiText(currentLang, "Palier actuel", "Current milestone", "Aktueller Meilenstein", "Mevcut aşama", "Текущий этап", "当前阶段"), style = MaterialTheme.typography.labelSmall)
+                                    Text(localizedUiText(currentLang, "Palier actuel", "Current milestone", "Aktueller Meilenstein", "Mevcut aşama", "Текущий этап", "当前阶段", "Traguardo attuale"), style = MaterialTheme.typography.labelSmall)
                                     OutlinedTextField(value = satelliteCurrentMilestone.toString(), onValueChange = {
                                         val maxLevel = when (satelliteRarity) { "R" -> 40; "SR" -> 60; else -> 90 }
                                         satelliteCurrentMilestone = ((it.toIntOrNull() ?: 0).coerceIn(0, maxLevel - 10) / 10) * 10
@@ -4268,18 +4268,18 @@ private fun ResourcesScreen(
                                     }, singleLine = true, modifier = Modifier.fillMaxWidth())
                                 }
                                 Column(Modifier.weight(1f)) {
-                                    Text(localizedUiText(currentLang, "Palier cible", "Target milestone", "Ziel-Meilenstein", "Hedef aşama", "Целевой этап", "目标阶段"), style = MaterialTheme.typography.labelSmall)
+                                    Text(localizedUiText(currentLang, "Palier cible", "Target milestone", "Ziel-Meilenstein", "Hedef aşama", "Целевой этап", "目标阶段", "Traguardo obiettivo"), style = MaterialTheme.typography.labelSmall)
                                     OutlinedTextField(value = satelliteTargetMilestone.toString(), onValueChange = {
                                         val maxLevel = when (satelliteRarity) { "R" -> 40; "SR" -> 60; else -> 90 }
                                         satelliteTargetMilestone = ((it.toIntOrNull() ?: satelliteCurrentMilestone + 10).coerceIn(satelliteCurrentMilestone + 10, maxLevel) / 10) * 10
                                     }, singleLine = true, modifier = Modifier.fillMaxWidth())
                                 }
                             }
-                            OutlinedTextField(satelliteDisksOwned, { satelliteDisksOwned = it.filter(Char::isDigit).take(10) }, label = { Text("💿 " + localizedUiText(currentLang, "Disques de données possédés", "Data Disks owned", "Datendisks vorhanden", "Mevcut Veri Diskleri", "Диски данных в наличии", "现有数据盘")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                            OutlinedTextField(satelliteCoinsOwned, { satelliteCoinsOwned = it.filter(Char::isDigit).take(10) }, label = { Text("🪙 " + localizedUiText(currentLang, "Pièces planétaires possédées", "Planet Coins owned", "Planet-Münzen vorhanden", "Mevcut Gezegen Paraları", "Планетные монеты в наличии", "现有行星币")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(satelliteDisksOwned, { satelliteDisksOwned = it.filter(Char::isDigit).take(10) }, label = { Text("💿 " + localizedUiText(currentLang, "Disques de données possédés", "Data Disks owned", "Datendisks vorhanden", "Mevcut Veri Diskleri", "Диски данных в наличии", "现有数据盘", "Dischi dati posseduti")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(satelliteCoinsOwned, { satelliteCoinsOwned = it.filter(Char::isDigit).take(10) }, label = { Text("🪙 " + localizedUiText(currentLang, "Pièces planétaires possédées", "Planet Coins owned", "Planet-Münzen vorhanden", "Mevcut Gezegen Paraları", "Планетные монеты в наличии", "现有行星币", "Monete planetarie possedute")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                             Divider()
-                            Text(localizedUiText(currentLang, "À réunir pour cette plage", "Required for this range", "Für diesen Bereich benötigt", "Bu aralık için gereken", "Требуется для этого диапазона", "此范围所需"), fontWeight = FontWeight.SemiBold)
-                            Text("💿 " + localizedUiText(currentLang, "Disques : ", "Disks: ", "Disks: ", "Disk: ", "Диски: ", "数据盘：") + formatCompactFr(requiredDisks.toLong()) + " · " + localizedUiText(currentLang, "manquants", "missing", "fehlend", "eksik", "не хватает", "缺少", "mancante") + " " + formatCompactFr(missingDisks.toLong()))
+                            Text(localizedUiText(currentLang, "À réunir pour cette plage", "Required for this range", "Für diesen Bereich benötigt", "Bu aralık için gereken", "Требуется для этого диапазона", "此范围所需", "Necessario per questo intervallo"), fontWeight = FontWeight.SemiBold)
+                            Text("💿 " + localizedUiText(currentLang, "Disques : ", "Disks: ", "Disks: ", "Disk: ", "Диски: ", "数据盘：", "Dischi: ") + formatCompactFr(requiredDisks.toLong()) + " · " + localizedUiText(currentLang, "manquants", "missing", "fehlend", "eksik", "не хватает", "缺少", "mancante") + " " + formatCompactFr(missingDisks.toLong()))
                             Text("🪙 " + localizedUiText(currentLang, "Pièces planétaires : ", "Planet Coins: ", "Planet-Münzen: ", "Gezegen Parası: ", "Планетные монеты: ", "行星币：", "Monete planetarie: ") + formatCompactFr(requiredPlanetCoins.toLong()) + " · " + localizedUiText(currentLang, "manquantes", "missing", "fehlend", "eksik", "не хватает", "缺少", "mancante") + " " + formatCompactFr(missingCoins.toLong()))
                             Text(localizedUiText(currentLang, "Repère documenté : un satellite SSR du niveau 0 au niveau 90 demande 135 040 disques et 2 140 pièces planétaires selon la somme des paliers publiés.", "Documented reference: one SSR satellite from level 0 to 90 requires 135,040 disks and 2,140 Planet Coins when summing the published milestones.", "Dokumentierter Richtwert: Ein SSR-Satellit von Stufe 0 bis 90 benötigt laut Summe der veröffentlichten Meilensteine 135.040 Disks und 2.140 Planet-Münzen.", "Belgelenen referans: yayımlanan aşamaların toplamına göre 0–90 SSR uydu için 135.040 disk ve 2.140 Gezegen Parası gerekir.", "Справочный показатель: для SSR-спутника с 0 до 90 требуется 135 040 дисков и 2 140 планетных монет по сумме опубликованных этапов.", "参考数据：根据已发布阶段汇总，SSR 卫星从 0 升至 90 需要 135,040 数据盘和 2,140 行星币。", "Riferimento documentato: un satellite SSR dal livello 0 al 90 richiede 135.040 dischi e 2.140 monete planetarie, sommando le tappe pubblicate."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
