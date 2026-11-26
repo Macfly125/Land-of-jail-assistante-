@@ -2242,7 +2242,7 @@ fun LandsOfJailAssistantApp(
                                     AppLanguage.ZH -> "扫描"
                                     AppLanguage.DE -> "Scannen"
                                     AppLanguage.EN -> "Scan"
-                                    AppLanguage.IT -> "Scan"
+                                    AppLanguage.IT -> "Scansiona"
                                 },
                                 maxLines = 1,
                                 fontSize = 12.sp
@@ -2354,7 +2354,7 @@ fun LandsOfJailAssistantApp(
                             AppLanguage.ZH -> "OCR 截图分析进度：$pct%"
                             AppLanguage.DE -> "OCR-Analyse läuft: $pct %"
                             AppLanguage.EN -> "OCR screen analysis: $pct%"
-                            AppLanguage.IT -> "OCR screen analysis: $pct%"
+                            AppLanguage.IT -> "Analisi OCR dello schermo: $pct%"
                         },
                         style = MaterialTheme.typography.bodySmall
                     )
@@ -2722,7 +2722,7 @@ private fun DashboardScreen(
                                     AppLanguage.ZH -> "截图与检测已就绪"
                                     AppLanguage.DE -> "Erfassung & Erkennung bereit"
                                     AppLanguage.EN -> "Capture & Detection Ready"
-                                    AppLanguage.IT -> "Capture & Detection Ready"
+                                    AppLanguage.IT -> "Acquisizione e rilevamento pronti"
                                 }
                             } else {
                                 when (currentLang) {
@@ -2732,7 +2732,7 @@ private fun DashboardScreen(
                                     AppLanguage.ZH -> "需要初始授权"
                                     AppLanguage.DE -> "Einmalige Einrichtung"
                                     AppLanguage.EN -> "Required Setup (once)"
-                                    AppLanguage.IT -> "Required Setup (once)"
+                                    AppLanguage.IT -> "Configurazione richiesta (una sola volta)"
                                 }
                             },
                             fontWeight = FontWeight.SemiBold
@@ -2825,7 +2825,7 @@ private fun DashboardScreen(
                                         AppLanguage.ZH -> "游戏内启动"
                                         AppLanguage.DE -> "Im Spiel starten"
                                         AppLanguage.EN -> "Start on Game"
-                                        AppLanguage.IT -> "Start on Game"
+                                        AppLanguage.IT -> "Avvia nel gioco"
                                     }
                                 )
                             }
@@ -2839,7 +2839,7 @@ private fun DashboardScreen(
                                         AppLanguage.ZH -> "停止检测"
                                         AppLanguage.DE -> "Stoppen"
                                         AppLanguage.EN -> "Stop detection"
-                                        AppLanguage.IT -> "Stop detection"
+                                        AppLanguage.IT -> "Interrompi rilevamento"
                                     }
                                 )
                             }
@@ -2864,7 +2864,7 @@ private fun DashboardScreen(
                                     AppLanguage.ZH -> "扫描屏幕"
                                     AppLanguage.DE -> "Bildschirm scannen"
                                     AppLanguage.EN -> "Scan screen"
-                                    AppLanguage.IT -> "Scan screen"
+                                    AppLanguage.IT -> "Scansiona schermata"
                                 }
                             )
                         }
@@ -2877,7 +2877,7 @@ private fun DashboardScreen(
                                     AppLanguage.ZH -> "导入图片"
                                     AppLanguage.DE -> "Bild wählen"
                                     AppLanguage.EN -> "Import image"
-                                    AppLanguage.IT -> "Import image"
+                                    AppLanguage.IT -> "Importa immagine"
                                 }
                             )
                         }
@@ -2896,7 +2896,7 @@ private fun DashboardScreen(
                                     AppLanguage.ZH -> "自动分析"
                                     AppLanguage.DE -> "Automatische Analyse"
                                     AppLanguage.EN -> "Automatic analysis"
-                                    AppLanguage.IT -> "Automatic analysis"
+                                    AppLanguage.IT -> "Analisi automatica"
                                 },
                                 fontWeight = FontWeight.SemiBold
                             )
@@ -2908,7 +2908,7 @@ private fun DashboardScreen(
                                     AppLanguage.ZH -> "仅在游戏位于前台时截图和分析。"
                                     AppLanguage.DE -> "Aufnahme und Analyse nur bei geöffnetem Spiel."
                                     AppLanguage.EN -> "Capture and analyze only while the game is in the foreground."
-                                    AppLanguage.IT -> "Capture and analyze only while the game is in the foreground."
+                                    AppLanguage.IT -> "Acquisisci e analizza solo mentre il gioco è in primo piano."
                                 },
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -2924,7 +2924,7 @@ private fun DashboardScreen(
                                         AppLanguage.ZH -> "停止"
                                         AppLanguage.DE -> "Stoppen"
                                         AppLanguage.EN -> "Stop"
-                                        AppLanguage.IT -> "Stop"
+                                        AppLanguage.IT -> "Interrompi"
                                     }
                                 )
                             }
@@ -2951,7 +2951,7 @@ private fun DashboardScreen(
                                                         AppLanguage.ZH -> "${seconds} 秒"
                                                         AppLanguage.DE -> "${seconds} Sekunden"
                                                         AppLanguage.EN -> "${seconds} seconds"
-                                                        AppLanguage.IT -> "${seconds} seconds"
+                                                        AppLanguage.IT -> "${seconds} secondi"
                                                     }
                                                 )
                                             },
@@ -2975,7 +2975,7 @@ private fun DashboardScreen(
                                         AppLanguage.ZH -> "开始"
                                         AppLanguage.DE -> "Start"
                                         AppLanguage.EN -> "Start"
-                                        AppLanguage.IT -> "Start"
+                                        AppLanguage.IT -> "Avvia"
                                     }
                                 )
                             }
@@ -4500,7 +4500,7 @@ private fun ResourcesScreen(
                                 AppLanguage.ZH -> "启动所有已启用计时器"
                                 AppLanguage.DE -> "Alle aktiven Zyklen starten"
                                 AppLanguage.EN -> "Start All Active Cycles"
-                                AppLanguage.IT -> "Start All Active Cycles"
+                                AppLanguage.IT -> "Avvia tutti i cicli attivi"
                             }
                         )
                     }
@@ -4729,7 +4729,7 @@ private fun AdviceScreen(
                             AppLanguage.ZH -> "正在搜索攻略与图片…"
                             AppLanguage.DE -> "Suche Guides & Fotos…"
                             AppLanguage.EN -> "Searching Internet & photos…"
-                            AppLanguage.IT -> "Searching Internet & photos…"
+                            AppLanguage.IT -> "Ricerca di guide e foto su Internet…"
                         }
                     } else {
                         when (currentLang) {
@@ -4739,7 +4739,7 @@ private fun AdviceScreen(
                             AppLanguage.ZH -> "获取网络攻略与图片"
                             AppLanguage.DE -> "Internet-Guides & Fotos abrufen"
                             AppLanguage.EN -> "Get Internet Guides & Photos"
-                            AppLanguage.IT -> "Get Internet Guides & Photos"
+                            AppLanguage.IT -> "Carica guide e foto da Internet"
                         }
                     }
                 )
@@ -4761,7 +4761,7 @@ private fun AdviceScreen(
                             AppLanguage.ZH -> "攻略图片"
                             AppLanguage.DE -> "Fotos aus Guides"
                             AppLanguage.EN -> "Photos from Internet Guides"
-                            AppLanguage.IT -> "Photos from Internet Guides"
+                            AppLanguage.IT -> "Foto dalle guide online"
                         },
                         fontWeight = FontWeight.SemiBold
                     )
