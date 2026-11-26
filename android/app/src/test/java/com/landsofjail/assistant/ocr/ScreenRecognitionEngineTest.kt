@@ -60,6 +60,6 @@ class ScreenRecognitionEngineTest {
 
         assertEquals("ocr_local", result.category)
         assertEquals(0f, result.confidence, 0.0001f)
-        assertTrue(result.needsVisualConfirmation)
+        assertFalse("Un texte sans catégorie de jeu ne doit pas déclencher une confirmation visuelle", result.needsVisualConfirmation)
     }
 }
