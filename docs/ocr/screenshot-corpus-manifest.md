@@ -50,6 +50,11 @@ Une entrée ne devient un échantillon OCR exploitable que si elle correspond à
 | Équipements / île | [Vidéo XcelPlaysGames — Island Guidance](https://www.youtube.com/watch?v=eTC0OB1jZwo) | Parcours vidéo de l'île et des améliorations. | Écrans exacts, langue, horodatages et lisibilité à vérifier. |
 | Laboratoire | [LOJ Wiki — Lab](https://lojwiki.com/lab/) | Référence structurée des technologies et coûts. | Tableaux et illustrations ne sont pas des captures authentiques du panneau de recherche. |
 
+| Robots | [LOJ XLab — Robot Upgrade Cost](https://lojxlab.com/library/lands-of-jail-robot-upgrade-cost/) | Données robot et références à des écrans de modules observés en jeu par MIRÖX (S216, 7 octobre 2026) ; signale aussi une divergence à trancher par capture pour les modules avancés 60–70. | Tableaux reconstruits en texte ; captures originales reliées à Discord non récupérées ici. |
+| Héros | [LOJ XLab — Hero Star Cost](https://lojxlab.com/library/lands-of-jail-hero-star-upgrade-cost/) | Référence à des écrans d'étoiles et de fragments observés en jeu par MIRÖX (S216, 7 octobre 2026). | Aucune capture brute individuelle ni horodatage vidéo accessible dans la page. |
+| Équipements | [LOJ XLab — Exclusive Weapons](https://lojxlab.com/library/lands-of-jail-exclusive-weapons-upgrade-cost/) et [Mastery Reformation](https://lojxlab.com/library/lands-of-jail-equipment-reformation-cost/) | Références à des écrans d'équipement exclusif et de reformation observés en jeu ; plusieurs valeurs sont explicitement confirmées et d'autres signalées comme incertaines. | Les sources originales sont créditées via Discord ; les captures brutes ne sont pas intégrées dans ces pages textuelles. |
+| Forticlad | [LOJ XLab — Forticlad Lab](https://lojxlab.com/library/lands-of-jail-forticlad-lab-upgrade-cost/) | Référence à des panneaux du laboratoire Forticlad et à trois arbres technologiques observés en jeu (MIRÖX, S216, 6 octobre 2026). | Données textuelles ; aucune image brute des panneaux/arbres disponible dans le registre. |
+
 Les pages de référence peuvent aider à comprendre le vocabulaire et à trouver des valeurs candidates, mais ne doivent pas être utilisées comme vérité terrain visuelle. Les miniatures YouTube et les images promotionnelles Google Play sont exclues du corpus.
 
 ## Registre des échantillons
