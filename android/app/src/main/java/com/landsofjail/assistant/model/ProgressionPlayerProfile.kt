@@ -109,30 +109,30 @@ fun mergeProgressionStocks(
     existing: List<PlayerResourceStock>,
     observed: List<PlayerResourceStock>
 ): List<PlayerResourceStock> {
-    // Collapse legacy aliases deterministically: confirmed beats uncertain,
-    // then the newest observation wins. Never depend on input/list ordering.
-    val merged = existing
+    // Merge by canonical resource ID. Confirmed observations take precedence
+    // over uncertain OCR, then the newest confirmed observation wins.
+    // If equally recent confirmed observations disagree, keep the quantity
+    // only as an unconfirmed hint: a tie must never silently become fact.
+    return (existing + observed)
         .groupBy { canonicalProgressionResourceId(it.resourceId) }
-        .mapValuesTo(mutableMapOf()) { (key, entries) ->
-            entries.maxWithOrNull(
-                compareBy<PlayerResourceStock> { it.confirmed }
-                    .thenBy { it.updatedAtEpochMillis }
-            )!!.copy(resourceId = key)
+        .map { (key, entries) ->
+            val confirmed = entries.filter { it.confirmed }
+            val candidates = if (confirmed.isNotEmpty()) confirmed else entries
+            val latestTimestamp = candidates.maxOf { it.updatedAtEpochMillis }
+            val latest = candidates.filter { it.updatedAtEpochMillis == latestTimestamp }
+            val conflictingConfirmedValues = confirmed.isNotEmpty() &&
+                latest.map { it.quantity }.distinct().size > 1
+            val chosen = latest.sortedWith(
+                compareBy<PlayerResourceStock> { it.quantity }
+                    .thenBy { it.resourceId.lowercase() }
+                    .thenBy { it.resourceId }
+            ).first()
+            chosen.copy(
+                resourceId = key,
+                confirmed = chosen.confirmed && !conflictingConfirmedValues
+            )
         }
-
-    observed.forEach { candidate ->
-        val key = canonicalProgressionResourceId(candidate.resourceId)
-        val normalized = candidate.copy(resourceId = key)
-        val previous = merged[key]
-        val shouldReplace = when {
-            previous == null -> true
-            normalized.confirmed && !previous.confirmed -> true
-            !normalized.confirmed && previous.confirmed -> false
-            else -> normalized.updatedAtEpochMillis >= previous.updatedAtEpochMillis
-        }
-        if (shouldReplace) merged[key] = normalized
-    }
-    return merged.values.sortedBy { it.resourceId }
+        .sortedBy { it.resourceId }
 }
 
 /**
