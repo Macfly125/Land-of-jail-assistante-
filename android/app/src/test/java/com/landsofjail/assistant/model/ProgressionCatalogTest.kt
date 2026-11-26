@@ -390,7 +390,7 @@ class ProgressionCatalogTest {
         val rows = ProgressionCatalog.robotCore
         assertEquals((1..5).toList(), rows.map { it.step.toLevel })
         assertTrue(rows.all { it.step.domain == ProgressionDomain.ROBOT_CORE })
-        assertTrue(rows.all { it.prerequisiteNotes.single().contains("per module") })
+        assertTrue(rows.all { it.prerequisiteNotes.single().contains("Per module") })
         val plan = ProgressionCoach.calculate(rows.map { it.step }, emptyList())
         assertEquals(116_460L, plan.requirements.single { it.resourceId == "core chips" }.required)
     }
@@ -405,7 +405,12 @@ class ProgressionCatalogTest {
         assertTrue(rows.all { it.sourceUrl == ProgressionCatalog.HERO_EQUIPMENT_SOURCE })
         val plan = ProgressionCoach.calculate(rows.map { it.step }, emptyList())
         assertEquals(1_213_840L, plan.requirements.single { it.resourceId == "equipment exp" }.required)
-        assertEquals(18_380L, plan.requirements.single { it.resourceId == "magnets" }.required)
+        assertEquals(7_380L, plan.requirements.single { it.resourceId == "magnets" }.required)
+        val withReform = ProgressionCoach.calculate(
+            (rows.map { it.step } + ProgressionCatalog.heroEquipmentReform.map { it.step }),
+            emptyList()
+        )
+        assertEquals(18_380L, withReform.requirements.single { it.resourceId == "magnets" }.required)
         assertEquals(300L, plan.requirements.single { it.resourceId == "potential coils" }.required)
     }
 
