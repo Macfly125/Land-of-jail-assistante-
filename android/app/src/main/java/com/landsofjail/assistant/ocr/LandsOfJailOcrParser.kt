@@ -65,14 +65,14 @@ object LandsOfJailOcrParser {
      */
     suspend fun recognizeBitmapDetailed(bitmap: Bitmap): OcrRecognition {
         val boxes = mutableListOf<OcrTextBox>()
-        val recognizers = listOf(
-            TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS),
-            TextRecognition.getClient(ChineseTextRecognizerOptions.Builder().build()),
-            TextRecognition.getClient(JapaneseTextRecognizerOptions.Builder().build()),
-            TextRecognition.getClient(KoreanTextRecognizerOptions.Builder().build())
+        val recognizerFactories: List<() -> TextRecognizer> = listOf(
+            { TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS) },
+            { TextRecognition.getClient(ChineseTextRecognizerOptions.Builder().build()) },
+            { TextRecognition.getClient(JapaneseTextRecognizerOptions.Builder().build()) },
+            { TextRecognition.getClient(KoreanTextRecognizerOptions.Builder().build()) }
         )
-        for (recognizer in recognizers) {
-            boxes += recognizeWith(recognizer, bitmap)
+        for (createRecognizer in recognizerFactories) {
+            boxes += recognizeWith(createRecognizer(), bitmap)
         }
         val unique = boxes
             .distinctBy { box -> box.text.trim().lowercase() to (box.left / 8 to box.top / 8) }
