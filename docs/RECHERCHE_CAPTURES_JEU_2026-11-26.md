@@ -224,3 +224,30 @@ Aucun code source n'a été modifié dans cet audit ; il s'agit d'une inspection
 - Construire le corpus à partir de captures complètes autorisées, une capture par écran et par langue/résolution, avec annotations manuelles des champs attendus.
 - Séparer les tests de classification d'écran, d'extraction des valeurs, de détection d'icônes et de rapprochement des portraits.
 - Conserver les cas ambigus comme exemples négatifs : aucune valeur de ressource, niveau QG, robot ou matériau ne doit être enregistrée sans preuve suffisante.
+
+
+## 75. Messages importants d'alliance R4/R5 — 26/11/2026
+
+### Android
+- [x] Ajouter une section « Messages importants · R4 / R5 » dans l'espace Alliance.
+- [x] Permettre aux rangs cloud R4 et R5 de rédiger et publier des messages (maximum 2 000 caractères).
+- [x] Enregistrer les messages dans Supabase afin qu'ils restent disponibles après fermeture/réouverture de l'application et soient visibles par les membres de l'alliance.
+- [x] Afficher auteur, date et contenu ; actualisation manuelle disponible.
+- [x] Ajouter le modèle fourni pour l'événement Cage : « NESSUN RADUNO DI BESTIE DURANTE L'EVENTO DELLA GABBIA! GRAZIE », avec le BBCode couleur et le dessin ASCII conservés comme texte.
+- [x] Traduire les libellés de la section dans les sept langues de l'application.
+
+### Autorisations serveur
+- [x] Publication vérifiée côté serveur : seuls les membres R4/R5 peuvent appeler le RPC de publication.
+- [x] Suppression vérifiée côté serveur : seul le R5 actuel ou un développeur de l'application peut appeler le RPC de suppression.
+- [x] Les membres de l'alliance peuvent lire les messages ; un utilisateur non membre ne voit aucune ligne.
+- [x] Aucun droit direct INSERT/DELETE accordé à authenticated ; aucun accès SELECT/RPC de suppression accordé à anon.
+- [x] RLS activée sur `public.alliance_messages`, index alliance/date, validation serveur du contenu et auteur résolu depuis `player_profiles`.
+- [x] Migration appliquée au projet Supabase `cegtwxvidiiqgyfqzdix` : version `20261126160338`, nom `alliance_officer_messages`.
+- [x] Test transactionnel : le compte R5/développeur courant a publié puis supprimé un message temporaire ; transaction annulée, aucun message de test conservé.
+- [x] Test transactionnel : un utilisateur non membre ne peut ni lire les messages, ni publier, ni supprimer un message temporaire ; les trois contrôles ont refusé l'accès comme attendu.
+- [ ] Le projet ne compte actuellement qu'un seul membre d'alliance (R5 et développeur) : les permissions R4 ont été vérifiées dans la logique SQL, mais pas encore exercées par un vrai compte R4 distinct.
+- [ ] Les workflows Android #825 et #535 doivent terminer avant de déclarer l'APK validé.
+
+### Sécurité Supabase
+- [x] Contrôle des grants et des fonctions : lecture authenticated oui, INSERT/DELETE directs non, anon sans accès, RPC réservés à authenticated.
+- [x] Advisors sécurité après migration : aucune alerte nouvelle liée à cette table ; seul avertissement préexistant sur la protection des mots de passe compromis.
