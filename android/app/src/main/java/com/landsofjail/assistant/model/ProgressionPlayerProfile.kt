@@ -82,6 +82,7 @@ fun canonicalProgressionResourceId(rawId: String): String {
         "алмазы", "钻石" -> return "diamonds"
         "bargeld", "nakit" -> return "gold"
         "diamanten", "elmas", "diamanti" -> return "diamonds"
+        "contanti" -> return "gold"
     }
     val key = rawId.trim().lowercase()
         .replace("é", "e").replace("è", "e").replace("ê", "e")
