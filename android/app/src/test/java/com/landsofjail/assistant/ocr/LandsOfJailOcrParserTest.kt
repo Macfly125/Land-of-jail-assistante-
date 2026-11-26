@@ -782,6 +782,29 @@ Magnet
         }
     }
 
+
+    @Test
+    fun recognizesAdditionalGameSystemsAndScreensAcrossSupportedScripts() {
+        val samples = listOf(
+            "Power Armor Hangar\nSolo Module\nBarrier Module" to "prisoner_power_armor",
+            "Satellite Launch\nData Disks\nPlanet Coins" to "satellites",
+            "Haven Island\nMansion\nDecorations\nTreasure Cube" to "haven_island",
+            "Arrest Stage\nFelon\nContraband Search" to "arrest",
+            "Warden's Trove\nCollection Pieces\nTomes" to "trove",
+            "Alliance Territory\nAlliance Technology\nAlliance Shop" to "alliance",
+            "Item Inventory\nChest Contents\nDrop Rate" to "items",
+            "动力装甲\n囚犯装甲\n核心技能" to "prisoner_power_armor",
+            "卫星\n数据盘\n行星币" to "satellites",
+            "避风岛\n豪宅\n装饰\n宝藏魔方" to "haven_island",
+            "逮捕\n罪犯\n违禁品搜查" to "arrest",
+            "宝库\n典籍\n收藏品" to "trove",
+            "联盟\n联盟科技\n联盟商店" to "alliance"
+        )
+        samples.forEach { (sample, expected) ->
+            assertEquals("Mauvaise catégorie pour : $sample", expected, ScreenRecognitionEngine.analyze(sample).category)
+        }
+    }
+
     @Test
     fun parsesItalianResourceNamesAndQuantities() {
         val result = LandsOfJailOcrParser.parseLocalOcrText(
