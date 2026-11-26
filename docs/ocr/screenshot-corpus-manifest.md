@@ -200,3 +200,14 @@ La session de test sur téléphone reste donc différée jusqu'à ce que le corp
 
 | user-home-2026-11-26-01 | Ressources + puissance + QG/Forticlad | Vue générale | Capture utilisateur | Conversation du 26/11/2026 | — | FR | 698×1536 | Non publiée | Puissance 509 256 511 ; nourriture 177.1M ; QG/Forticlad niv. 6 (annotation joueur, niveau non lisible dans cette vue) | En attente |
 
+
+
+### Exploitation de l'échantillon accueil — régression puissance / nourriture / QG
+
+- La valeur **509 256 511** est le compteur de puissance associé au badge bleu avec le poing, placé à gauche sous la rangée de ressources.
+- La valeur **177.1M** est le compteur Nourriture associé à son icône de ressource dans la rangée supérieure. Elle ne doit jamais être convertie en puissance.
+- Le test de position utilise les coordonnées normalisées de la capture 698 × 1536 : badge de puissance dans la zone gauche, centre vertical approximatif entre 9,5 % et 18 % de la hauteur ; la rangée des ressources est au-dessus et hors de cette zone. Ces coordonnées sont une règle candidate issue de cet exemple, pas une garantie pour tous les formats d'écran.
+- Le parseur n'utilise cette règle que si aucun libellé explicite de puissance n'a déjà été lu et si une boîte OCR contient un entier groupé de 7 à 12 chiffres dans cette zone. Un nombre compact de ressource situé dans la barre supérieure ne satisfait pas ce critère.
+- Le joueur identifie le bâtiment entouré en bleu comme **QG / Forticlad niveau 6**. Le niveau 6 est une annotation humaine de contexte ; il n'est pas extrait de l'image d'accueil et doit être confirmé par une capture du panneau du bâtiment.
+- Tests ajoutés : lecture du badge 509 256 511 avec exclusion du compteur 177.1M ; rejet d'une capture qui ne contient que le compteur supérieur ; lecture du niveau 6 uniquement lorsque le texte « QG Forticlad / Niveau 6 » est explicitement présent.
+- Statut : tests de régression ajoutés ; exécution CI en attente. L'image originale reste attachée à la conversation et n'est pas encore stockée comme fichier binaire de fixture dans le dépôt.
