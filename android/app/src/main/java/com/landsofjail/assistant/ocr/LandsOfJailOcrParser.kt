@@ -72,7 +72,9 @@ object LandsOfJailOcrParser {
             { TextRecognition.getClient(KoreanTextRecognizerOptions.Builder().build()) }
         )
         for (createRecognizer in recognizerFactories) {
-            boxes += recognizeWith(createRecognizer(), bitmap)
+            // A script-specific model failure must not discard successful Latin/CJK output.
+            val recognized = runCatching { recognizeWith(createRecognizer(), bitmap) }.getOrDefault(emptyList())
+            boxes += recognized
         }
         val unique = boxes
             .distinctBy { box -> box.text.trim().lowercase() to (box.left / 8 to box.top / 8) }
