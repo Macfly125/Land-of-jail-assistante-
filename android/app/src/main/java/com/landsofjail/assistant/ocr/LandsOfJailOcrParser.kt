@@ -643,7 +643,7 @@ object LandsOfJailOcrParser {
                     val valueText = box.text.trim()
                     val digits = valueText.filter(Char::isDigit)
                     if (digits.length !in 7..12 ||
-                        !Regex("""^[0-9][0-9\\s.,]*$""").matches(valueText)
+                        !Regex("""^[0-9][0-9\s.,]*$""").matches(valueText)
                     ) null else valueText to parseCompactNumeric(valueText)
                 }
                 .firstOrNull { it.second != null }
