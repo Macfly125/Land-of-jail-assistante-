@@ -97,6 +97,31 @@ object LandsOfJailOcrParser {
      * située dans la zone supérieure. Cela évite de confondre les ressources
      * avec des niveaux, compteurs ou nombres provenant d'autres panneaux.
      */
+    /**
+     * A row with several upper-bar number boxes is likely to contain resource
+     * counters. Even when the six-slot layout is incomplete or ambiguous, those
+     * numbers must not be reinterpreted as the player's power.
+     */
+    private fun hasPotentialTopResourceNumberRow(
+        boxes: List<OcrTextBox>,
+        imageWidth: Int,
+        imageHeight: Int
+    ): Boolean {
+        if (imageWidth <= 0 || imageHeight <= 0) return false
+        val candidates = boxes
+            .filter { it.top >= 0 && it.top <= (imageHeight * 0.20).toInt() }
+            .filter { it.left >= 0 && it.right <= imageWidth }
+            .filter { Regex("""^[0-9][0-9.,\\s]*[kmbKMB]?$""").matches(it.text.trim()) }
+        if (candidates.size < 4) return false
+        val tolerance = maxOf(18, (imageHeight * 0.025).toInt())
+        return candidates.any { anchor ->
+            val anchorCenter = (anchor.top + anchor.bottom) / 2
+            candidates.count { candidate ->
+                kotlin.math.abs(((candidate.top + candidate.bottom) / 2) - anchorCenter) <= tolerance
+            } >= 4
+        }
+    }
+
     private fun topResourceNumberBoxes(
         boxes: List<OcrTextBox>,
         imageWidth: Int,
@@ -478,7 +503,7 @@ object LandsOfJailOcrParser {
         // Une grande quantité de ressource dans la barre supérieure ne doit jamais
         // être réinterprétée comme la puissance du joueur. Sans libellé explicite,
         // le fallback puissance n'est autorisé que si aucune ressource n'a été lue.
-        if (power == null && resources.isEmpty()) {
+        if (power == null && resources.isEmpty() && !hasPotentialTopResourceNumberRow(textBoxes, imageWidth, imageHeight)) {
             val topPowerLine = lines.take(6).firstOrNull { l ->
                 Regex("""\b\d{1,3}(?:[.,\s]\d{3}){2,}\b|\b\d+(?:[.,]\d+)?\s*[MB]\b""").containsMatchIn(l)
             }
