@@ -285,7 +285,9 @@ fun ProgressionCoachScreen(
                                 val objectives = profile.objectives.filterNot { it.id == id } +
                                     ProgressionObjective(id, selectedDomain, targetId.trim(), target,
                                         isPrimary = profile.objectives.none { it.isPrimary }, createdAtEpochMillis = now)
-                                val levels = profile.levels.filterNot { it.itemId == targetId.trim() } +
+                                // Keep the confirmed level history; confirmedLevel() selects the newest
+                                // confirmed record and ignores later uncertain observations.
+                                val levels = profile.levels +
                                     ProgressionLevelRecord(targetId.trim(), current, true, now)
                                 val observedStocks = resources.mapNotNull { resource ->
                                     val quantity = resource.quantiteNumerique?.takeIf { it.isFinite() && it >= 0 }?.toLong()
