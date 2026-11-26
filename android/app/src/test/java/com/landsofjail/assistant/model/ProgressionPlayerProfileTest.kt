@@ -92,6 +92,34 @@ class ProgressionPlayerProfileTest {
     }
 
     @Test
+    fun confirmedStockLookupReturnsUnknownWhenLatestConfirmedAliasesConflict() {
+        val profile = ProgressionPlayerProfile(
+            profileId = "main",
+            resourceStocks = listOf(
+                PlayerResourceStock("wood", 700L, true, 500L),
+                PlayerResourceStock("Bois", 900L, true, 500L),
+                PlayerResourceStock("Holz", 600L, true, 400L)
+            )
+        )
+
+        assertNull(profile.confirmedStock("wood"))
+    }
+
+    @Test
+    fun confirmedLevelLookupReturnsUnknownWhenLatestConfirmedRecordsConflict() {
+        val profile = ProgressionPlayerProfile(
+            profileId = "main",
+            levels = listOf(
+                ProgressionLevelRecord("warden_office", 18, true, 500L),
+                ProgressionLevelRecord("warden_office", 19, true, 500L),
+                ProgressionLevelRecord("warden_office", 17, true, 400L)
+            )
+        )
+
+        assertNull(profile.confirmedLevel("warden_office"))
+    }
+
+    @Test
     fun stockMergeNeverLetsAnUncertainCaptureReplaceAConfirmedValue() {
         val existing = listOf(PlayerResourceStock("wood", 900L, true, 100L))
         val observed = listOf(PlayerResourceStock("Bois (Wood)", 120L, false, 200L))
