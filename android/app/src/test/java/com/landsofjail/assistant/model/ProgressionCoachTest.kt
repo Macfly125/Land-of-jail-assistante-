@@ -131,4 +131,20 @@ class ProgressionCoachTest {
         assertEquals(Long.MAX_VALUE, plan.totalKnownDurationSeconds)
     }
 
+    @Test
+    fun calculatorMatchesRussianAndChineseResourceNamesToSameStock() {
+        val step = ProgressionStep(
+            "gate-1-2", ProgressionDomain.BUILDING, "Gate", 1, 2,
+            listOf(ResourceCost("木材", 100L, CostConfidence.VERIFIED_IN_GAME))
+        )
+        val plan = ProgressionCoach.calculate(
+            listOf(step),
+            listOf(PlayerResourceStock("Дерево", 60L, true, 10L))
+        )
+        val wood = plan.requirements.single()
+        assertEquals("wood", wood.resourceId)
+        assertEquals(60L, wood.ownedConfirmed)
+        assertEquals(40L, wood.missing)
+    }
+
 }
