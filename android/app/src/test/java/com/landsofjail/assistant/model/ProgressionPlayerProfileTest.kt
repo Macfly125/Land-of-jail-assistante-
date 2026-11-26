@@ -193,6 +193,54 @@ class ProgressionPlayerProfileTest {
     }
 
     @Test
+    fun updatingExistingPrimaryGoalKeepsItPrimary() {
+        val existing = listOf(
+            ProgressionObjective("primary", ProgressionDomain.BUILDING, "warden_office", 20, true),
+            ProgressionObjective("secondary", ProgressionDomain.HERO, "ada", 5, false)
+        )
+        val updated = upsertProgressionObjective(
+            existing,
+            ProgressionObjective("primary", ProgressionDomain.BUILDING, "warden_office", 22)
+        )
+
+        assertEquals(listOf("primary"), updated.filter { it.isPrimary }.map { it.id })
+        assertEquals(22, updated.first { it.id == "primary" }.targetLevel)
+    }
+
+    @Test
+    fun updatingSecondaryGoalDoesNotStealPrimaryStatus() {
+        val existing = listOf(
+            ProgressionObjective("primary", ProgressionDomain.BUILDING, "warden_office", 20, true),
+            ProgressionObjective("secondary", ProgressionDomain.HERO, "ada", 5, false)
+        )
+        val updated = upsertProgressionObjective(
+            existing,
+            ProgressionObjective("secondary", ProgressionDomain.HERO, "ada", 7)
+        )
+
+        assertEquals(listOf("primary"), updated.filter { it.isPrimary }.map { it.id })
+        assertEquals(7, updated.first { it.id == "secondary" }.targetLevel)
+    }
+
+    @Test
+    fun firstGoalBecomesPrimaryAndLegacyMultiplePrimaryGoalsAreNormalized() {
+        val first = upsertProgressionObjective(
+            emptyList(),
+            ProgressionObjective("first", ProgressionDomain.BUILDING, "gate", 8)
+        )
+        assertEquals(listOf("first"), first.filter { it.isPrimary }.map { it.id })
+
+        val normalized = upsertProgressionObjective(
+            listOf(
+                ProgressionObjective("one", ProgressionDomain.BUILDING, "gate", 8, true),
+                ProgressionObjective("two", ProgressionDomain.HERO, "ada", 5, true)
+            ),
+            ProgressionObjective("three", ProgressionDomain.ROBOT, "robot-a", 3)
+        )
+        assertEquals(listOf("one"), normalized.filter { it.isPrimary }.map { it.id })
+    }
+
+    @Test
     fun canonicalResourceIdsSupportRussianChineseAndLocalizedLabels() {
         val aliases = mapOf(
             "Еда" to "food",
