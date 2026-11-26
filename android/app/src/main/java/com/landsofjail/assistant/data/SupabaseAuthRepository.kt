@@ -66,6 +66,14 @@ class SupabaseAuthRepository(context: Context) {
         val createdAt: String
     )
 
+    data class AllianceMessage(
+        val id: String,
+        val authorUserId: String,
+        val authorName: String,
+        val body: String,
+        val createdAt: String
+    )
+
     data class ImprovementRequest(
         val id: String,
         val userId: String,
@@ -392,6 +400,43 @@ class SupabaseAuthRepository(context: Context) {
             }
         }
     }
+
+    suspend fun fetchAllianceMessages(allianceId: String): Result<List<AllianceMessage>> = withContext(Dispatchers.IO) {
+        runCatching {
+            require(allianceId.matches(Regex("[0-9a-fA-F-]{36}"))) { "Identifiant d'alliance invalide." }
+            val active = refreshSession().getOrThrow()
+            val request = Request.Builder()
+                .url("$BASE_URL/rest/v1/alliance_messages?select=id,author_user_id,author_name,body,created_at&alliance_id=eq.$allianceId&order=created_at.desc&limit=100")
+                .header("apikey", PUBLISHABLE_KEY)
+                .header("Authorization", "Bearer ${active.access_token}")
+                .get().build()
+            client.newCall(request).execute().use { response ->
+                val body = response.body?.string().orEmpty()
+                if (!response.isSuccessful) error(extractApiError(body, response.code))
+                json.parseToJsonElement(body).jsonArray.map { row ->
+                    val obj = row.jsonObject
+                    AllianceMessage(
+                        id = obj["id"]?.jsonPrimitive?.contentOrNull.orEmpty(),
+                        authorUserId = obj["author_user_id"]?.jsonPrimitive?.contentOrNull.orEmpty(),
+                        authorName = obj["author_name"]?.jsonPrimitive?.contentOrNull ?: "Membre",
+                        body = obj["body"]?.jsonPrimitive?.contentOrNull.orEmpty(),
+                        createdAt = obj["created_at"]?.jsonPrimitive?.contentOrNull.orEmpty()
+                    )
+                }
+            }
+        }
+    }
+
+    suspend fun postAllianceMessage(allianceId: String, body: String): Result<Unit> =
+        callAllianceRpc("post_alliance_message", buildJsonObject {
+            put("p_alliance_id", allianceId)
+            put("p_body", body.trim())
+        }).map { Unit }
+
+    suspend fun deleteAllianceMessage(messageId: String): Result<Unit> =
+        callAllianceRpc("delete_alliance_message", buildJsonObject {
+            put("p_message_id", messageId)
+        }).map { Unit }
 
     suspend fun transferAllianceR5(allianceId: String, newR5UserId: String): Result<Unit> =
         callAllianceRpc("transfer_alliance_r5", buildJsonObject {
