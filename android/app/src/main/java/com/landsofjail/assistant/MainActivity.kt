@@ -48,7 +48,7 @@ class MainActivity : ComponentActivity() {
         }
 
         val repository = GeminiAssistantRepository(
-            backendBaseUrl = "" // Mode local-first : aucun serveur payant requis
+            backendBaseUrl = "https://land-of-jail-assistant-api.onrender.com" // API officielle Render ; les fonctions OCR et données locales restent prioritaires
         )
 
         setContent {
