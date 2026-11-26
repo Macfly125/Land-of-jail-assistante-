@@ -11,7 +11,8 @@ class TroopTrainingCatalogTest {
             val rows = TroopTrainingCatalog.rows.filter { it.type == type }
             assertEquals((1..11).toList(), rows.map { it.tier })
             assertTrue(rows.all { it.unitCosts.keys == linkedSetOf("food", "wood", "gasoline", "steel") })
-            assertTrue(rows.all { it.sourceUrlForTest() == type.sourceUrl })
+            assertEquals(type.sourceUrl, TroopTrainingCatalog.calculate(type, 1, 1L).sourceUrl)
+            assertTrue(rows.all { it.checkedOn == "2026-11-26" })
         }
     }
 
@@ -62,5 +63,4 @@ class TroopTrainingCatalogTest {
         assertEquals(Long.MAX_VALUE, huge.totalDurationSeconds)
     }
 
-    private fun TroopTrainingRow.sourceUrlForTest(): String = type.sourceUrl
 }
