@@ -103,7 +103,14 @@ object ProgressionCoach {
 
         val confirmedStocks = stocks.filter { it.confirmed }
             .groupBy { canonicalProgressionResourceId(it.resourceId) }
-            .mapValues { (_, entries) -> entries.maxByOrNull { it.updatedAtEpochMillis }!!.quantity }
+            .mapValues { (_, entries) ->
+                val latestTimestamp = entries.maxOf { it.updatedAtEpochMillis }
+                val latestQuantities = entries
+                    .filter { it.updatedAtEpochMillis == latestTimestamp }
+                    .map { it.quantity }
+                    .distinct()
+                latestQuantities.singleOrNull()
+            }
 
         // Normalize localized resource names at the calculation boundary too:
         // callers outside the UI must get the same safe totals.
