@@ -2011,12 +2011,12 @@ fun LandsOfJailAssistantApp(
                             accountPrefs.edit().putString("active_game_profile_v1", id).commit()
                             showProfileDialog = false
                         }
-                    ) { Text(localizedAppText(localizedAppText("+ ")) + localizedUiText(currentLang, "Ajouter un profil", "Add a profile", "Profil hinzufügen", "Profil ekle", "Добавить профиль", "添加档案")) }
+                    ) { Text(localizedAppText(localizedAppText("+ ")) + localizedUiText(currentLang, "Ajouter un profil", "Add a profile", "Profil hinzufügen", "Profil ekle", "Добавить профиль", "添加档案", "Aggiungi un profilo")) }
                     TextButton(
                         enabled = !isProfileSyncing && !isAnalyzing && !isAutoCapturing,
                         onClick = {
                             if (profileAuth.currentSession() == null) {
-                                errorMessage = localizedUiText(currentLang, "Connecte-toi à ton compte dans l’onglet Compte avant la synchronisation.", "Sign in to your account in the Account tab before syncing.", "Melde dich vor der Synchronisierung im Konto-Tab an.", "Eşitlemeden önce Hesap sekmesinden hesabına giriş yap.", "Перед синхронизацией войдите в аккаунт на вкладке «Аккаунт».", "同步前，请先在“账户”选项卡登录。")
+                                errorMessage = localizedUiText(currentLang, "Connecte-toi à ton compte dans l’onglet Compte avant la synchronisation.", "Sign in to your account in the Account tab before syncing.", "Melde dich vor der Synchronisierung im Konto-Tab an.", "Eşitlemeden önce Hesap sekmesinden hesabına giriş yap.", "Перед синхронизацией войдите в аккаунт на вкладке «Аккаунт».", "同步前，请先在“账户”选项卡登录。", "Accedi al tuo account nella scheda Account prima di sincronizzare.")
                             } else {
                                 scope.launch {
                                     isProfileSyncing = true
@@ -2100,7 +2100,7 @@ fun LandsOfJailAssistantApp(
                                             restoreRoutineState(active.id, snapshot.routineState, clearWhenEmpty = snapshot.schemaVersion != null && snapshot.schemaVersion >= 2)
                                             routineRevision += 1
                                         }
-                                        snackbarHostState.showSnackbar(localizedUiText(currentLang, "Synchronisation terminée. Aucune sauvegarde distante n’a été supprimée.", "Sync complete. No remote backup was deleted.", "Synchronisierung abgeschlossen. Kein Remote-Backup wurde gelöscht.", "Senkronizasyon tamamlandı. Hiçbir uzak yedek silinmedi.", "Синхронизация завершена. Ни одна удалённая резервная копия не удалена.", "同步完成。没有删除任何远程备份。"))
+                                        snackbarHostState.showSnackbar(localizedUiText(currentLang, "Synchronisation terminée. Aucune sauvegarde distante n’a été supprimée.", "Sync complete. No remote backup was deleted.", "Synchronisierung abgeschlossen. Kein Remote-Backup wurde gelöscht.", "Senkronizasyon tamamlandı. Hiçbir uzak yedek silinmedi.", "Синхронизация завершена. Ни одна удалённая резервная копия не удалена.", "同步完成。没有删除任何远程备份。", "Sincronizzazione completata. Nessun backup remoto è stato eliminato."))
                                     } catch (error: Exception) {
                                         errorMessage = localizedUiText(currentLang, "Synchronisation interrompue : ${error.message ?: "erreur inconnue"}. La copie locale de secours est conservée.", "Sync interrupted: ${error.message ?: "unknown error"}. The local backup is preserved.", "Synchronisierung unterbrochen: ${error.message ?: "unbekannter Fehler"}. Die lokale Sicherung bleibt erhalten.", "Eşitleme kesildi: ${error.message ?: "bilinmeyen hata"}. Yerel yedek korundu.", "Синхронизация прервана: ${error.message ?: "неизвестная ошибка"}. Локальная резервная копия сохранена.", "同步中断：${error.message ?: "未知错误"}。本地备份已保留。")
                                     } finally {
@@ -2613,9 +2613,9 @@ fun LandsOfJailAssistantApp(
                                     }
                                 }.onFailure {
                                     snackbarHostState.showSnackbar(it.message ?: if (isInitialR5) {
-                                        localizedUiText(currentLang, "Création de l'espace R5 impossible. Si l'alliance existe déjà, rejoins-la avec un code d'invitation.", "Could not create the R5 workspace. If the alliance already exists, join it with an invitation code.", "Der R5-Bereich konnte nicht erstellt werden. Wenn die Allianz bereits besteht, tritt ihr mit einem Einladungscode bei.", "R5 alanı oluşturulamadı. İttifak zaten varsa davet koduyla katıl.", "Не удалось создать пространство R5. Если альянс уже существует, вступите в него по коду приглашения.", "无法创建 R5 空间。如果联盟已存在，请使用邀请码加入。")
+                                        localizedUiText(currentLang, "Création de l'espace R5 impossible. Si l'alliance existe déjà, rejoins-la avec un code d'invitation.", "Could not create the R5 workspace. If the alliance already exists, join it with an invitation code.", "Der R5-Bereich konnte nicht erstellt werden. Wenn die Allianz bereits besteht, tritt ihr mit einem Einladungscode bei.", "R5 alanı oluşturulamadı. İttifak zaten varsa davet koduyla katıl.", "Не удалось создать пространство R5. Если альянс уже существует, вступите в него по коду приглашения.", "无法创建 R5 空间。如果联盟已存在，请使用邀请码加入。", "Impossibile creare lo spazio R5. Se l'alleanza esiste già, unisciti usando un codice d'invito.")
                                     } else {
-                                        localizedUiText(currentLang, "Demande non envoyée. Vérifie le compte et le tag.", "Request not sent. Check the account and alliance tag.", "Anfrage nicht gesendet. Überprüfe das Konto und das Allianz-Tag.", "İstek gönderilmedi. Hesabı ve ittifak etiketini kontrol et.", "Запрос не отправлен. Проверьте аккаунт и тег альянса.", "申请未发送。请检查账号和联盟标签。")
+                                        localizedUiText(currentLang, "Demande non envoyée. Vérifie le compte et le tag.", "Request not sent. Check the account and alliance tag.", "Anfrage nicht gesendet. Überprüfe das Konto und das Allianz-Tag.", "İstek gönderilmedi. Hesabı ve ittifak etiketini kontrol et.", "Запрос не отправлен. Проверьте аккаунт и тег альянса.", "申请未发送。请检查账号和联盟标签。", "Richiesta non inviata. Controlla l'account e il tag dell'alleanza.")
                                     })
                                 }
                             }
@@ -2623,9 +2623,9 @@ fun LandsOfJailAssistantApp(
                             scope.launch {
                                 snackbarHostState.showSnackbar(
                                     if (onboardingRank == AllianceRank.R5) {
-                                        localizedUiText(currentLang, "Profil enregistré. Connecte-toi pour créer l'espace de l'alliance et devenir R5.", "Profile saved. Sign in to create the alliance workspace and become R5.", "Profil gespeichert. Melde dich an, um den Allianzbereich zu erstellen und R5 zu werden.", "Profil kaydedildi. İttifak alanını oluşturup R5 olmak için giriş yap.", "Профиль сохранён. Войдите, чтобы создать пространство альянса и стать R5.", "档案已保存。请登录以创建联盟空间并成为 R5。")
+                                        localizedUiText(currentLang, "Profil enregistré. Connecte-toi pour créer l'espace de l'alliance et devenir R5.", "Profile saved. Sign in to create the alliance workspace and become R5.", "Profil gespeichert. Melde dich an, um den Allianzbereich zu erstellen und R5 zu werden.", "Profil kaydedildi. İttifak alanını oluşturup R5 olmak için giriş yap.", "Профиль сохранён. Войдите, чтобы создать пространство альянса и стать R5.", "档案已保存。请登录以创建联盟空间并成为 R5。", "Profilo salvato. Accedi per creare lo spazio dell'alleanza e diventare R5.")
                                     } else {
-                                        localizedUiText(currentLang, "Profil enregistré. Connecte-toi pour transmettre la demande aux officiers.", "Profile saved. Sign in to send the request to the officers.", "Profil gespeichert. Melde dich an, um die Anfrage an die Offiziere zu senden.", "Profil kaydedildi. İsteği yetkililere iletmek için giriş yap.", "Профиль сохранён. Войдите, чтобы отправить запрос офицерам.", "档案已保存。请登录以向管理人员提交申请。")
+                                        localizedUiText(currentLang, "Profil enregistré. Connecte-toi pour transmettre la demande aux officiers.", "Profile saved. Sign in to send the request to the officers.", "Profil gespeichert. Melde dich an, um die Anfrage an die Offiziere zu senden.", "Profil kaydedildi. İsteği yetkililere iletmek için giriş yap.", "Профиль сохранён. Войдите, чтобы отправить запрос офицерам.", "档案已保存。请登录以向管理人员提交申请。", "Profilo salvato. Accedi per inviare la richiesta agli ufficiali.")
                                     }
                                 )
                             }
@@ -3007,7 +3007,7 @@ private fun DashboardScreen(
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
                     Text(
-                        localizedUiText(currentLang, "Objectifs à atteindre", "Goals to reach", "Zu erreichende Ziele", "Ulaşılacak hedefler", "Цели для достижения", "待完成目标"),
+                        localizedUiText(currentLang, "Objectifs à atteindre", "Goals to reach", "Zu erreichende Ziele", "Ulaşılacak hedefler", "Цели для достижения", "待完成目标", "Obiettivi da raggiungere"),
                         fontWeight = FontWeight.Bold
                     )
                     Text(
@@ -4155,9 +4155,9 @@ private fun ResourcesScreen(
                             OutlinedTextField(gearPrecisionOwned, { gearPrecisionOwned = it.filter(Char::isDigit).take(9) }, label = { Text("⚙️ " + localizedUiText(currentLang, "Engrenages de précision (réforme)", "Precision Gears (reform)", "Präzisionszahnräder (Reform)", "Hassas Dişliler (reform)", "Точные шестерни (перековка)", "精密齿轮（重铸）")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                             Divider()
                             Text(localizedUiText(currentLang, "Nécessaire pour cette plage", "Required for this range", "Für diesen Bereich benötigt", "Bu aralık için gerekli", "Требуется для этого диапазона", "此阶段所需"), fontWeight = FontWeight.SemiBold)
-                            Text("📘 EXP : ${formatCompactFr(requiredExp.toLong())} · ${localizedUiText(currentLang, "manquant", "missing", "fehlend", "eksik", "не хватает", "缺少")} ${formatCompactFr((requiredExp - ownedExp).coerceAtLeast(0).toLong())}")
-                            Text("🧲 Aimants : ${formatCompactFr(requiredMagnets.toLong())} · ${localizedUiText(currentLang, "manquants", "missing", "fehlend", "eksik", "не хватает", "缺少")} ${formatCompactFr((requiredMagnets - ownedMagnets).coerceAtLeast(0).toLong())}")
-                            Text("🌀 Bobines : ${formatCompactFr(requiredCoils.toLong())} · ${localizedUiText(currentLang, "manquantes", "missing", "fehlend", "eksik", "не хватает", "缺少")} ${formatCompactFr((requiredCoils - ownedCoils).coerceAtLeast(0).toLong())}")
+                            Text("📘 EXP : ${formatCompactFr(requiredExp.toLong())} · ${localizedUiText(currentLang, "manquant", "missing", "fehlend", "eksik", "не хватает", "缺少", "mancante")} ${formatCompactFr((requiredExp - ownedExp).coerceAtLeast(0).toLong())}")
+                            Text("🧲 Aimants : ${formatCompactFr(requiredMagnets.toLong())} · ${localizedUiText(currentLang, "manquants", "missing", "fehlend", "eksik", "не хватает", "缺少", "mancante")} ${formatCompactFr((requiredMagnets - ownedMagnets).coerceAtLeast(0).toLong())}")
+                            Text("🌀 Bobines : ${formatCompactFr(requiredCoils.toLong())} · ${localizedUiText(currentLang, "manquantes", "missing", "fehlend", "eksik", "не хватает", "缺少", "mancante")} ${formatCompactFr((requiredCoils - ownedCoils).coerceAtLeast(0).toLong())}")
                             Text(localizedUiText(currentLang, "Réforme complète 0→20 : 11 000 aimants + 4 200 engrenages de précision. Ton stock : ${formatCompactFr(ownedMagnets.toLong())} aimants et ${formatCompactFr(ownedPrecision.toLong())} engrenages.", "Full reform 0→20: 11,000 Magnets + 4,200 Precision Gears. Your stock: ${formatCompactFr(ownedMagnets.toLong())} Magnets and ${formatCompactFr(ownedPrecision.toLong())} Gears.", "Vollständige Reform 0→20: 11.000 Magnete + 4.200 Präzisionszahnräder. Bestand: ${formatCompactFr(ownedMagnets.toLong())} Magnete und ${formatCompactFr(ownedPrecision.toLong())} Zahnräder.", "Tam reform 0→20: 11.000 Mıknatıs + 4.200 Hassas Dişli. Stok: ${formatCompactFr(ownedMagnets.toLong())} Mıknatıs ve ${formatCompactFr(ownedPrecision.toLong())} Dişli.", "Полная перековка 0→20: 11 000 магнитов + 4 200 точных шестерён. В наличии: ${formatCompactFr(ownedMagnets.toLong())} магнитов и ${formatCompactFr(ownedPrecision.toLong())} шестерён.", "完整重铸 0→20：11,000 磁铁 + 4,200 精密齿轮。库存：${formatCompactFr(ownedMagnets.toLong())} 磁铁、${formatCompactFr(ownedPrecision.toLong())} 齿轮。"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
@@ -4279,24 +4279,24 @@ private fun ResourcesScreen(
                             OutlinedTextField(satelliteCoinsOwned, { satelliteCoinsOwned = it.filter(Char::isDigit).take(10) }, label = { Text("🪙 " + localizedUiText(currentLang, "Pièces planétaires possédées", "Planet Coins owned", "Planet-Münzen vorhanden", "Mevcut Gezegen Paraları", "Планетные монеты в наличии", "现有行星币")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
                             Divider()
                             Text(localizedUiText(currentLang, "À réunir pour cette plage", "Required for this range", "Für diesen Bereich benötigt", "Bu aralık için gereken", "Требуется для этого диапазона", "此范围所需"), fontWeight = FontWeight.SemiBold)
-                            Text("💿 " + localizedUiText(currentLang, "Disques : ", "Disks: ", "Disks: ", "Disk: ", "Диски: ", "数据盘：") + formatCompactFr(requiredDisks.toLong()) + " · " + localizedUiText(currentLang, "manquants", "missing", "fehlend", "eksik", "не хватает", "缺少") + " " + formatCompactFr(missingDisks.toLong()))
-                            Text("🪙 " + localizedUiText(currentLang, "Pièces planétaires : ", "Planet Coins: ", "Planet-Münzen: ", "Gezegen Parası: ", "Планетные монеты: ", "行星币：") + formatCompactFr(requiredPlanetCoins.toLong()) + " · " + localizedUiText(currentLang, "manquantes", "missing", "fehlend", "eksik", "не хватает", "缺少") + " " + formatCompactFr(missingCoins.toLong()))
-                            Text(localizedUiText(currentLang, "Repère documenté : un satellite SSR du niveau 0 au niveau 90 demande 135 040 disques et 2 140 pièces planétaires selon la somme des paliers publiés.", "Documented reference: one SSR satellite from level 0 to 90 requires 135,040 disks and 2,140 Planet Coins when summing the published milestones.", "Dokumentierter Richtwert: Ein SSR-Satellit von Stufe 0 bis 90 benötigt laut Summe der veröffentlichten Meilensteine 135.040 Disks und 2.140 Planet-Münzen.", "Belgelenen referans: yayımlanan aşamaların toplamına göre 0–90 SSR uydu için 135.040 disk ve 2.140 Gezegen Parası gerekir.", "Справочный показатель: для SSR-спутника с 0 до 90 требуется 135 040 дисков и 2 140 планетных монет по сумме опубликованных этапов.", "参考数据：根据已发布阶段汇总，SSR 卫星从 0 升至 90 需要 135,040 数据盘和 2,140 行星币。"), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("💿 " + localizedUiText(currentLang, "Disques : ", "Disks: ", "Disks: ", "Disk: ", "Диски: ", "数据盘：") + formatCompactFr(requiredDisks.toLong()) + " · " + localizedUiText(currentLang, "manquants", "missing", "fehlend", "eksik", "не хватает", "缺少", "mancante") + " " + formatCompactFr(missingDisks.toLong()))
+                            Text("🪙 " + localizedUiText(currentLang, "Pièces planétaires : ", "Planet Coins: ", "Planet-Münzen: ", "Gezegen Parası: ", "Планетные монеты: ", "行星币：", "Monete planetarie: ") + formatCompactFr(requiredPlanetCoins.toLong()) + " · " + localizedUiText(currentLang, "manquantes", "missing", "fehlend", "eksik", "не хватает", "缺少", "mancante") + " " + formatCompactFr(missingCoins.toLong()))
+                            Text(localizedUiText(currentLang, "Repère documenté : un satellite SSR du niveau 0 au niveau 90 demande 135 040 disques et 2 140 pièces planétaires selon la somme des paliers publiés.", "Documented reference: one SSR satellite from level 0 to 90 requires 135,040 disks and 2,140 Planet Coins when summing the published milestones.", "Dokumentierter Richtwert: Ein SSR-Satellit von Stufe 0 bis 90 benötigt laut Summe der veröffentlichten Meilensteine 135.040 Disks und 2.140 Planet-Münzen.", "Belgelenen referans: yayımlanan aşamaların toplamına göre 0–90 SSR uydu için 135.040 disk ve 2.140 Gezegen Parası gerekir.", "Справочный показатель: для SSR-спутника с 0 до 90 требуется 135 040 дисков и 2 140 планетных монет по сумме опубликованных этапов.", "参考数据：根据已发布阶段汇总，SSR 卫星从 0 升至 90 需要 135,040 数据盘和 2,140 行星币。", "Riferimento documentato: un satellite SSR dal livello 0 al 90 richiede 135.040 dischi e 2.140 monete planetarie, sommando le tappe pubblicate."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }
                 item {
-                    Text(localizedUiText(currentLang, "Autres systèmes à suivre", "Other systems to track", "Weitere Systeme", "Diğer sistemler", "Другие системы", "其他系统"), fontWeight = FontWeight.Bold)
+                    Text(localizedUiText(currentLang, "Autres systèmes à suivre", "Other systems to track", "Weitere Systeme", "Diğer sistemler", "Другие системы", "其他系统", "Altri sistemi da monitorare"), fontWeight = FontWeight.Bold)
                 }
                 item {
                     val systems = listOf(
-                        Triple("🛡️", localizedUiText(currentLang, "Arsenal", "Arsenal", "Arsenal", "Cephanelik", "Арсенал", "军械库"), localizedUiText(currentLang, "Niv. 15 · Équipement héros : EXP, aimants, bobines potentielles et engrenages de précision", "Lv. 15 · Hero equipment: EXP, Magnets, Potential Coils and Precision Gears", "Stufe 15 · Heldenausrüstung: EXP, Magnete, Potenzialspulen und Präzisionszahnräder", "Sv. 15 · Kahraman ekipmanı: EXP, Mıknatıs, Potansiyel Bobin ve Hassas Dişli", "Ур. 15 · Снаряжение героев: опыт, магниты, потенциальные катушки и точные шестерни", "15级 · 英雄装备：经验、磁铁、潜能线圈和精密齿轮")),
-                        Triple("🧪", localizedUiText(currentLang, "Laboratoire", "Lab", "Labor", "Laboratuvar", "Лаборатория", "实验室", "Laboratorio"), localizedUiText(currentLang, "Niv. 9 · Recherches Logistique, Économie et Militaire", "Lv. 9 · Logistics, Economy and Military research", "Stufe 9 · Forschung in Logistik, Wirtschaft und Militär", "Sv. 9 · Lojistik, Ekonomi ve Askerî araştırmalar", "Ур. 9 · Исследования логистики, экономики и военного дела", "9级 · 后勤、经济和军事研究")),
-                        Triple("🤖", localizedUiText(currentLang, "Hangar d’armure de puissance", "Power Armor Hangar", "Power-Armor-Hangar", "Güç Zırhı Hangarı", "Ангар силовой брони", "动力装甲机库", "Hangar delle armature potenziate"), localizedUiText(currentLang, "Niv. 25 · Armure du prisonnier, données d’armure, modules et noyaux I–V", "Lv. 25 · Prisoner Armor, Armor Data, modules and Core I–V", "Stufe 25 · Gefangenenrüstung, Rüstungsdaten, Module und Kerne I–V", "Sv. 25 · Mahkûm Zırhı, zırh verisi, modüller ve Çekirdek I–V", "Ур. 25 · Броня заключённого, данные брони, модули и ядра I–V", "25级 · 囚犯动力装甲、装甲数据、模块和核心 I–V")),
-                        Triple("🛰️", localizedUiText(currentLang, "Centre cosmique (Cosmos Hub)", "Cosmos Hub", "Kosmos-Zentrum", "Kozmos Merkezi", "Космический центр", "宇宙中心", "Centro cosmico"), localizedUiText(currentLang, "Niv. 20 · Satellites, disques de données et puces", "Lv. 20 · Satellites, Data Disks and chips", "Stufe 20 · Satelliten, Datendisks und Chips", "Sv. 20 · Uydular, Veri Diskleri ve çipler", "Ур. 20 · Спутники, диски данных и чипы", "20级 · 卫星、数据盘和芯片")),
-                        Triple("🏰", localizedUiText(currentLang, "Donjon · Bureau et surveillance", "Dungeon · Office and Surveillance", "Verlies · Büro und Überwachung", "Zindan · Ofis ve Gözetim", "Подземелье · офис и наблюдение", "地牢 · 办公室与监控"), localizedUiText(currentLang, "Suivi des prisonniers fugitifs et criminels, avec les salles du donjon", "Track fugitive and criminal prisoners and dungeon rooms", "Flüchtige und kriminelle Gefangene sowie Verliesräume verfolgen", "Kaçak ve suçlu mahkûmları ve zindan odalarını takip et", "Учёт беглых и преступных заключённых и помещений подземелья", "追踪逃犯、罪犯囚犯及地牢房间")),
-                        Triple("⚡", localizedUiText(currentLang, "Station d’énergie Forticlad", "Forticlad Energy Station", "Forticlad-Energiestation", "Forticlad Enerji İstasyonu", "Энергостанция Forticlad", "Forticlad 能源站"), localizedUiText(currentLang, "Niv. 30 · Production quotidienne de noyaux Forticlad", "Lv. 30 · Daily Forticlad Core supply", "Stufe 30 · Tägliche Versorgung mit Forticlad-Kernen", "Sv. 30 · Günlük Forticlad Çekirdeği üretimi", "Ур. 30 · Ежедневная выдача ядер Forticlad", "30级 · 每日供应 Forticlad 核心")),
-                        Triple("🔬", localizedUiText(currentLang, "Laboratoire Forticlad", "Forticlad Lab", "Forticlad-Labor", "Forticlad Laboratuvarı", "Лаборатория Forticlad", "Forticlad 实验室", "Laboratorio Forticlad"), localizedUiText(currentLang, "Niv. 30 · Technologie Forticlad et Hyperalliage pour les troupes", "Lv. 30 · Forticlad Technology and Hyperalloy for troops", "Stufe 30 · Forticlad-Technologie und Hyperlegierung für Truppen", "Sv. 30 · Birlikler için Forticlad Teknolojisi ve Hiperalaşım", "Ур. 30 · Технология Forticlad и гиперсплав для войск", "30级 · 部队 Forticlad 科技和超合金"))
+                        Triple("🛡️", localizedUiText(currentLang, "Arsenal", "Arsenal", "Arsenal", "Cephanelik", "Арсенал", "军械库", "Arsenale"), localizedUiText(currentLang, "Niv. 15 · Équipement héros : EXP, aimants, bobines potentielles et engrenages de précision", "Lv. 15 · Hero equipment: EXP, Magnets, Potential Coils and Precision Gears", "Stufe 15 · Heldenausrüstung: EXP, Magnete, Potenzialspulen und Präzisionszahnräder", "Sv. 15 · Kahraman ekipmanı: EXP, Mıknatıs, Potansiyel Bobin ve Hassas Dişli", "Ур. 15 · Снаряжение героев: опыт, магниты, потенциальные катушки и точные шестерни", "15级 · 英雄装备：经验、磁铁、潜能线圈和精密齿轮", "Liv. 15 · Equipaggiamento eroi: EXP, magneti, bobine di potenziale e ingranaggi di precisione")),
+                        Triple("🧪", localizedUiText(currentLang, "Laboratoire", "Lab", "Labor", "Laboratuvar", "Лаборатория", "实验室", "Laboratorio"), localizedUiText(currentLang, "Niv. 9 · Recherches Logistique, Économie et Militaire", "Lv. 9 · Logistics, Economy and Military research", "Stufe 9 · Forschung in Logistik, Wirtschaft und Militär", "Sv. 9 · Lojistik, Ekonomi ve Askerî araştırmalar", "Ур. 9 · Исследования логистики, экономики и военного дела", "9级 · 后勤、经济和军事研究", "Liv. 9 · Ricerche di logistica, economia e militari")),
+                        Triple("🤖", localizedUiText(currentLang, "Hangar d’armure de puissance", "Power Armor Hangar", "Power-Armor-Hangar", "Güç Zırhı Hangarı", "Ангар силовой брони", "动力装甲机库", "Hangar delle armature potenziate"), localizedUiText(currentLang, "Niv. 25 · Armure du prisonnier, données d’armure, modules et noyaux I–V", "Lv. 25 · Prisoner Armor, Armor Data, modules and Core I–V", "Stufe 25 · Gefangenenrüstung, Rüstungsdaten, Module und Kerne I–V", "Sv. 25 · Mahkûm Zırhı, zırh verisi, modüller ve Çekirdek I–V", "Ур. 25 · Броня заключённого, данные брони, модули и ядра I–V", "25级 · 囚犯动力装甲、装甲数据、模块和核心 I–V", "Liv. 25 · Armatura dei prigionieri, dati armatura, moduli e nuclei I–V")),
+                        Triple("🛰️", localizedUiText(currentLang, "Centre cosmique (Cosmos Hub)", "Cosmos Hub", "Kosmos-Zentrum", "Kozmos Merkezi", "Космический центр", "宇宙中心", "Centro cosmico"), localizedUiText(currentLang, "Niv. 20 · Satellites, disques de données et puces", "Lv. 20 · Satellites, Data Disks and chips", "Stufe 20 · Satelliten, Datendisks und Chips", "Sv. 20 · Uydular, Veri Diskleri ve çipler", "Ур. 20 · Спутники, диски данных и чипы", "20级 · 卫星、数据盘和芯片", "Liv. 20 · Satelliti, dischi dati e chip")),
+                        Triple("🏰", localizedUiText(currentLang, "Donjon · Bureau et surveillance", "Dungeon · Office and Surveillance", "Verlies · Büro und Überwachung", "Zindan · Ofis ve Gözetim", "Подземелье · офис и наблюдение", "地牢 · 办公室与监控", "Prigione · Ufficio e sorveglianza"), localizedUiText(currentLang, "Suivi des prisonniers fugitifs et criminels, avec les salles du donjon", "Track fugitive and criminal prisoners and dungeon rooms", "Flüchtige und kriminelle Gefangene sowie Verliesräume verfolgen", "Kaçak ve suçlu mahkûmları ve zindan odalarını takip et", "Учёт беглых и преступных заключённых и помещений подземелья", "追踪逃犯、罪犯囚犯及地牢房间", "Monitora i prigionieri fuggitivi e criminali e le stanze della prigione")),
+                        Triple("⚡", localizedUiText(currentLang, "Station d’énergie Forticlad", "Forticlad Energy Station", "Forticlad-Energiestation", "Forticlad Enerji İstasyonu", "Энергостанция Forticlad", "Forticlad 能源站", "Stazione energetica Forticlad"), localizedUiText(currentLang, "Niv. 30 · Production quotidienne de noyaux Forticlad", "Lv. 30 · Daily Forticlad Core supply", "Stufe 30 · Tägliche Versorgung mit Forticlad-Kernen", "Sv. 30 · Günlük Forticlad Çekirdeği üretimi", "Ур. 30 · Ежедневная выдача ядер Forticlad", "30级 · 每日供应 Forticlad 核心", "Liv. 30 · Fornitura giornaliera di nuclei Forticlad")),
+                        Triple("🔬", localizedUiText(currentLang, "Laboratoire Forticlad", "Forticlad Lab", "Forticlad-Labor", "Forticlad Laboratuvarı", "Лаборатория Forticlad", "Forticlad 实验室", "Laboratorio Forticlad"), localizedUiText(currentLang, "Niv. 30 · Technologie Forticlad et Hyperalliage pour les troupes", "Lv. 30 · Forticlad Technology and Hyperalloy for troops", "Stufe 30 · Forticlad-Technologie und Hyperlegierung für Truppen", "Sv. 30 · Birlikler için Forticlad Teknolojisi ve Hiperalaşım", "Ур. 30 · Технология Forticlad и гиперсплав для войск", "30级 · 部队 Forticlad 科技和超合金", "Liv. 30 · Tecnologia Forticlad e iperlega per le truppe"))
                     )
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         systems.forEach { (icon, name, description) ->
@@ -4675,7 +4675,7 @@ private fun AdviceScreen(
                 }
             }
             Spacer(Modifier.height(6.dp))
-            Text(localizedUiText(currentLang, "Rôle : ${playerRole.labelFor(currentLang)}", "Role: ${playerRole.labelFor(currentLang)}", "Rolle: ${playerRole.labelFor(currentLang)}", "Rol: ${playerRole.labelFor(currentLang)}", "Роль: ${playerRole.labelFor(currentLang)}", "角色：${playerRole.labelFor(currentLang)}"), style = MaterialTheme.typography.bodySmall)
+            Text(localizedUiText(currentLang, "Rôle : ${playerRole.labelFor(currentLang)}", "Role: ${playerRole.labelFor(currentLang)}", "Rolle: ${playerRole.labelFor(currentLang)}", "Rol: ${playerRole.labelFor(currentLang)}", "Роль: ${playerRole.labelFor(currentLang)}", "角色：${playerRole.labelFor(currentLang)}", "Ruolo: ${playerRole.labelFor(currentLang)}"), style = MaterialTheme.typography.bodySmall)
             Spacer(Modifier.height(6.dp))
             val heroesWithWarSkills = heroes.count { hero ->
                 hero.competences.any { skill ->
@@ -5136,8 +5136,8 @@ private fun SupabaseAccountCard(onChangeLanguage: (AppLanguage) -> Unit) {
                             scope.launch {
                                 busy = true
                                 auth.refreshSession()
-                                    .onSuccess { session = it; message = localizedUiText(currentLang, "Session actualisée.", "Session refreshed.", "Sitzung aktualisiert.", "Oturum yenilendi.", "Сеанс обновлён.", "会话已刷新。"); isError = false }
-                                    .onFailure { message = it.message ?: localizedUiText(currentLang, "Actualisation impossible.", "Refresh failed.", "Aktualisierung fehlgeschlagen.", "Yenileme başarısız.", "Не удалось обновить.", "刷新失败。"); isError = true }
+                                    .onSuccess { session = it; message = localizedUiText(currentLang, "Session actualisée.", "Session refreshed.", "Sitzung aktualisiert.", "Oturum yenilendi.", "Сеанс обновлён.", "会话已刷新。", "Sessione aggiornata."); isError = false }
+                                    .onFailure { message = it.message ?: localizedUiText(currentLang, "Actualisation impossible.", "Refresh failed.", "Aktualisierung fehlgeschlagen.", "Yenileme başarısız.", "Не удалось обновить.", "刷新失败。", "Aggiornamento non riuscito."); isError = true }
                                 busy = false
                             }
                         },
@@ -5149,8 +5149,8 @@ private fun SupabaseAccountCard(onChangeLanguage: (AppLanguage) -> Unit) {
                             scope.launch {
                                 busy = true
                                 auth.signOut()
-                                    .onSuccess { session = null; message = localizedUiText(currentLang, "Déconnexion effectuée.", "Signed out.", "Abgemeldet.", "Oturum kapatıldı.", "Вы вышли из аккаунта.", "已退出登录。"); isError = false }
-                                    .onFailure { message = it.message ?: localizedUiText(currentLang, "Déconnexion impossible.", "Could not sign out.", "Abmelden nicht möglich.", "Oturum kapatılamadı.", "Не удалось выйти из аккаунта.", "无法退出登录。"); isError = true }
+                                    .onSuccess { session = null; message = localizedUiText(currentLang, "Déconnexion effectuée.", "Signed out.", "Abgemeldet.", "Oturum kapatıldı.", "Вы вышли из аккаунта.", "已退出登录。", "Disconnessione effettuata."); isError = false }
+                                    .onFailure { message = it.message ?: localizedUiText(currentLang, "Déconnexion impossible.", "Could not sign out.", "Abmelden nicht möglich.", "Oturum kapatılamadı.", "Не удалось выйти из аккаунта.", "无法退出登录。", "Impossibile disconnettersi."); isError = true }
                                 busy = false
                             }
                         },
@@ -5278,9 +5278,9 @@ private fun SupabaseAccountCard(onChangeLanguage: (AppLanguage) -> Unit) {
                                         registration.onSuccess { id ->
                                             if (isInitialR5) {
                                                 profilePrefs.edit().putString("cloud_alliance_id", id).apply()
-                                                message = localizedUiText(currentLang, "Compte connecté. Espace créé : tu es directement R5.", "Account connected. Workspace created: you are now R5.", "Konto verbunden. Bereich erstellt: Du bist jetzt R5.", "Hesap bağlandı. Alan oluşturuldu: artık R5'sin.", "Аккаунт подключён. Пространство создано: теперь вы R5.", "账户已连接。空间已创建：你现在是 R5。")
+                                                message = localizedUiText(currentLang, "Compte connecté. Espace créé : tu es directement R5.", "Account connected. Workspace created: you are now R5.", "Konto verbunden. Bereich erstellt: Du bist jetzt R5.", "Hesap bağlandı. Alan oluşturuldu: artık R5'sin.", "Аккаунт подключён. Пространство создано: теперь вы R5.", "账户已连接。空间已创建：你现在是 R5。", "Account collegato. Spazio creato: ora sei R5.")
                                             } else {
-                                                message = localizedUiText(currentLang, "Compte connecté. Demande envoyée aux R4/R5 de ${savedAlliance.allianceName}.", "Account connected. Request sent to the R4/R5 officers of ${savedAlliance.allianceName}.", "Konto verbunden. Anfrage an die R4/R5-Offiziere von ${savedAlliance.allianceName} gesendet.", "Hesap bağlandı. ${savedAlliance.allianceName} ittifakının R4/R5 yetkililerine istek gönderildi.", "Аккаунт подключён. Запрос отправлен офицерам R4/R5 альянса ${savedAlliance.allianceName}.", "账户已连接。申请已发送给 ${savedAlliance.allianceName} 联盟的 R4/R5 管理员。")
+                                                message = localizedUiText(currentLang, "Compte connecté. Demande envoyée aux R4/R5 de ${savedAlliance.allianceName}.", "Account connected. Request sent to the R4/R5 officers of ${savedAlliance.allianceName}.", "Konto verbunden. Anfrage an die R4/R5-Offiziere von ${savedAlliance.allianceName} gesendet.", "Hesap bağlandı. ${savedAlliance.allianceName} ittifakının R4/R5 yetkililerine istek gönderildi.", "Аккаунт подключён. Запрос отправлен офицерам R4/R5 альянса ${savedAlliance.allianceName}.", "账户已连接。申请已发送给 ${savedAlliance.allianceName} 联盟的 R4/R5 管理员。", "Account collegato. Richiesta inviata agli ufficiali R4/R5 di ${savedAlliance.allianceName}.")
                                             }
                                         }.onFailure {
                                             message = localizedUiText(currentLang, "Compte connecté. Profil conservé ; inscription d'alliance impossible : ${it.message ?: "vérifie le serveur et le tag"}", "Account connected. Profile saved; alliance registration failed: ${it.message ?: "check the server and tag"}", "Konto verbunden. Profil gespeichert; Allianzregistrierung fehlgeschlagen: ${it.message ?: "Server und Tag prüfen"}", "Hesap bağlandı. Profil korundu; ittifak kaydı başarısız: ${it.message ?: "sunucuyu ve etiketi kontrol et"}", "Аккаунт подключён. Профиль сохранён; не удалось зарегистрировать альянс: ${it.message ?: "проверьте сервер и тег"}", "账户已连接。档案已保留；联盟注册失败：${it.message ?: "请检查服务器和标签"}")
@@ -5288,7 +5288,7 @@ private fun SupabaseAccountCard(onChangeLanguage: (AppLanguage) -> Unit) {
                                         }
                                     }
                                 }.onFailure {
-                                    message = it.message ?: localizedUiText(currentLang, "Une erreur est survenue.", "An error occurred.", "Ein Fehler ist aufgetreten.", "Bir hata oluştu.", "Произошла ошибка.", "发生错误。")
+                                    message = it.message ?: localizedUiText(currentLang, "Une erreur est survenue.", "An error occurred.", "Ein Fehler ist aufgetreten.", "Bir hata oluştu.", "Произошла ошибка.", "发生错误。", "Si è verificato un errore.")
                                     isError = true
                                 }
                                 busy = false
@@ -5553,9 +5553,9 @@ private fun AllianceScreen(
         }
         item {
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                Text(localizedUiText(language, "Espace Alliance", "Alliance Space", "Allianzbereich", "İttifak Alanı", "Пространство альянса", "联盟空间"), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                Text(localizedUiText(language, "Espace Alliance", "Alliance Space", "Allianzbereich", "İttifak Alanı", "Пространство альянса", "联盟空间", "Spazio alleanza"), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                 Text(
-                    localizedUiText(language, "Ton profil vient de ton compte. Consulte le roster et prépare les événements avec les capacités de tes membres.", "Your profile comes from your account. Check the roster and prepare events using your members’ capabilities.", "Dein Profil stammt aus deinem Konto. Sieh dir die Mitgliederliste an und bereite Events anhand der Fähigkeiten deiner Mitglieder vor.", "Profilin hesabından gelir. Kadroyu incele ve üyelerinin yetenekleriyle etkinliklere hazırlan.", "Ваш профиль связан с аккаунтом. Просматривайте состав и готовьтесь к событиям с учётом возможностей участников.", "你的个人资料来自账号。查看成员名单，并根据成员能力准备活动。"),
+                    localizedUiText(language, "Ton profil vient de ton compte. Consulte le roster et prépare les événements avec les capacités de tes membres.", "Your profile comes from your account. Check the roster and prepare events using your members’ capabilities.", "Dein Profil stammt aus deinem Konto. Sieh dir die Mitgliederliste an und bereite Events anhand der Fähigkeiten deiner Mitglieder vor.", "Profilin hesabından gelir. Kadroyu incele ve üyelerinin yetenekleriyle etkinliklere hazırlan.", "Ваш профиль связан с аккаунтом. Просматривайте состав и готовьтесь к событиям с учётом возможностей участников.", "你的个人资料来自账号。查看成员名单，并根据成员能力准备活动。", "Il tuo profilo proviene dal tuo account. Consulta l'elenco dei membri e prepara gli eventi in base alle loro capacità."),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -5569,7 +5569,7 @@ private fun AllianceScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(localizedUiText(language, "Roster de l'alliance", "Alliance roster", "Allianzmitglieder", "İttifak kadrosu", "Состав альянса", "联盟成员名单"), fontWeight = FontWeight.Bold)
+                        Text(localizedUiText(language, "Roster de l'alliance", "Alliance roster", "Allianzmitglieder", "İttifak kadrosu", "Состав альянса", "联盟成员名单", "Elenco membri dell'alleanza"), fontWeight = FontWeight.Bold)
                         Text(localizedAppText(localizedAppText("${workspace.members.size + if (workspace.ownProfile.playerName.isNotBlank()) 1 else 0} joueur(s)")),
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             style = MaterialTheme.typography.labelSmall)
@@ -5589,10 +5589,10 @@ private fun AllianceScreen(
                         Button(onClick = { showAddMember = true }, modifier = Modifier.fillMaxWidth()) {
                             Icon(Icons.Outlined.PersonAdd, contentDescription = null)
                             Spacer(Modifier.width(6.dp))
-                            Text(localizedUiText(language, "Ajouter un membre au roster", "Add a member to the roster", "Mitglied zur Liste hinzufügen", "Kadorya üye ekle", "Добавить участника в состав", "添加联盟成员"))
+                            Text(localizedUiText(language, "Ajouter un membre au roster", "Add a member to the roster", "Mitglied zur Liste hinzufügen", "Kadorya üye ekle", "Добавить участника в состав", "添加联盟成员", "Aggiungi un membro all'elenco"))
                         }
                     } else {
-                        Text(localizedUiText(language, "Demande à un R4/R5 d'ajouter les profils des membres.", "Ask an R4/R5 to add member profiles.", "Bitte einen R4/R5, die Mitgliederprofile hinzuzufügen.", "Üye profillerini eklemesi için bir R4/R5'ten yardım iste.", "Попросите R4/R5 добавить профили участников.", "请联系 R4/R5 添加成员资料。"), style = MaterialTheme.typography.bodySmall)
+                        Text(localizedUiText(language, "Demande à un R4/R5 d'ajouter les profils des membres.", "Ask an R4/R5 to add member profiles.", "Bitte einen R4/R5, die Mitgliederprofile hinzuzufügen.", "Üye profillerini eklemesi için bir R4/R5'ten yardım iste.", "Попросите R4/R5 добавить профили участников.", "请联系 R4/R5 添加成员资料。", "Chiedi a un R4/R5 di aggiungere i profili dei membri."), style = MaterialTheme.typography.bodySmall)
                     }
                     OutlinedButton(
                         onClick = {
@@ -5644,7 +5644,7 @@ private fun AllianceScreen(
                             CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
                             Spacer(Modifier.width(8.dp))
                         }
-                        Text(if (cloudRosterBusy) localizedUiText(language, "Chargement de la liste…", "Loading roster…", "Liste wird geladen…", "Liste yükleniyor…", "Загрузка списка…", "正在加载成员列表…") else localizedUiText(language, "Actualiser depuis le cloud", "Refresh from cloud", "Aus der Cloud aktualisieren", "Buluttan yenile", "Обновить из облака", "从云端刷新"))
+                        Text(if (cloudRosterBusy) localizedUiText(language, "Chargement de la liste…", "Loading roster…", "Liste wird geladen…", "Liste yükleniyor…", "Загрузка списка…", "正在加载成员列表…", "Caricamento dell'elenco…") else localizedUiText(language, "Actualiser depuis le cloud", "Refresh from cloud", "Aus der Cloud aktualisieren", "Buluttan yenile", "Обновить из облака", "从云端刷新", "Aggiorna dal cloud"))
                     }
                     cloudRosterMessage?.let {
                         Text(
@@ -5752,9 +5752,9 @@ private fun AllianceScreen(
         item {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                    Text(localizedUiText(language, "Simulateur de performance", "Performance simulator", "Leistungssimulator", "Performans simülatörü", "Симулятор эффективности", "战力模拟器"), fontWeight = FontWeight.Bold)
+                    Text(localizedUiText(language, "Simulateur de performance", "Performance simulator", "Leistungssimulator", "Performans simülatörü", "Симулятор эффективности", "战力模拟器", "Simulatore delle prestazioni"), fontWeight = FontWeight.Bold)
                     Text(
-                        localizedUiText(language, "Compare les profils disponibles et propose une répartition des rôles. Les données manquantes ne sont pas inventées.", "Compares available profiles and suggests role assignments. Missing data is never invented.", "Vergleicht verfügbare Profile und schlägt Rollenverteilungen vor. Fehlende Daten werden nicht erfunden.", "Mevcut profilleri karşılaştırır ve rol dağılımı önerir. Eksik veriler uydurulmaz.", "Сравнивает доступные профили и предлагает распределение ролей. Отсутствующие данные не выдумываются.", "比较现有档案并建议角色分配，不会编造缺失数据。"),
+                        localizedUiText(language, "Compare les profils disponibles et propose une répartition des rôles. Les données manquantes ne sont pas inventées.", "Compares available profiles and suggests role assignments. Missing data is never invented.", "Vergleicht verfügbare Profile und schlägt Rollenverteilungen vor. Fehlende Daten werden nicht erfunden.", "Mevcut profilleri karşılaştırır ve rol dağılımı önerir. Eksik veriler uydurulmaz.", "Сравнивает доступные профили и предлагает распределение ролей. Отсутствующие данные не выдумываются.", "比较现有档案并建议角色分配，不会编造缺失数据。", "Confronta i profili disponibili e suggerisce l'assegnazione dei ruoli. I dati mancanti non vengono mai inventati."),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -6074,11 +6074,11 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
                                     .onSuccess { id ->
                                         allianceId = id
                                         prefs.edit().putString("cloud_alliance_id", id).apply()
-                                        message = localizedUiText(currentLang, "Alliance créée en ligne. Tu es enregistré comme R5.", "Alliance created online. You are registered as R5.", "Allianz online erstellt. Du bist als R5 registriert.", "İttifak çevrimiçi oluşturuldu. R5 olarak kaydedildin.", "Альянс создан онлайн. Вы зарегистрированы как R5.", "联盟已在线创建。你已登记为 R5。")
+                                        message = localizedUiText(currentLang, "Alliance créée en ligne. Tu es enregistré comme R5.", "Alliance created online. You are registered as R5.", "Allianz online erstellt. Du bist als R5 registriert.", "İttifak çevrimiçi oluşturuldu. R5 olarak kaydedildin.", "Альянс создан онлайн. Вы зарегистрированы как R5.", "联盟已在线创建。你已登记为 R5。", "Alleanza creata online. Sei registrato come R5.")
                                         isError = false
                                     }
                                     .onFailure {
-                                        message = it.message ?: localizedUiText(currentLang, "Création impossible.", "Could not create.", "Erstellen nicht möglich.", "Oluşturulamadı.", "Не удалось создать.", "无法创建。")
+                                        message = it.message ?: localizedUiText(currentLang, "Création impossible.", "Could not create.", "Erstellen nicht möglich.", "Oluşturulamadı.", "Не удалось создать.", "无法创建。", "Impossibile creare.")
                                         isError = true
                                     }
                                 busy = false
@@ -6096,17 +6096,17 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
                         Divider()
                         Text(
                             if (isAppDeveloper && myCloudRank == "R4") {
-                                localizedUiText(currentLang, "Privilèges développeur · Gestion R5", "Developer privileges · R5 management", "Entwicklerrechte · R5-Verwaltung", "Geliştirici ayrıcalıkları · R5 yönetimi", "Права разработчика · управление R5", "开发者权限 · R5 管理")
+                                localizedUiText(currentLang, "Privilèges développeur · Gestion R5", "Developer privileges · R5 management", "Entwicklerrechte · R5-Verwaltung", "Geliştirici ayrıcalıkları · R5 yönetimi", "Права разработчика · управление R5", "开发者权限 · R5 管理", "Privilegi sviluppatore · Gestione R5")
                             } else {
-                                localizedUiText(currentLang, "Transférer le poste de R5", "Transfer R5 leadership", "R5-Führung übertragen", "R5 liderliğini devret", "Передать руководство R5", "转让 R5 职位")
+                                localizedUiText(currentLang, "Transférer le poste de R5", "Transfer R5 leadership", "R5-Führung übertragen", "R5 liderliğini devret", "Передать руководство R5", "转让 R5 职位", "Trasferisci la leadership R5")
                             },
                             fontWeight = FontWeight.SemiBold
                         )
                         Text(
                             if (isAppDeveloper && myCloudRank == "R4") {
-                                localizedUiText(currentLang, "Ton rang d'alliance reste R4. En tant que développeur unique de l'application, tu peux aussi gérer les fonctions R5. Choisis un membre R4 pour lui transférer le poste R5.", "Your alliance rank remains R4. As the app's sole developer, you can also manage R5 functions. Choose an R4 member to transfer R5 leadership to them.", "Dein Allianzrang bleibt R4. Als alleiniger App-Entwickler kannst du auch R5-Funktionen verwalten. Wähle ein R4-Mitglied, dem du die R5-Führung überträgst.", "İttifak rütben R4 olarak kalır. Uygulamanın tek geliştiricisi olarak R5 işlevlerini de yönetebilirsin. R5 liderliğini devretmek için bir R4 üyesi seç.", "Ваш ранг в альянсе останется R4. Как единственный разработчик приложения, вы также можете управлять функциями R5. Выберите участника R4 для передачи руководства.", "你的联盟职位仍为 R4。作为应用唯一开发者，你也可以管理 R5 功能。选择一名 R4 成员，将 R5 职位转交给他。")
+                                localizedUiText(currentLang, "Ton rang d'alliance reste R4. En tant que développeur unique de l'application, tu peux aussi gérer les fonctions R5. Choisis un membre R4 pour lui transférer le poste R5.", "Your alliance rank remains R4. As the app's sole developer, you can also manage R5 functions. Choose an R4 member to transfer R5 leadership to them.", "Dein Allianzrang bleibt R4. Als alleiniger App-Entwickler kannst du auch R5-Funktionen verwalten. Wähle ein R4-Mitglied, dem du die R5-Führung überträgst.", "İttifak rütben R4 olarak kalır. Uygulamanın tek geliştiricisi olarak R5 işlevlerini de yönetebilirsin. R5 liderliğini devretmek için bir R4 üyesi seç.", "Ваш ранг в альянсе останется R4. Как единственный разработчик приложения, вы также можете управлять функциями R5. Выберите участника R4 для передачи руководства.", "你的联盟职位仍为 R4。作为应用唯一开发者，你也可以管理 R5 功能。选择一名 R4 成员，将 R5 职位转交给他。", "Il tuo grado nell'alleanza resta R4. In qualità di unico sviluppatore dell'app, puoi anche gestire le funzioni R5. Scegli un membro R4 a cui trasferire la leadership R5.")
                             } else {
-                                localizedUiText(currentLang, "Choisis un membre déjà R4. Après confirmation, il deviendra R5 et ton compte passera R4.", "Choose an existing R4 member. After confirmation, they become R5 and your account moves to R4.", "Wähle ein bestehendes R4-Mitglied. Nach der Bestätigung wird es R5 und dein Konto wechselt zu R4.", "Mevcut bir R4 üyesi seç. Onaydan sonra R5 olur ve hesabın R4'e geçer.", "Выберите действующего участника R4. После подтверждения он станет R5, а ваш аккаунт перейдёт на R4.", "选择一名现有 R4 成员。确认后，该成员将成为 R5，你的账号将变为 R4。")
+                                localizedUiText(currentLang, "Choisis un membre déjà R4. Après confirmation, il deviendra R5 et ton compte passera R4.", "Choose an existing R4 member. After confirmation, they become R5 and your account moves to R4.", "Wähle ein bestehendes R4-Mitglied. Nach der Bestätigung wird es R5 und dein Konto wechselt zu R4.", "Mevcut bir R4 üyesi seç. Onaydan sonra R5 olur ve hesabın R4'e geçer.", "Выберите действующего участника R4. После подтверждения он станет R5, а ваш аккаунт перейдёт на R4.", "选择一名现有 R4 成员。确认后，该成员将成为 R5，你的账号将变为 R4。", "Scegli un membro R4 esistente. Dopo la conferma, diventerà R5 e il tuo account passerà a R4.")
                             },
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -6117,10 +6117,10 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
                                     transferBusy = true
                                     auth.fetchAllianceRoster(allianceId).onSuccess { roster ->
                                         r4Members = roster.filter { it.rank == AllianceRank.R4 }
-                                        transferMessage = localizedUiText(currentLang, "Liste des R4 actualisée.", "R4 list refreshed.", "R4-Liste aktualisiert.", "R4 listesi yenilendi.", "Список R4 обновлён.", "R4 列表已刷新。")
+                                        transferMessage = localizedUiText(currentLang, "Liste des R4 actualisée.", "R4 list refreshed.", "R4-Liste aktualisiert.", "R4 listesi yenilendi.", "Список R4 обновлён.", "R4 列表已刷新。", "Elenco R4 aggiornato.")
                                         transferError = false
                                     }.onFailure {
-                                        transferMessage = it.message ?: localizedUiText(currentLang, "Chargement des R4 impossible.", "Could not load R4 members.", "R4-Mitglieder konnten nicht geladen werden.", "R4 üyeleri yüklenemedi.", "Не удалось загрузить участников R4.", "无法加载 R4 成员。")
+                                        transferMessage = it.message ?: localizedUiText(currentLang, "Chargement des R4 impossible.", "Could not load R4 members.", "R4-Mitglieder konnten nicht geladen werden.", "R4 üyeleri yüklenemedi.", "Не удалось загрузить участников R4.", "无法加载 R4 成员。", "Impossibile caricare i membri R4.")
                                         transferError = true
                                     }
                                     transferBusy = false
@@ -6154,11 +6154,11 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
                                 auth.createAllianceInvite(allianceId, 105)
                                     .onSuccess {
                                         inviteCode = it
-                                        message = localizedUiText(currentLang, "Code créé. Transmets-le uniquement aux membres de ton alliance.", "Code created. Share it only with members of your alliance.", "Code erstellt. Teile ihn nur mit Mitgliedern deiner Allianz.", "Kod oluşturuldu. Yalnızca ittifak üyelerinle paylaş.", "Код создан. Передавайте его только участникам своего альянса.", "邀请码已创建。请仅与联盟成员分享。")
+                                        message = localizedUiText(currentLang, "Code créé. Transmets-le uniquement aux membres de ton alliance.", "Code created. Share it only with members of your alliance.", "Code erstellt. Teile ihn nur mit Mitgliedern deiner Allianz.", "Kod oluşturuldu. Yalnızca ittifak üyelerinle paylaş.", "Код создан. Передавайте его только участникам своего альянса.", "邀请码已创建。请仅与联盟成员分享。", "Codice creato. Condividilo solo con i membri della tua alleanza.")
                                         isError = false
                                     }
                                     .onFailure {
-                                        message = it.message ?: localizedUiText(currentLang, "Création du code impossible.", "Could not create the code.", "Code konnte nicht erstellt werden.", "Kod oluşturulamadı.", "Не удалось создать код.", "无法创建邀请码。")
+                                        message = it.message ?: localizedUiText(currentLang, "Création du code impossible.", "Could not create the code.", "Code konnte nicht erstellt werden.", "Kod oluşturulamadı.", "Не удалось создать код.", "无法创建邀请码。", "Impossibile creare il codice.")
                                         isError = true
                                     }
                                 busy = false
@@ -6194,11 +6194,11 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
                                     allianceId = id
                                     prefs.edit().putString("cloud_alliance_id", id).apply()
                                     inviteCode = ""
-                                    message = localizedUiText(currentLang, "Invitation acceptée. Ton compte a rejoint l'alliance.", "Invitation accepted. Your account has joined the alliance.", "Einladung angenommen. Dein Konto ist der Allianz beigetreten.", "Davet kabul edildi. Hesabın ittifaka katıldı.", "Приглашение принято. Ваш аккаунт вступил в альянс.", "邀请已接受。你的账户已加入联盟。")
+                                    message = localizedUiText(currentLang, "Invitation acceptée. Ton compte a rejoint l'alliance.", "Invitation accepted. Your account has joined the alliance.", "Einladung angenommen. Dein Konto ist der Allianz beigetreten.", "Davet kabul edildi. Hesabın ittifaka katıldı.", "Приглашение принято. Ваш аккаунт вступил в альянс.", "邀请已接受。你的账户已加入联盟。", "Invito accettato. Il tuo account è entrato nell'alleanza.")
                                     isError = false
                                 }
                                 .onFailure {
-                                    message = it.message ?: localizedUiText(currentLang, "Invitation refusée.", "Invitation declined.", "Einladung abgelehnt.", "Davet reddedildi.", "Приглашение отклонено.", "邀请已拒绝。")
+                                    message = it.message ?: localizedUiText(currentLang, "Invitation refusée.", "Invitation declined.", "Einladung abgelehnt.", "Davet reddedildi.", "Приглашение отклонено.", "邀请已拒绝。", "Invito rifiutato.")
                                     isError = true
                                 }
                             busy = false
@@ -6218,9 +6218,9 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
     selectedR4?.let { candidate ->
         AlertDialog(
             onDismissRequest = { if (!transferBusy) selectedR4 = null },
-            title = { Text(localizedUiText(currentLang, "Confirmer le transfert du R5", "Confirm R5 leadership transfer", "Übertragung der R5-Führung bestätigen", "R5 liderlik devrini onayla", "Подтвердить передачу руководства R5", "确认转让 R5 职位")) },
+            title = { Text(localizedUiText(currentLang, "Confirmer le transfert du R5", "Confirm R5 leadership transfer", "Übertragung der R5-Führung bestätigen", "R5 liderlik devrini onayla", "Подтвердить передачу руководства R5", "确认转让 R5 职位", "Conferma il trasferimento della leadership R5")) },
             text = {
-                Text(localizedUiText(currentLang, "Confirmer que ${candidate.playerName} devient R5 ? Ton propre rang passera automatiquement à R4.", "Confirm that ${candidate.playerName} becomes R5? Your rank will automatically move to R4.", "Bestätigen, dass ${candidate.playerName} R5 wird? Dein Rang wechselt automatisch zu R4.", " ${candidate.playerName} R5 olsun mu? Senin rütben otomatik olarak R4'e düşecek.", "Подтвердить, что ${candidate.playerName} станет R5? Ваш ранг автоматически изменится на R4.", "确认让 ${candidate.playerName} 成为 R5？你的职位将自动变为 R4。"))
+                Text(localizedUiText(currentLang, "Confirmer que ${candidate.playerName} devient R5 ? Ton propre rang passera automatiquement à R4.", "Confirm that ${candidate.playerName} becomes R5? Your rank will automatically move to R4.", "Bestätigen, dass ${candidate.playerName} R5 wird? Dein Rang wechselt automatisch zu R4.", " ${candidate.playerName} R5 olsun mu? Senin rütben otomatik olarak R4'e düşecek.", "Подтвердить, что ${candidate.playerName} станет R5? Ваш ранг автоматически изменится на R4.", "确认让 ${candidate.playerName} 成为 R5？你的职位将自动变为 R4。", "Confermi che ${candidate.playerName} diventi R5? Il tuo grado passerà automaticamente a R4."))
             },
             confirmButton = {
                 Button(
@@ -6232,12 +6232,12 @@ private fun AllianceCloudControls(server: String, allianceName: String) {
                                 .onSuccess {
                                     myCloudRank = "R4"
                                     r4Members = emptyList()
-                                    transferMessage = localizedUiText(currentLang, "Transfert effectué. ${candidate.playerName} est le nouveau R5.", "Transfer complete. ${candidate.playerName} is the new R5.", "Übertragung abgeschlossen. ${candidate.playerName} ist der neue R5.", "Devir tamamlandı. Yeni R5: ${candidate.playerName}.", "Передача завершена. ${candidate.playerName} теперь R5.", "转让完成。${candidate.playerName} 现在是新的 R5。")
+                                    transferMessage = localizedUiText(currentLang, "Transfert effectué. ${candidate.playerName} est le nouveau R5.", "Transfer complete. ${candidate.playerName} is the new R5.", "Übertragung abgeschlossen. ${candidate.playerName} ist der neue R5.", "Devir tamamlandı. Yeni R5: ${candidate.playerName}.", "Передача завершена. ${candidate.playerName} теперь R5.", "转让完成。${candidate.playerName} 现在是新的 R5。", "Trasferimento completato. ${candidate.playerName} è il nuovo R5.")
                                     transferError = false
                                     selectedR4 = null
                                 }
                                 .onFailure {
-                                    transferMessage = it.message ?: localizedUiText(currentLang, "Transfert impossible.", "Transfer failed.", "Übertragung fehlgeschlagen.", "Devir başarısız.", "Не удалось передать руководство.", "转让失败。")
+                                    transferMessage = it.message ?: localizedUiText(currentLang, "Transfert impossible.", "Transfer failed.", "Übertragung fehlgeschlagen.", "Devir başarısız.", "Не удалось передать руководство.", "转让失败。", "Trasferimento non riuscito.")
                                     transferError = true
                                 }
                             transferBusy = false
@@ -6290,7 +6290,7 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
                     }
                 }
                 requests = updated
-            }.onFailure { message = it.message ?: localizedUiText(currentLang, "Chargement des propositions impossible.", "Could not load suggestions.", "Vorschläge konnten nicht geladen werden.", "Öneriler yüklenemedi.", "Не удалось загрузить предложения.", "无法加载建议。"); isError = true }
+            }.onFailure { message = it.message ?: localizedUiText(currentLang, "Chargement des propositions impossible.", "Could not load suggestions.", "Vorschläge konnten nicht geladen werden.", "Öneriler yüklenemedi.", "Не удалось загрузить предложения.", "无法加载建议。", "Impossibile caricare i suggerimenti."); isError = true }
             loading = false
         }
     }
@@ -6308,20 +6308,20 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
     }
 
     val categoryLabels = mapOf(
-        "bug" to localizedUiText(currentLang, "Bug / problème", "Bug / issue", "Fehler / Problem", "Hata / sorun", "Ошибка / проблема", "错误 / 问题"),
-        "idea" to localizedUiText(currentLang, "Nouvelle idée", "New idea", "Neue Idee", "Yeni fikir", "Новая идея", "新想法"),
-        "game_data" to localizedUiText(currentLang, "Données du jeu", "Game data", "Spieldaten", "Oyun verileri", "Данные игры", "游戏数据"),
-        "interface" to localizedUiText(currentLang, "Interface", "Interface", "Oberfläche", "Arayüz", "Интерфейс", "界面"),
-        "performance" to localizedUiText(currentLang, "Performance", "Performance", "Leistung", "Performans", "Производительность", "性能"),
-        "other" to localizedUiText(currentLang, "Autre", "Other", "Sonstiges", "Diğer", "Другое", "其他")
+        "bug" to localizedUiText(currentLang, "Bug / problème", "Bug / issue", "Fehler / Problem", "Hata / sorun", "Ошибка / проблема", "错误 / 问题", "Bug / problema"),
+        "idea" to localizedUiText(currentLang, "Nouvelle idée", "New idea", "Neue Idee", "Yeni fikir", "Новая идея", "新想法", "Nuova idea"),
+        "game_data" to localizedUiText(currentLang, "Données du jeu", "Game data", "Spieldaten", "Oyun verileri", "Данные игры", "游戏数据", "Dati di gioco"),
+        "interface" to localizedUiText(currentLang, "Interface", "Interface", "Oberfläche", "Arayüz", "Интерфейс", "界面", "Interfaccia"),
+        "performance" to localizedUiText(currentLang, "Performance", "Performance", "Leistung", "Performans", "Производительность", "性能", "Prestazioni"),
+        "other" to localizedUiText(currentLang, "Autre", "Other", "Sonstiges", "Diğer", "Другое", "其他", "Altro")
     )
     val statusLabels = mapOf(
-        "pending" to localizedUiText(currentLang, "En attente", "Pending", "Ausstehend", "Beklemede", "Ожидает", "待处理"),
-        "accepted" to localizedUiText(currentLang, "Acceptée", "Accepted", "Angenommen", "Kabul edildi", "Принято", "已接受"),
-        "rejected" to localizedUiText(currentLang, "Refusée", "Rejected", "Abgelehnt", "Reddedildi", "Отклонено", "已拒绝"),
-        "needs_info" to localizedUiText(currentLang, "Précisions demandées", "More information needed", "Weitere Informationen erforderlich", "Ek bilgi gerekli", "Требуется уточнение", "需要补充信息"),
-        "in_progress" to localizedUiText(currentLang, "En développement", "In progress", "In Entwicklung", "Geliştiriliyor", "В разработке", "开发中"),
-        "implemented" to localizedUiText(currentLang, "Installée dans l'application", "Implemented in the app", "In der App umgesetzt", "Uygulamaya eklendi", "Добавлено в приложение", "已在应用中实现")
+        "pending" to localizedUiText(currentLang, "En attente", "Pending", "Ausstehend", "Beklemede", "Ожидает", "待处理", "In attesa"),
+        "accepted" to localizedUiText(currentLang, "Acceptée", "Accepted", "Angenommen", "Kabul edildi", "Принято", "已接受", "Accettato"),
+        "rejected" to localizedUiText(currentLang, "Refusée", "Rejected", "Abgelehnt", "Reddedildi", "Отклонено", "已拒绝", "Rifiutato"),
+        "needs_info" to localizedUiText(currentLang, "Précisions demandées", "More information needed", "Weitere Informationen erforderlich", "Ek bilgi gerekli", "Требуется уточнение", "需要补充信息", "Servono altre informazioni"),
+        "in_progress" to localizedUiText(currentLang, "En développement", "In progress", "In Entwicklung", "Geliştiriliyor", "В разработке", "开发中", "In corso"),
+        "implemented" to localizedUiText(currentLang, "Installée dans l'application", "Implemented in the app", "In der App umgesetzt", "Uygulamaya eklendi", "Добавлено в приложение", "已在应用中实现", "Implementato nell'app")
     )
 
     LazyColumn(
@@ -6380,11 +6380,11 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
                                     ).onSuccess {
                                         title = ""
                                         description = ""
-                                        message = localizedUiText(currentLang, "Proposition envoyée. Tu recevras la réponse dans cette rubrique.", "Suggestion sent. You will receive the response in this section.", "Vorschlag gesendet. Du erhältst die Antwort in diesem Bereich.", "Öneri gönderildi. Yanıtı bu bölümde alacaksın.", "Предложение отправлено. Ответ появится в этом разделе.", "建议已发送。你将在此栏目收到回复。")
+                                        message = localizedUiText(currentLang, "Proposition envoyée. Tu recevras la réponse dans cette rubrique.", "Suggestion sent. You will receive the response in this section.", "Vorschlag gesendet. Du erhältst die Antwort in diesem Bereich.", "Öneri gönderildi. Yanıtı bu bölümde alacaksın.", "Предложение отправлено. Ответ появится в этом разделе.", "建议已发送。你将在此栏目收到回复。", "Suggerimento inviato. Riceverai la risposta in questa sezione.")
                                         isError = false
                                         refresh()
                                     }.onFailure {
-                                        message = it.message ?: localizedUiText(currentLang, "Envoi impossible.", "Could not send.", "Senden nicht möglich.", "Gönderilemedi.", "Не удалось отправить.", "无法发送。")
+                                        message = it.message ?: localizedUiText(currentLang, "Envoi impossible.", "Could not send.", "Senden nicht möglich.", "Gönderilemedi.", "Не удалось отправить.", "无法发送。", "Impossibile inviare.")
                                         isError = true
                                     }
                                     sending = false
@@ -6487,13 +6487,13 @@ private fun ImprovementRequestsScreen(auth: SupabaseAuthRepository) {
                             reviewBusy = true
                             auth.reviewAppImprovement(item.id, status, reply)
                                 .onSuccess {
-                                    message = localizedUiText(currentLang, "Réponse enregistrée et visible par le joueur.", "Reply saved and visible to the player.", "Antwort gespeichert und für den Spieler sichtbar.", "Yanıt kaydedildi ve oyuncu tarafından görülebilir.", "Ответ сохранён и виден игроку.", "回复已保存，玩家可以查看。")
+                                    message = localizedUiText(currentLang, "Réponse enregistrée et visible par le joueur.", "Reply saved and visible to the player.", "Antwort gespeichert und für den Spieler sichtbar.", "Yanıt kaydedildi ve oyuncu tarafından görülebilir.", "Ответ сохранён и виден игроку.", "回复已保存，玩家可以查看。", "Risposta salvata e visibile al giocatore.")
                                     isError = false
                                     selected = null
                                     refresh()
                                 }
                                 .onFailure {
-                                    message = it.message ?: localizedUiText(currentLang, "Enregistrement impossible.", "Could not save.", "Speichern nicht möglich.", "Kaydedilemedi.", "Не удалось сохранить.", "无法保存。")
+                                    message = it.message ?: localizedUiText(currentLang, "Enregistrement impossible.", "Could not save.", "Speichern nicht möglich.", "Kaydedilemedi.", "Не удалось сохранить.", "无法保存。", "Impossibile salvare.")
                                     isError = true
                                 }
                             reviewBusy = false
