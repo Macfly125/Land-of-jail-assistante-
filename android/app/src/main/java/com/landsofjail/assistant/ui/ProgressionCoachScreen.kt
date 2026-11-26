@@ -647,13 +647,25 @@ fun ProgressionCoachScreen(
                         },
                         style = MaterialTheme.typography.bodySmall
                     )
-                    OutlinedTextField(
-                        value = targetId,
-                        onValueChange = { targetId = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        label = { Text(text(fr = "Identifiant / nom (ex. ADA, Solo, casque, reform)", en = "ID / name (e.g. ADA, Solo, helmet, reform)", de = "ID / Name (z. B. ADA, Solo, Helm, reform)", tr = "Kimlik / ad (örn. ADA, Solo, miğfer, reform)", ru = "ID / название (например ADA, Solo, шлем, reform)", zh = "标识/名称（如 ADA、Solo、头盔、reform）", it = "ID / nome (es. ADA, Solo, elmo, reform)")) },
-                        singleLine = true
-                    )
+                    if (selectedDomain == ProgressionDomain.TROOPS) {
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            items(com.landsofjail.assistant.model.TroopTrainingType.values().toList()) { type ->
+                                FilterChip(
+                                    selected = troopTrainingType(targetId) == type,
+                                    onClick = { targetId = type.name.lowercase() },
+                                    label = { Text(troopTrainingTypeLabel(type, language)) }
+                                )
+                            }
+                        }
+                    } else {
+                        OutlinedTextField(
+                            value = targetId,
+                            onValueChange = { targetId = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text(text(fr = "Identifiant / nom (ex. ADA, Solo, casque, reform)", en = "ID / name (e.g. ADA, Solo, helmet, reform)", de = "ID / Name (z. B. ADA, Solo, Helm, reform)", tr = "Kimlik / ad (örn. ADA, Solo, miğfer, reform)", ru = "ID / название (например ADA, Solo, шлем, reform)", zh = "标识/名称（如 ADA、Solo、头盔、reform）", it = "ID / nome (es. ADA, Solo, elmo, reform)")) },
+                            singleLine = true
+                        )
+                    }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedTextField(
                             value = currentLevel, onValueChange = { currentLevel = it.filter(Char::isDigit) },
