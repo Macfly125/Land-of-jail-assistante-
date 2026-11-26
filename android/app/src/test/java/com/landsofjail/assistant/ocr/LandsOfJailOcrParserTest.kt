@@ -127,7 +127,7 @@ class LandsOfJailOcrParserTest {
 
     @Test
     fun extractsForticladHeadquartersLevelOnlyWhenExplicitlyLabeled() {
-        val result = LandsOfJailOcrParser.parseLocalOcrText("QG Forticlad\\nNiveau 6")
+        val result = LandsOfJailOcrParser.parseLocalOcrText("QG Forticlad\nNiveau 6")
 
         assertEquals("Niv. 6", result.power?.niveauPrisonOuQG)
         assertEquals("Non mesurée", result.power?.puissanceTotaleTexte)
