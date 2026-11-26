@@ -626,6 +626,38 @@ object LandsOfJailOcrParser {
                 )
             )
         }
+        // Home-screen power badge: the blue fist counter is positioned below
+        // the top resource row, on the left. Only accept a grouped integer in
+        // this narrow normalized region; never promote the resource row itself.
+        if (power == null && textBoxes.isNotEmpty() && imageWidth > 0 && imageHeight > 0) {
+            val powerBadge = textBoxes
+                .filter { box ->
+                    val centerY = (box.top + box.bottom) / 2f
+                    centerY >= imageHeight * 0.095f &&
+                        centerY <= imageHeight * 0.18f &&
+                        box.left >= 0 &&
+                        box.left <= imageWidth * 0.32f &&
+                        box.right <= imageWidth * 0.36f
+                }
+                .mapNotNull { box ->
+                    val valueText = box.text.trim()
+                    val digits = valueText.filter(Char::isDigit)
+                    if (digits.length !in 7..12 ||
+                        !Regex("""^[0-9][0-9\\s.,]*$""").matches(valueText)
+                    ) null else valueText to parseCompactNumeric(valueText)
+                }
+                .firstOrNull { it.second != null }
+            if (powerBadge != null) {
+                power = PowerMetric(
+                    puissanceTotaleTexte = powerBadge.first,
+                    puissanceTotaleNumerique = powerBadge.second?.toLong(),
+                    niveauPrisonOuQG = wardenLevel,
+                    incertain = false,
+                    raisonIncertitude = null
+                )
+            }
+        }
+
         val detectedCategory = when {
             screenRecognition.category != "ocr_local" -> screenRecognition.category
             equipment.isNotEmpty() -> "equipements"
