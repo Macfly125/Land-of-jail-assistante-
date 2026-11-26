@@ -60,6 +60,30 @@ class ScreenRecognitionEngineTest {
     }
 
     @Test
+    fun doesNotClassifyGenericWaveWithoutTurmoilContext() {
+        val result = ScreenRecognitionEngine.analyze("Wave")
+
+        assertEquals("ocr_local", result.category)
+        assertFalse(result.needsVisualConfirmation)
+    }
+
+    @Test
+    fun doesNotClassifyGenericFuelWithoutSandseaContext() {
+        val result = ScreenRecognitionEngine.analyze("Fuel")
+
+        assertEquals("ocr_local", result.category)
+        assertFalse(result.needsVisualConfirmation)
+    }
+
+    @Test
+    fun doesNotClassifyGenericUpgradeWithoutBuildingContext() {
+        val result = ScreenRecognitionEngine.analyze("Upgrade")
+
+        assertEquals("ocr_local", result.category)
+        assertFalse(result.needsVisualConfirmation)
+    }
+
+    @Test
     fun explicitCosmosHubWinsAndIsNotRepeatedAsAnAlternative() {
         val result = ScreenRecognitionEngine.analyze(
             "Satellite Launch Data Disk Planet Coin Cosmos Hub"
