@@ -30,9 +30,7 @@ class LegacyUiTranslationDictionaryTest {
         assertEquals("All 143 legacy strings must remain covered", 143, entries.size)
         entries.forEachIndexed { index, line ->
             val listStart = line.indexOf("to listOf(") + "to listOf(".length
-            val values = Regex("\\\"(?:[^\\\"\\\\]|\\\\.)*\\\"")
-                .findAll(line.substring(listStart))
-                .count()
+            val values = line.substring(listStart).count { it == '"' } / 2
             assertEquals("Dictionary entry $index must contain FR/EN/DE/TR/RU/ZH/IT", 7, values)
         }
     }
@@ -69,7 +67,7 @@ class LegacyUiTranslationDictionaryTest {
             }
             assertTrue("$language fragment map must close", close > open)
             val block = source.substring(open + 1, close)
-            val pairCount = Regex("""\\s+to\\s+""").findAll(block).count()
+            val pairCount = block.windowed(4).count { it == " to " }
             assertEquals("$language must have all 61 dynamic fragments", 61, pairCount)
         }
     }
