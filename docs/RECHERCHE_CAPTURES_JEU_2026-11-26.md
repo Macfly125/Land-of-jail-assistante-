@@ -54,3 +54,23 @@ Constat : les images accessibles dans cette galerie sont principalement des visu
 - [ ] N'activer aucune donnée issue d'une infographie comme vérité terrain OCR ; utiliser les tableaux uniquement pour vérifier la cohérence des valeurs extraites.
 
 Limite constatée : les pages publiques permettent d'identifier des références et parfois l'existence de captures joueurs, mais les images brutes techniques ne sont pas toutes directement accessibles ni autorisées à la redistribution. Aucun fichier image brut supplémentaire n'a été ajouté au dépôt dans cette étape.
+
+
+## Captures de gameplay repérées — recherche complémentaire 26/11/2026
+
+Ces pages exposent des images de gameplay identifiables. Elles sont référencées pour examen ; elles ne sont pas copiées dans le dépôt sans autorisation de réutilisation.
+
+- GameWith (article japonais de lancement) : https://gamewith.jp/gamedb/13266/articles/42321 — capture de l'écran principal isométrique avec barre supérieure et quantités de ressources (argent, nourriture, bois, acier, essence, diamants), cellules et navigation. Référence utile pour la détection de la barre de ressources, mais interface japonaise et ancienne.
+- Yumatti (capture publiée dans un guide de progression) : https://www.yumatti.com/point-activity-land-object/ — écran de montée de niveau d'un prisonnier, avec niveau actuel/cible, bonus, coût et bouton d'amélioration. Catégorie : prisonnier/personnage, pas héros.
+- Publication X de @nyanreimama : https://x.com/nyanreimama/status/2033891222243463315 — écran de progression du Bureau du directeur niveau 24, bénéfices, prérequis bâtiments et coûts. À vérifier manuellement car l'image est une capture partagée par un joueur et le contexte serveur/langue est limité.
+- Vidéo XcelPlaysGames : https://www.youtube.com/watch?v=bS5iAvk0RFA — processus complet d'amélioration des armures/robots 9 et 10 ; source potentielle d'images de séquence à examiner, mais aucune frame n'a été extraite dans ce dépôt.
+- Uptodown : https://lands-of-jail.en.uptodown.com/android — galerie secondaire d'images de gameplay, à trier écran par écran avant toute utilisation OCR.
+
+### Catégories couvertes par ces nouvelles références
+- [x] Barre de ressources et écran principal : une capture de gameplay publique identifiée.
+- [x] Bureau du directeur/QG : une capture publique d'amélioration avec prérequis et coûts identifiée.
+- [x] Prisonnier/personnage : une capture publique d'amélioration identifiée ; ne pas la confondre avec l'écran Héros.
+- [ ] Robot/armure : vidéo d'amélioration identifiée, extraction de frames et validation des chiffres non effectuées.
+- [ ] Héros, équipement, recherche et Forticlad : trouver des captures brutes de ces écrans et leurs contextes.
+
+Aucun fichier image n'a été ajouté au dépôt : les sources sont externes et les droits de réutilisation doivent être vérifiés. Ne pas entraîner ni valider une métrique OCR sur les descriptions textuelles des pages ; utiliser les pixels d'une capture autorisée et une annotation humaine indépendante.
