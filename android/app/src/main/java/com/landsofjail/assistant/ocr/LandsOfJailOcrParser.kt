@@ -111,7 +111,7 @@ object LandsOfJailOcrParser {
         val candidates = boxes
             .filter { it.top >= 0 && it.top <= (imageHeight * 0.20).toInt() }
             .filter { it.left >= 0 && it.right <= imageWidth }
-            .filter { Regex("""^[0-9][0-9.,\\s]*[kmbKMB]?$""").matches(it.text.trim()) }
+            .filter { Regex("""^[0-9][0-9.,\s]*[kmbKMB]?$""").matches(it.text.trim()) }
         if (candidates.size < 4) return false
         val tolerance = maxOf(18, (imageHeight * 0.025).toInt())
         return candidates.any { anchor ->
