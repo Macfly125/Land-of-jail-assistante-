@@ -34,6 +34,23 @@ class ScreenRecognitionEngineTest {
         assertTrue(result.confidence < 0.8f)
     }
 
+
+    @Test
+    fun recognizesShortLabHeaderWithResearchTechnology() {
+        val result = ScreenRecognitionEngine.analyze("Lab\\nLogistics Technology\\nEconomy Technology")
+
+        assertEquals("lab", result.category)
+        assertTrue(result.matchedLabels.contains("lab"))
+        assertTrue(result.needsVisualConfirmation)
+    }
+
+    @Test
+    fun doesNotClassifyAnUnqualifiedLaboratoryBuildingAsResearchLab() {
+        val result = ScreenRecognitionEngine.analyze("Laboratory\\nLevel 12")
+
+        assertEquals("batiments", result.category)
+    }
+
     @Test
     fun explicitCosmosHubWinsAndIsNotRepeatedAsAnAlternative() {
         val result = ScreenRecognitionEngine.analyze(
