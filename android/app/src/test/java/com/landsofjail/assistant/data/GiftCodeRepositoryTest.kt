@@ -105,6 +105,33 @@ class GiftCodeRepositoryTest {
     }
 
     @Test
+    fun laterExpiredSectionReportDowngradesListedCodeToReviewButNeverClaimsExpired() {
+        val listed = GiftCodeEntry(
+            code = "LOJ777",
+            status = "COMMUNITY_LISTED",
+            source = "GuideLOJ",
+            note = "Code rapporté par une source communautaire."
+        )
+        val reviewed = GiftCodeRepository.mergeSourceCandidate(
+            listed, "LOJ777", "LOJ XLab", "26/11/2026", looksExpired = true
+        )
+        assertEquals("NEEDS_REVIEW", reviewed.status)
+        assertTrue(reviewed.source.contains("GuideLOJ"))
+        assertTrue(reviewed.source.contains("LOJ XLab"))
+        assertTrue(reviewed.note.contains("codes expirés"))
+
+        val alreadyExpired = GiftCodeRepository.mergeSourceCandidate(
+            reviewed.copy(status = "EXPIRED"), "LOJ777", "Pocket Gamer", "", looksExpired = true
+        )
+        assertEquals("EXPIRED", alreadyExpired.status)
+
+        val ordinaryMention = GiftCodeRepository.mergeSourceCandidate(
+            listed, "LOJ777", "Pocket Gamer", "", looksExpired = false
+        )
+        assertEquals("COMMUNITY_LISTED", ordinaryMention.status)
+    }
+
+    @Test
     fun onlyPublishedExpiryDatesCanAutomaticallyMoveCodesToExpired() {
         val entries = listOf(
             GiftCodeEntry("EXPIRED1", "NEEDS_REVIEW", "source", expiresAt = "24/11/2026"),
