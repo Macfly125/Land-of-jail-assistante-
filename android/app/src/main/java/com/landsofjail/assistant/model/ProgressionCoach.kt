@@ -143,7 +143,10 @@ object ProgressionCoach {
             cyclicStepIds = cyclicIds,
             totalKnownDurationSeconds = if (steps.all { it.dataComplete && it.durationSeconds != null } &&
                 missingPrerequisites.isEmpty() && cyclicIds.isEmpty())
-                steps.sumOf { it.durationSeconds!! } else null
+                steps.fold(0L) { total, step ->
+                    val duration = step.durationSeconds!!
+                    if (Long.MAX_VALUE - total < duration) Long.MAX_VALUE else total + duration
+                } else null
         )
     }
 
