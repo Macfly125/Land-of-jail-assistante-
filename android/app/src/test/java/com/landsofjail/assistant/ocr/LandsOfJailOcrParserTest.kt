@@ -1118,7 +1118,7 @@ Potential Coil x 8"""
             OcrTextBox(value, left = 40 + index * 120, top = 50, right = 95 + index * 120, bottom = 82)
         }
         val result = LandsOfJailOcrParser.parseLocalOcrText(
-            rawText = "12.4M\\nEliminations: 350",
+            rawText = "12.4M\nEliminations: 350",
             textBoxes = boxes,
             imageWidth = 900,
             imageHeight = 1600
