@@ -182,3 +182,21 @@ Le moteur ne doit jamais compléter un niveau, un coût, une quantité, un maté
 - Reconnaissance visuelle des portraits robots : moteur de comparaison présent, mais aucun catalogue de modèles vérifiés n'est encore fourni.
 
 La session de test sur téléphone reste donc différée jusqu'à ce que le corpus image soit suffisamment alimenté et que les tests de régression sur images soient en place.
+
+## Échantillon authentique fourni par le joueur — écran d'accueil (26 novembre 2026)
+
+- ID : `user-home-2026-11-26-01`
+- Type de preuve : capture d'écran originale fournie par le joueur dans la conversation (698 × 1536 px, portrait).
+- Écran : vue générale de la prison / écran d'accueil.
+- Langue visible : français (libellés d'interface partiellement visibles).
+- Annotation relue avec le joueur :
+  - Puissance du compte : **509 256 511** — compteur bleu avec icône de poing, encadré rouge par le joueur.
+  - Nourriture : **177.1M** — compteur de ressource dans la barre supérieure, entouré en vert par le joueur.
+  - Bâtiment entouré en bleu : **QG / Forticlad, niveau 6**, identification fournie explicitement par le joueur. Le chiffre 6 n'est pas lisible dans cette vue générale ; ne pas prétendre que l'OCR l'a extrait de cette image.
+- Autres nombres visibles dans la barre supérieure (1.0B, 234.9M, 60.6M, 60.0M) : ne pas leur attribuer un type de ressource dans ce test tant que les icônes correspondantes n'ont pas été annotées séparément.
+- Objectif de régression : le compteur de puissance doit être associé à la zone/au pictogramme du poing et ne jamais être confondu avec la nourriture ; la nourriture doit être associée à son icône et à sa zone de ressource ; les niveaux de bâtiment ne doivent être extraits que depuis un panneau de bâtiment lisible ou une annotation explicite.
+- Statut : `collected` pour la capture utilisateur et annotation de ces trois éléments ; `pending` pour exécution d'un test OCR automatisé sur le fichier image. L'image n'est pas encore copiée dans le dépôt.
+- Réutilisation : la capture reste une pièce fournie dans la conversation ; vérifier les conditions de réutilisation avant publication publique dans le dépôt.
+
+| user-home-2026-11-26-01 | Ressources + puissance + QG/Forticlad | Vue générale | Capture utilisateur | Conversation du 26/11/2026 | — | FR | 698×1536 | Non publiée | Puissance 509 256 511 ; nourriture 177.1M ; QG/Forticlad niv. 6 (annotation joueur, niveau non lisible dans cette vue) | En attente |
+
