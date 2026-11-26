@@ -1004,6 +1004,27 @@ Potential Coil x 8"""
         }
     }
 
+
+    @Test
+    fun recognizesItalianCoreGameScreenCategories() {
+        val samples = listOf(
+            "Centro robot\\nMiglioramento robot\\nPhantom Cat" to "robots",
+            "Laboratorio Forticlad\\nTecnologia Forticlad\\nHyperalloy" to "forticlad_lab",
+            "Tecnologia logistica\\nTecnologia economica\\nTecnologia militare" to "lab",
+            "Eroi\\nAbilità\\nStelle" to "heros",
+            "Ufficio del direttore\\nMiglioramento edificio\\nCaserma" to "batiments",
+            "Truppe\\nCapacità di marcia\\nShieldbearers" to "troupes"
+        )
+        samples.forEach { (sample, expected) ->
+            assertEquals(
+                "La schermata italiana deve essere classificata correttamente: $sample",
+                expected,
+                ScreenRecognitionEngine.analyze(sample).category
+            )
+        }
+    }
+
+
     @Test
     fun doesNotInventHeroesFromArbitraryNamesFollowedByLevel() {
         val building = LandsOfJailOcrParser.parseLocalOcrText("Warehouse\nLevel 12")
