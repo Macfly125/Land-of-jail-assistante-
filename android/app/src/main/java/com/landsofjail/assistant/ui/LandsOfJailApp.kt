@@ -5712,6 +5712,18 @@ private fun AllianceScreen(
                                             Text(message.authorName, fontWeight = FontWeight.SemiBold)
                                             Text(message.createdAt.replace("T", " ").take(16), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                         }
+                                        TextButton(
+                                            onClick = {
+                                                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                                clipboard.setPrimaryClip(ClipData.newPlainText("Message alliance", message.body))
+                                                allianceMessagesNotice = localizedUiText(language, "Message copié dans le presse-papiers.", "Message copied to clipboard.", "Nachricht in die Zwischenablage kopiert.", "Mesaj panoya kopyalandı.", "Сообщение скопировано в буфер обмена.", "消息已复制到剪贴板。", "Messaggio copiato negli appunti.")
+                                                allianceMessagesError = false
+                                            }
+                                        ) {
+                                            Icon(Icons.Outlined.ContentCopy, contentDescription = null)
+                                            Spacer(Modifier.width(4.dp))
+                                            Text(localizedUiText(language, "Copier", "Copy", "Kopieren", "Kopyala", "Копировать", "复制", "Copia"))
+                                        }
                                         if (cloudMyRank == "R5" || appDeveloper) {
                                             TextButton(
                                                 onClick = {
