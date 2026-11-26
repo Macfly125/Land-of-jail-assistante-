@@ -99,3 +99,31 @@ Aucun fichier image n'a été ajouté au dépôt : les sources sont externes et 
 - [ ] Ajouter des fixtures OCR séparées pour chaque panneau de robot, noyau, laboratoire classique et Forticlad ; conserver résolution, langue, saison et provenance.
 
 Aucune image binaire n'a été importée dans le dépôt dans cette étape. Les tableaux sont des références de cohérence, pas des preuves de reconnaissance d'image.
+
+
+## Héros et équipements — sources de gameplay supplémentaires — 26/11/2026
+
+### HEROpedia LOJ XLab
+- https://lojxlab.com/heropedia/ — catalogue de 31 héros, saisons 1 à 7, avec classe, six compétences, équipement exclusif et type de bataille associé.
+- La page précise une provenance issue d'écrans en jeu : 27 héros des saisons 1 à 6 capturés par MORÖX sur S216 en septembre–octobre 2026 ; les quatre héros de saison 7 proviennent d'un enregistrement d'écran de MIRÖX sur S216 daté du 16/11/2026.
+- Les contrôles annoncés par la source portent sur 129 vérifications des données héros, 1 828 des compétences et 33 pour la saison 7. Ce sont des contrôles documentaires de la source, pas des tests OCR indépendants de notre application.
+- Attention : la page indique que certaines illustrations de cartes sont des visuels de classe générés par le Lab et non les portraits originaux du jeu. Ne pas les utiliser comme gabarits de portraits.
+- La page relie aussi les coûts d'étoiles, armes exclusives et promotions d'équipement 100–200 : utiles pour les références de cohérence, pas pour l'OCR de captures.
+
+### Vidéo équipement héros
+- https://www.youtube.com/watch?v=Zw6MbLf3h-8 — vidéo AllbuzhaGaming du 09/06/2026 consacrée à l'équipement des héros, aux types/effets, à l'amélioration et à la reformation, avec comparaison des niveaux 100 et 101.
+- Vidéo repérée par recherche ; l'ouverture directe a été limitée par YouTube. Aucune frame n'a été extraite ni annotée.
+
+### Galerie secondaire
+- https://lands-of-jail.en.uptodown.com/android — la recherche web signale une galerie de gameplay (vidéo et captures). La page renvoie actuellement une erreur 410 à l'ouverture automatisée ; images non inspectées et non admissibles comme fixtures à ce stade.
+
+### État et prochaines actions
+- [x] Identifier une référence de données héros explicitement relevée à partir d'écrans de jeu, avec provenance, saisons et dates.
+- [x] Identifier une vidéo dédiée à l'amélioration/reformation des équipements héros.
+- [x] Documenter que les illustrations générées de classe ne sont pas de l'art original du jeu.
+- [ ] Obtenir auprès des auteurs les captures originales des écrans héros/équipements avec autorisation d'usage en tests.
+- [ ] Extraire des frames de la vidéo équipement avec horodatage, puis vérifier manuellement que chaque frame montre l'écran de jeu attendu.
+- [ ] Constituer des fixtures distinctes : liste héros, fiche héros/compétences, équipement exclusif, équipement standard et reformation.
+- [ ] Ne pas marquer la reconnaissance héros/équipement comme validée avant tests sur images réelles autorisées.
+
+Aucun binaire image n'a été ajouté : cette étape ajoute des références et des limites de provenance uniquement.
