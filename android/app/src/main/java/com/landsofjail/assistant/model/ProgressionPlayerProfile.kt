@@ -55,15 +55,25 @@ data class ProgressionPlayerProfile(
     val primaryObjective: ProgressionObjective?
         get() = objectives.firstOrNull { it.isPrimary } ?: objectives.firstOrNull()
 
-    fun confirmedLevel(itemId: String): Int? =
-        levels.filter { it.itemId == itemId && it.confirmed }
-            .maxByOrNull { it.updatedAtEpochMillis }?.level
+    fun confirmedLevel(itemId: String): Int? {
+        val confirmed = levels.filter { it.itemId == itemId && it.confirmed }
+        if (confirmed.isEmpty()) return null
+        val latestTimestamp = confirmed.maxOf { it.updatedAtEpochMillis }
+        val latest = confirmed.filter { it.updatedAtEpochMillis == latestTimestamp }
+        val distinctLevels = latest.map { it.level }.distinct()
+        return distinctLevels.singleOrNull()
+    }
 
     fun confirmedStock(resourceId: String): Long? {
         val canonicalId = canonicalProgressionResourceId(resourceId)
-        return resourceStocks.filter {
+        val confirmed = resourceStocks.filter {
             canonicalProgressionResourceId(it.resourceId) == canonicalId && it.confirmed
-        }.maxByOrNull { it.updatedAtEpochMillis }?.quantity
+        }
+        if (confirmed.isEmpty()) return null
+        val latestTimestamp = confirmed.maxOf { it.updatedAtEpochMillis }
+        val latest = confirmed.filter { it.updatedAtEpochMillis == latestTimestamp }
+        val distinctQuantities = latest.map { it.quantity }.distinct()
+        return distinctQuantities.singleOrNull()
     }
 }
 
