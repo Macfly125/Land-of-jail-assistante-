@@ -46,6 +46,20 @@ class GiftCodeRepositoryTest {
     }
 
     @Test
+    fun alliancePortalGiftCodeFeedIsRegisteredAndExplicitCodeMarkupIsExtracted() {
+        val html = """
+            <h1>Gift codes</h1>
+            <h2><code>4AWwVMpUETEgzM</code></h2>
+            <p>Published 26.11.2026</p>
+            <p>Published expiry date: 30.11.2026. 23:59 Server Time</p>
+        """.trimIndent()
+
+        assertTrue(GiftCodeRepository.GUIDE_URL.startsWith("https://guideloj.com/"))
+        val parsed = GiftCodeRepository.extractCandidatesFromHtml(html)
+        assertTrue(parsed.any { it.first == "4AWwVMpUETEgzM" })
+    }
+
+    @Test
     fun catalogPreservesCaseSensitiveCodesAndContradictoryReports() {
         val snapshot = GiftCodeRepository.initialSnapshot()
         val lowerCaseCode = snapshot.entries.firstOrNull { it.code == "loj777" }
