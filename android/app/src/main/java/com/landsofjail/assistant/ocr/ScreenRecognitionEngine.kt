@@ -43,7 +43,7 @@ object ScreenRecognitionEngine {
         val ranked = dictionaries.mapNotNull { (category, labels) ->
             // Comparaison par mots/expressions entiers : « shieldbearers »
             // ne doit pas compter simultanément comme « shieldbearer ».
-            val hits = labels.filter { label ->
+            val matchedLabels = labels.filter { label ->
                 val normalizedLabel = normalize(label)
                 normalizedLabel.isNotEmpty() && when {
                     // Les libellés chinois sont souvent concaténés sans espaces dans l'OCR.
@@ -52,6 +52,22 @@ object ScreenRecognitionEngine {
                     else -> paddedText.contains(" $normalizedLabel ")
                 }
             }.distinct()
+            // Un libellé court inclus dans une expression reconnue ne constitue
+            // pas un indice indépendant (ex. « robot » dans « robot center »).
+            val hits = matchedLabels.filterNot { candidate ->
+                val candidateNormalized = normalize(candidate)
+                matchedLabels.any { other ->
+                    val otherNormalized = normalize(other)
+                    val containsCjk = otherNormalized.any {
+                        it.code in 0x3400..0x9FFF || it.code in 0xF900..0xFAFF
+                    }
+                    otherNormalized != candidateNormalized && if (containsCjk) {
+                        otherNormalized.contains(candidateNormalized)
+                    } else {
+                        " $otherNormalized ".contains(" $candidateNormalized ")
+                    }
+                }
+            }
             if (hits.isEmpty()) null else category to hits
         }.sortedByDescending { it.second.size }
 
