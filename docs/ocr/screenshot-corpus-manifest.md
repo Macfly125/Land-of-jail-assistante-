@@ -149,3 +149,36 @@ Des liens d'images intégrés aux pages LOJ XLab ont été ouverts et inspectés
 - [Page Forticlad Lab](https://lojxlab.com/library/lands-of-jail-forticlad-lab-upgrade-cost/) : la page documente le tableau et les observations de laboratoire ; le lien d'image examiné renvoie à Discord et n'a pas fourni un fichier image public exploitable dans cette vérification.
 
 Ces illustrations sont conservées comme **références visuelles documentaires uniquement**. Elles ne changent pas le statut du corpus : aucun échantillon OCR brut annoté n'est ajouté par cette inspection.
+
+
+## Porte de validation avant la session de test sur téléphone
+
+La réussite de la CI et du démarrage émulateur ne valide pas les images réelles. Pour éviter de demander plusieurs séries de tests au joueur, la session finale sur téléphone ne sera proposée qu'après les contrôles suivants.
+
+### Conditions minimales du corpus
+
+- Une capture authentique lisible pour chaque catégorie reconnue par le moteur, avec provenance, langue, résolution et nom précis de l'écran.
+- Pour chaque capture, une annotation humaine des seuls champs effectivement visibles : nom, niveau, quantité, coût, prérequis, matériaux ou statistiques selon l'écran.
+- Pour les écrans contenant des nombres, conserver la valeur telle qu'affichée et préciser les séparateurs/abréviations ; une valeur illisible reste inconnue.
+- Des cas négatifs pour les libellés génériques et les catégories qui se chevauchent (par exemple « Felon », « Upgrade », « Fuel », « Lab »).
+- Des tests automatisés image par image qui conservent le résultat OCR, les champs extraits, les champs manquants et les erreurs. Une capture ne passe à `ocr-tested` qu'après exécution réelle.
+- Ne pas intégrer une image publique dans le dépôt sans vérifier les droits de réutilisation. Si l'original n'est pas accessible ou réutilisable, garder sa référence et demander une capture du joueur lors de l'unique session finale.
+
+### Règles de résultat
+
+1. **Exact** : le texte et les valeurs visibles sont extraits sans décalage.
+2. **Partiel** : seuls les champs clairement lisibles sont conservés ; les autres restent vides.
+3. **À confirmer** : plusieurs interprétations restent possibles ; aucune progression n'est enregistrée comme certaine.
+4. **Rejeté** : capture hors sujet, trop floue, coupée ou non exploitable.
+
+Le moteur ne doit jamais compléter un niveau, un coût, une quantité, un matériau, un nom de héros ou un robot à partir d'une table Internet ou d'une valeur attendue. Les références en ligne servent uniquement à signaler une incohérence ou à proposer une vérification.
+
+### État de départ après le commit `0c78ee0`
+
+- Tests unitaires et régressions textuelles : réussis.
+- Compilation APK signée et vérifiée : réussie.
+- Démarrage instrumenté sur émulateur : réussi.
+- Corpus d'images authentiques annotées et testées : toujours absent du dépôt.
+- Reconnaissance visuelle des portraits robots : moteur de comparaison présent, mais aucun catalogue de modèles vérifiés n'est encore fourni.
+
+La session de test sur téléphone reste donc différée jusqu'à ce que le corpus image soit suffisamment alimenté et que les tests de régression sur images soient en place.
