@@ -36,6 +36,7 @@ import com.landsofjail.assistant.model.CostConfidence
 import com.landsofjail.assistant.model.ProgressionCoach
 import com.landsofjail.assistant.model.canonicalProgressionResourceId
 import com.landsofjail.assistant.model.ProgressionDomain
+import com.landsofjail.assistant.model.ProgressionStep
 import com.landsofjail.assistant.model.ProgressionLevelRecord
 import com.landsofjail.assistant.model.ProgressionObjective
 import com.landsofjail.assistant.model.ProgressionPlayerProfile
@@ -94,7 +95,7 @@ private fun TroopTrainingCalculatorCard(
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(
-                text = "${type.displayName} · Tier $tier",
+                text = "${when (type) {\n                    com.landsofjail.assistant.model.TroopTrainingType.SHIELDBEARER -> label("Boucliers", "Shieldbearers", "Schildträger", "Kalkanlılar", "Щитоносцы", "盾卫", "Scudieri")\n                    com.landsofjail.assistant.model.TroopTrainingType.BOMBER -> label("Bombardiers", "Bombers", "Bomber", "Bombacılar", "Бомбардировщики", "轰炸兵", "Bombardieri")\n                    com.landsofjail.assistant.model.TroopTrainingType.SHOOTER -> label("Tireurs", "Shooters", "Schützen", "Nişancılar", "Стрелки", "射手", "Tiratori")\n                }} · Tier $tier",
                 style = MaterialTheme.typography.titleMedium
             )
             Text(
