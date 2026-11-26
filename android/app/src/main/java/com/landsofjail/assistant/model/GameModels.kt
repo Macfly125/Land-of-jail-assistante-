@@ -439,6 +439,18 @@ data class PowerMetric(
     val raisonIncertitude: String? = null
 )
 
+/** Returns a building level only when the OCR observation is confirmed. */
+fun PowerMetric.confirmedWardenLevel(): Int? {
+    if (incertain) return null
+    return niveauPrisonOuQG?.filter(Char::isDigit)?.toIntOrNull()
+}
+
+/** Returns a resource quantity only when the OCR observation is confirmed and valid. */
+fun ResourceRecord.confirmedQuantity(): Double? {
+    if (incertain) return null
+    return quantiteNumerique?.takeIf { it.isFinite() && it >= 0.0 }
+}
+
 @Serializable
 data class UncertainItem(
     val champ: String,
