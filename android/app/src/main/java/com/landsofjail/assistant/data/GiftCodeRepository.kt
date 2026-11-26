@@ -36,6 +36,7 @@ object GiftCodeRepository {
     const val XLAB_URL = "https://lojxlab.com/promo-codes/"
     const val GUIDE_URL = "https://guideloj.com/fr/codes"
     const val GUIDE_HOME_URL = "https://guideloj.com/fr/home"
+    const val ALLIANCE_PORTAL_URL = "https://loj.dookee.ru/en/codes/"
 
     private val communityListedCodes = listOf(
         "VIP777", "LOJ3648", "LOJNOW", "LOJ1478",
@@ -121,7 +122,7 @@ object GiftCodeRepository {
             "MrGuider" to "https://www.mrguider.org/codes/lands-of-jail-codes/",
             // Independent, frequently compared community catalogue; its entries
             // are still marked unverified until a player redeems them in-game.
-            "Alliance Portal · gift codes" to "https://loj.dookee.ru/en/codes/"
+            "Alliance Portal · gift codes" to ALLIANCE_PORTAL_URL
         )
         val downloaded = coroutineScope {
             sources.map { (sourceName, url) ->
