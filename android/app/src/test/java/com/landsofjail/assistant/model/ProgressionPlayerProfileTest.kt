@@ -66,6 +66,32 @@ class ProgressionPlayerProfileTest {
         assertEquals("warden_office", updated.primaryObjective?.targetId)
     }
     @Test
+    fun confirmedLevelPrefersNewestConfirmedRecordAndIgnoresUncertainUpdates() {
+        val profile = ProgressionPlayerProfile(
+            profileId = "main",
+            levels = listOf(
+                ProgressionLevelRecord("warden_office", 12, true, 100L),
+                ProgressionLevelRecord("warden_office", 14, false, 300L),
+                ProgressionLevelRecord("warden_office", 13, true, 200L)
+            )
+        )
+
+        assertEquals(13, profile.confirmedLevel("warden_office"))
+    }
+
+    @Test
+    fun confirmedLevelIsUnknownWhenOnlyUnconfirmedObservationsExist() {
+        val profile = ProgressionPlayerProfile(
+            profileId = "main",
+            levels = listOf(
+                ProgressionLevelRecord("main_lab", 9, false, 500L)
+            )
+        )
+
+        assertNull(profile.confirmedLevel("main_lab"))
+    }
+
+    @Test
     fun stockMergeNeverLetsAnUncertainCaptureReplaceAConfirmedValue() {
         val existing = listOf(PlayerResourceStock("wood", 900L, true, 100L))
         val observed = listOf(PlayerResourceStock("Bois (Wood)", 120L, false, 200L))
