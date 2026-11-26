@@ -192,13 +192,13 @@ private fun TroopTrainingCalculatorCard(
                     }
                     val duration = plan.totalDurationSeconds
                     Text(label(
-                        "Temps de base : ${duration / 86400} j ${(duration % 86400) / 3600} h ${(duration % 3600) / 60} min",
-                        "Base time: ${duration / 86400} d ${(duration % 86400) / 3600} h ${(duration % 3600) / 60} min",
-                        "Grundzeit: ${duration / 86400} T ${(duration % 86400) / 3600} Std. ${(duration % 3600) / 60} Min.",
-                        "Temel süre: ${duration / 86400} g ${(duration % 86400) / 3600} sa ${(duration % 3600) / 60} dk",
-                        "Базовое время: ${duration / 86400} д ${(duration % 86400) / 3600} ч ${(duration % 3600) / 60} мин",
-                        "基础时间：${duration / 86400} 天 ${(duration % 86400) / 3600} 小时 ${(duration % 3600) / 60} 分",
-                        "Tempo base: ${duration / 86400} g ${(duration % 86400) / 3600} h ${(duration % 3600) / 60} min"
+                        "Temps cumulé de base (une file) : ${duration / 86400} j ${(duration % 86400) / 3600} h ${(duration % 3600) / 60} min ${duration % 60} s",
+                        "Cumulative base time (one queue): ${duration / 86400} d ${(duration % 86400) / 3600} h ${(duration % 3600) / 60} min ${duration % 60} s",
+                        "Kumulierte Grundzeit (eine Warteschlange): ${duration / 86400} T ${(duration % 86400) / 3600} Std. ${(duration % 3600) / 60} Min. ${duration % 60} Sek.",
+                        "Birikimli temel süre (tek kuyruk): ${duration / 86400} g ${(duration % 86400) / 3600} sa ${(duration % 3600) / 60} dk ${duration % 60} sn",
+                        "Суммарное базовое время (одна очередь): ${duration / 86400} д ${(duration % 86400) / 3600} ч ${(duration % 3600) / 60} мин ${duration % 60} с",
+                        "Суммарное базовое время (одна очередь): ${duration / 86400} 天 ${(duration % 86400) / 3600} 小时 ${(duration % 3600) / 60} 分 ${duration % 60} 秒",
+                        "Tempo base cumulativo (una coda): ${duration / 86400} g ${(duration % 86400) / 3600} h ${(duration % 3600) / 60} min ${duration % 60} s"
                     ))
                     Text(
                         text = "${label("Source", "Source", "Quelle", "Kaynak", "Источник", "来源", "Fonte")} : LOJ Wiki · ${plan.checkedOn}",
