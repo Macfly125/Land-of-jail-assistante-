@@ -302,7 +302,7 @@ class LandsOfJailOcrParserTest {
     fun classifiesFrenchAndEnglishHeadquartersLabelsAsBuildingScreens() {
         val samples = listOf(
             "QG",
-            "QG\\nNiveau 9",
+            "QG\nNiveau 9",
             "HQ",
             "HQ 12",
             "Prison"
@@ -317,9 +317,9 @@ class LandsOfJailOcrParserTest {
     @Test
     fun extractsHeadquartersLevelEvenWhenPowerIsNotVisible() {
         val samples = listOf(
-            "QG\\nNiveau 9" to "Niv. 9",
-            "HQ\\nLevel 12" to "Niv. 12",
-            "Prison\\nNiv. 7" to "Niv. 7"
+            "QG\nNiveau 9" to "Niv. 9",
+            "HQ\nLevel 12" to "Niv. 12",
+            "Prison\nNiv. 7" to "Niv. 7"
         )
         samples.forEach { (sample, expected) ->
             val result = LandsOfJailOcrParser.parseLocalOcrText(sample)
