@@ -52,12 +52,24 @@ object ScreenRecognitionEngine {
             // ne doit pas compter simultanément comme « shieldbearer ».
             val matchedLabels = labels.filter { label ->
                 val normalizedLabel = normalize(label)
-                normalizedLabel.isNotEmpty() && when {
+                val isMatch = normalizedLabel.isNotEmpty() && when {
                     // Les libellés chinois sont souvent concaténés sans espaces dans l'OCR.
                     normalizedLabel.any { it.code in 0x3400..0x9FFF || it.code in 0xF900..0xFAFF } ->
                         normalized.contains(normalizedLabel)
                     else -> paddedText.contains(" $normalizedLabel ")
                 }
+                // « Lab » seul est trop générique (titre, bouton ou fragment OCR).
+                // On ne l'accepte que si au moins une technologie du laboratoire
+                // est également lisible dans le même texte.
+                val labHasResearchContext = label != "lab" || labels.any { contextLabel ->
+                    contextLabel != "lab" && when {
+                        normalize(contextLabel).any {
+                            it.code in 0x3400..0x9FFF || it.code in 0xF900..0xFAFF
+                        } -> normalized.contains(normalize(contextLabel))
+                        else -> paddedText.contains(" ${normalize(contextLabel)} ")
+                    }
+                }
+                isMatch && (category != "lab" || labHasResearchContext)
             }.distinct()
             // Un libellé court inclus dans une expression reconnue ne constitue
             // pas un indice indépendant (ex. « robot » dans « robot center »).
