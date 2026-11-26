@@ -55,6 +55,151 @@ private val progressionDomains = listOf(
     ProgressionDomain.TROOPS
 )
 
+
+private fun troopTrainingType(targetId: String) = when (targetId.trim().lowercase()) {
+    "shieldbearer", "shield_bearer", "shield bearer", "bouclier", "boucliers", "infanterie" ->
+        com.landsofjail.assistant.model.TroopTrainingType.SHIELDBEARER
+    "bomber", "bombers", "bombardier", "bombardiers" ->
+        com.landsofjail.assistant.model.TroopTrainingType.BOMBER
+    "shooter", "shooters", "tireur", "tireurs", "tireur d'élite" ->
+        com.landsofjail.assistant.model.TroopTrainingType.SHOOTER
+    else -> null
+}
+
+@Composable
+private fun TroopTrainingCalculatorCard(
+    goal: ProgressionObjective,
+    profile: ProgressionPlayerProfile,
+    language: AppLanguage,
+    type: com.landsofjail.assistant.model.TroopTrainingType
+) {
+    var quantityText by remember(goal.targetId, goal.targetLevel) { mutableStateOf("100") }
+    val quantity = quantityText.toLongOrNull()?.takeIf { it >= 0L }
+    val tier = goal.targetLevel
+    val plan = if (tier in 1..11 && quantity != null) {
+        runCatching { com.landsofjail.assistant.model.TroopTrainingCatalog.calculate(type, tier, quantity) }.getOrNull()
+    } else null
+    val number = NumberFormat.getIntegerInstance()
+    fun label(fr: String, en: String, de: String, tr: String, ru: String, zh: String, it: String) =
+        when (language) {
+            AppLanguage.FR -> fr; AppLanguage.EN -> en; AppLanguage.DE -> de
+            AppLanguage.TR -> tr; AppLanguage.RU -> ru; AppLanguage.ZH -> zh; AppLanguage.IT -> it
+        }
+    val resourceLabels = mapOf(
+        "food" to label("Nourriture", "Food", "Nahrung", "Yiyecek", "Еда", "食物", "Cibo"),
+        "wood" to label("Bois", "Wood", "Holz", "Odun", "Дерево", "木材", "Legno"),
+        "gasoline" to label("Essence", "Gasoline", "Benzin", "Benzin", "Бензин", "汽油", "Benzina"),
+        "steel" to label("Acier", "Steel", "Stahl", "Çelik", "Сталь", "钢材", "Acciaio")
+    )
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(
+                text = "${type.displayName} · Tier $tier",
+                style = MaterialTheme.typography.titleMedium
+            )
+            Text(
+                text = label(
+                    "Coût d'entraînement par soldat, avant bonus de vitesse.",
+                    "Training cost per troop, before speed bonuses.",
+                    "Ausbildungskosten pro Truppe, vor Geschwindigkeitsboni.",
+                    "Hız bonuslarından önce birlik başına eğitim maliyeti.",
+                    "Стоимость обучения одного бойца до бонусов скорости.",
+                    "每名士兵的训练费用，未计入速度加成。",
+                    "Costo di addestramento per truppa, prima dei bonus velocità."
+                ),
+                style = MaterialTheme.typography.bodySmall
+            )
+            OutlinedTextField(
+                value = quantityText,
+                onValueChange = { value -> quantityText = value.filter { it.isDigit() }.take(18) },
+                label = { Text(label("Nombre de soldats", "Troop quantity", "Truppenanzahl", "Birlik sayısı", "Количество бойцов", "士兵数量", "Numero truppe")) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+            when {
+                tier !in 1..11 -> Text(label(
+                    "Tier inconnu : les données publiées couvrent I à XI.",
+                    "Unknown tier: published data covers I to XI.",
+                    "Unbekannter Tier: veröffentlichte Daten decken I bis XI ab.",
+                    "Bilinmeyen kademe: yayımlanan veriler I–XI aralığını kapsar.",
+                    "Неизвестный уровень: опубликованные данные охватывают I–XI.",
+                    "未知等级：已发布数据覆盖 I 至 XI。",
+                    "Tier sconosciuto: i dati pubblicati coprono I–XI."
+                ))
+                quantity == null -> Text(label(
+                    "Saisis une quantité valide.",
+                    "Enter a valid quantity.",
+                    "Gib eine gültige Anzahl ein.",
+                    "Geçerli bir miktar gir.",
+                    "Укажи допустимое количество.",
+                    "请输入有效数量。",
+                    "Inserisci una quantità valida."
+                ))
+                plan != null -> {
+                    Text(label(
+                        "Déblocage : ${plan.unlockRequirement}",
+                        "Unlock: ${plan.unlockRequirement}",
+                        "Freischaltung: ${plan.unlockRequirement}",
+                        "Açılma: ${plan.unlockRequirement}",
+                        "Открытие: ${plan.unlockRequirement}",
+                        "解锁条件：${plan.unlockRequirement}",
+                        "Sblocco: ${plan.unlockRequirement}"
+                    ))
+                    val calculated = ProgressionCoach.calculate(
+                        listOf(ProgressionStep(
+                            id = "troop-training-${type.name.lowercase()}-$tier",
+                            domain = ProgressionDomain.TROOPS,
+                            itemName = plan.troopName,
+                            fromLevel = tier - 1,
+                            toLevel = tier,
+                            costs = plan.requirements.map { (resource, amount) ->
+                                com.landsofjail.assistant.model.ResourceCost(
+                                    resource, amount, CostConfidence.COMMUNITY_REFERENCE, plan.sourceUrl
+                                )
+                            },
+                            durationSeconds = plan.totalDurationSeconds
+                        )),
+                        profile.resourceStocks.map {
+                            it.copy(resourceId = canonicalProgressionResourceId(it.resourceId))
+                        }
+                    )
+                    calculated.requirements.forEach { requirement ->
+                        val resource = resourceLabels[requirement.resourceId] ?: requirement.resourceId
+                        val owned = requirement.ownedConfirmed?.let { number.format(it) }
+                            ?: label("non confirmé", "unconfirmed", "unbestätigt", "doğrulanmadı", "не подтверждено", "未确认", "non confermato")
+                        val missing = requirement.missing?.let { number.format(it) }
+                            ?: label("inconnu", "unknown", "unbekannt", "bilinmiyor", "неизвестно", "未知", "sconosciuto")
+                        Text("$resource : ${number.format(requirement.required)} · ${label("possédé", "owned", "vorhanden", "mevcut", "есть", "拥有", "disponibile")} $owned · ${label("manquant", "missing", "fehlend", "eksik", "не хватает", "缺少", "mancante")} $missing")
+                    }
+                    val duration = plan.totalDurationSeconds
+                    Text(label(
+                        "Temps de base : ${duration / 86400} j ${(duration % 86400) / 3600} h ${(duration % 3600) / 60} min",
+                        "Base time: ${duration / 86400} d ${(duration % 86400) / 3600} h ${(duration % 3600) / 60} min",
+                        "Grundzeit: ${duration / 86400} T ${(duration % 86400) / 3600} Std. ${(duration % 3600) / 60} Min.",
+                        "Temel süre: ${duration / 86400} g ${(duration % 86400) / 3600} sa ${(duration % 3600) / 60} dk",
+                        "Базовое время: ${duration / 86400} д ${(duration % 86400) / 3600} ч ${(duration % 3600) / 60} мин",
+                        "基础时间：${duration / 86400} 天 ${(duration % 86400) / 3600} 小时 ${(duration % 3600) / 60} 分",
+                        "Tempo base: ${duration / 86400} g ${(duration % 86400) / 3600} h ${(duration % 3600) / 60} min"
+                    ))
+                    Text(
+                        text = "${label("Source", "Source", "Quelle", "Kaynak", "Источник", "来源", "Fonte")} : LOJ Wiki · ${plan.checkedOn}",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    if (tier == 11) Text(label(
+                        "Le tier XI dépend de la recherche du Laboratoire Forticlad et de la saison du serveur.",
+                        "Tier XI depends on Forticlad Lab research and server season.",
+                        "Tier XI hängt von Forticlad-Laborforschung und Serversaison ab.",
+                        "XI. kademe Forticlad Laboratuvarı araştırmasına ve sunucu sezonuna bağlıdır.",
+                        "XI уровень зависит от исследования лаборатории Forticlad и сезона сервера.",
+                        "XI 阶取决于 Forticlad 实验室研究和服务器赛季。",
+                        "Il tier XI dipende dalla ricerca del Laboratorio Forticlad e dalla stagione del server."
+                    ), style = MaterialTheme.typography.bodySmall)
+                }
+            }
+        }
+    }
+}
+
 private fun progressionLabel(domain: ProgressionDomain, lang: AppLanguage): String = when (domain) {
     ProgressionDomain.BUILDING -> when (lang) {
         AppLanguage.FR -> "Bâtiment"; AppLanguage.EN -> "Building"; AppLanguage.DE -> "Gebäude"
@@ -762,7 +907,10 @@ fun ProgressionCoachScreen(
                 ) ProgressionCatalog.heroEquipmentReform else ProgressionCatalog.heroEquipmentLeveling
                 else -> emptyList()
             }
-            if (catalog.isNotEmpty()) {
+            val trainingType = if (goal.domain == ProgressionDomain.TROOPS) troopTrainingType(goal.targetId) else null
+            if (trainingType != null) {
+                TroopTrainingCalculatorCard(goal, profile, language, trainingType)
+            } else if (catalog.isNotEmpty()) {
                 ProgressionCatalogGoalCard(goal, profile, catalog, language)
             } else {
                 val current = profile.confirmedLevel(goal.targetId)
