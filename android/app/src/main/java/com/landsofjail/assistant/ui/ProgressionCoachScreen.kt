@@ -197,7 +197,7 @@ private fun TroopTrainingCalculatorCard(
                         "Kumulierte Grundzeit (eine Warteschlange): ${duration / 86400} T ${(duration % 86400) / 3600} Std. ${(duration % 3600) / 60} Min. ${duration % 60} Sek.",
                         "Birikimli temel süre (tek kuyruk): ${duration / 86400} g ${(duration % 86400) / 3600} sa ${(duration % 3600) / 60} dk ${duration % 60} sn",
                         "Суммарное базовое время (одна очередь): ${duration / 86400} д ${(duration % 86400) / 3600} ч ${(duration % 3600) / 60} мин ${duration % 60} с",
-                        "Суммарное базовое время (одна очередь): ${duration / 86400} 天 ${(duration % 86400) / 3600} 小时 ${(duration % 3600) / 60} 分 ${duration % 60} 秒",
+                        "累计基础训练时间（单个训练队列）：${duration / 86400} 天 ${(duration % 86400) / 3600} 小时 ${(duration % 3600) / 60} 分 ${duration % 60} 秒",
                         "Tempo base cumulativo (una coda): ${duration / 86400} g ${(duration % 86400) / 3600} h ${(duration % 3600) / 60} min ${duration % 60} s"
                     ))
                     Text(
