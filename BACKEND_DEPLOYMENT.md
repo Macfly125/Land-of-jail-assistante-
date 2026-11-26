@@ -1,6 +1,6 @@
 # Fonctionnement Android local avec API Render conservée
 
-Le projet privilégie une architecture Android locale et gratuite. Le service Render `https://land-of-jail-assistant-api.onrender.com/` est conservé pour le site et les API distantes utiles à Android. Vercel et Bolt ne font pas partie du circuit de déploiement.
+Le projet privilégie une architecture Android locale et gratuite, avec le service Render `https://land-of-jail-assistant-api.onrender.com/` comme hébergement du site web Express et comme API distante officielle utilisée par Android. L'ancien site Vercel `https://land-of-jail-assistante.vercel.app/` n'est pas l'adresse de référence et ne doit plus être présenté comme l'assistant actif. Vercel et Bolt ne font pas partie du circuit de déploiement.
 
 - Les données déjà téléchargées restent consultables hors ligne grâce au cache local.
 - La vérification des mises à jour doit être déclenchée à l'ouverture de l'application, une seule fois par session.
@@ -17,6 +17,7 @@ La veille ne doit pas effectuer de surveillance permanente ni lancer des rafraî
 ## Hébergement Render
 
 - Conserver le serveur Express et ses routes `/api/*`.
+- Configurer Android sur `https://land-of-jail-assistant-api.onrender.com` pour les fonctions distantes facultatives (conseils, veille, analyse distante si activée).
 - Conserver le service Render existant ; ne pas le remplacer par Vercel.
 - Le site web servi par Express en production doit continuer à être compilé dans `dist`.
 - Une indisponibilité de Render ne doit pas bloquer les fonctions Android locales.
