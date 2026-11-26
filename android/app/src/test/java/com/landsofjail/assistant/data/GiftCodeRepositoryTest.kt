@@ -54,7 +54,7 @@ class GiftCodeRepositoryTest {
             <p>Published expiry date: 30.11.2026. 23:59 Server Time</p>
         """.trimIndent()
 
-        assertTrue(GiftCodeRepository.GUIDE_URL.startsWith("https://guideloj.com/"))
+        assertEquals("https://loj.dookee.ru/en/codes/", GiftCodeRepository.ALLIANCE_PORTAL_URL)
         val parsed = GiftCodeRepository.extractCandidatesFromHtml(html)
         assertTrue(parsed.any { it.first == "4AWwVMpUETEgzM" })
     }
