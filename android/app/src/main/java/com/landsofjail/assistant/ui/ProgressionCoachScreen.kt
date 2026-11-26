@@ -41,6 +41,7 @@ import com.landsofjail.assistant.model.ProgressionProfileCodec
 import com.landsofjail.assistant.model.ResourceRecord
 import com.landsofjail.assistant.model.mergeProgressionStocks
 import com.landsofjail.assistant.model.removeProgressionObjective
+import com.landsofjail.assistant.model.upsertProgressionObjective
 
 private val progressionDomains = listOf(
     ProgressionDomain.BUILDING,
@@ -282,9 +283,13 @@ fun ProgressionCoachScreen(
                             if (targetId.isNotBlank() && target != null && current != null && target > current) {
                                 val id = "${selectedDomain.name.lowercase()}-${targetId.trim().lowercase()}-$target"
                                 val now = System.currentTimeMillis()
-                                val objectives = profile.objectives.filterNot { it.id == id } +
-                                    ProgressionObjective(id, selectedDomain, targetId.trim(), target,
-                                        isPrimary = profile.objectives.none { it.isPrimary }, createdAtEpochMillis = now)
+                                val objectives = upsertProgressionObjective(
+                                    profile.objectives,
+                                    ProgressionObjective(
+                                        id, selectedDomain, targetId.trim(), target,
+                                        isPrimary = false, createdAtEpochMillis = now
+                                    )
+                                )
                                 // Keep the confirmed level history; confirmedLevel() selects the newest
                                 // confirmed record and ignores later uncertain observations.
                                 val levels = profile.levels +
