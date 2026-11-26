@@ -154,6 +154,25 @@ private fun ProgressionCatalogGoalCard(
                 text = "${catalog.first().sourceLabel} · ${catalog.first().checkedOn}",
                 style = MaterialTheme.typography.bodySmall
             )
+            val sourcedPrerequisites = catalog
+                .filter { it.step.toLevel > (current ?: Int.MIN_VALUE) && it.step.toLevel <= target }
+                .flatMap { record -> record.prerequisiteNotes.map { note -> record.step.toLevel to note } }
+                .distinct()
+            if (sourcedPrerequisites.isNotEmpty()) {
+                Text(
+                    text(fr = "Prérequis indiqués par la source", en = "Prerequisites stated by the source",
+                        de = "Von der Quelle genannte Voraussetzungen", tr = "Kaynakta belirtilen ön koşullar",
+                        ru = "Требования, указанные в источнике", zh = "来源注明的前置条件",
+                        it = "Prerequisiti indicati dalla fonte"),
+                    style = MaterialTheme.typography.labelLarge
+                )
+                sourcedPrerequisites.forEach { (level, note) ->
+                    Text(
+                        text = "Lv.$level · $note",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
             when {
                 current == null -> Text(
                     text(fr = "Niveau actuel non confirmé : renseigne-le dans l'objectif.",
