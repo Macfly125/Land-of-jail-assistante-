@@ -15,6 +15,23 @@ data class ProgressionCatalogRecord(
     val checkedOn: String
 )
 
+/**
+ * Returns only source-stated prerequisites for complete published steps
+ * between a confirmed current level and the requested target. An unknown
+ * starting level must never imply that the whole catalogue range applies.
+ */
+fun sourcedPrerequisitesForRange(
+    catalog: List<ProgressionCatalogRecord>,
+    currentLevel: Int?,
+    targetLevel: Int
+): List<Pair<Int, String>> {
+    if (currentLevel == null || targetLevel <= currentLevel) return emptyList()
+    return catalog
+        .filter { it.step.toLevel > currentLevel && it.step.toLevel <= targetLevel }
+        .flatMap { record -> record.prerequisiteNotes.map { note -> record.step.toLevel to note } }
+        .distinct()
+}
+
 object ProgressionCatalog {
     const val LAB_BUILDING_SOURCE = "https://lojwiki.com/buildings/lab/"
     const val SOURCE_CHECKED_ON = "2026-11-25"
