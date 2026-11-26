@@ -234,6 +234,14 @@ private fun localizedCaptureSummary(item: ScreenshotAnalysis, language: AppLangu
 }
 
 
+private const val DEFAULT_ALLIANCE_NOTICE = """[color=#FF0011,AAAAAA]NESSUN RADUNO DI BESTIE DURANTE L'EVENTO DELLA GABBIA! GRAZIE
+
+   ∧,,∧
+（´･ω･)      ∧_∧
+⊂( ⊆ ￣ つ*))'Д'  )
+　＼　 ／  ⊂ ⊂~ﾉ
+　　と丿 ⊂と_ノ"""
+
 private val LocalAssistantLanguage = staticCompositionLocalOf { AppLanguage.FR }
 
 /** Central UI fallback for screens whose labels were previously hard-coded in French. */
@@ -5398,6 +5406,13 @@ private fun AllianceScreen(
     var joinRequestBusy by remember { mutableStateOf(false) }
     var joinRequestError by remember { mutableStateOf(false) }
     var joinRequestMessage by remember { mutableStateOf<String?>(null) }
+    var allianceMessages by remember { mutableStateOf<List<SupabaseAuthRepository.AllianceMessage>>(emptyList()) }
+    var allianceMessageDraft by remember { mutableStateOf("") }
+    var allianceMessagesBusy by remember { mutableStateOf(false) }
+    var allianceMessagesNotice by remember { mutableStateOf<String?>(null) }
+    var allianceMessagesError by remember { mutableStateOf(false) }
+    var cloudMyRank by remember { mutableStateOf<String?>(null) }
+    var appDeveloper by remember { mutableStateOf(false) }
     var joinRequestsError by remember { mutableStateOf(false) }
     var playerName by remember(workspace.ownProfile.playerName) { mutableStateOf(workspace.ownProfile.playerName) }
     var server by remember(workspace.server) { mutableStateOf(workspace.server) }
@@ -5441,8 +5456,19 @@ private fun AllianceScreen(
         if (cloudAuth.currentSession() != null && linkedAllianceId.isNotBlank()) {
             val developer = cloudAuth.isAppDeveloper().getOrDefault(false)
             val cloudRank = cloudAuth.fetchMyAllianceRank(linkedAllianceId).getOrNull()
+            cloudMyRank = cloudRank
+            appDeveloper = developer
             val canManage = cloudRank == "R5" || (developer && cloudRank == "R4")
             cloudCanManageRanks = canManage
+            cloudAuth.fetchAllianceMessages(linkedAllianceId)
+                .onSuccess {
+                    allianceMessages = it
+                    allianceMessagesNotice = null
+                }
+                .onFailure {
+                    allianceMessagesNotice = it.message ?: "Chargement des messages impossible."
+                    allianceMessagesError = true
+                }
             if (canManage) {
                 cloudAuth.fetchAllianceRoster(linkedAllianceId).onSuccess { cloudMembers ->
                     cloudMemberIds = cloudMembers.map { it.id }.toSet()
@@ -5467,6 +5493,9 @@ private fun AllianceScreen(
         } else {
             cloudCanManageRanks = false
             cloudMemberIds = emptySet()
+            cloudMyRank = null
+            appDeveloper = false
+            allianceMessages = emptyList()
         }
     }
 
@@ -5575,6 +5604,141 @@ private fun AllianceScreen(
                                         enabled = !joinRequestsBusy,
                                         modifier = Modifier.weight(1f)
                                     ) { Text(localizedAppText(localizedAppText("Refuser"))) }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        item {
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                    Text("Messages importants · R4 / R5", fontWeight = FontWeight.Bold)
+                    Text(
+                        "Les R4 et R5 peuvent publier les consignes importantes de l'alliance. Les messages sont conservés dans le cloud et visibles par les membres. Seul le R5 ou le développeur de l'application peut les supprimer.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    if (cloudMyRank == "R4" || cloudMyRank == "R5") {
+                        OutlinedTextField(
+                            value = allianceMessageDraft,
+                            onValueChange = { allianceMessageDraft = it.take(2000) },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text("Nouveau message important") },
+                            placeholder = { Text("Écris une consigne à conserver…") },
+                            minLines = 4,
+                            maxLines = 10
+                        )
+                        TextButton(onClick = { allianceMessageDraft = DEFAULT_ALLIANCE_NOTICE }) {
+                            Text("Charger le message modèle de la Cage")
+                        }
+                        Button(
+                            onClick = {
+                                val linkedAllianceId = accountPrefs.getString("cloud_alliance_id", "").orEmpty()
+                                scope.launch {
+                                    allianceMessagesBusy = true
+                                    allianceMessagesNotice = null
+                                    cloudAuth.postAllianceMessage(linkedAllianceId, allianceMessageDraft)
+                                        .onSuccess {
+                                            allianceMessageDraft = ""
+                                            cloudAuth.fetchAllianceMessages(linkedAllianceId).onSuccess { allianceMessages = it }
+                                            allianceMessagesNotice = "Message enregistré pour l'alliance."
+                                            allianceMessagesError = false
+                                        }
+                                        .onFailure {
+                                            allianceMessagesNotice = it.message ?: "Enregistrement du message impossible."
+                                            allianceMessagesError = true
+                                        }
+                                    allianceMessagesBusy = false
+                                }
+                            },
+                            enabled = !allianceMessagesBusy && allianceMessageDraft.isNotBlank() &&
+                                accountPrefs.getString("cloud_alliance_id", "").orEmpty().isNotBlank(),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            if (allianceMessagesBusy) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+                            else Icon(Icons.Outlined.Save, contentDescription = null)
+                            Spacer(Modifier.width(7.dp))
+                            Text(if (allianceMessagesBusy) "Enregistrement…" else "Enregistrer le message")
+                        }
+                    } else {
+                        Text(
+                            "Lecture seule : la publication est réservée aux R4 et R5 confirmés par le serveur.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    OutlinedButton(
+                        onClick = {
+                            val linkedAllianceId = accountPrefs.getString("cloud_alliance_id", "").orEmpty()
+                            if (linkedAllianceId.isNotBlank()) scope.launch {
+                                allianceMessagesBusy = true
+                                cloudAuth.fetchAllianceMessages(linkedAllianceId)
+                                    .onSuccess {
+                                        allianceMessages = it
+                                        allianceMessagesNotice = "Messages actualisés."
+                                        allianceMessagesError = false
+                                    }
+                                    .onFailure {
+                                        allianceMessagesNotice = it.message ?: "Actualisation impossible."
+                                        allianceMessagesError = true
+                                    }
+                                allianceMessagesBusy = false
+                            }
+                        },
+                        enabled = !allianceMessagesBusy && accountPrefs.getString("cloud_alliance_id", "").orEmpty().isNotBlank(),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Outlined.Refresh, contentDescription = null)
+                        Spacer(Modifier.width(7.dp))
+                        Text("Actualiser les messages")
+                    }
+                    allianceMessagesNotice?.let {
+                        Text(it, color = if (allianceMessagesError) Color(0xFFFCA5A5) else Color(0xFF86EFAC), style = MaterialTheme.typography.bodySmall)
+                    }
+                    if (allianceMessages.isEmpty()) {
+                        Text("Aucun message enregistré pour le moment.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    } else {
+                        allianceMessages.forEach { message ->
+                            Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF202B3A))) {
+                                Column(Modifier.fillMaxWidth().padding(11.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column(Modifier.weight(1f)) {
+                                            Text(message.authorName, fontWeight = FontWeight.SemiBold)
+                                            Text(message.createdAt.replace("T", " ").take(16), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        }
+                                        if (cloudMyRank == "R5" || appDeveloper) {
+                                            TextButton(
+                                                onClick = {
+                                                    scope.launch {
+                                                        allianceMessagesBusy = true
+                                                        cloudAuth.deleteAllianceMessage(message.id)
+                                                            .onSuccess {
+                                                                allianceMessages = allianceMessages.filterNot { it.id == message.id }
+                                                                allianceMessagesNotice = "Message supprimé."
+                                                                allianceMessagesError = false
+                                                            }
+                                                            .onFailure {
+                                                                allianceMessagesNotice = it.message ?: "Suppression refusée."
+                                                                allianceMessagesError = true
+                                                            }
+                                                        allianceMessagesBusy = false
+                                                    }
+                                                },
+                                                enabled = !allianceMessagesBusy
+                                            ) {
+                                                Icon(Icons.Outlined.Delete, contentDescription = null)
+                                                Spacer(Modifier.width(4.dp))
+                                                Text("Supprimer")
+                                            }
+                                        }
+                                    }
+                                    Text(message.body, style = MaterialTheme.typography.bodyMedium)
                                 }
                             }
                         }
