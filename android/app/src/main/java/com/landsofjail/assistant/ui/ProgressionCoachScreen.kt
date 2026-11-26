@@ -45,6 +45,7 @@ import com.landsofjail.assistant.model.ResourceRecord
 import com.landsofjail.assistant.model.mergeProgressionStocks
 import com.landsofjail.assistant.model.removeProgressionObjective
 import com.landsofjail.assistant.model.upsertProgressionObjective
+import com.landsofjail.assistant.model.sourcedPrerequisitesForRange
 
 private val progressionDomains = listOf(
     ProgressionDomain.BUILDING,
