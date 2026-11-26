@@ -40,8 +40,12 @@ data class TroopTrainingPlan(
 )
 
 object TroopTrainingCatalog {
-    private const val SEASONAL_XI_UNLOCK =
-        "Forticlad Lab research unlock; available from Season 4 onward (server progression dependent)."
+    private const val SHIELDBEARER_XI_UNLOCK =
+        "Research Shielded Upgrade in the Forticlad Lab; Season 4 or later (server progression dependent)."
+    private const val BOMBER_XI_UNLOCK =
+        "Research Artillery Upgrade in the Forticlad Lab; Season 4 or later (server progression dependent)."
+    private const val SHOOTER_XI_UNLOCK =
+        "Research Bullet Upgrade in the Forticlad Lab; Season 4 or later (server progression dependent)."
 
     val rows: List<TroopTrainingRow> = listOf(
         row(TroopTrainingType.SHIELDBEARER, 1, "Junior Shieldbearer", "Shieldbearer Barracks Lv.1", 76, 50, 3, 17, 12),
@@ -54,7 +58,7 @@ object TroopTrainingCatalog {
         row(TroopTrainingType.SHIELDBEARER, 8, "Brave Shieldbearer", "Shieldbearer Barracks Lv.22", 1178, 776, 32, 238, 113),
         row(TroopTrainingType.SHIELDBEARER, 9, "Valiant Shieldbearer", "Shieldbearer Barracks Lv.26", 2943, 1937, 77, 593, 131),
         row(TroopTrainingType.SHIELDBEARER, 10, "Ace Shieldbearer", "Shieldbearer Barracks Lv.30", 5886, 3872, 153, 1185, 152),
-        row(TroopTrainingType.SHIELDBEARER, 11, "Bastion Shieldbearer", SEASONAL_XI_UNLOCK, 20601, 13552, 536, 4148, 180),
+        row(TroopTrainingType.SHIELDBEARER, 11, "Bastion Shieldbearer", SHIELDBEARER_XI_UNLOCK, 20601, 13552, 536, 4148, 180),
 
         row(TroopTrainingType.BOMBER, 1, "Junior Bomber", "Bomber Barracks Lv.1", 62, 62, 4, 14, 12),
         row(TroopTrainingType.BOMBER, 2, "Raid Bomber", "Bomber Barracks Lv.4", 99, 99, 6, 20, 17),
@@ -66,7 +70,7 @@ object TroopTrainingCatalog {
         row(TroopTrainingType.BOMBER, 8, "Brave Bomber", "Bomber Barracks Lv.22", 946, 953, 46, 186, 113),
         row(TroopTrainingType.BOMBER, 9, "Valiant Bomber", "Bomber Barracks Lv.26", 2364, 2379, 116, 464, 131),
         row(TroopTrainingType.BOMBER, 10, "Ace Bomber", "Bomber Barracks Lv.30", 4728, 4755, 229, 928, 152),
-        row(TroopTrainingType.BOMBER, 11, "Bastion Bomber", SEASONAL_XI_UNLOCK, 16548, 16643, 802, 3248, 180),
+        row(TroopTrainingType.BOMBER, 11, "Bastion Bomber", BOMBER_XI_UNLOCK, 16548, 16643, 802, 3248, 180),
 
         row(TroopTrainingType.SHOOTER, 1, "Junior Shooter", "Shooter Barracks Lv.1", 45, 70, 5, 11, 12),
         row(TroopTrainingType.SHOOTER, 2, "Raid Shooter", "Shooter Barracks Lv.4", 70, 111, 9, 17, 17),
@@ -78,7 +82,7 @@ object TroopTrainingCatalog {
         row(TroopTrainingType.SHOOTER, 8, "Brave Shooter", "Shooter Barracks Lv.22", 683, 1062, 63, 160, 113),
         row(TroopTrainingType.SHOOTER, 9, "Valiant Shooter", "Shooter Barracks Lv.26", 1706, 2656, 158, 398, 131),
         row(TroopTrainingType.SHOOTER, 10, "Ace Shooter", "Shooter Barracks Lv.30", 3410, 5310, 315, 794, 152),
-        row(TroopTrainingType.SHOOTER, 11, "Bastion Shooter", SEASONAL_XI_UNLOCK, 11935, 18585, 1103, 2779, 180)
+        row(TroopTrainingType.SHOOTER, 11, "Bastion Shooter", SHOOTER_XI_UNLOCK, 11935, 18585, 1103, 2779, 180)
     )
 
     fun calculate(type: TroopTrainingType, tier: Int, quantity: Long): TroopTrainingPlan {
