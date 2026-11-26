@@ -49,6 +49,12 @@ class TroopTrainingCatalogTest {
             val row = TroopTrainingCatalog.rows.single { it.type == type && it.tier == 11 }
             assertTrue(row.unlockRequirement.contains("Season 4"))
             assertTrue(row.unlockRequirement.contains("Forticlad Lab"))
+            val expectedResearch = when (type) {
+                TroopTrainingType.SHIELDBEARER -> "Shielded Upgrade"
+                TroopTrainingType.BOMBER -> "Artillery Upgrade"
+                TroopTrainingType.SHOOTER -> "Bullet Upgrade"
+            }
+            assertTrue(row.unlockRequirement.contains(expectedResearch))
         }
     }
 
