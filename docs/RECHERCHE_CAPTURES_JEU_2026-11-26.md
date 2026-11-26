@@ -127,3 +127,10 @@ Aucune image binaire n'a été importée dans le dépôt dans cette étape. Les 
 - [ ] Ne pas marquer la reconnaissance héros/équipement comme validée avant tests sur images réelles autorisées.
 
 Aucun binaire image n'a été ajouté : cette étape ajoute des références et des limites de provenance uniquement.
+
+
+### Vérification d'une fiche héros et de ses visuels — Edwin
+- Fiche individuelle Edwin : https://lojxlab.com/heropedia/edwin/ — la page sépare explicitement le portrait du héros et l'image de son équipement exclusif Judicator.
+- La source précise que ces visuels correspondent à l'art du jeu, et que les données viennent des écrans héros et équipement d'Edwin capturés sur S216 en septembre–octobre 2026 ; les six compétences proviennent des écrans Skills d'octobre 2026.
+- Les images sont utiles comme références visuelles de l'identité du héros et de l'équipement, mais elles ne montrent pas nécessairement les panneaux UI complets avec niveaux, chiffres et boutons. Elles ne constituent donc pas, seules, des fixtures OCR d'écran complet.
+- [ ] Demander les captures d'écran complètes et autorisées à l'auteur ; garder le portrait/équipement comme gabarits secondaires seulement si les droits et la résolution le permettent.
