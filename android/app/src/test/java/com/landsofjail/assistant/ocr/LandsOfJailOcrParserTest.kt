@@ -556,6 +556,15 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun doesNotTreatAnIsolatedFuelLabelAsAConfirmedResource() {
+        val inline = LandsOfJailOcrParser.parseLocalOcrText("Fuel: 1200")
+        val multiline = LandsOfJailOcrParser.parseLocalOcrText("Fuel\\n1200")
+
+        assertTrue(inline.resources.none { it.nom == "Essence (Gasoline)" })
+        assertTrue(multiline.resources.none { it.nom == "Essence (Gasoline)" })
+    }
+
+    @Test
     fun readsResourceQuantitiesOnTheLineAfterTheirLabels() {
         val result = LandsOfJailOcrParser.parseLocalOcrText(
             """Nahrung
