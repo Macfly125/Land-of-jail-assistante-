@@ -434,4 +434,20 @@ class ProgressionCatalogTest {
         assertEquals(1_075L, plan.requirements.single { it.resourceId == "hero shards" }.required)
     }
 
-}
+
+    @Test
+    fun sourcedPrerequisitesRequireAConfirmedStartingLevelAndStayWithinTarget() {
+        val catalog = listOf(
+            ProgressionCatalog.labBuilding.first(),
+            ProgressionCatalog.labBuilding[1],
+            ProgressionCatalog.labBuilding[2]
+        )
+
+        assertTrue(sourcedPrerequisitesForRange(catalog, null, 4).isEmpty())
+        assertTrue(sourcedPrerequisitesForRange(catalog, 3, 3).isEmpty())
+        assertEquals(
+            listOf(4 to "Warden's Office Lv.10"),
+            sourcedPrerequisitesForRange(catalog, 3, 4)
+        )
+    }
+\n}\n
