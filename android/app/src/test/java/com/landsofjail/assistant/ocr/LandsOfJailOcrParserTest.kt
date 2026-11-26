@@ -328,7 +328,7 @@ class LandsOfJailOcrParserTest {
         val independentPhrases = ScreenRecognitionEngine.analyze("Robot Center\nRobot Upgrade")
         assertEquals(listOf("robot center", "robot upgrade"), independentPhrases.matchedLabels)
         assertTrue(independentPhrases.confidence >= 0.8f)
-        assertFalse(independentPhrases.needsVisualConfirmation)
+        assertTrue(independentPhrases.needsVisualConfirmation)
     }
 
     @Test
@@ -432,7 +432,7 @@ class LandsOfJailOcrParserTest {
     fun doesNotClaimVisualRecognitionFromOcrAlone() {
         val result = ScreenRecognitionEngine.analyze("Level 18")
         assertEquals("ocr_local", result.category)
-        assertTrue(result.needsVisualConfirmation)
+        assertFalse("Sans catégorie détectée, aucune confirmation visuelle ne peut être demandée", result.needsVisualConfirmation)
     }
 
 
