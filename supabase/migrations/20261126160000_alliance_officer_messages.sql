@@ -53,7 +53,7 @@ begin
   from public.alliance_members m
   where m.alliance_id = p_alliance_id and m.user_id = auth.uid();
 
-  if v_rank not in ('R4', 'R5') then
+  if coalesce(v_rank, '') not in ('R4', 'R5') then
     raise exception 'Only R4 and R5 members can publish alliance messages';
   end if;
 
