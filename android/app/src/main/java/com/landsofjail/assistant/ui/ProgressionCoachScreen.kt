@@ -538,7 +538,16 @@ fun ProgressionCoachScreen(
                     style = MaterialTheme.typography.bodySmall)
             } else {
                 confirmed.forEach { stock ->
-                    Text("${stock.resourceId}: ${stock.quantity}")
+                    val resourceLabel = when (canonicalProgressionResourceId(stock.resourceId)) {
+                        "food" -> text("Nourriture", "Food", "Nahrung", "Yiyecek", "Еда", "食物", "Cibo")
+                        "wood" -> text("Bois", "Wood", "Holz", "Odun", "Дерево", "木材", "Legno")
+                        "steel" -> text("Acier", "Steel", "Stahl", "Çelik", "Сталь", "钢材", "Acciaio")
+                        "gasoline" -> text("Essence", "Gasoline", "Benzin", "Benzin", "Бензин", "汽油", "Benzina")
+                        "gold" -> text("Argent liquide", "Cash", "Bargeld", "Nakit", "Наличные", "现金", "Contanti")
+                        "diamonds" -> text("Diamants", "Diamonds", "Diamanten", "Elmas", "Алмазы", "钻石", "Diamanti")
+                        else -> stock.resourceId
+                    }
+                    Text("$resourceLabel: ${NumberFormat.getIntegerInstance().format(stock.quantity)}")
                 }
                 if (uncertain.isNotEmpty()) {
                     Text(text(fr = "${uncertain.size} valeur(s) incertaine(s) ignorée(s).",
