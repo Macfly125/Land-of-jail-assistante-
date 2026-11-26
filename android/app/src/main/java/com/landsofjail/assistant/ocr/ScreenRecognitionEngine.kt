@@ -3,8 +3,8 @@ package com.landsofjail.assistant.ocr
 /**
  * Moteur local de classification multi-écrans.
  * Il exploite les indices OCR connus sans inventer de valeurs visuelles.
- * La confiance est volontairement conservatrice : l'OCR seul ne prouve pas
- * qu'un élément graphique a été reconnu.
+ * Le score classe les indices textuels entre eux ; il n'est pas une probabilité
+ * calibrée. L'OCR seul ne prouve jamais l'identité visuelle d'un écran.
  */
 data class ScreenRecognitionResult(
     val category: String,
@@ -98,7 +98,9 @@ object ScreenRecognitionEngine {
             confidence = confidence,
             matchedLabels = best?.second.orEmpty(),
             alternativeCategories = ranked.filter { it.first != best?.first }.take(2).map { it.first },
-            needsVisualConfirmation = confidence < 0.8f
+            // Même plusieurs libellés concordants ne constituent pas une
+            // validation visuelle : ce score est heuristique, non calibré.
+            needsVisualConfirmation = best != null
         )
     }
 
