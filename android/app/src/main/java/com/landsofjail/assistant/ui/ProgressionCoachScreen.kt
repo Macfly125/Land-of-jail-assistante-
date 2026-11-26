@@ -31,6 +31,8 @@ import androidx.compose.ui.unit.dp
 import com.landsofjail.assistant.model.AppLanguage
 import com.landsofjail.assistant.model.PlayerResourceStock
 import com.landsofjail.assistant.model.ProgressionCatalog
+import com.landsofjail.assistant.model.ProgressionCatalogRecord
+import com.landsofjail.assistant.model.CostConfidence
 import com.landsofjail.assistant.model.ProgressionCoach
 import com.landsofjail.assistant.model.canonicalProgressionResourceId
 import com.landsofjail.assistant.model.ProgressionDomain
@@ -81,6 +83,168 @@ private fun progressionLabel(domain: ProgressionDomain, lang: AppLanguage): Stri
     ProgressionDomain.ROBOT_CORE -> when (lang) {
         AppLanguage.FR -> "Noyaux robots"; AppLanguage.EN -> "Robot cores"; AppLanguage.DE -> "Roboterkerne"
         AppLanguage.TR -> "Robot çekirdekleri"; AppLanguage.RU -> "Ядра роботов"; AppLanguage.ZH -> "机器人核心"; AppLanguage.IT -> "Nuclei robot"
+    }
+}
+
+@Composable
+private fun ProgressionCatalogGoalCard(
+    goal: ProgressionObjective,
+    profile: ProgressionPlayerProfile,
+    catalog: List<ProgressionCatalogRecord>,
+    language: AppLanguage
+) {
+    fun text(fr: String, en: String, de: String, tr: String, ru: String, zh: String, it: String) =
+        when (language) {
+            AppLanguage.FR -> fr; AppLanguage.EN -> en; AppLanguage.DE -> de
+            AppLanguage.TR -> tr; AppLanguage.RU -> ru; AppLanguage.ZH -> zh; AppLanguage.IT -> it
+        }
+
+    val current = profile.confirmedLevel(goal.targetId)
+    val target = goal.targetLevel
+    val maxLevel = catalog.maxOfOrNull { it.step.toLevel } ?: 0
+    val partialCurrentBand = current != null && catalog.any {
+        it.step.fromLevel < current && current < it.step.toLevel
+    }
+    val partialTargetBand = catalog.any {
+        it.step.fromLevel < target && target < it.step.toLevel
+    }
+    val belowFirstPublishedLevel = current != null && current < (catalog.minOfOrNull { it.step.fromLevel } ?: 0)
+    val rows = current?.let { level ->
+        catalog.filter { it.step.fromLevel >= level && it.step.toLevel <= target }
+    }.orEmpty()
+    val stocks = profile.resourceStocks.map {
+        it.copy(resourceId = canonicalProgressionResourceId(it.resourceId))
+    }
+    val plan = ProgressionCoach.calculate(rows.map { it.step }, stocks)
+
+    fun materialLabel(resourceId: String): String = when (canonicalProgressionResourceId(resourceId)) {
+        "prisoner armor data" -> text("Données d'armure prisonnier", "Prisoner Armor Data", "Gefangenen-Rüstungsdaten",
+            "Mahkûm Zırh Verisi", "Данные брони заключённых", "囚犯护甲数据", "Dati armatura detenuto")
+        "power modules" -> text("Modules de puissance", "Power Modules", "Energiemodule",
+            "Güç Modülleri", "Модули энергии", "能量模块", "Moduli di potenza")
+        "advanced power modules" -> text("Modules de puissance avancés", "Advanced Power Modules", "Erweiterte Energiemodule",
+            "Gelişmiş Güç Modülleri", "Улучшенные модули энергии", "高级能量模块", "Moduli di potenza avanzati")
+        "core chips" -> text("Puces de noyau", "Core Chips", "Kernchips",
+            "Çekirdek Çipleri", "Чипы ядра", "核心芯片", "Chip nucleo")
+        "equipment exp" -> text("EXP d'équipement", "Equipment EXP", "Ausrüstungs-EP",
+            "Ekipman TP", "Опыт снаряжения", "装备经验", "EXP equipaggiamento")
+        "magnets" -> text("Aimants", "Magnets", "Magnete", "Mıknatıslar", "Магниты", "磁铁", "Magneti")
+        "potential coils" -> text("Bobines de potentiel", "Potential Coils", "Potenzialspulen",
+            "Potansiyel Bobinleri", "Катушки потенциала", "潜能线圈", "Bobine di potenziale")
+        "precision gears" -> text("Engrenages de précision", "Precision Gears", "Präzisionszahnräder",
+            "Hassas Dişliler", "Прецизионные шестерни", "精密齿轮", "Ingranaggi di precisione")
+        "hero shards" -> text("Fragments de héros", "Hero Shards", "Heldenfragmente",
+            "Kahraman Parçaları", "Осколки героев", "英雄碎片", "Frammenti eroe")
+        else -> resourceId
+    }
+
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(
+                text(fr = "Calculateur : ${progressionLabel(goal.domain, language)} · ${goal.targetId}",
+                    en = "Calculator: ${progressionLabel(goal.domain, language)} · ${goal.targetId}",
+                    de = "Rechner: ${progressionLabel(goal.domain, language)} · ${goal.targetId}",
+                    tr = "Hesaplayıcı: ${progressionLabel(goal.domain, language)} · ${goal.targetId}",
+                    ru = "Калькулятор: ${progressionLabel(goal.domain, language)} · ${goal.targetId}",
+                    zh = "计算器：${progressionLabel(goal.domain, language)} · ${goal.targetId}",
+                    it = "Calcolatore: ${progressionLabel(goal.domain, language)} · ${goal.targetId}"),
+                style = MaterialTheme.typography.titleMedium
+            )
+            Text(
+                text = "${catalog.first().sourceLabel} · ${catalog.first().checkedOn}",
+                style = MaterialTheme.typography.bodySmall
+            )
+            when {
+                current == null -> Text(
+                    text(fr = "Niveau actuel non confirmé : renseigne-le dans l'objectif.",
+                        en = "Current level is not confirmed: enter it in the goal.",
+                        de = "Das aktuelle Level ist nicht bestätigt: Gib es im Ziel ein.",
+                        tr = "Mevcut seviye doğrulanmadı: hedefe gir.",
+                        ru = "Текущий уровень не подтверждён: укажи его в цели.",
+                        zh = "当前等级尚未确认，请在目标中填写。",
+                        it = "Il livello attuale non è confermato: inseriscilo nell'obiettivo."),
+                    style = MaterialTheme.typography.bodySmall
+                )
+                target <= current -> Text(
+                    text(fr = "Objectif déjà atteint.", en = "Target already reached.", de = "Ziel bereits erreicht.",
+                        tr = "Hedefe ulaşıldı.", ru = "Цель уже достигнута.", zh = "目标已达成。",
+                        it = "Obiettivo già raggiunto."),
+                    style = MaterialTheme.typography.bodySmall
+                )
+                target > maxLevel -> Text(
+                    text(fr = "Les données publiées couvrent cette catégorie jusqu'au niveau $maxLevel. Les coûts suivants restent inconnus.",
+                        en = "Published data covers this category only through level $maxLevel. Later costs remain unknown.",
+                        de = "Veröffentlichte Daten decken diese Kategorie nur bis Level $maxLevel ab. Weitere Kosten sind unbekannt.",
+                        tr = "Yayımlanan veriler bu kategoriyi yalnızca $maxLevel seviyesine kadar kapsar. Sonraki maliyetler bilinmiyor.",
+                        ru = "Опубликованные данные охватывают эту категорию только до уровня $maxLevel. Дальнейшие затраты неизвестны.",
+                        zh = "已发布数据仅覆盖此类别至 $maxLevel 级，之后费用未知。",
+                        it = "I dati pubblicati coprono questa categoria solo fino al livello $maxLevel. I costi successivi sono sconosciuti."),
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+            if (current != null && target > current) {
+                if (partialCurrentBand || partialTargetBand || belowFirstPublishedLevel) {
+                    Text(
+                        text(fr = "La source publie des tranches complètes, pas un coût par niveau. Les tranches partielles ne sont pas proratisées et restent inconnues.",
+                            en = "The source publishes complete bands, not per-level costs. Partial bands are not prorated and remain unknown.",
+                            de = "Die Quelle veröffentlicht vollständige Bereiche, keine Kosten je Level. Teilbereiche werden nicht anteilig geschätzt.",
+                            tr = "Kaynak seviye başına değil, tam aralıklar için maliyet yayımlar. Kısmi aralıklar oranlanmaz ve bilinmiyor kalır.",
+                            ru = "Источник публикует стоимость полных диапазонов, а не отдельных уровней. Частичные диапазоны не пересчитываются.",
+                            zh = "来源提供完整等级区间的费用，而非单级费用；部分区间不按比例估算。",
+                            it = "La fonte pubblica costi per fasce complete, non per singolo livello. Le fasce parziali non vengono stimate proporzionalmente."),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+                if (rows.isEmpty()) {
+                    Text(
+                        text(fr = "Aucune tranche complète disponible pour cette plage ; aucun coût n'est inventé.",
+                            en = "No complete published band is available for this range; no cost is invented.",
+                            de = "Für diesen Bereich ist kein vollständiger veröffentlichter Abschnitt verfügbar.",
+                            tr = "Bu aralık için yayımlanmış tam bir kademe yok; maliyet uydurulmaz.",
+                            ru = "Для этого диапазона нет полной опубликованной ступени; стоимость не выдумывается.",
+                            zh = "此范围没有完整的已发布区间；不会虚构费用。",
+                            it = "Non è disponibile una fascia pubblicata completa per questo intervallo; non vengono inventati costi."),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+                plan.steps.forEach { step ->
+                    val costs = step.costs.joinToString(" · ") { cost ->
+                        val suffix = if (cost.confidence == CostConfidence.NEEDS_CONFIRMATION)
+                            text(" (à confirmer)", " (confirm in-game)", " (im Spiel bestätigen)",
+                                " (oyunda doğrula)", " (проверь в игре)", " (请在游戏中确认)", " (da confermare)")
+                        else ""
+                        "${materialLabel(cost.resourceId)} ${NumberFormat.getIntegerInstance().format(cost.quantity)}$suffix"
+                    }
+                    Text(
+                        text = "${step.itemName} · ${step.fromLevel} → ${step.toLevel} : $costs",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+                if (plan.unknownStepIds.isNotEmpty()) {
+                    Text(
+                        text(fr = "Certaines valeurs sont incertaines ou en conflit et sont exclues des totaux.",
+                            en = "Some values are uncertain or conflicting and are excluded from totals.",
+                            de = "Einige Werte sind unsicher oder widersprüchlich und werden nicht summiert.",
+                            tr = "Bazı değerler belirsiz veya çelişkili; toplamlara dahil edilmez.",
+                            ru = "Некоторые значения не подтверждены или противоречат друг другу и не входят в итоги.",
+                            zh = "部分数值不确定或存在冲突，不计入总额。",
+                            it = "Alcuni valori sono incerti o in conflitto e sono esclusi dai totali."),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+                plan.requirements.forEach { requirement ->
+                    val label = materialLabel(requirement.resourceId)
+                    val required = NumberFormat.getIntegerInstance().format(requirement.required)
+                    val stock = requirement.ownedConfirmed?.let { owned ->
+                        val missing = NumberFormat.getIntegerInstance().format(requirement.missing ?: 0L)
+                        "${text("posseduto", "owned", "vorhanden", "mevcut", "есть", "拥有", "disponibile")} ${NumberFormat.getIntegerInstance().format(owned)} · " +
+                            "${text("mancante", "missing", "fehlen", "eksik", "не хватает", "缺少", "mancano")} $missing"
+                    } ?: text("stock inconnu", "stock unknown", "Bestand unbekannt", "stok bilinmiyor",
+                        "запас неизвестен", "库存未知", "scorta sconosciuta")
+                    Text("$label : $required · $stock", style = MaterialTheme.typography.bodySmall)
+                }
+            }
+        }
     }
 }
 
