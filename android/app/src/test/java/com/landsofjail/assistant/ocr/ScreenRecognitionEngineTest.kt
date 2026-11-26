@@ -37,7 +37,7 @@ class ScreenRecognitionEngineTest {
 
     @Test
     fun recognizesShortLabHeaderWithResearchTechnology() {
-        val result = ScreenRecognitionEngine.analyze("Lab\\nLogistics Technology\\nEconomy Technology")
+        val result = ScreenRecognitionEngine.analyze("Lab\nLogistics Technology\nEconomy Technology")
 
         assertEquals("lab", result.category)
         assertTrue(result.matchedLabels.contains("lab"))
@@ -46,7 +46,7 @@ class ScreenRecognitionEngineTest {
 
     @Test
     fun doesNotClassifyAnUnqualifiedLaboratoryBuildingAsResearchLab() {
-        val result = ScreenRecognitionEngine.analyze("Laboratory\\nLevel 12")
+        val result = ScreenRecognitionEngine.analyze("Laboratory\nLevel 12")
 
         assertEquals("batiments", result.category)
     }
