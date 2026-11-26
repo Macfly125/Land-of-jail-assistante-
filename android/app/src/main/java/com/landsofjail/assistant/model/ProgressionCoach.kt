@@ -113,7 +113,11 @@ object ProgressionCoach {
                 .map { it.copy(resourceId = canonicalProgressionResourceId(it.resourceId)) }
         }.groupBy { it.resourceId }
         val requirements = allCosts.map { (resourceId, costs) ->
-            val required = costs.sumOf { it.quantity }
+            // Saturate instead of wrapping to a negative requirement on very large totals.
+            val required = costs.fold(0L) { total, cost ->
+                if (Long.MAX_VALUE - total < cost.quantity) Long.MAX_VALUE
+                else total + cost.quantity
+            }
             val owned = confirmedStocks[resourceId]
             ResourceRequirement(
                 resourceId = resourceId,
