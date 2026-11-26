@@ -55,7 +55,7 @@
         <activity
             android:name=".capture.ScreenCaptureConsentActivity"
             android:exported="false"
-            android:launchMode="singleInstance"
+            android:launchMode="standard"
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
         <!-- Service de détection du passage au premier plan via UsageStatsManager -->
