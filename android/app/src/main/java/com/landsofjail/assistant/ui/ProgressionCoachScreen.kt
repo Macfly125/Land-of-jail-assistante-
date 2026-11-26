@@ -40,6 +40,7 @@ import com.landsofjail.assistant.model.ProgressionPlayerProfile
 import com.landsofjail.assistant.model.ProgressionProfileCodec
 import com.landsofjail.assistant.model.ResourceRecord
 import com.landsofjail.assistant.model.mergeProgressionStocks
+import com.landsofjail.assistant.model.removeProgressionObjective
 
 private val progressionDomains = listOf(
     ProgressionDomain.BUILDING,
@@ -360,9 +361,10 @@ fun ProgressionCoachScreen(
                                     ru = "Сделать главной", zh = "设为主要目标", it = "Imposta principale"))
                             }
                             Button(onClick = {
-                                profile = profile.copy(objectives = profile.objectives.filterNot { it.id == goal.id }
-                                    .mapIndexed { i, item -> if (i == 0) item.copy(isPrimary = true) else item },
-                                    updatedAtEpochMillis = System.currentTimeMillis())
+                                profile = profile.copy(
+                                    objectives = removeProgressionObjective(profile.objectives, goal.id),
+                                    updatedAtEpochMillis = System.currentTimeMillis()
+                                )
                                 prefs.edit().putString("profile", ProgressionProfileCodec.encode(profile)).apply()
                             }) {
                                 Text(text(fr = "Supprimer", en = "Delete", de = "Löschen", tr = "Sil", ru = "Удалить", zh = "删除", it = "Elimina"))
