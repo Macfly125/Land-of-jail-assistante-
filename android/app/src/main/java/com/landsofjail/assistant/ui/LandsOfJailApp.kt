@@ -5698,7 +5698,7 @@ private fun AllianceScreen(
                         Text(it, color = if (allianceMessagesError) Color(0xFFFCA5A5) else Color(0xFF86EFAC), style = MaterialTheme.typography.bodySmall)
                     }
                     if (allianceMessages.isEmpty()) {
-                        Text(localizedUiText(language, "Aucun message enregistré pour le moment.", "No messages saved yet.", "Noch keine Nachrichten gespeichert.", "Henüz kaydedilmiş mesaj yok.", "Пока нет сохранённых сообщений.", "目前没有已保存的消息。", "Nessun messaggio salvato.")), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(localizedUiText(language, "Aucun message enregistré pour le moment.", "No messages saved yet.", "Noch keine Nachrichten gespeichert.", "Henüz kaydedilmiş mesaj yok.", "Пока нет сохранённых сообщений.", "目前没有已保存的消息。", "Nessun messaggio salvato."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     } else {
                         allianceMessages.forEach { message ->
                             Card(colors = CardDefaults.cardColors(containerColor = Color(0xFF202B3A))) {
