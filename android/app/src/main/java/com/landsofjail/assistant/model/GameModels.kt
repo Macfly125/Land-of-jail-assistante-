@@ -405,6 +405,47 @@ data class RobotRecord(
     val updatedAtIso: String = ""
 )
 
+/** Référentiel communautaire extrait des guides Robots fournis le 26/11/2026.
+ * Les niveaux sont des recommandations de progression, pas le niveau du joueur.
+ */
+data class RobotGuideEntry(
+    val name: String,
+    val troopType: String,
+    val recommendedLevel: String = "",
+    val mode: String = "",
+    val maxWarSkill: String = "",
+    val maxPilotSkill: String = ""
+)
+
+object RobotCatalog {
+    val entries = listOf(
+        RobotGuideEntry("Light Cone", "Bomber", "10"),
+        RobotGuideEntry("Hercules α", "Shooter", "60"),
+        RobotGuideEntry("Pluto", "Bomber", "10"),
+        RobotGuideEntry("Ranger", "Shooter", "60–90"),
+        RobotGuideEntry("Infercore", "Bomber", "60–90"),
+        RobotGuideEntry("Atlax", "Shieldbearer", "30"),
+        RobotGuideEntry("Phantom Cat", "Shooter", "90–100", "Cage + rallies",
+            "+37.5% lethality for every troop; every 4 Shooter attacks, +80% Tactical DMG",
+            "+10% HP for expedition troops, 2 h"),
+        RobotGuideEntry("Halo", "Bomber", "30"),
+        RobotGuideEntry("Yokozuna", "Bomber", "30"),
+        RobotGuideEntry("Musashimaru", "Shooter", "90–100", "Solo attacks",
+            "Shieldbearers + Shooters: +30% lethality and take 45% less DMG",
+            "Enemy DEF −10%, 2 h"),
+        RobotGuideEntry("Bastion", "Bomber", "", "Defense",
+            "Every troop: +40% DEF, +35% lethality, +50% Tactical DMG, +230% more on rounds not multiple of 3",
+            "Enemy ATK −10%, 2 h"),
+        RobotGuideEntry("Dauntless", "Shooter")
+    )
+
+    fun find(name: String): RobotGuideEntry? = entries.firstOrNull {
+        it.name.equals(name, ignoreCase = true) ||
+            (it.name == "Hercules α" && name.equals("Hercules Alpha", ignoreCase = true))
+    }
+}
+
+
 @Serializable
 data class EquipmentRecord(
     val id: String = "",
