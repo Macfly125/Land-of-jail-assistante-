@@ -1129,4 +1129,24 @@ Potential Coil x 8"""
         assertTrue(result.resources.all { it.incertain })
     }
 
+    @Test
+    fun enhancedOcrCoordinatesAreMappedBackToOriginalScreenshot() {
+        val enhancedBoxes = listOf(
+            OcrTextBox("Food: 12.4M", 150, 75, 450, 123),
+            OcrTextBox("Power: 8.6M", 600, 300, 900, 348)
+        )
+
+        val mapped = OcrImagePreprocessor.mapBoxesToOriginal(enhancedBoxes)
+
+        assertEquals(OcrTextBox("Food: 12.4M", 100, 50, 300, 82), mapped[0])
+        assertEquals(OcrTextBox("Power: 8.6M", 400, 200, 600, 232), mapped[1])
+    }
+
+    @Test
+    fun enhancedOcrCoordinateMappingRejectsInvalidScale() {
+        assertTrue(runCatching {
+            OcrImagePreprocessor.mapBoxesToOriginal(emptyList(), 0f)
+        }.isFailure)
+    }
+
 }
