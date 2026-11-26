@@ -12,8 +12,17 @@ class ScreenRecognitionEngineTest {
 
         assertEquals("ressources", result.category)
         assertTrue(result.matchedLabels.isNotEmpty())
-        assertFalse(result.needsVisualConfirmation)
+        assertTrue("Un score OCR heuristique ne vaut pas validation visuelle", result.needsVisualConfirmation)
         assertEquals(0.95f, result.confidence, 0.0001f)
+    }
+
+    @Test
+    fun requiresVisualConfirmationEvenWhenSeveralResourceLabelsAgree() {
+        val result = ScreenRecognitionEngine.analyze("Food Wood Steel Gasoline")
+
+        assertEquals("ressources", result.category)
+        assertEquals(0.95f, result.confidence, 0.0001f)
+        assertTrue(result.needsVisualConfirmation)
     }
 
     @Test
