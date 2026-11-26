@@ -35,7 +35,7 @@ object ScreenRecognitionEngine {
         "troupes" to listOf("shieldbearer", "shieldbearers", "bomber", "bombers", "shooter", "shooters", "troops", "troupes", "march capacity", "capacité de marche", "truppen", "birlikler", "войска", "部队"),
         "ressources" to listOf("food", "wood", "steel", "gasoline", "nourriture", "bois", "acier", "essence", "diamonds", "diamants", "gems", "gemmes", "gold", "nahrung", "holz", "stahl", "benzin", "diamanten", "yiyecek", "odun", "çelik", "elmas", "altın", "еда", "дерево", "сталь", "бензин", "алмазы", "золото", "食物", "木材", "钢材", "汽油", "钻石", "宝石", "金币", "黄金", "cibo", "legno", "acciaio", "benzina", "diamanti", "oro"),
 
-        "satellites" to listOf("satellite launch", "data disk", "data disks", "planet coin", "overclock", "ascension", "satellit", "satelliten", "uydu", "спутник", "спутники", "卫星", "卫星发射", "数据盘", "行星币"),
+        "satellites" to listOf("satellite", "satellites", "satellite launch", "data disk", "data disks", "planet coin", "overclock", "ascension", "satellit", "satelliten", "uydu", "спутник", "спутники", "卫星", "卫星发射", "数据盘", "行星币"),
         "haven_island" to listOf("haven island", "mansion", "decorations", "treasure cube", "island prosperity", "île havre", "manoir", "décorations", "insel", "malikane", "dekorasyon", "убежище", "особняк", "避风岛", "豪宅", "装饰", "宝藏魔方"),
         "arrest" to listOf("arrest stage", "arrest level", "felon", "felons", "contraband search", "criminal prisoner", "arrest battle", "tutuklama", "tutuklu", "арест", "заключенный", "罪犯", "逮捕", "通缉犯", "违禁品搜查"),
         "trove" to listOf("warden's trove", "wardens trove", "collection piece", "collection pieces", "tomes", "treasure collection", "trésor du directeur", "schatzkammer", "hazine", "сокровищница", "典籍", "收藏品"),
