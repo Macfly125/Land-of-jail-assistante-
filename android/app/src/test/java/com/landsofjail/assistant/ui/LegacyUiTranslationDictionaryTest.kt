@@ -67,7 +67,21 @@ class LegacyUiTranslationDictionaryTest {
             }
             assertTrue("$language fragment map must close", close > open)
             val block = source.substring(open + 1, close)
-            val pairCount = block.windowed(4).count { it == " to " }
+            var pairCount = 0
+            var inString = false
+            var escapedValue = false
+            for (index in block.indices) {
+                val char = block[index]
+                if (inString) {
+                    if (escapedValue) escapedValue = false
+                    else if (char.code == 92) escapedValue = true
+                    else if (char == '"') inString = false
+                } else if (char == '"') {
+                    inString = true
+                } else if (block.startsWith(" to ", index)) {
+                    pairCount++
+                }
+            }
             assertEquals("$language must have all 61 dynamic fragments", 61, pairCount)
         }
     }
