@@ -363,7 +363,7 @@ object LandsOfJailOcrParser {
                         normalizedEquipmentLine == normalizedAlias ||
                             Regex(
                                 "^" + Regex.escape(normalizedAlias) +
-                                    "\s+(?:\\d{1,3}|(?:lv\\.?|level|niv\\.?|niveau|stufe|seviye|уровень|等级|livello)\\s*[:+]?\\s*\\d{1,3})$",
+                                    "\\s+(?:\\d{1,3}|(?:lv\\.?|level|niv\\.?|niveau|stufe|seviye|уровень|等级|livello)\\s*[:+]?\\s*\\d{1,3})$",
                                 RegexOption.IGNORE_CASE
                             ).matches(normalizedEquipmentLine)
                     }) continue
