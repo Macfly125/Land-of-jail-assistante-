@@ -200,3 +200,27 @@ Audit en lecture seule du commit de branche `f9b41f241eb1a25216d2453d6404f54ab40
 - [ ] Conserver le refus de résultat incertain et ne jamais remplir niveau, noyau ou matériaux à partir du seul portrait.
 
 Aucun code source n'a été modifié dans cet audit ; il s'agit d'une inspection de code et de tests existants.
+
+
+## Nouvelle recherche d'images de gameplay — 26/11/2026
+
+### Images publiques inspectées
+- FoxData — https://foxdata.com/en/blogs/lands-of-jail-a-hybrid-slg-hit-redfining-growth-strategy-in-2025/ (image associée : https://static-cf.foxdata.com/ap-backstage/prod/2025-06-06/1749202360204.jpg) : montage de vues de gameplay avec barre de ressources, panneau Cell Lv.1 et panneau Kitchen Lv.1. Utile comme référence visuelle de bâtiments et de la barre supérieure, mais le montage/cadrage ne constitue pas une capture brute complète exploitable comme fixture OCR.
+- Malavida — https://www.malavida.com/en/soft/lands-of-jail/android/ (image associée : https://imag.malavida.com/mvimgbig/download-fs/lands-of-jail-40257-7.jpg) : panneau Kitchen Lv.1 et équipement Stove, avec progression, coût et icônes. Référence visuelle ciblée pour un panneau de bâtiment ; droits et provenance de l'image à confirmer avant toute redistribution ou intégration au dépôt.
+- GGGuide — https://www.ggemguide.com/mobile_view.htm?uid=6510 (image associée : https://www.ggemguide.com/mobile_screen2/20250421510a2.jpg) : deux vues de gameplay, construction d'un bâtiment et scène d'intervention. Le HUD est visible, mais les captures sont juxtaposées et ne couvrent pas les écrans QG, robots, héros ou laboratoire recherchés.
+- LinkedIn — https://www.linkedin.com/posts/jakubremiar_lands-of-jail-already-passed-250k-a-day-activity-7333137459645456384-IcgS : montage menu / combat automatique / carte du monde. Classé comme référence générale de navigation et de HUD, pas comme fixture de reconnaissance de progression.
+- 2Game — https://2game.vn/truy-bat-toi-pham-va-quan-ly-nha-giam-trong-game-lands-of-jail-post440410.html : scènes de gameplay de poursuite et intervention ; hors corpus principal des écrans de ressources et de progression.
+- OurPlay — https://www.ourplay.net/rank/detail/303378 : image de présentation avec HUD et scène de prison ; qualité/provenance insuffisantes pour une fixture OCR.
+
+### Ce que ces images permettent — et ne permettent pas
+- [x] Ajouter des références visuelles publiques supplémentaires pour la barre de ressources et les panneaux de bâtiments de base.
+- [x] Séparer les panneaux de gameplay réels, les montages multi-écrans et les visuels de présentation.
+- [ ] Aucune de ces images ne valide la lecture des six ressources en conditions réelles : il manque des captures originales non recadrées, avec les quantités lisibles et leur langue/résolution documentées.
+- [ ] Aucune nouvelle image robot, portrait de héros, équipement, recherche ou Forticlad Lab n'a été obtenue sous forme de capture brute complète et réutilisable.
+- [ ] Obtenir l'accord des auteurs ou une licence claire avant d'intégrer des images tierces comme fixtures binaires. Les liens restent des références de recherche, pas une autorisation de réutilisation.
+- Aucun fichier image binaire n'a été ajouté au dépôt pendant cette recherche.
+
+### Prochaine validation OCR
+- Construire le corpus à partir de captures complètes autorisées, une capture par écran et par langue/résolution, avec annotations manuelles des champs attendus.
+- Séparer les tests de classification d'écran, d'extraction des valeurs, de détection d'icônes et de rapprochement des portraits.
+- Conserver les cas ambigus comme exemples négatifs : aucune valeur de ressource, niveau QG, robot ou matériau ne doit être enregistrée sans preuve suffisante.
