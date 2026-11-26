@@ -136,21 +136,9 @@ object GiftCodeRepository {
             for ((code, nearby) in extractCandidatesFromHtml(html)) {
                 val key = code.lowercase(Locale.ROOT)
                 val existing = found[key]
-                if (existing != null) {
-                    val mergedSource = (existing.source.split(" · ") + sourceName).distinct().joinToString(" · ")
-                    found[key] = existing.copy(source = mergedSource, lastChecked = newerDate(existing.lastChecked, checkedDate))
-                } else {
-                    val looksExpired = nearby.contains("ended codes") || nearby.contains("expired") ||
-                        nearby.contains("codes expir") || nearby.contains("codes termin")
-                    found[key] = GiftCodeEntry(
-                        code = code,
-                        status = if (looksExpired) "NEEDS_REVIEW" else "UNVERIFIED",
-                        source = sourceName,
-                        lastChecked = checkedDate,
-                        note = if (looksExpired) "La page mentionne une expiration à proximité ; confirmation nécessaire."
-                            else "Code repéré sur une source communautaire ; à tester dans le jeu."
-                    )
-                }
+                val looksExpired = nearby.contains("ended codes") || nearby.contains("expired") ||
+                    nearby.contains("codes expir") || nearby.contains("codes termin")
+                found[key] = mergeSourceCandidate(existing, code, sourceName, checkedDate, looksExpired)
             }
         }
 
@@ -170,6 +158,43 @@ object GiftCodeRepository {
         } else {
             GiftCodeSnapshot(updatedAt = now, sourceErrors = errors, entries = merged)
         }
+    }
+
+    /**
+     * Merge a code found on another source. An explicit expired-section context
+     * downgrades an existing listing to review, but never declares it expired
+     * without a published expiry date.
+     */
+    internal fun mergeSourceCandidate(
+        existing: GiftCodeEntry?,
+        code: String,
+        sourceName: String,
+        checkedDate: String,
+        looksExpired: Boolean
+    ): GiftCodeEntry {
+        if (existing == null) {
+            return GiftCodeEntry(
+                code = code,
+                status = if (looksExpired) "NEEDS_REVIEW" else "UNVERIFIED",
+                source = sourceName,
+                lastChecked = checkedDate,
+                note = if (looksExpired) "La page mentionne une expiration à proximité ; confirmation nécessaire."
+                    else "Code repéré sur une source communautaire ; à tester dans le jeu."
+            )
+        }
+        val mergedSource = (existing.source.split(" · ") + sourceName).distinct().joinToString(" · ")
+        val shouldReview = looksExpired && existing.status != "EXPIRED" && existing.status != "NEEDS_REVIEW"
+        val note = if (shouldReview &&
+            !existing.note.contains("expiration à proximité", ignoreCase = true)) {
+            listOf(existing.note, "Une autre source le place dans un contexte de codes expirés ; vérification nécessaire.")
+                .filter { it.isNotBlank() }.joinToString(" ")
+        } else existing.note
+        return existing.copy(
+            status = if (shouldReview) "NEEDS_REVIEW" else existing.status,
+            source = mergedSource,
+            lastChecked = newerDate(existing.lastChecked, checkedDate),
+            note = note
+        )
     }
 
     /** Applies only an explicit published expiry date; never infers expiry from silence. */
