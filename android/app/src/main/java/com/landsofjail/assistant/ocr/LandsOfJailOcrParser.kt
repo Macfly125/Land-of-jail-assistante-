@@ -480,7 +480,13 @@ object LandsOfJailOcrParser {
 
         // Profil joueur : la puissance est affichée avec une icône de poing,
         // juste avant la ligne « Eliminations », sans libellé « Puissance ».
-        if (power == null) {
+        // La ligne numérique située avant « Eliminations » peut aussi être une
+        // quantité de ressource (notamment Food). N'inférer la puissance depuis
+        // cette position que si aucune ressource nommée ni rangée de ressources
+        // supérieure n'a été détectée. La sécurité prime sur une valeur supposée.
+        if (power == null && resources.isEmpty() &&
+            !hasPotentialTopResourceNumberRow(textBoxes, imageWidth, imageHeight)
+        ) {
             val eliminationLineIndex = lines.indexOfFirst {
                 Regex("""[ée]liminations?""", RegexOption.IGNORE_CASE).containsMatchIn(it)
             }
