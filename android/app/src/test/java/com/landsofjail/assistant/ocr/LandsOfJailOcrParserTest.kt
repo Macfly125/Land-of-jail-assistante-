@@ -1015,4 +1015,27 @@ Potential Coil x 8"""
         assertEquals("Les héros connus du catalogue doivent rester détectés", listOf("Ada"), knownHero.heroes.map { it.nom })
     }
 
+    @Test
+    fun doesNotReadWordsContainingResourceNamesAsResourceLabels() {
+        val samples = listOf(
+            "Wooden Statue\\n1200",
+            "Foodcourt Upgrade\\n850",
+            "Steelworks Level 4\\n300"
+        )
+        samples.forEach { sample ->
+            val result = LandsOfJailOcrParser.parseLocalOcrText(sample)
+            assertTrue("Aucun faux stock ne doit être créé pour : $sample", result.resources.isEmpty())
+        }
+    }
+
+    @Test
+    fun stillReadsResourceLabelsImmediatelyFollowedByQuantities() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            "食物1200\\n木材850\\n钢材300\\n汽油450"
+        )
+        assertTrue("Les libellés chinois accolés aux nombres doivent rester reconnus",
+            result.resources.any { it.nom == "Nourriture (Food)" && it.quantiteTexte == "1200" })
+        assertTrue(result.resources.any { it.nom == "Bois (Wood)" && it.quantiteTexte == "850" })
+    }
+
 }
