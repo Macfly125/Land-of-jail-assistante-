@@ -67,6 +67,24 @@ private fun troopTrainingType(targetId: String) = when (targetId.trim().lowercas
     else -> null
 }
 
+private fun troopTrainingTypeLabel(
+    type: com.landsofjail.assistant.model.TroopTrainingType,
+    language: AppLanguage
+): String = when (type) {
+    com.landsofjail.assistant.model.TroopTrainingType.SHIELDBEARER -> when (language) {
+        AppLanguage.FR -> "Boucliers"; AppLanguage.EN -> "Shieldbearers"; AppLanguage.DE -> "Schildträger"
+        AppLanguage.TR -> "Kalkanlılar"; AppLanguage.RU -> "Щитоносцы"; AppLanguage.ZH -> "盾卫"; AppLanguage.IT -> "Scudieri"
+    }
+    com.landsofjail.assistant.model.TroopTrainingType.BOMBER -> when (language) {
+        AppLanguage.FR -> "Bombardiers"; AppLanguage.EN -> "Bombers"; AppLanguage.DE -> "Bomber"
+        AppLanguage.TR -> "Bombacılar"; AppLanguage.RU -> "Бомбардировщики"; AppLanguage.ZH -> "轰炸兵"; AppLanguage.IT -> "Bombardieri"
+    }
+    com.landsofjail.assistant.model.TroopTrainingType.SHOOTER -> when (language) {
+        AppLanguage.FR -> "Tireurs"; AppLanguage.EN -> "Shooters"; AppLanguage.DE -> "Schützen"
+        AppLanguage.TR -> "Nişancılar"; AppLanguage.RU -> "Стрелки"; AppLanguage.ZH -> "射手"; AppLanguage.IT -> "Tiratori"
+    }
+}
+
 @Composable
 private fun TroopTrainingCalculatorCard(
     goal: ProgressionObjective,
@@ -95,7 +113,7 @@ private fun TroopTrainingCalculatorCard(
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(
-                text = "${when (type) {\n                    com.landsofjail.assistant.model.TroopTrainingType.SHIELDBEARER -> label("Boucliers", "Shieldbearers", "Schildträger", "Kalkanlılar", "Щитоносцы", "盾卫", "Scudieri")\n                    com.landsofjail.assistant.model.TroopTrainingType.BOMBER -> label("Bombardiers", "Bombers", "Bomber", "Bombacılar", "Бомбардировщики", "轰炸兵", "Bombardieri")\n                    com.landsofjail.assistant.model.TroopTrainingType.SHOOTER -> label("Tireurs", "Shooters", "Schützen", "Nişancılar", "Стрелки", "射手", "Tiratori")\n                }} · Tier $tier",
+                text = "${troopTrainingTypeLabel(type, language)} · Tier $tier",
                 style = MaterialTheme.typography.titleMedium
             )
             Text(
