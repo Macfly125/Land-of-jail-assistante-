@@ -104,6 +104,25 @@ class ProgressionCoachTest {
     }
 
     @Test
+    fun calculatorTreatsConflictingLatestConfirmedStockAliasesAsUnknown() {
+        val step = ProgressionStep(
+            "hq-1-2", ProgressionDomain.BUILDING, "Bureau", 1, 2,
+            listOf(ResourceCost("wood", 1_000L, CostConfidence.VERIFIED_IN_GAME))
+        )
+        val plan = ProgressionCoach.calculate(
+            listOf(step),
+            listOf(
+                PlayerResourceStock("wood", 700L, true, 500L),
+                PlayerResourceStock("Bois", 900L, true, 500L),
+                PlayerResourceStock("Holz", 600L, true, 400L)
+            )
+        )
+
+        assertNull(plan.requirements.single().ownedConfirmed)
+        assertNull(plan.requirements.single().missing)
+    }
+
+    @Test
     fun resourceTotalsSaturateInsteadOfOverflowing() {
         val step = ProgressionStep(
             "hq-overflow", ProgressionDomain.BUILDING, "Bureau", 1, 2,
