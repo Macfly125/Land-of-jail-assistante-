@@ -115,18 +115,24 @@ object ScreenRecognitionEngine {
             ranked.firstOrNull()
         }
         val second = ranked.firstOrNull { it.first != best?.first }
+        val tiedAtTop = best != null && second != null &&
+            best.second.size == second.second.size
+        // Une égalité entre catégories ne doit jamais être tranchée par l'ordre
+        // du dictionnaire (ex. « Felon » apparaît dans Donjon et Arrest).
+        val unambiguousBest = best.takeUnless { tiedAtTop }
         val confidence = when {
             best == null -> 0f
+            tiedAtTop -> 0.52f
             best.second.size >= 3 && (second == null || best.second.size > second.second.size) -> 0.95f
             best.second.size >= 2 && (second == null || best.second.size > second.second.size) -> 0.84f
             best.second.size > (second?.second?.size ?: 0) -> 0.68f
             else -> 0.52f
         }
         return ScreenRecognitionResult(
-            category = best?.first ?: "ocr_local",
+            category = unambiguousBest?.first ?: "ocr_local",
             confidence = confidence,
-            matchedLabels = best?.second.orEmpty(),
-            alternativeCategories = ranked.filter { it.first != best?.first }.take(2).map { it.first },
+            matchedLabels = unambiguousBest?.second.orEmpty(),
+            alternativeCategories = ranked.filter { it.first != unambiguousBest?.first }.take(2).map { it.first },
             // Même plusieurs libellés concordants ne constituent pas une
             // validation visuelle : ce score est heuristique, non calibré.
             needsVisualConfirmation = best != null
