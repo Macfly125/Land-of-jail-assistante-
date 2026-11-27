@@ -187,12 +187,18 @@ object ProgressionCatalog {
     const val SHOOTER_BARRACK_SOURCE = "https://lojwiki.com/buildings/shooter-barracks/"
     const val BOMBER_BARRACK_SOURCE = "https://lojwiki.com/buildings/bomber-barracks/"
 
-    // Exact, fully written quantities only. Level 5 starts with abbreviated 10K values.
+    // LOJ Wiki uses K as a unit suffix; values are converted exactly (e.g. 17.5K = 17,500).
     val commandCenterBuilding = multiResourceBuilding(
         "Command Center", COMMAND_CENTER_SOURCE, listOf(
             MultiResourceBuildingLevel(2, listOf("wood" to 200L), 8, 10),
             MultiResourceBuildingLevel(3, listOf("wood" to 1_200L), 34, 10),
-            MultiResourceBuildingLevel(4, listOf("wood" to 2_400L, "steel" to 480L), 105, 10)
+            MultiResourceBuildingLevel(4, listOf("wood" to 2_400L, "steel" to 480L), 105, 10),
+            MultiResourceBuildingLevel(5, listOf("wood" to 10_000L, "steel" to 2_000L), 215, 10),
+            MultiResourceBuildingLevel(6, listOf("wood" to 25_000L, "steel" to 5_000L, "gasoline" to 1_250L), 430, 10),
+            MultiResourceBuildingLevel(7, listOf("wood" to 100_000L, "steel" to 20_000L, "gasoline" to 5_000L), 840, 10),
+            MultiResourceBuildingLevel(8, listOf("wood" to 180_000L, "steel" to 36_000L, "gasoline" to 9_000L), 1_290, 10),
+            MultiResourceBuildingLevel(9, listOf("wood" to 350_000L, "steel" to 70_000L, "gasoline" to 17_500L), 1_920, 10),
+            MultiResourceBuildingLevel(10, listOf("wood" to 650_000L, "steel" to 130_000L, "gasoline" to 32_500L), 2_580, 10)
         )
     )
     val shieldbearerBarrackBuilding = multiResourceBuilding(
