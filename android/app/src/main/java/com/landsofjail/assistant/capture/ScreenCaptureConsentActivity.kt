@@ -55,11 +55,14 @@ class ScreenCaptureConsentActivity : ComponentActivity() {
 
         private fun ownedCaptureFile(context: Context, uriText: String?): File? {
             if (uriText.isNullOrBlank()) return null
-            val uri = runCatching { Uri.parse(uriText) }.getOrNull() ?: return null
-            if (uri.scheme != "file") return null
-            val file = uri.path?.let(::File)?.canonicalFile ?: return null
-            val captureDirectory = File(context.filesDir, "captures").canonicalFile
-            return file.takeIf { it.parentFile == captureDirectory }
+            return runCatching {
+                val uri = Uri.parse(uriText)
+                if (uri.scheme != "file") return@runCatching null
+                val path = uri.path ?: return@runCatching null
+                val file = File(path).canonicalFile
+                val captureDirectory = File(context.filesDir, "captures").canonicalFile
+                file.takeIf { it.parentFile == captureDirectory }
+            }.getOrNull()
         }
 
         fun restorePendingCapture(context: Context) {
