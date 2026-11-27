@@ -33,4 +33,26 @@ class ResearchCatalogTest {
         assertTrue(ResearchTree.MILITARY.aggregateBaseDurationSeconds!! > 0L)
         assertFalse(ResearchCatalog.overview(ResearchTree.LOGISTICS).levelCostsImported)
     }
+
+    @Test
+    fun publishedAggregateSummariesAreAvailableForAllFourTrees() {
+        assertEquals(4, ResearchCatalog.aggregateSummaries.size)
+        assertEquals(1_924_872L, ResearchCatalog.aggregateSummary(ResearchTree.LOGISTICS).totalPower)
+        assertEquals(196_769L, ResearchCatalog.aggregateSummary(ResearchTree.ECONOMY).totalPower)
+        assertEquals(7_347_780L, ResearchCatalog.aggregateSummary(ResearchTree.MILITARY).totalPower)
+        assertEquals(18_348_000L, ResearchCatalog.aggregateSummary(ResearchTree.FORTICLAD).totalPower)
+        assertEquals(
+            515L * 24L * 60L * 60L + 19L * 60L * 60L,
+            ResearchCatalog.aggregateSummary(ResearchTree.FORTICLAD).maximumDurationSeconds
+        )
+    }
+
+    @Test
+    fun aggregateCostSummariesRemainDisplayOnlyAndNeverEnableLevelPlanning() {
+        ResearchTree.entries.forEach { tree ->
+            assertTrue(ResearchCatalog.aggregateSummary(tree).costSummary.isNotBlank())
+            assertFalse(ResearchCatalog.overview(tree).levelCostsImported)
+            assertFalse(ResearchCatalog.overview(tree).prerequisitesImported)
+        }
+    }
 }
