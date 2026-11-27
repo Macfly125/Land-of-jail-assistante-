@@ -84,11 +84,12 @@ object GiftCodeRepository {
                 firstSeen = "26/11/2026", expiresAt = "30/11/2026",
                 note = "Code récent signalé comme publié dans le canal officiel. Échéance annoncée au 30/11/2026 à 23:59 heure serveur, fuseau UTC inconnu. Non testé par l'application ; vérifier le résultat dans le jeu."
             ))
-            // Pocket Gamer affiche encore N4HDYuJxkQKur5 avec une échéance
-            // au 30/11/2026, mais une autre source l'indique expiré en 2025.
-            add(GiftCodeEntry("N4HDYuJxkQKur5", "NEEDS_REVIEW", "Pocket Gamer / LOJ XLab · dates contradictoires",
-                firstSeen = "22/11/2026", expiresAt = "30/11/2026",
-                note = "Échéance publiée au 30/11/2026 par Pocket Gamer ; disponibilité non testée par l'application."))
+            // Le code Thanksgiving est daté du 30/11/2025 par LOJ XLab.
+            // Pocket Gamer affiche une échéance sans année dans sa liste 2026 ;
+            // l'historique daté de la source spécialisée prévaut ici.
+            add(GiftCodeEntry("N4HDYuJxkQKur5", "EXPIRED", "LOJ XLab · Thanksgiving 2025 / Pocket Gamer",
+                firstSeen = "22/11/2026", expiresAt = "30/11/2025",
+                note = "LOJ XLab date ce code Thanksgiving du 30/11/2025. Pocket Gamer affiche une échéance sans année dans sa liste de novembre 2026 ; date ambiguë écartée. Code classé expiré."))
             unverifiedCodes.forEach {
                 add(GiftCodeEntry(it, "UNVERIFIED", "LOJ XLab · autres sites",
                     note = "Non publié dans la liste officielle ; disponibilité non confirmée."))
