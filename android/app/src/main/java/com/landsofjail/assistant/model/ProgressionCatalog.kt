@@ -393,9 +393,9 @@ object ProgressionCatalog {
     const val GATE_SOURCE = "https://lojwiki.com/buildings/gate/"
 
     /**
-     * Gate upgrades for levels 1 -> 7 only. The source abbreviates higher
-     * resource quantities (e.g. 3.8M), so those levels are intentionally
-     * excluded rather than treating rounded display values as exact costs.
+     * Exact Gate costs are retained through level 10. Gasoline amounts shown
+     * in abbreviated/rounded form for levels 8–10 are deliberately omitted;
+     * those rows stay incomplete so the coach never treats them as zero.
      */
     val gateBuilding: List<ProgressionCatalogRecord> = listOf(
         gateRow(2, listOf("wood" to 10_000L, "steel" to 2_000L), 10, 7),
@@ -403,14 +403,18 @@ object ProgressionCatalog {
         gateRow(4, listOf("food" to 800_000L, "wood" to 800_000L, "steel" to 160_000L, "gasoline" to 40_000L), 3_840, 13),
         gateRow(5, listOf("food" to 3_000_000L, "wood" to 3_000_000L, "steel" to 600_000L, "gasoline" to 150_000L), 13_140, 16),
         gateRow(6, listOf("food" to 10_000_000L, "wood" to 10_000_000L, "steel" to 2_000_000L, "gasoline" to 500_000L), 35_520, 20),
-        gateRow(7, listOf("food" to 30_000_000L, "wood" to 30_000_000L, "steel" to 6_000_000L, "gasoline" to 1_500_000L), 133_200, 24)
+        gateRow(7, listOf("food" to 30_000_000L, "wood" to 30_000_000L, "steel" to 6_000_000L, "gasoline" to 1_500_000L), 133_200, 24),
+        gateRow(8, listOf("food" to 75_000_000L, "wood" to 75_000_000L, "steel" to 15_000_000L), 263_100, 27, complete = false),
+        gateRow(9, listOf("food" to 120_000_000L, "wood" to 120_000_000L, "steel" to 24_000_000L), 353_160, 29, complete = false),
+        gateRow(10, listOf("food" to 155_000_000L, "wood" to 155_000_000L, "steel" to 31_000_000L), 406_800, 30, complete = false)
     )
 
     private fun gateRow(
         targetLevel: Int,
         costs: List<Pair<String, Long>>,
         baseDurationSeconds: Long,
-        requiredWardenOfficeLevel: Int
+        requiredWardenOfficeLevel: Int,
+        complete: Boolean = true
     ): ProgressionCatalogRecord {
         val sourcedCosts = costs.map { (resourceId, quantity) ->
             ResourceCost(resourceId, quantity, CostConfidence.COMMUNITY_REFERENCE, GATE_SOURCE)
@@ -424,7 +428,7 @@ object ProgressionCatalog {
                 toLevel = targetLevel,
                 costs = sourcedCosts,
                 durationSeconds = baseDurationSeconds,
-                dataComplete = true
+                dataComplete = complete
             ),
             prerequisiteNotes = listOf("Warden's Office Lv.$requiredWardenOfficeLevel"),
             sourceLabel = "LOJ Wiki — Gate upgrade costs",
