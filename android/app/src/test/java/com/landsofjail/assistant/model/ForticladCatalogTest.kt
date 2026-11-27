@@ -23,7 +23,9 @@ class ForticladCatalogTest {
                 )
         })
         assertEquals(8, ForticladCatalog.eligibleBuildingIds.size)
-        assertFalse(ForticladCatalog.stageCosts.any { it.buildingId == "forticlad_lab" })
+        assertTrue(ForticladCatalog.stageCosts.any { it.buildingId == "forticlad_lab" })
+        assertEquals(10, ForticladCatalog.stageCosts.count { it.buildingId == "forticlad_lab" })
+        assertEquals(10, ForticladCatalog.stageCosts.count { it.buildingId == "medical_station" })
     }
 
     @Test
