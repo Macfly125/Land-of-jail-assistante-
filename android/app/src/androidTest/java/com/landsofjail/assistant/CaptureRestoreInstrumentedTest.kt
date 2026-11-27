@@ -130,7 +130,9 @@ class CaptureRestoreInstrumentedTest {
         assertNull(preferences.getString("pending_capture_uri", null))
 
         val oversized = File(directory, "oversized_capture.jpg")
-        oversized.setLength(20L * 1024L * 1024L + 1L)
+        java.io.RandomAccessFile(oversized, "rw").use { file ->
+            file.setLength(20L * 1024L * 1024L + 1L)
+        }
         preferences.edit()
             .putString("pending_capture_uri", Uri.fromFile(oversized).toString())
             .putLong("pending_capture_at", 2L)
