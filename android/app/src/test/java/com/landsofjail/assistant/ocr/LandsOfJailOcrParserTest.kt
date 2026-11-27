@@ -773,6 +773,33 @@ Stahl
     }
 
     @Test
+    fun doesNotBorrowTheNextRobotsLevelWhenSeveralRobotCardsAreVisible() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            "Ranger\nPhantom Cat\nLevel 90"
+        )
+
+        val ranger = result.robots.single { it.nom == "Ranger" }
+        val phantomCat = result.robots.single { it.nom == "Phantom Cat" }
+
+        assertTrue("Ranger ne doit pas emprunter le niveau du robot suivant", ranger.niveau.isBlank())
+        assertTrue(ranger.incertain)
+        assertEquals("90", phantomCat.niveau)
+        assertFalse(phantomCat.incertain)
+    }
+
+    @Test
+    fun doesNotTurnBuildingPanelActionsOrHungerIntoAccountResourcesOrPower() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            "Kitchen Lv.1\nStove\nBuild 135/10\nHunger 0+18.6\nTime 0s+8s"
+        )
+
+        assertNull(result.power)
+        assertTrue(result.resources.isEmpty())
+        assertTrue(result.robots.isEmpty())
+        assertEquals("batiments", result.detectedCategory)
+    }
+
+    @Test
     fun recognizesRobotNameSplitAcrossTwoOcrLines() {
         val result = LandsOfJailOcrParser.parseLocalOcrText(
             """Phantom
