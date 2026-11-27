@@ -157,9 +157,12 @@ class SupabaseAuthRepository(context: Context) {
                     error(message)
                 }
                 val obj = parsed ?: error("Réponse d'authentification illisible.")
-                val session = obj["access_token"]?.jsonPrimitive?.contentOrNull?.let { access ->
-                    val refresh = obj["refresh_token"]?.jsonPrimitive?.contentOrNull.orEmpty()
-                    if (refresh.isBlank()) null else Session(
+                val session = obj["access_token"]?.jsonPrimitive?.contentOrNull
+                    ?.takeIf { it.isNotBlank() }
+                    ?.let { access ->
+                    val refresh = obj["refresh_token"]?.jsonPrimitive?.contentOrNull
+                        ?.takeIf { it.isNotBlank() }
+                    if (refresh == null) null else Session(
                         access_token = access,
                         refresh_token = refresh,
                         token_type = obj["token_type"]?.jsonPrimitive?.contentOrNull ?: "bearer",
@@ -171,8 +174,12 @@ class SupabaseAuthRepository(context: Context) {
                 session?.let(::saveSession)
                 AuthOutcome(
                     session = session,
-                    message = if (session == null && path.endsWith("/signup")) {
-                        "Compte créé. Une confirmation par e-mail est peut-être nécessaire avant la connexion."
+                    message = if (session == null) {
+                        if (path.endsWith("/signup")) {
+                            "Compte créé. Une confirmation par e-mail est peut-être nécessaire avant la connexion."
+                        } else {
+                            "La connexion n'a pas fourni de session valide. Réessaie."
+                        }
                     } else successMessage
                 )
             }
