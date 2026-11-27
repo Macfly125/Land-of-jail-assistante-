@@ -1,6 +1,5 @@
 package com.landsofjail.assistant.ui
 
-import android.content.Context
 import java.text.NumberFormat
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -35,7 +34,7 @@ import com.landsofjail.assistant.model.ProgressionCatalogRecord
 import com.landsofjail.assistant.model.CostConfidence
 import com.landsofjail.assistant.model.ForticladCatalog
 import com.landsofjail.assistant.model.ForticladInventory
-import com.landsofjail.assistant.data.ForticladInventoryStore
+import com.landsofjail.assistant.data.ProgressionProfileStore
 import com.landsofjail.assistant.model.ForticladSelection
 import com.landsofjail.assistant.model.ProgressionCoach
 import com.landsofjail.assistant.model.canonicalProgressionResourceId
@@ -44,7 +43,6 @@ import com.landsofjail.assistant.model.ProgressionStep
 import com.landsofjail.assistant.model.ProgressionLevelRecord
 import com.landsofjail.assistant.model.ProgressionObjective
 import com.landsofjail.assistant.model.ProgressionPlayerProfile
-import com.landsofjail.assistant.model.ProgressionProfileCodec
 import com.landsofjail.assistant.model.ResearchCatalog
 import com.landsofjail.assistant.model.ResearchTree
 import com.landsofjail.assistant.model.ResourceRecord
@@ -645,24 +643,21 @@ fun ProgressionCoachScreen(
     resources: List<ResourceRecord>
 ) {
     val context = LocalContext.current
-    val prefs = remember(context, profileId) {
-        context.getSharedPreferences("progression_profile_$profileId", Context.MODE_PRIVATE)
-    }
+    val profileStore = remember(context, profileId) { ProgressionProfileStore(context, profileId) }
     var profile by remember(profileId) {
-        val decoded = ProgressionProfileCodec.decodeOrDefault(prefs.getString("profile", null), profileId)
-        val legacyInventory = ForticladInventoryStore(context, profileId).loadOrNull()
-        val hasForticlad = decoded.confirmedStock("forticlad cores") != null
-        val hasAdvanced = decoded.confirmedStock("advanced forticlad cores") != null
-        val migrated = if (legacyInventory != null && (!hasForticlad || !hasAdvanced)) {
-            decoded.copy(resourceStocks = upsertForticladInventoryStocks(
-                decoded.resourceStocks,
-                decoded.confirmedStock("forticlad cores") ?: legacyInventory.forticladCores,
-                decoded.confirmedStock("advanced forticlad cores") ?: legacyInventory.advancedCores,
-                System.currentTimeMillis()
-            ))
-        } else decoded
-        if (migrated != decoded) prefs.edit().putString("profile", ProgressionProfileCodec.encode(migrated)).apply()
-        mutableStateOf(migrated)
+        mutableStateOf(ProgressionPlayerProfile(profileId = profileId))
+    }
+    var profileLoaded by remember(profileId) { mutableStateOf(false) }
+    LaunchedEffect(profileStore) {
+        profile = profileStore.load()
+        profileLoaded = true
+    }
+    LaunchedEffect(profile, profileLoaded) {
+        if (profileLoaded) profileStore.save(profile)
+    }
+    if (!profileLoaded) {
+        Text("Loading progression profile…")
+        return
     }
     var selectedDomain by remember(profileId) { mutableStateOf(ProgressionDomain.BUILDING) }
     var targetId by remember(profileId) { mutableStateOf("warden_office") }
@@ -767,7 +762,7 @@ fun ProgressionCoachScreen(
         val mergedStocks = mergeProgressionStocks(profile.resourceStocks, observedStocks)
         if (mergedStocks != profile.resourceStocks) {
             profile = profile.copy(resourceStocks = mergedStocks, updatedAtEpochMillis = now)
-            prefs.edit().putString("profile", ProgressionProfileCodec.encode(profile)).apply()
+            profileStore.save(profile)
         }
     }
 
@@ -802,7 +797,7 @@ fun ProgressionCoachScreen(
                     ),
                     updatedAtEpochMillis = now
                 )
-                prefs.edit().putString("profile", ProgressionProfileCodec.encode(profile)).apply()
+                profileStore.save(profile)
             }
         }
         item {
@@ -944,7 +939,7 @@ fun ProgressionCoachScreen(
                                 val stocks = mergeProgressionStocks(profile.resourceStocks, observedStocks)
                                 profile = profile.copy(objectives = objectives, levels = levels,
                                     resourceStocks = stocks, updatedAtEpochMillis = now)
-                                prefs.edit().putString("profile", ProgressionProfileCodec.encode(profile)).apply()
+                                profileStore.save(profile)
                                 statusMessage = text(fr = "Objectif enregistré.", en = "Goal saved.", de = "Ziel gespeichert.",
                                     tr = "Hedef kaydedildi.", ru = "Цель сохранена.", zh = "目标已保存。", it = "Obiettivo salvato.")
                                 currentLevel = ""
@@ -1003,7 +998,7 @@ fun ProgressionCoachScreen(
                                 profile = profile.copy(objectives = profile.objectives.map {
                                     it.copy(isPrimary = it.id == goal.id)
                                 }, updatedAtEpochMillis = System.currentTimeMillis())
-                                prefs.edit().putString("profile", ProgressionProfileCodec.encode(profile)).apply()
+                                profileStore.save(profile)
                             }) {
                                 Text(text(fr = "Principal", en = "Make primary", de = "Als Hauptziel", tr = "Ana yap",
                                     ru = "Сделать главной", zh = "设为主要目标", it = "Imposta principale"))
@@ -1013,7 +1008,7 @@ fun ProgressionCoachScreen(
                                     objectives = removeProgressionObjective(profile.objectives, goal.id),
                                     updatedAtEpochMillis = System.currentTimeMillis()
                                 )
-                                prefs.edit().putString("profile", ProgressionProfileCodec.encode(profile)).apply()
+                                profileStore.save(profile)
                             }) {
                                 Text(text(fr = "Supprimer", en = "Delete", de = "Löschen", tr = "Sil", ru = "Удалить", zh = "删除", it = "Elimina"))
                             }
