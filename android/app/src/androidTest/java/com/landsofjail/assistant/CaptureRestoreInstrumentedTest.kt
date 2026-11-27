@@ -51,6 +51,33 @@ class CaptureRestoreInstrumentedTest {
     }
 
     @Test
+    fun refusesToReplaceCaptureThatIsStillPending() {
+        val directory = File(context.filesDir, "captures")
+        assertTrue(directory.exists() || directory.mkdirs())
+        val firstFile = File(directory, "pending_first.jpg").apply { writeBytes(byteArrayOf(1, 2, 3)) }
+        val secondFile = File(directory, "pending_second.jpg").apply { writeBytes(byteArrayOf(4, 5, 6)) }
+        val firstBitmap = Bitmap.createBitmap(8, 8, Bitmap.Config.ARGB_8888)
+        val secondBitmap = Bitmap.createBitmap(8, 8, Bitmap.Config.ARGB_8888)
+        val first = com.landsofjail.assistant.capture.CapturedScreenPayload(
+            firstBitmap, "first", 100L, Uri.fromFile(firstFile).toString()
+        )
+        val second = com.landsofjail.assistant.capture.CapturedScreenPayload(
+            secondBitmap, "second", 200L, Uri.fromFile(secondFile).toString()
+        )
+
+        assertTrue(ScreenCaptureConsentActivity.publishCapture(context, first))
+        assertFalse(ScreenCaptureConsentActivity.publishCapture(context, second))
+        assertEquals(first, ScreenCaptureConsentActivity.pendingCapture.value)
+        assertEquals(Uri.fromFile(firstFile).toString(), preferences.getString("pending_capture_uri", null))
+        assertTrue(firstFile.exists())
+        assertFalse(secondFile.exists())
+
+        secondBitmap.recycle()
+        ScreenCaptureConsentActivity.consumeCapture(context)
+        assertFalse(firstBitmap.isRecycled.not())
+    }
+
+    @Test
     fun restoresPersistedCaptureAndConsumesItSafely() {
         val directory = File(context.filesDir, "captures")
         assertTrue(directory.exists() || directory.mkdirs())
