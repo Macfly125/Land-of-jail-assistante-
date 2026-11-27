@@ -1390,4 +1390,12 @@ Potential Coil x 8"""
             assertEquals("L'événement doit rester reconnu : $sample", "trial_cage", ScreenRecognitionEngine.analyze(sample).category)
         }
     }
+
+    @Test
+    fun doesNotStoreForticladLabLevelAsHeadquartersLevel() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText("Forticlad Lab\\nLevel 6")
+
+        assertEquals("forticlad_lab", result.detectedCategory)
+        assertNull("Le niveau du laboratoire Forticlad ne doit pas devenir le niveau du QG", result.power)
+    }
 }
