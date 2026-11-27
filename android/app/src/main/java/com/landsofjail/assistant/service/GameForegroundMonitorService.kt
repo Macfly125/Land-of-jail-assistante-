@@ -732,8 +732,8 @@ class GameForegroundMonitorService : Service() {
             lastAutoFrameSamples = null
             monitorJob?.cancel()
             monitorJob = null
-            removeFloatingAnalyzeBar()
-            stopForeground(STOP_FOREGROUND_REMOVE)
+            runCatching { removeFloatingAnalyzeBar() }
+            runCatching { stopForeground(STOP_FOREGROUND_REMOVE) }
             stopSelf()
             return false
         }
@@ -743,7 +743,7 @@ class GameForegroundMonitorService : Service() {
         if (wasMonitoring) {
             restoreMonitoringForegroundOrStop()
         } else {
-            stopForeground(STOP_FOREGROUND_REMOVE)
+            runCatching { stopForeground(STOP_FOREGROUND_REMOVE) }
             stopSelf()
         }
     }
