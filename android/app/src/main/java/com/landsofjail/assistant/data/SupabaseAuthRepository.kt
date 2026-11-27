@@ -74,6 +74,26 @@ class SupabaseAuthRepository(context: Context) {
         val createdAt: String
     )
 
+    data class AllianceProfileConfirmation(
+        val verifierUserId: String,
+        val verifierName: String,
+        val verifiedAt: String
+    )
+
+    data class AllianceProfileVerification(
+        val memberUserId: String,
+        val profileUpdatedAt: String?,
+        val confirmationCount: Int,
+        val verified: Boolean,
+        val confirmations: List<AllianceProfileConfirmation>
+    )
+
+    data class AllianceProfileVerificationResult(
+        val confirmationCount: Int,
+        val verified: Boolean,
+        val alreadyConfirmed: Boolean
+    )
+
     data class ImprovementRequest(
         val id: String,
         val userId: String,
@@ -235,6 +255,59 @@ class SupabaseAuthRepository(context: Context) {
     }
 
 
+
+    /** Loads current-revision verification counts for every alliance member. */
+    suspend fun fetchAllianceProfileVerifications(
+        allianceId: String
+    ): Result<List<AllianceProfileVerification>> = withContext(Dispatchers.IO) {
+        runCatching {
+            val normalizedAllianceId = allianceId.trim()
+            require(isUuid(normalizedAllianceId)) { "Identifiant d'alliance invalide." }
+            val result = callAllianceRpcJson("fetch_alliance_profile_verifications", buildJsonObject {
+                put("p_alliance_id", normalizedAllianceId)
+            }).getOrThrow()
+            result.jsonArray.map { element ->
+                val item = element.jsonObject
+                val confirmations = item["confirmations"]?.jsonArray.orEmpty().map { confirmation ->
+                    val value = confirmation.jsonObject
+                    AllianceProfileConfirmation(
+                        verifierUserId = value["verifier_user_id"]?.jsonPrimitive?.contentOrNull.orEmpty(),
+                        verifierName = value["verifier_name"]?.jsonPrimitive?.contentOrNull ?: "Membre",
+                        verifiedAt = value["verified_at"]?.jsonPrimitive?.contentOrNull.orEmpty()
+                    )
+                }
+                AllianceProfileVerification(
+                    memberUserId = item["member_user_id"]?.jsonPrimitive?.contentOrNull.orEmpty(),
+                    profileUpdatedAt = item["profile_updated_at"]?.jsonPrimitive?.contentOrNull,
+                    confirmationCount = item["verification_count"]?.jsonPrimitive?.contentOrNull?.toIntOrNull() ?: 0,
+                    verified = item["verified"]?.jsonPrimitive?.contentOrNull?.toBooleanStrictOrNull() ?: false,
+                    confirmations = confirmations
+                )
+            }
+        }
+    }
+
+    /** Adds one distinct member's confirmation for the latest synchronized profile revision. */
+    suspend fun verifyAllianceMemberProfile(
+        allianceId: String,
+        memberUserId: String
+    ): Result<AllianceProfileVerificationResult> = withContext(Dispatchers.IO) {
+        runCatching {
+            val normalizedAllianceId = allianceId.trim()
+            val normalizedMemberId = memberUserId.trim()
+            require(isUuid(normalizedAllianceId)) { "Identifiant d'alliance invalide." }
+            require(isUuid(normalizedMemberId)) { "Identifiant de membre invalide." }
+            val result = callAllianceRpcJson("verify_alliance_member_profile", buildJsonObject {
+                put("p_alliance_id", normalizedAllianceId)
+                put("p_member_user_id", normalizedMemberId)
+            }).getOrThrow().jsonObject
+            AllianceProfileVerificationResult(
+                confirmationCount = result["count"]?.jsonPrimitive?.contentOrNull?.toIntOrNull() ?: 0,
+                verified = result["verified"]?.jsonPrimitive?.contentOrNull?.toBooleanStrictOrNull() ?: false,
+                alreadyConfirmed = result["already_confirmed"]?.jsonPrimitive?.contentOrNull?.toBooleanStrictOrNull() ?: false
+            )
+        }
+    }
 
     /** Creates the alliance and assigns its creator as R5 atomically on the server. */
     suspend fun createAlliance(serverNumber: String, allianceName: String): Result<String> = runCatching {
@@ -627,6 +700,31 @@ class SupabaseAuthRepository(context: Context) {
                 }
             }
         }
+
+    private suspend fun callAllianceRpcJson(
+        functionName: String,
+        payload: kotlinx.serialization.json.JsonObject
+    ): Result<kotlinx.serialization.json.JsonElement> = withContext(Dispatchers.IO) {
+        runCatching {
+            require(functionName in setOf("fetch_alliance_profile_verifications", "verify_alliance_member_profile")) {
+                "Action de vérification non autorisée."
+            }
+            require(payload.toString().length <= 4096) { "Données de vérification trop longues." }
+            val active = refreshSession().getOrThrow()
+            val request = Request.Builder()
+                .url("$BASE_URL/rest/v1/rpc/$functionName")
+                .header("apikey", PUBLISHABLE_KEY)
+                .header("Authorization", "Bearer ${active.access_token}")
+                .header("Content-Type", "application/json")
+                .post(payload.toString().toRequestBody("application/json".toMediaType()))
+                .build()
+            client.newCall(request).execute().use { response ->
+                val body = response.body?.string().orEmpty()
+                if (!response.isSuccessful) error(extractApiError(body, response.code))
+                json.parseToJsonElement(body)
+            }
+        }
+    }
 
     private fun isUuid(value: String): Boolean =
         value.matches(Regex("(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"))
