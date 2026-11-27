@@ -1681,4 +1681,20 @@ Potential Coil x 8"""
             suffixOverflow.resources.isEmpty())
     }
 
+
+    @Test
+    fun preservesDotGroupedPowerOverflowAsUncertainButRejectsMalformedGrouping() {
+        val oversizedDotGroupedPower = LandsOfJailOcrParser.parseLocalOcrText(
+            "Power: 9.223.372.036.854.775.808"
+        )
+        assertNull(oversizedDotGroupedPower.power?.puissanceTotaleNumerique)
+        assertTrue(oversizedDotGroupedPower.power?.incertain == true)
+
+        val malformedPower = LandsOfJailOcrParser.parseLocalOcrText(
+            "Power: 9,22,372,036,854,775,808"
+        )
+        assertNull("Un groupement de milliers invalide ne doit pas créer de puissance",
+            malformedPower.power)
+    }
+
 }
