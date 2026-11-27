@@ -713,19 +713,36 @@ class SupabaseAuthRepository(context: Context) {
             .apply()
     }
 
-    private fun readSession(): Session? = runCatching {
-        val iv = prefs.getString("iv", null) ?: return null
-        val payload = prefs.getString("payload", null) ?: return null
-        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
-        cipher.init(
-            Cipher.DECRYPT_MODE,
-            getOrCreateKey(),
-            GCMParameterSpec(128, Base64.decode(iv, Base64.NO_WRAP))
-        )
-        json.decodeFromString<Session>(
-            String(cipher.doFinal(Base64.decode(payload, Base64.NO_WRAP)), Charsets.UTF_8)
-        )
-    }.getOrNull()
+    private fun readSession(): Session? {
+        val iv = prefs.getString("iv", null)
+        val payload = prefs.getString("payload", null)
+        if (iv == null && payload == null) return null
+        if (iv.isNullOrBlank() || payload.isNullOrBlank()) {
+            clearSession()
+            return null
+        }
+
+        return runCatching {
+            val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+            cipher.init(
+                Cipher.DECRYPT_MODE,
+                getOrCreateKey(),
+                GCMParameterSpec(128, Base64.decode(iv, Base64.NO_WRAP))
+            )
+            json.decodeFromString<Session>(
+                String(cipher.doFinal(Base64.decode(payload, Base64.NO_WRAP)), Charsets.UTF_8)
+            ).also { session ->
+                require(session.access_token.isNotBlank() && session.refresh_token.isNotBlank()) {
+                    "Session locale incomplète."
+                }
+            }
+        }.getOrElse {
+            // A corrupted payload or an invalidated Android Keystore key must not
+            // leave an unusable session behind or block the next sign-in attempt.
+            clearSession()
+            null
+        }
+    }
 
     private fun clearSession() {
         prefs.edit().clear().apply()
