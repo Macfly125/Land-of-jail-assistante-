@@ -217,7 +217,7 @@ object LandsOfJailOcrParser {
         val knownRobotNames = (RobotCatalog.entries.map { it.name } + listOf("Chat Fantôme", "Hercules Alpha", "Valiant", "Scorpio")).distinct()
         // Un panneau de bâtiment est une frontière : ses niveaux ne décrivent jamais le robot précédent.
         val buildingPanelLabelRegex = Regex(
-            """(?:^|\\b)(?:forticlad\\s+lab|laboratory|laboratoire|kitchen|cuisine|warehouse|entrep[oô]t|barracks|caserne|medical\\s+station|infirmary|infirmerie|command\\s+center|centre\\s+de\\s+commandement|gate|porte|warden(?:['’]s)?\\s+office|director(?:['’]s)?\\s+office|bureau\\s+du\\s+directeur|robot\\s+center|yard|cour|cell|cellule|comms|communication\\s+center)(?:$|\\b)""",
+            """(?:^|\b)(?:forticlad\s+lab|laboratory|laboratoire|kitchen|cuisine|warehouse|entrep[oô]t|barracks|caserne|medical\s+station|infirmary|infirmerie|command\s+center|centre\s+de\s+commandement|gate|porte|warden(?:['’]s)?\s+office|director(?:['’]s)?\s+office|bureau\s+du\s+directeur|robot\s+center|yard|cour|cell|cellule|comms|communication\s+center)(?:$|\b)""",
             RegexOption.IGNORE_CASE
         )
         val seenHeroKeys = mutableSetOf<String>()
