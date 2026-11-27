@@ -5846,6 +5846,11 @@ private fun AllianceScreen(
     var cloudRosterError by remember { mutableStateOf(false) }
     var cloudCanManageRanks by remember { mutableStateOf(false) }
     var cloudMemberIds by remember { mutableStateOf<Set<String>>(emptySet()) }
+    var cloudVerificationRoster by remember { mutableStateOf<List<AlliancePlayerProfile>>(emptyList()) }
+    var cloudProfileVerifications by remember { mutableStateOf<List<SupabaseAuthRepository.AllianceProfileVerification>>(emptyList()) }
+    var profileVerificationBusyFor by remember { mutableStateOf<String?>(null) }
+    var profileVerificationMessage by remember { mutableStateOf<String?>(null) }
+    var profileVerificationError by remember { mutableStateOf(false) }
     var expandedRankMenuFor by remember { mutableStateOf<String?>(null) }
     var rankChangeBusyFor by remember { mutableStateOf<String?>(null) }
     var rankChangeMessage by remember { mutableStateOf<String?>(null) }
@@ -5922,9 +5927,10 @@ private fun AllianceScreen(
                     allianceMessagesNotice = it.message ?: "Chargement des messages impossible."
                     allianceMessagesError = true
                 }
-            if (canManage) {
-                cloudAuth.fetchAllianceRoster(linkedAllianceId).onSuccess { cloudMembers ->
-                    cloudMemberIds = cloudMembers.map { it.id }.toSet()
+            cloudAuth.fetchAllianceRoster(linkedAllianceId).onSuccess { cloudMembers ->
+                cloudVerificationRoster = cloudMembers
+                cloudMemberIds = cloudMembers.map { it.id }.toSet()
+                if (canManage) {
                     val cloudNames = cloudMembers.map { it.playerName.lowercase() }.toSet()
                     val mergedMembers = cloudMembers.map { cloudMember ->
                         val local = workspace.members.firstOrNull {
@@ -5943,9 +5949,17 @@ private fun AllianceScreen(
                     onSaveWorkspace(workspace.copy(members = mergedMembers))
                 }
             }
+            cloudAuth.fetchAllianceProfileVerifications(linkedAllianceId)
+                .onSuccess { cloudProfileVerifications = it }
+                .onFailure {
+                    profileVerificationMessage = it.message ?: "Chargement des vérifications impossible."
+                    profileVerificationError = true
+                }
         } else {
             cloudCanManageRanks = false
             cloudMemberIds = emptySet()
+            cloudVerificationRoster = emptyList()
+            cloudProfileVerifications = emptyList()
             cloudMyRank = null
             appDeveloper = false
             allianceMessages = emptyList()
@@ -6406,6 +6420,91 @@ private fun AllianceScreen(
                             onSaveWorkspace(workspace.copy(members = workspace.members.filterNot { it.id == member.id }))
                             simulation = emptyList()
                         }) { Text(localizedAppText(localizedAppText("Retirer du roster"))) }
+                    }
+                }
+            }
+        }
+        if (cloudVerificationRoster.isNotEmpty()) {
+            item {
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(localizedUiText(language, "Vérification collaborative des profils", "Collaborative profile verification", "Gemeinsame Profilprüfung", "Ortak profil doğrulaması", "Совместная проверка профилей", "成员资料协作验证", "Verifica collaborativa dei profili"), fontWeight = FontWeight.Bold)
+                        Text(localizedUiText(language, "Deux membres distincts valident un profil. Maximum cinq confirmations par version du profil.", "Two distinct members verify a profile. Maximum five confirmations per profile version.", "Zwei verschiedene Mitglieder bestätigen ein Profil. Maximal fünf Bestätigungen je Profilversion.", "İki farklı üye profili doğrular. Profil sürümü başına en fazla beş onay.", "Два разных участника подтверждают профиль. Не более пяти подтверждений на версию профиля.", "两名不同成员确认资料。每个资料版本最多五次确认。", "Due membri distinti verificano un profilo. Massimo cinque conferme per versione del profilo."), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        profileVerificationMessage?.let {
+                            Text(it, color = if (profileVerificationError) Color(0xFFFCA5A5) else Color(0xFF86EFAC), style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                }
+            }
+            items(cloudVerificationRoster, key = { "cloud-verification-${it.id}" }) { member ->
+                val verification = cloudProfileVerifications.firstOrNull { it.memberUserId == member.id }
+                val currentUserId = cloudAuth.currentSession()?.user_id.orEmpty()
+                val alreadyConfirmed = verification?.confirmations?.any { it.verifierUserId == currentUserId } == true
+                val count = verification?.confirmationCount ?: 0
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(member.playerName, fontWeight = FontWeight.SemiBold)
+                            Text(
+                                when {
+                                    verification?.verified == true -> "Vérifié"
+                                    verification?.profileUpdatedAt.isNullOrBlank() -> "Profil absent"
+                                    else -> "À vérifier · $count/5"
+                                },
+                                color = if (verification?.verified == true) Color(0xFF34D399) else Color(0xFFFBBF24),
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                        }
+                        verification?.confirmations.orEmpty().forEach { confirmation ->
+                            Text(
+                                "${confirmation.verifierName} · ${confirmation.verifiedAt}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        if (verification?.profileUpdatedAt.isNullOrBlank()) {
+                            Text("Aucun profil synchronisé à vérifier.", style = MaterialTheme.typography.bodySmall)
+                        } else if (member.id != currentUserId) {
+                            OutlinedButton(
+                                onClick = {
+                                    val linkedAllianceId = accountPrefs.getString("cloud_alliance_id", "").orEmpty()
+                                    scope.launch {
+                                        profileVerificationBusyFor = member.id
+                                        profileVerificationMessage = null
+                                        cloudAuth.verifyAllianceMemberProfile(linkedAllianceId, member.id)
+                                            .onSuccess { result ->
+                                                cloudAuth.fetchAllianceProfileVerifications(linkedAllianceId)
+                                                    .onSuccess { cloudProfileVerifications = it }
+                                                profileVerificationMessage = if (result.alreadyConfirmed) {
+                                                    "Ta confirmation était déjà enregistrée."
+                                                } else {
+                                                    "Confirmation enregistrée : ${result.confirmationCount}/5."
+                                                }
+                                                profileVerificationError = false
+                                            }
+                                            .onFailure {
+                                                profileVerificationMessage = it.message ?: "Confirmation impossible."
+                                                profileVerificationError = true
+                                            }
+                                        profileVerificationBusyFor = null
+                                    }
+                                },
+                                enabled = profileVerificationBusyFor == null && !alreadyConfirmed && count < 5
+                            ) {
+                                Text(
+                                    when {
+                                        profileVerificationBusyFor == member.id -> "Enregistrement…"
+                                        alreadyConfirmed -> "Déjà confirmé par toi"
+                                        count >= 5 -> "Maximum atteint"
+                                        else -> "Confirmer ce profil"
+                                    }
+                                )
+                            }
+                        }
                     }
                 }
             }
