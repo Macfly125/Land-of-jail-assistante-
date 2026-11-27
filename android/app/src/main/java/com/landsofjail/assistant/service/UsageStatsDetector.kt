@@ -109,8 +109,7 @@ object UsageStatsDetector {
             events.getNextEvent(event)
             val kind = when (event.eventType) {
                 UsageEvents.Event.ACTIVITY_RESUMED -> UsageEventKind.RESUMED
-                UsageEvents.Event.ACTIVITY_PAUSED,
-                UsageEvents.Event.MOVE_TO_BACKGROUND -> UsageEventKind.PAUSED
+                UsageEvents.Event.ACTIVITY_PAUSED -> UsageEventKind.PAUSED
                 else -> when {
                     Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
                         event.eventType == UsageEvents.Event.ACTIVITY_STOPPED -> UsageEventKind.STOPPED
