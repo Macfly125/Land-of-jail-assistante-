@@ -52,6 +52,24 @@ internal fun resolveForegroundPackage(events: List<UsageEventSnapshot>): String?
     return packageName.takeUnless { appMovedToBackground || deviceBecameInactive }
 }
 
+/**
+ * Distinguishes an explicit foreground exit from an empty event window.
+ * Empty windows may safely retain the last confirmed package; an exit must clear it.
+ */
+internal fun hasExplicitForegroundExit(events: List<UsageEventSnapshot>): Boolean {
+    val orderedEvents = events.sortedBy { it.timestamp }
+    val lastResumeIndex = orderedEvents.indexOfLast { it.kind == UsageEventKind.RESUMED }
+    if (lastResumeIndex < 0) return false
+    val packageName = orderedEvents[lastResumeIndex].packageName?.takeIf { it.isNotBlank() }
+        ?: return false
+    return orderedEvents.drop(lastResumeIndex + 1).any {
+        (it.packageName == packageName &&
+            (it.kind == UsageEventKind.PAUSED || it.kind == UsageEventKind.STOPPED)) ||
+            it.kind == UsageEventKind.SCREEN_NON_INTERACTIVE ||
+            it.kind == UsageEventKind.KEYGUARD_SHOWN
+    }
+}
+
 object UsageStatsDetector {
 
     const val DEFAULT_GAME_PACKAGE_KEYWORD = "com.justgame.jails"
@@ -124,6 +142,7 @@ object UsageStatsDetector {
             snapshots += UsageEventSnapshot(event.packageName, kind, event.timeStamp)
         }
         return resolveForegroundPackage(snapshots)
+            ?: "".takeIf { hasExplicitForegroundExit(snapshots) }
     }
 
     fun isLandsOfJailPackage(packageName: String?, targetFilter: String): Boolean {
