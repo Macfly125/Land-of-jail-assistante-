@@ -54,7 +54,7 @@ object ScreenRecognitionEngine {
                 val normalizedLabel = normalize(label)
                 val numericPowerLabel = category == "profil" &&
                     label in listOf("power", "puissance", "macht", "güç", "мощь", "战力") &&
-                    Regex("""(?:^|\\s)\\Q$normalizedLabel\\E\\s*[:：-]?\\s*[0-9]""")
+                    Regex("""(?:^|\s)\Q$normalizedLabel\E\s*[:：-]?\s*[0-9]""")
                         .containsMatchIn(normalized)
                 val isMatch = normalizedLabel.isNotEmpty() && (numericPowerLabel || when {
                     // Les libellés chinois sont souvent concaténés sans espaces dans l'OCR.
