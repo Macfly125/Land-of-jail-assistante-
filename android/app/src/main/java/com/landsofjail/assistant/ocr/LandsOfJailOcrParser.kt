@@ -289,9 +289,9 @@ object LandsOfJailOcrParser {
                     val isAmbiguousFuelOnly = resLabel == "Essence (Gasoline)" &&
                         Regex("""^fuel\b""", RegexOption.IGNORE_CASE).containsMatchIn(line) &&
                         !Regex(
-                            """\b(gasoline|essence|benzina|carburante|benzin|汽油|бензин|food|wood|steel|nourriture|bois|acier|diamonds|diamants|gold|cash)\b""",
+                            """\b(gasoline|essence|benzina|carburante|benzin|汽油|бензин)\b""",
                             RegexOption.IGNORE_CASE
-                        ).containsMatchIn(rawText)
+                        ).containsMatchIn(line)
                     if (isAmbiguousFuelOnly) continue
                     val inlineQuantity = match.groupValues.drop(1).firstOrNull { it.isNotBlank() }?.trim()
                     val nextLineQuantity = (index + 1..minOf(lines.lastIndex, index + 2))
