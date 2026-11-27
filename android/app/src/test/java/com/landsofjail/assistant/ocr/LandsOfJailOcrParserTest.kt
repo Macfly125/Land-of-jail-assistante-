@@ -207,6 +207,23 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun acceptsLocalizedPowerLabelsAcrossSupportedGameLanguages() {
+        val samples = listOf(
+            "Macht: 8.6M\\nFood: 12.4M" to 8_600_000L,
+            "Güç: 7.2M\\nWood: 4.1M" to 7_200_000L,
+            "мощь: 950000\\nSteel: 3.1M" to 950_000L,
+            "战力: 12M\\nFood: 1200" to 12_000_000L
+        )
+        samples.forEach { (sample, expected) ->
+            val result = LandsOfJailOcrParser.parseLocalOcrText(sample)
+            assertEquals("Le libellé de puissance localisé doit être reconnu : $sample",
+                expected, result.power?.puissanceTotaleNumerique)
+            assertTrue("La ressource ne doit pas être absorbée par la puissance : $sample",
+                result.resources.isNotEmpty())
+        }
+    }
+
+    @Test
     fun parsesCompactPowerSuffix() {
         val result = LandsOfJailOcrParser.parseLocalOcrText("Power: 12.4M")
 
