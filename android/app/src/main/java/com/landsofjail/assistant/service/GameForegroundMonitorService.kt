@@ -661,6 +661,9 @@ class GameForegroundMonitorService : Service() {
             virtualDisplay?.setSurface(if (shouldAttach) imageReader?.surface else null)
             autoCaptureSurfaceAttached = shouldAttach
         } catch (_: Throwable) {
+            // Une surface qui ne peut plus être modifiée rend la capture automatique
+            // inutilisable : libérer la projection et restaurer/arrêter le service.
+            handleAutoProjectionStopped()
         }
     }
 
@@ -697,7 +700,7 @@ class GameForegroundMonitorService : Service() {
         autoCaptureAwaitingAnalysis = false
         lastAutoFrameSamples = null
         releaseProjection()
-        if (autoCaptureOwnsMonitor) stopMonitoringAndSelf() else startAsMonitoringForeground()
+        if (autoCaptureOwnsMonitor) stopMonitoringAndSelf() else restoreMonitoringForegroundOrStop()
     }
 
     private fun stopAutoCaptureInternal() {
