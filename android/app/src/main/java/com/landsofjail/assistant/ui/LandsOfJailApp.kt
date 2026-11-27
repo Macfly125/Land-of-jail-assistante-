@@ -3302,6 +3302,14 @@ private fun HeroesScreen(
             }
         }
         item {
+            RobotsProfileSection(
+                language = language,
+                profileId = profileId,
+                robots = robots,
+                onSaveRobots = onSaveRobots
+            )
+        }
+        item {
             Text(
                 localizedUiText(language, "Profils détectés en priorité · Catalogue complet ensuite", "Detected profiles first · Full catalogue below", "Erkannte Profile zuerst · Vollständiger Katalog darunter", "Önce algılanan profiller · Ardından tam katalog", "Сначала обнаруженные профили · Затем полный каталог", "优先显示已识别档案 · 下方为完整目录", "Prima i profili rilevati · Catalogo completo sotto"),
                 style = MaterialTheme.typography.titleMedium,
@@ -3450,14 +3458,6 @@ private fun HeroesScreen(
             item {
                 Text(localizedUiText(language, "Aucun héros ne correspond à cette recherche.", "No heroes match this search.", "Keine Helden entsprechen dieser Suche.", "Bu aramayla eşleşen kahraman yok.", "Герои не найдены.", "没有符合此搜索的英雄。", "Nessun eroe corrisponde a questa ricerca."))
             }
-        }
-        item {
-            RobotsProfileSection(
-                language = language,
-                profileId = profileId,
-                robots = robots,
-                onSaveRobots = onSaveRobots
-            )
         }
         val detectedOutsideCatalog = heroes.filter { detected ->
             HeroCatalog.entries.none { it.nom.equals(detected.nom, ignoreCase = true) }
