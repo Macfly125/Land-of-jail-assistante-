@@ -84,6 +84,17 @@ object RobotPortraitMatcher {
             }
             .sortedByDescending { it.third }
 
+        if (rankedRobots.isEmpty()) {
+            return RobotPortraitMatch(
+                null,
+                null,
+                0f,
+                null,
+                false,
+                "catalogue_identites_incoherentes"
+            )
+        }
+
         val best = rankedRobots.first()
         val runnerUp = rankedRobots.getOrNull(1)?.third
         val margin = if (runnerUp == null) 1f else best.third - runnerUp
