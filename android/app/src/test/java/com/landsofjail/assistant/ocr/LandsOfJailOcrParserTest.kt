@@ -1340,4 +1340,32 @@ Potential Coil x 8"""
         }
     }
 
+    @Test
+    fun positionalHomePowerBadgeOverridesUnlabeledTopBarNumberWhenCoordinatesExist() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            rawText = "177.1M\nVIP8",
+            textBoxes = listOf(
+                OcrTextBox("177.1M", 238, 122, 353, 158),
+                OcrTextBox("509 256 511", 18, 166, 203, 215)
+            ),
+            imageWidth = 698,
+            imageHeight = 1536
+        )
+
+        assertEquals("Le compteur de nourriture ne doit pas bloquer la lecture du badge de puissance",
+            509_256_511L, result.power?.puissanceTotaleNumerique)
+        assertEquals("La nourriture non libellée ne doit pas être inventée comme stock", 0, result.resources.size)
+    }
+
+    @Test
+    fun doesNotUseUnlabeledTextNumberAsPowerWhenOcrCoordinatesAreAvailable() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            rawText = "177.1M\nVIP8",
+            textBoxes = listOf(OcrTextBox("177.1M", 238, 122, 353, 158)),
+            imageWidth = 698,
+            imageHeight = 1536
+        )
+
+        assertNull("Sans badge de puissance ni libellé, le compteur HUD doit rester non classé", result.power)
+    }
 }
