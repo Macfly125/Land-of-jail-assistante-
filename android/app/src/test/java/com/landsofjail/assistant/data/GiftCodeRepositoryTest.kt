@@ -36,6 +36,19 @@ class GiftCodeRepositoryTest {
 
 
     @Test
+    fun latestReportedOfficialChannelCodeIsAvailableOfflineButNotClaimedAsVerified() {
+        val entry = GiftCodeRepository.initialSnapshot().entries
+            .first { it.code == "4AWwVMpUETEgzM" }
+
+        assertEquals("NEEDS_REVIEW", entry.status)
+        assertEquals("26/11/2026", entry.firstSeen)
+        assertEquals("30/11/2026", entry.expiresAt)
+        assertTrue(entry.reward.isBlank())
+        assertTrue(entry.note.contains("Non testé par l'application"))
+        assertTrue(entry.note.contains("fuseau UTC inconnu"))
+    }
+
+    @Test
     fun frenchGuideLojIsRegisteredAsThePrimaryGuideSource() {
         assertEquals("https://guideloj.com/fr/codes", GiftCodeRepository.GUIDE_URL)
         assertEquals("https://guideloj.com/fr/home", GiftCodeRepository.GUIDE_HOME_URL)
