@@ -534,7 +534,7 @@ class SupabaseAuthRepository(context: Context) {
                 require(functionName in setOf("is_app_developer", "submit_app_improvement", "review_app_improvement", "create_alliance_as_r5", "transfer_alliance_r5", "create_alliance_invite", "accept_alliance_invite", "submit_alliance_join_request", "review_alliance_join_request", "post_alliance_message", "delete_alliance_message", "set_alliance_member_rank")) {
                     "Action d'alliance non autorisée."
                 }
-                require(payload.toString().length <= 4096) { "Données d'invitation trop longues." }
+                require(payload.toString().length <= 4096) { "Données d'action d'alliance trop longues." }
                 val active = refreshSession().getOrThrow()
                 val request = Request.Builder()
                     .url("$BASE_URL/rest/v1/rpc/$functionName")
