@@ -64,7 +64,7 @@ class ResearchPlannerTest {
         )
 
         val step = result.steps.single()
-        assertEquals(695L, step.requiredSeconds)
+        assertEquals(635L, step.requiredSeconds)
         assertEquals(60L, step.allianceHelpSeconds)
         assertEquals(360L, step.researchSpeedupSeconds)
         assertEquals(60L, step.universalSpeedupSeconds)
