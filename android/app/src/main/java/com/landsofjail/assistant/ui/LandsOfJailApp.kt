@@ -3574,6 +3574,52 @@ private fun RobotsProfileSection(
                 ) { Text(resourceUiText(language, "save_robot")) }
             }
         }
+        Text(
+            localizedUiText(language, "Référentiel des robots", "Robot reference", "Roboter-Referenz", "Robot referansı", "Справочник роботов", "机器人参考目录", "Catalogo robot"),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold
+        )
+        Text(
+            localizedUiText(language,
+                "Les niveaux indiqués sont des recommandations communautaires, pas ton niveau réel. Sélectionne un robot pour préremplir son nom et les bonus documentés.",
+                "Listed levels are community recommendations, not your actual level. Select a robot to prefill its name and documented bonuses.",
+                "Die angegebenen Stufen sind Community-Empfehlungen, nicht dein tatsächlicher Stand. Wähle einen Roboter, um Namen und dokumentierte Boni zu übernehmen.",
+                "Listelenen seviyeler topluluk önerisidir, gerçek seviyen değildir. Adı ve belgelenmiş bonusları doldurmak için robot seç.",
+                "Указанные уровни — рекомендации сообщества, а не ваш реальный уровень. Выберите робота, чтобы подставить имя и известные бонусы.",
+                "所列等级是社区建议，并非你的实际等级。选择机器人可预填名称和已有记录的加成。",
+                "I livelli indicati sono consigli della community, non il tuo livello reale. Seleziona un robot per compilare nome e bonus documentati."),
+            style = MaterialTheme.typography.bodySmall
+        )
+        RobotCatalog.entries.forEach { entry ->
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(entry.name, fontWeight = FontWeight.SemiBold)
+                        val recommendation = listOfNotNull(
+                            entry.troopType,
+                            entry.recommendedLevel.takeIf { it.isNotBlank() }?.let {
+                                localizedUiText(language, "Conseil niv. $it", "Suggested Lv. $it", "Empf. Stufe $it", "Öneri Sv. $it", "Совет ур. $it", "建议等级 $it", "Consiglio liv. $it")
+                            },
+                            entry.mode.takeIf { it.isNotBlank() }
+                        ).joinToString(" · ")
+                        if (recommendation.isNotBlank()) Text(recommendation, style = MaterialTheme.typography.bodySmall)
+                        if (entry.maxWarSkill.isNotBlank()) Text("War: ${entry.maxWarSkill}", style = MaterialTheme.typography.bodySmall)
+                        if (entry.maxPilotSkill.isNotBlank()) Text("Pilot: ${entry.maxPilotSkill}", style = MaterialTheme.typography.bodySmall)
+                    }
+                    TextButton(onClick = {
+                        robotName = entry.name
+                        robotBonus = entry.maxWarSkill
+                        robotSkills = entry.maxPilotSkill
+                    }) {
+                        Text(localizedUiText(language, "Choisir", "Select", "Wählen", "Seç", "Выбрать", "选择", "Scegli"))
+                    }
+                }
+            }
+        }
         if (robots.isEmpty()) {
             Text(resourceUiText(language, "no_robot"), style = MaterialTheme.typography.bodySmall)
         } else {
