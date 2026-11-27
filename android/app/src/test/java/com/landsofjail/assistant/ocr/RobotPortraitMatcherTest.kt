@@ -48,6 +48,26 @@ class RobotPortraitMatcherTest {
     }
 
     @Test
+    fun ignoresCatalogIdentityWithConflictingDisplayNames() {
+        val target = intArrayOf(0xFFFF0000.toInt(), 0xFF00FF00.toInt(), 0xFF0000FF.toInt(), 0xFFFFFFFF.toInt())
+        val unrelated = intArrayOf(0xFF101010.toInt(), 0xFF202020.toInt(), 0xFF303030.toInt(), 0xFF404040.toInt())
+
+        val result = RobotPortraitMatcher.match(
+            2, 2, target,
+            listOf(
+                template("robot-a", "Ranger", target),
+                template("robot-a", "Phantom Cat", target),
+                template("robot-b", "Robot B", unrelated)
+            )
+        )
+
+        assertFalse(result.isConfirmed)
+        assertNull(result.robotId)
+        assertNull(result.displayName)
+        assertEquals("similarite_insuffisante", result.reason)
+    }
+
+    @Test
     fun refusesToGuessWhenTwoDifferentRobotsHaveEquallySimilarPortraits() {
         val target = intArrayOf(0xFF112233.toInt(), 0xFF223344.toInt(), 0xFF334455.toInt(), 0xFF445566.toInt())
 
