@@ -328,7 +328,13 @@ class ProgressionPlayerProfileTest {
             "Diamanten" to "diamonds",
             "Elmas" to "diamonds",
             "Diamanti" to "diamonds",
-            "Contanti" to "gold"
+            "Contanti" to "gold",
+            "Noyaux Forticlad" to "forticlad cores",
+            "Forticlad Çekirdekleri" to "forticlad cores",
+            "Ядра Forticlad" to "forticlad cores",
+            "Forticlad 核心" to "forticlad cores",
+            "Noyaux Forticlad avancés" to "advanced forticlad cores",
+            "高级核心" to "advanced forticlad cores"
         )
         aliases.forEach { (input, expected) ->
             assertEquals(input, expected, canonicalProgressionResourceId(input))
@@ -355,7 +361,9 @@ class ProgressionPlayerProfileTest {
             "Precision Gears" to "precision gears",
             "Engrenages de précision" to "precision gears",
             "Hero Shards" to "hero shards",
-            "Fragments de héros" to "hero shards"
+            "Fragments de héros" to "hero shards",
+            "Forticlad Cores" to "forticlad cores",
+            "Advanced Forticlad Cores" to "advanced forticlad cores"
         )
         aliases.forEach { (input, expected) ->
             assertEquals(input, expected, canonicalProgressionResourceId(input))
