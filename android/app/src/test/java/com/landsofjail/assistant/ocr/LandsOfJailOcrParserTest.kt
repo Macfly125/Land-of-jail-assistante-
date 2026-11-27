@@ -1231,6 +1231,48 @@ Potential Coil x 8"""
         assertTrue(result.resources.all { it.incertain })
     }
 
+
+    @Test
+    fun mapsExactlySixTopCountersInLeftToRightOrderAndKeepsThemUncertain() {
+        val values = listOf("1.2M", "850K", "42M", "3.4M", "120", "7.8M")
+        val boxes = values.mapIndexed { index, value ->
+            OcrTextBox(value, left = 40 + index * 120, top = 50, right = 95 + index * 120, bottom = 82)
+        }
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            rawText = "VIP8",
+            textBoxes = boxes,
+            imageWidth = 900,
+            imageHeight = 1600
+        )
+
+        assertEquals(
+            listOf("Cash / Or", "Nourriture (Food)", "Bois (Wood)", "Acier (Steel)", "Essence (Gasoline)", "Diamants (Gems)"),
+            result.resources.map { it.nom }
+        )
+        assertEquals(values, result.resources.map { it.quantiteTexte })
+        assertTrue("Une association par position doit toujours demander confirmation", result.resources.all { it.incertain })
+        assertNull("Les compteurs de la barre ne doivent pas devenir une puissance", result.power)
+    }
+
+    @Test
+    fun refusesPartialOrOverfullTopCounterRowsInsteadOfShiftingResourceNames() {
+        val five = listOf("1.2M", "850K", "42M", "3.4M", "120")
+        val seven = listOf("1.2M", "850K", "42M", "3.4M", "120", "7.8M", "99")
+        listOf(five, seven).forEach { values ->
+            val boxes = values.mapIndexed { index, value ->
+                OcrTextBox(value, left = 40 + index * 100, top = 50, right = 90 + index * 100, bottom = 82)
+            }
+            val result = LandsOfJailOcrParser.parseLocalOcrText(
+                rawText = "VIP8",
+                textBoxes = boxes,
+                imageWidth = 900,
+                imageHeight = 1600
+            )
+            assertTrue("Une rangée partielle ou surchargée ne doit pas être associée", result.resources.isEmpty())
+            assertNull("Une rangée ambiguë ne doit pas devenir une puissance", result.power)
+        }
+    }
+
     @Test
     fun enhancedOcrCoordinatesAreMappedBackToOriginalScreenshot() {
         val enhancedBoxes = listOf(
