@@ -214,6 +214,26 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun parsesMixedLocaleSeparatorsWithBothDecimalConventions() {
+        val us = LandsOfJailOcrParser.parseLocalOcrText("Food: 1,234.5M")
+        val european = LandsOfJailOcrParser.parseLocalOcrText("Wood: 1.234,5M")
+
+        assertEquals(1_234_500_000.0,
+            us.resources.single { it.nom == "Nourriture (Food)" }.quantiteNumerique ?: 0.0, 0.1)
+        assertEquals(1_234_500_000.0,
+            european.resources.single { it.nom == "Bois (Wood)" }.quantiteNumerique ?: 0.0, 0.1)
+    }
+
+    @Test
+    fun parsesMixedLocaleSeparatorsForExplicitPlayerPower() {
+        val us = LandsOfJailOcrParser.parseLocalOcrText("Power: 1,234.5M")
+        val european = LandsOfJailOcrParser.parseLocalOcrText("Puissance: 1.234,5M")
+
+        assertEquals(1_234_500_000L, us.power?.puissanceTotaleNumerique)
+        assertEquals(1_234_500_000L, european.power?.puissanceTotaleNumerique)
+    }
+
+    @Test
     fun recognizesGorillaLegionEventAcrossAllSupportedLanguages() {
         val samples = listOf(
             "Gorilla Legion\nGorilla Warlord",
