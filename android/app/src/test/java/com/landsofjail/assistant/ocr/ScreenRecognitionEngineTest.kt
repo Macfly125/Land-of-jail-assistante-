@@ -129,6 +129,32 @@ class ScreenRecognitionEngineTest {
     }
 
     @Test
+    fun recognizesRussianCyrillicCategoryLabelsWhenTextIsAlreadyAvailable() {
+        val samples = listOf(
+            "испытательная клетка" to "trial_cage",
+            "кристальная битва" to "crystal_clash",
+            "подготовка к войне" to "svs",
+            "золотой охотник" to "gold_hunter",
+            "технология логистики" to "lab",
+            "подземелье" to "dungeon",
+            "здание" to "batiments",
+            "войска" to "troupes",
+            "еда дерево сталь бензин алмазы золото" to "ressources",
+            "спутники" to "satellites",
+            "убежище особняк" to "haven_island",
+            "технология альянса" to "alliance",
+            "предмет инвентарь" to "items",
+            "профиль мощь" to "profil"
+        )
+
+        samples.forEach { (text, expectedCategory) ->
+            val result = ScreenRecognitionEngine.analyze(text)
+            assertEquals("Mauvaise catégorie pour le libellé russe : $text", expectedCategory, result.category)
+            assertTrue("La confirmation visuelle reste obligatoire : $text", result.needsVisualConfirmation)
+        }
+    }
+
+    @Test
     fun unrelatedTextDoesNotProduceAGameScreenCategory() {
         val result = ScreenRecognitionEngine.analyze("Bonjour, test sans libellé de jeu")
 
