@@ -274,12 +274,12 @@ class SupabaseAuthRepository(context: Context) {
                     val value = confirmation.jsonObject
                     val verifierId = value["verifier_user_id"]?.jsonPrimitive?.contentOrNull.orEmpty()
                     val verifierName = value["verifier_name"]?.jsonPrimitive?.contentOrNull
-                        ?.trim()?.takeIf { it.isNotEmpty() } ?: "Membre"
+                        ?.trim()?.takeIf { it.isNotEmpty() }?.take(40) ?: "Membre"
                     val verifiedAt = value["verified_at"]?.jsonPrimitive?.contentOrNull.orEmpty()
                     require(isUuid(verifierId) && verifierId != memberId) {
                         "Le serveur a retourné un vérificateur invalide."
                     }
-                    require(verifiedAt.isNotBlank()) { "Date de vérification absente." }
+                    require(verifiedAt.isNotBlank() && verifiedAt.length <= 64) { "Date de vérification invalide." }
                     AllianceProfileConfirmation(verifierId, verifierName, verifiedAt)
                 }
                 val count = item["verification_count"]?.jsonPrimitive?.contentOrNull?.toIntOrNull()
