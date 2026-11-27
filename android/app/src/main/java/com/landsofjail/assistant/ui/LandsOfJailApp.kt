@@ -1089,6 +1089,11 @@ fun LandsOfJailAssistantApp(
     // la première ouverture de l'écran.
     val latestGiftCodeSnapshot = rememberUpdatedState(giftCodeSnapshot)
     val giftCodeRefreshMutex = remember { kotlinx.coroutines.sync.Mutex() }
+    fun toggleGiftCodeUsed(code: String, used: Boolean) {
+        val updated = GiftCodeRepository.markAsUsed(latestGiftCodeSnapshot.value, code, used)
+        giftCodeSnapshot = updated
+        giftCodePrefs.edit().putString("snapshot", giftCodeJson.encodeToString(updated)).apply()
+    }
     suspend fun refreshGiftCodesSafely() {
         if (!giftCodeRefreshMutex.tryLock()) return
         giftCodesRefreshing = true
@@ -2554,7 +2559,8 @@ fun LandsOfJailAssistantApp(
                         language = currentLang,
                         snapshot = giftCodeSnapshot,
                         refreshing = giftCodesRefreshing,
-                        onRefresh = { scope.launch { refreshGiftCodesSafely() } }
+                        onRefresh = { scope.launch { refreshGiftCodesSafely() } },
+                        onToggleUsed = ::toggleGiftCodeUsed
                     )
                     AssistantTab.HISTORIQUE -> HistoryScreen(analyses, onClearHistory = {
                             analyses.forEach { analysis ->
@@ -3764,18 +3770,19 @@ private fun GiftCodesScreen(
     language: AppLanguage,
     snapshot: GiftCodeSnapshot,
     refreshing: Boolean,
-    onRefresh: () -> Unit
+    onRefresh: () -> Unit,
+    onToggleUsed: (String, Boolean) -> Unit
 ) {
     val context = LocalContext.current
     var filter by remember { mutableStateOf("ALL") }
     val labels = when (language) {
-        AppLanguage.FR -> listOf("Tous", "Codes répertoriés", "À vérifier", "Expirés", "Actualiser", "Vérification indiquée par la source", "Date de publication", "Expiration", "Source", "Copier", "Copié", "Ouvrir Discord", "Utiliser les codes", "Aucun code dans cette catégorie.", "Certaines sources sont indisponibles. Les données enregistrées restent visibles.", "Non testé dans le jeu", "Pas de date d’expiration annoncée", "Actualisation de l’application")
-        AppLanguage.EN -> listOf("All", "Listed codes", "Needs checking", "Expired", "Refresh", "Source-reported check date", "Published", "Expires", "Source", "Copy", "Copied", "Open Discord", "Redeem codes", "No codes in this category.", "Some sources are unavailable. Previously saved data remains visible.", "Not tested in game", "No expiry date announced", "App refresh")
-        AppLanguage.DE -> listOf("Alle", "Gelistete Codes", "Zu prüfen", "Abgelaufen", "Aktualisieren", "Von der Quelle angegebener Prüftermin", "Veröffentlicht", "Läuft ab", "Quelle", "Kopieren", "Kopiert", "Discord öffnen", "Codes einlösen", "Keine Codes in dieser Kategorie.", "Einige Quellen sind nicht erreichbar. Gespeicherte Daten bleiben sichtbar.", "Nicht im Spiel getestet", "Kein Ablaufdatum angegeben", "App-Aktualisierung")
-        AppLanguage.TR -> listOf("Tümü", "Listelenen kodlar", "Kontrol edilmeli", "Süresi doldu", "Yenile", "Kaynağın bildirdiği kontrol tarihi", "Yayın tarihi", "Son kullanma", "Kaynak", "Kopyala", "Kopyalandı", "Discord’u aç", "Kodları kullan", "Bu kategoride kod yok.", "Bazı kaynaklara erişilemiyor. Kaydedilen veriler görünür kalır.", "Oyunda test edilmedi", "Son kullanma tarihi açıklanmadı", "Uygulama yenilemesi")
-        AppLanguage.RU -> listOf("Все", "В списке сообщества", "Проверить", "Истекли", "Обновить", "Дата проверки, указанная источником", "Опубликован", "Истекает", "Источник", "Копировать", "Скопировано", "Открыть Discord", "Активировать коды", "В этой категории нет кодов.", "Некоторые источники недоступны. Сохранённые данные остаются видимыми.", "Не проверено в игре", "Срок действия не указан", "Обновление приложения")
-        AppLanguage.ZH -> listOf("全部", "社区收录", "待核实", "已过期", "刷新", "来源标注的核查日期", "发布日期", "过期日期", "来源", "复制", "已复制", "打开 Discord", "兑换代码", "此类别暂无代码。", "部分来源不可用，仍显示已保存的数据。", "未在游戏中测试", "未公布过期日期", "应用刷新时间")
-        AppLanguage.IT -> listOf("Tutti", "Codici segnalati", "Da verificare", "Scaduti", "Aggiorna", "Data di verifica indicata dalla fonte", "Pubblicato", "Scade", "Fonte", "Copia", "Copiato", "Apri Discord", "Riscatta codici", "Nessun codice in questa categoria.", "Alcune fonti non sono disponibili. I dati salvati restano visibili.", "Non testato nel gioco", "Nessuna scadenza annunciata", "Aggiornamento dell’app")
+        AppLanguage.FR -> listOf("Tous", "Codes répertoriés", "À vérifier", "Expirés", "Actualiser", "Vérification indiquée par la source", "Date de publication", "Expiration", "Source", "Copier", "Copié", "Ouvrir Discord", "Utiliser les codes", "Aucun code dans cette catégorie.", "Certaines sources sont indisponibles. Les données enregistrées restent visibles.", "Non testé dans le jeu", "Pas de date d’expiration annoncée", "Actualisation de l’application", "Déjà utilisés", "Retirer le statut déjà utilisé")
+        AppLanguage.EN -> listOf("All", "Listed codes", "Needs checking", "Expired", "Refresh", "Source-reported check date", "Published", "Expires", "Source", "Copy", "Copied", "Open Discord", "Redeem codes", "No codes in this category.", "Some sources are unavailable. Previously saved data remains visible.", "Not tested in game", "No expiry date announced", "App refresh", "Already used", "Remove used mark")
+        AppLanguage.DE -> listOf("Alle", "Gelistete Codes", "Zu prüfen", "Abgelaufen", "Aktualisieren", "Von der Quelle angegebener Prüftermin", "Veröffentlicht", "Läuft ab", "Quelle", "Kopieren", "Kopiert", "Discord öffnen", "Codes einlösen", "Keine Codes in dieser Kategorie.", "Einige Quellen sind nicht erreichbar. Gespeicherte Daten bleiben sichtbar.", "Nicht im Spiel getestet", "Kein Ablaufdatum angegeben", "App-Aktualisierung", "Bereits verwendet", "Markierung entfernen")
+        AppLanguage.TR -> listOf("Tümü", "Listelenen kodlar", "Kontrol edilmeli", "Süresi doldu", "Yenile", "Kaynağın bildirdiği kontrol tarihi", "Yayın tarihi", "Son kullanma", "Kaynak", "Kopyala", "Kopyalandı", "Discord’u aç", "Kodları kullan", "Bu kategoride kod yok.", "Bazı kaynaklara erişilemiyor. Kaydedilen veriler görünür kalır.", "Oyunda test edilmedi", "Son kullanma tarihi açıklanmadı", "Uygulama yenilemesi", "Zaten kullanıldı", "Kullanıldı işaretini kaldır")
+        AppLanguage.RU -> listOf("Все", "В списке сообщества", "Проверить", "Истекли", "Обновить", "Дата проверки, указанная источником", "Опубликован", "Истекает", "Источник", "Копировать", "Скопировано", "Открыть Discord", "Активировать коды", "В этой категории нет кодов.", "Некоторые источники недоступны. Сохранённые данные остаются видимыми.", "Не проверено в игре", "Срок действия не указан", "Обновление приложения", "Уже использован", "Снять отметку")
+        AppLanguage.ZH -> listOf("全部", "社区收录", "待核实", "已过期", "刷新", "来源标注的核查日期", "发布日期", "过期日期", "来源", "复制", "已复制", "打开 Discord", "兑换代码", "此类别暂无代码。", "部分来源不可用，仍显示已保存的数据。", "未在游戏中测试", "未公布过期日期", "应用刷新时间", "已使用", "取消已使用标记")
+        AppLanguage.IT -> listOf("Tutti", "Codici segnalati", "Da verificare", "Scaduti", "Aggiorna", "Data di verifica indicata dalla fonte", "Pubblicato", "Scade", "Fonte", "Copia", "Copiato", "Apri Discord", "Riscatta codici", "Nessun codice in questa categoria.", "Alcune fonti non sono disponibili. I dati salvati restano visibili.", "Non testato nel gioco", "Nessuna scadenza annunciata", "Aggiornamento dell’app", "Già utilizzato", "Rimuovi contrassegno")
     }
     val updatedLabel = runCatching {
         java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
@@ -3785,7 +3792,8 @@ private fun GiftCodesScreen(
         when (filter) {
             "LISTED" -> it.status == "COMMUNITY_LISTED"
             "CHECK" -> it.status == "UNVERIFIED" || it.status == "NEEDS_REVIEW"
-            "EXPIRED" -> it.status == "EXPIRED"
+            "EXPIRED" -> it.status == "EXPIRED" && it.playerStatus != "ALREADY_USED"
+            "USED" -> it.playerStatus == "ALREADY_USED"
             else -> true
         }
     }
@@ -3832,7 +3840,7 @@ private fun GiftCodesScreen(
         }
         item {
             LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
-                items(listOf("ALL" to labels[0], "LISTED" to labels[1], "CHECK" to labels[2], "EXPIRED" to labels[3])) { (key, label) ->
+                items(listOf("ALL" to labels[0], "LISTED" to labels[1], "CHECK" to labels[2], "EXPIRED" to labels[3], "USED" to labels[18])) { (key, label) ->
                     FilterChip(selected = filter == key, onClick = { filter = key }, label = { Text(label, maxLines = 1) })
                 }
             }
@@ -3845,9 +3853,10 @@ private fun GiftCodesScreen(
                 Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                         Text(entry.code, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.ExtraBold)
-                        val statusText = when (entry.status) {
-                            "COMMUNITY_LISTED" -> labels[1]
-                            "EXPIRED" -> labels[3]
+                        val statusText = when {
+                            entry.playerStatus == "ALREADY_USED" -> labels[18]
+                            entry.status == "COMMUNITY_LISTED" -> labels[1]
+                            entry.status == "EXPIRED" -> labels[3]
                             else -> labels[2]
                         }
                         Text(statusText, color = Color(0xFFFFC18A), style = MaterialTheme.typography.labelSmall)
@@ -3864,6 +3873,11 @@ private fun GiftCodesScreen(
                             Icon(Icons.Outlined.ContentCopy, contentDescription = null)
                             Spacer(Modifier.width(4.dp))
                             Text(labels[9])
+                        }
+                        TextButton(onClick = {
+                            onToggleUsed(entry.code, entry.playerStatus != "ALREADY_USED")
+                        }) {
+                            Text(if (entry.playerStatus == "ALREADY_USED") labels[19] else labels[18])
                         }
                     }
                 }
