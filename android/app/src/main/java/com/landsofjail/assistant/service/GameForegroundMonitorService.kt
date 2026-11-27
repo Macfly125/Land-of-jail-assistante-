@@ -442,7 +442,9 @@ class GameForegroundMonitorService : Service() {
                     bitmapAwaitingTransfer?.let { bitmap ->
                         if (!bitmap.isRecycled) bitmap.recycle()
                     }
-                    image.close()
+                    // Une erreur de fermeture de l'Image ne doit pas bloquer
+                    // la libération de MediaProjection ni la fin du flux.
+                    runCatching { image.close() }
                     if (handled) {
                         isCapturingNow = false
                         releaseProjection()
@@ -639,7 +641,9 @@ class GameForegroundMonitorService : Service() {
                 sourceBitmapAwaitingRelease?.let { bitmap ->
                     if (!bitmap.isRecycled) bitmap.recycle()
                 }
-                image.close()
+                // Garder le callback de capture vivant même si Android signale
+                // une erreur pendant la fermeture de l'image acquise.
+                runCatching { image.close() }
             }
             }, Handler(captureThread.looper))
         } catch (_: Throwable) {
