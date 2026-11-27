@@ -15,7 +15,7 @@ class GiftCodeRepositoryTest {
         val vip = snapshot.entries.firstOrNull { it.code == "VIP777" }
         val expired = snapshot.entries.firstOrNull { it.code == "ZYKtwu9hchxuSv" }
         val unverified = snapshot.entries.firstOrNull { it.code == "RuStore777" }
-        val upcomingExpiry = snapshot.entries.firstOrNull { it.code == "N4HDYuJxkQKur5" }
+        val thanksgiving = snapshot.entries.firstOrNull { it.code == "N4HDYuJxkQKur5" }
 
         assertNotNull(vip)
         assertEquals("COMMUNITY_LISTED", vip?.status)
@@ -29,9 +29,10 @@ class GiftCodeRepositoryTest {
 
         assertNotNull(unverified)
         assertEquals("UNVERIFIED", unverified?.status)
-        assertNotNull(upcomingExpiry)
-        assertEquals("NEEDS_REVIEW", upcomingExpiry?.status)
-        assertEquals("30/11/2026", upcomingExpiry?.expiresAt)
+        assertNotNull(thanksgiving)
+        assertEquals("EXPIRED", thanksgiving?.status)
+        assertEquals("30/11/2025", thanksgiving?.expiresAt)
+        assertTrue(thanksgiving?.note.orEmpty().contains("Thanksgiving 2025"))
     }
 
 
