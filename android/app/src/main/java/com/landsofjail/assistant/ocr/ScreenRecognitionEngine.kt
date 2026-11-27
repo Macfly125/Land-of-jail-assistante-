@@ -73,12 +73,16 @@ object ScreenRecognitionEngine {
                 // ils ne deviennent des indices que si un autre libellé propre à la
                 // même catégorie est également présent.
                 val genericLabelContext = when (category to label) {
-                    // « Cage » seul peut désigner une cage générique dans un autre écran.
-                                        // Exiger le nom de l’événement ou un libellé de classement/dégâts.
-                                        "trial_cage" to "cage" -> listOf("trial cage", "damage ranking", "damage dealt", "dégâts infligés", "prüfungskäfig", "schadensrangliste", "verursachter schaden", "deneme kafesi", "verilen hasar", "испытательная клетка", "нанесенный урон", "试炼笼", "造成伤害"),
-                                        "turmoil_surge" to "wave" -> listOf("turmoil", "sentry turret")
+                    // Les termes isolés sont acceptés uniquement avec un contexte distinctif.
+                    "trial_cage" to "cage" -> listOf("trial cage", "damage ranking", "damage dealt", "dégâts infligés", "prüfungskäfig", "schadensrangliste", "verursachter schaden", "deneme kafesi", "verilen hasar", "испытательная клетка", "нанесенный урон", "试炼笼", "造成伤害")
+                    "turmoil_surge" to "wave" -> listOf("turmoil", "sentry turret")
                     "sandsea_conquest" to "fuel" -> listOf("sandsea", "vessel station", "lighthouse")
                     "batiments" to "upgrade" -> listOf("building", "bâtiment", "construction", "warden office", "barracks", "laboratory")
+                    "robots" to "robot",
+                    "robots" to "robots",
+                    "robots" to "droid",
+                    "robots" to "drone",
+                    "robots" to "robotics" -> listOf("musashimaru", "phantom cat", "ranger", "infercore", "hercules", "halo", "light cone", "atlax", "yokozuna", "bastion", "pluto", "dauntless", "valiant", "scorpio", "chat fantôme")
                     else -> null
                 }
                 val hasGenericContext = genericLabelContext == null || genericLabelContext.any { contextLabel ->
