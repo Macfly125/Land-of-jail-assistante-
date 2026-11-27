@@ -145,14 +145,19 @@ object GiftCodeRepository {
                 errors += "$sourceName : ${result.exceptionOrNull()?.message ?: "source inaccessible"}"
                 continue
             }
-            val checkedDate = Regex("(?i)(?:last checked|checked|updated|derni[eè]re v[eé]rification|derni[eè]re mise [àa] jour|mis[e] [àa] jour)\\s*[:\\-]?\\s*(?:on\\s*)?([0-9]{1,2}[./-][0-9]{1,2}[./-]20[0-9]{2}|[0-9]{1,2}\\s+[A-Za-zÀ-ÿ]+\\s+20[0-9]{2}|[A-Za-zÀ-ÿ]+\\s+[0-9]{1,2},?\\s+20[0-9]{2})")
+            val checkedDate = Regex("(?i)(?:last checked|checked|updated|lists compared|derni[eè]re v[eé]rification|derni[eè]re mise [àa] jour|mis[e] [àa] jour)\\s*[:\\-]?\\s*(?:on\\s*)?([0-9]{1,2}[./-][0-9]{1,2}[./-]20[0-9]{2}|[0-9]{1,2}\\s+[A-Za-zÀ-ÿ]+\\s+20[0-9]{2}|[A-Za-zÀ-ÿ]+\\s+[0-9]{1,2},?\\s+20[0-9]{2})")
                 .find(stripTags(html))?.groupValues?.getOrNull(1).orEmpty()
             for ((code, nearby) in extractCandidatesFromHtml(html)) {
                 val key = code.lowercase(Locale.ROOT)
                 val existing = found[key]
                 val looksExpired = nearby.contains("ended codes") || nearby.contains("expired") ||
+                    nearby.contains("expiry date has passed") || nearby.contains("published expiry date has passed") ||
                     nearby.contains("codes expir") || nearby.contains("codes termin")
                 found[key] = mergeSourceCandidate(existing, code, sourceName, checkedDate, looksExpired)
+                val publishedExpiry = parsePublishedExpiryDate(nearby)
+                if (publishedExpiry.isNotBlank()) {
+                    found[key] = found.getValue(key).copy(expiresAt = publishedExpiry)
+                }
             }
         }
 
@@ -261,6 +266,16 @@ object GiftCodeRepository {
         return patterns.firstNotNullOfOrNull { pattern ->
             runCatching { LocalDate.parse(value.trim(), pattern) }.getOrNull()
         }
+    }
+
+    /** Reads an explicit published expiry date from the code's nearby source context. */
+    internal fun parsePublishedExpiryDate(context: String): String {
+        val pattern = Regex(
+            "(?i)published\\s+expiry\\s+date\\s*[:\\-]?\\s*(\\d{1,2}[./-]\\d{1,2}[./-]20\\d{2})"
+        )
+        val raw = pattern.find(context)?.groupValues?.getOrNull(1) ?: return ""
+        val parsed = parseSourceDate(raw) ?: return ""
+        return parsed.format(DateTimeFormatter.ofPattern("dd/MM/uuuu", Locale.ROOT))
     }
 
     private fun newerDate(existing: String, candidate: String): String {
