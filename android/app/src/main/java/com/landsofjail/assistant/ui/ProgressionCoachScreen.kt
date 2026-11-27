@@ -762,7 +762,6 @@ fun ProgressionCoachScreen(
         val mergedStocks = mergeProgressionStocks(profile.resourceStocks, observedStocks)
         if (mergedStocks != profile.resourceStocks) {
             profile = profile.copy(resourceStocks = mergedStocks, updatedAtEpochMillis = now)
-            profileStore.save(profile)
         }
     }
 
@@ -797,7 +796,6 @@ fun ProgressionCoachScreen(
                     ),
                     updatedAtEpochMillis = now
                 )
-                profileStore.save(profile)
             }
         }
         item {
@@ -939,7 +937,6 @@ fun ProgressionCoachScreen(
                                 val stocks = mergeProgressionStocks(profile.resourceStocks, observedStocks)
                                 profile = profile.copy(objectives = objectives, levels = levels,
                                     resourceStocks = stocks, updatedAtEpochMillis = now)
-                                profileStore.save(profile)
                                 statusMessage = text(fr = "Objectif enregistré.", en = "Goal saved.", de = "Ziel gespeichert.",
                                     tr = "Hedef kaydedildi.", ru = "Цель сохранена.", zh = "目标已保存。", it = "Obiettivo salvato.")
                                 currentLevel = ""
@@ -998,7 +995,6 @@ fun ProgressionCoachScreen(
                                 profile = profile.copy(objectives = profile.objectives.map {
                                     it.copy(isPrimary = it.id == goal.id)
                                 }, updatedAtEpochMillis = System.currentTimeMillis())
-                                profileStore.save(profile)
                             }) {
                                 Text(text(fr = "Principal", en = "Make primary", de = "Als Hauptziel", tr = "Ana yap",
                                     ru = "Сделать главной", zh = "设为主要目标", it = "Imposta principale"))
@@ -1008,7 +1004,6 @@ fun ProgressionCoachScreen(
                                     objectives = removeProgressionObjective(profile.objectives, goal.id),
                                     updatedAtEpochMillis = System.currentTimeMillis()
                                 )
-                                profileStore.save(profile)
                             }) {
                                 Text(text(fr = "Supprimer", en = "Delete", de = "Löschen", tr = "Sil", ru = "Удалить", zh = "删除", it = "Elimina"))
                             }
