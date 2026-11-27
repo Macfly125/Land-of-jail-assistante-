@@ -178,6 +178,35 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun requiresAnExactPowerLabelAndDoesNotMatchWordsContainingPower() {
+        val samples = listOf(
+            "Powerful Prisoner\nFood: 12.4M",
+            "Superpower\nWood: 8.2M",
+            "Empowerment\nSteel: 3.1M",
+            "CPR: 450"
+        )
+        samples.forEach { sample ->
+            val result = LandsOfJailOcrParser.parseLocalOcrText(sample)
+            assertNull("Un mot contenant seulement power/cp ne doit pas créer une puissance : $sample", result.power)
+        }
+    }
+
+    @Test
+    fun acceptsExactLocalizedPowerLabelsBesideResourceCounters() {
+        val samples = listOf(
+            "Puissance: 8,450,120\nFood: 12.4M" to 8_450_120L,
+            "Power: 8.6M\nFood: 12.4M" to 8_600_000L,
+            "Comb. Power: 7.2M\nWood: 4.1M" to 7_200_000L,
+            "CP: 950000\nSteel: 3.1M" to 950_000L
+        )
+        samples.forEach { (sample, expected) ->
+            val result = LandsOfJailOcrParser.parseLocalOcrText(sample)
+            assertEquals("La puissance explicite doit rester distincte : $sample", expected, result.power?.puissanceTotaleNumerique)
+            assertTrue(result.resources.isNotEmpty())
+        }
+    }
+
+    @Test
     fun parsesCompactPowerSuffix() {
         val result = LandsOfJailOcrParser.parseLocalOcrText("Power: 12.4M")
 
