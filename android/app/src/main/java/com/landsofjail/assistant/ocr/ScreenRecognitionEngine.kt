@@ -23,7 +23,7 @@ object ScreenRecognitionEngine {
         "svs" to listOf("supreme honor", "svs", "war preparation", "préparation de guerre", "kriegsvorbereitung", "kriegsvorbereitungen", "savaş hazırlığı", "savaş hazırlıkları", "подготовка к войне", "战前准备", "战争准备"),
         "turmoil_surge" to listOf("turmoil", "sentry turret", "wave", "vague", "chaoswelle", "geschützturm", "dalga", "nöbetçi kulesi", "волна хаоса", "сторожeвая турель", "混乱浪潮", "哨戒炮塔"),
         "gold_hunter" to listOf("gold hunter", "hunter points", "goldjäger", "jägerpunkte", "altın avcısı", "avcı puanları", "золотой охотник", "очки охотника", "黄金猎人", "猎人积分"),
-        "robots" to listOf("robot", "robots", "droid", "drone", "robotics", "robot center", "robot upgrade", "centro robot", "miglioramento robot", "musashimaru", "phantom cat", "ranger", "infercore", "hercules", "halo", "light cone", "atlax", "yokozuna", "bastion", "pluto", "dauntless", "valiant", "scorpio"),
+        "robots" to listOf("robot", "robots", "droid", "drone", "robotics", "centro robot", "miglioramento robot", "musashimaru", "phantom cat", "ranger", "infercore", "hercules", "halo", "light cone", "atlax", "yokozuna", "bastion", "pluto", "dauntless", "valiant", "scorpio"),
         "power_armor" to listOf("power armor hangar", "power armor", "prisoner armor", "prisoner armor data", "armor data", "solo module", "formation module", "barrier module", "core i", "core ii", "core iii", "core iv", "core v", "noyau solo", "module formation", "module barrière", "armure de prisonnier", "hangar d'armure", "动力装甲", "囚犯装甲", "барьерный модуль"),
         "forticlad_lab" to listOf("forticlad lab", "forticlad laboratory", "laboratoire forticlad", "laboratorio forticlad", "tecnologia forticlad", "forticlad technology", "hyperalloy", "hyperalliage", "technologie forticlad", "forticlad çekirdeği", "超合金", "forticlad 实验室"),
         "lab" to listOf("lab", "logistics technology", "tecnologia logistica", "tecnologia economica", "tecnologia militare", "economy technology", "military technology", "technologies logistique", "technologie économie", "technologie militaire", "logistiktechnologie", "wirtschaftstechnologie", "militärtechnologie", "lojistik teknolojisi", "ekonomi teknolojisi", "askeri teknoloji", "технология логистики", "технология экономики", "военная технология", "后勤科技", "经济科技", "军事科技"),
@@ -31,7 +31,7 @@ object ScreenRecognitionEngine {
         "dungeon" to listOf("dungeon office", "surveillance room", "dungeon", "felon", "felons", "fugitive", "fugitives", "criminal prisoner", "criminal prison", "bureau du donjon", "salle de surveillance", "criminel", "criminels", "fugitif", "prisonnier criminel", "zindan", "kaçak", "suçlu", "подземелье", "преступник", "беглец", "地牢", "罪犯", "逃犯"),
         "equipements" to listOf("hero equipment", "equipment upgrade", "equipment improvement", "equipment", "gear", "arsenal", "equipment exp", "equipment part", "potential coil", "precision gear", "magnet", "exclusive equipment", "exclusive gear", "équipement", "équipements", "équipement du héros", "équipement héros", "équipement exclusif", "amélioration d'équipement", "amélioration équipement", "aimant", "arsenal", "ausrüstung", "heldenausrüstung", "ausrüstungsverbesserung", "ausrüstung verbessern", "exklusive ausrüstung", "magnet", "ekipman", "kahraman ekipmani", "ekipman geliştirme", "özel ekipman", "teçhizat", "mıknatıs", "снаряжение", "улучшение снаряжения", "экипировка", "эксклюзивное снаряжение", "магнит", "装备", "装备升级", "英雄装备", "专属装备", "磁铁", "equipaggiamento", "equipaggiamento eroe", "miglioramento equipaggiamento", "equipaggiamento esclusivo", "magnete", "bobina potenziale", "ingranaggio di precisione"),
         "heros" to listOf("heroes", "hero", "héros", "eroi", "eroe", "abilità", "stelle", "skills", "compétences", "stars", "étoiles", "helden", "fähigkeiten", "sterne", "kahraman", "kahramanlar", "beceriler", "yıldızlar", "герои", "навыки", "звёзды", "英雄", "技能", "星级"),
-        "batiments" to listOf("building", "upgrade", "qg", "hq", "prison", "edificio", "edifici", "miglioramento edificio", "ufficio del direttore", "caserma", "laboratorio", "infermeria", "magazzino", "cucina", "bâtiment", "construction", "warden office", "warden's office", "director's office", "bureau du directeur", "barracks", "caserne", "laboratory", "laboratoire", "infirmary", "infirmerie", "warehouse", "entrepôt", "kitchen", "cuisine", "yard", "cour", "cell", "cellule", "comms", "gebäude", "ausbau", "bina", "yükseltme", "здание", "улучшение", "建筑", "升级"),
+        "batiments" to listOf("building", "upgrade", "qg", "hq", "prison", "edificio", "edifici", "miglioramento edificio", "ufficio del direttore", "caserma", "laboratorio", "infermeria", "magazzino", "cucina", "bâtiment", "construction", "warden office", "warden's office", "director's office", "bureau du directeur", "barracks", "caserne", "laboratory", "laboratoire", "infirmary", "infirmerie", "warehouse", "entrepôt", "kitchen", "cuisine", "robot center", "robot upgrade", "centro robot", "robotzentrum", "robot merkezi", "центр роботов", "机器人中心", "yard", "cour", "cell", "cellule", "comms", "gebäude", "ausbau", "bina", "yükseltme", "здание", "улучшение", "建筑", "升级"),
         "troupes" to listOf("shieldbearer", "shieldbearers", "truppe", "capacità di marcia", "portascudi", "bomber", "bombers", "shooter", "shooters", "troops", "troupes", "march capacity", "capacité de marche", "truppen", "birlikler", "войска", "部队"),
         "ressources" to listOf("food", "wood", "steel", "gasoline", "nourriture", "bois", "acier", "essence", "diamonds", "diamants", "gems", "gemmes", "gold", "nahrung", "holz", "stahl", "benzin", "diamanten", "yiyecek", "odun", "çelik", "elmas", "altın", "еда", "дерево", "сталь", "бензин", "алмазы", "золото", "食物", "木材", "钢材", "汽油", "钻石", "宝石", "金币", "黄金", "cibo", "legno", "acciaio", "benzina", "diamanti", "oro"),
 
@@ -112,10 +112,15 @@ object ScreenRecognitionEngine {
 
         // Le titre explicite « Cosmos Hub » prime sur les libellés génériques
         // Satellite / Data Disk présents dans certaines vues du hub.
-        val best = if (paddedText.contains(" cosmos hub ")) {
-            ranked.firstOrNull { it.first == "cosmos_hub" } ?: ranked.firstOrNull()
-        } else {
-            ranked.firstOrNull()
+        val best = when {
+            // « Robot Center » désigne le bâtiment, pas la fiche d'un robot.
+            listOf("robot center", "robot upgrade", "centro robot", "robotzentrum", "robot merkezi", "центр роботов", "机器人中心")
+                .any { paddedText.contains(" ${normalize(it)} ") } ->
+                ranked.firstOrNull { it.first == "batiments" } ?: ranked.firstOrNull()
+            // Le titre explicite « Cosmos Hub » prime sur les libellés génériques.
+            paddedText.contains(" cosmos hub ") ->
+                ranked.firstOrNull { it.first == "cosmos_hub" } ?: ranked.firstOrNull()
+            else -> ranked.firstOrNull()
         }
         val second = ranked.firstOrNull { it.first != best?.first }
         val tiedAtTop = best != null && second != null &&
