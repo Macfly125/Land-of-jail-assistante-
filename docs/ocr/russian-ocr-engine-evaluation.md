@@ -65,3 +65,14 @@ Les tests de dictionnaire russe du classificateur sont des tests de texte déjà
 - Modèle russe intégré ou téléchargé par l'application : non.
 - Corpus de captures cyrilliques annotées : non disponible dans le dépôt.
 - Validation OCR russe sur images : non effectuée.
+
+## Vérification complémentaire de ML Kit (27 novembre 2026)
+
+Documentation Google consultée :
+
+- [Scripts reconnus par Text Recognition v2](https://developers.google.com/ml-kit/vision/text-recognition/v2) : les scripts annoncés sont Latin, chinois, devanagari, japonais et coréen. Le cyrillique russe n'est pas dans la liste.
+- [Langues prises en charge](https://developers.google.com/ml-kit/vision/text-recognition/v2/languages) : la liste des langues évaluées comprend notamment le serbe latin (`sr-Latn`), mais ne propose pas de russe cyrillique comme langue reconnue par Text Recognition v2.
+- [Identification de langue](https://developers.google.com/ml-kit/language/identification/android) : l'API Language Identification identifie une langue à partir d'une chaîne déjà reconnue ; elle n'extrait pas les caractères russes depuis les pixels. Elle ne remplace donc pas un moteur OCR cyrillique.
+- [Installation Android de Text Recognition v2](https://developers.google.com/ml-kit/vision/text-recognition/v2/android) : les modèles peuvent être liés à l'APK (plus volumineux, disponibles immédiatement) ou téléchargés par Google Play Services (APK plus léger, premier usage potentiellement retardé). Cette flexibilité ne crée pas une prise en charge du cyrillique absent de la liste des scripts.
+
+**Conclusion confirmée :** ajouter un recognizer ML Kit supplémentaire parmi les scripts officiels actuellement documentés ne résout pas la lecture du russe cyrillique. Le prototype Tesseract reste la piste séparée à mesurer ; aucune dépendance ni modèle n'est ajouté avant comparaison sur captures authentiques.
