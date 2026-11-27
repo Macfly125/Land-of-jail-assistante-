@@ -169,6 +169,34 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun recognizesHeadquartersLevelWhenLevelLabelPrecedesBuildingName() {
+        val samples = listOf(
+            "Lv. 12 Warden's Office" to "Niv. 12",
+            "Level 18 Director's Office" to "Niv. 18",
+            "Livello 7 Ufficio del direttore" to "Niv. 7",
+            "Уровень 21 офис начальника" to "Niv. 21",
+            "等级 9 典狱长办公室" to "Niv. 9"
+        )
+
+        samples.forEach { (sample, expected) ->
+            val result = LandsOfJailOcrParser.parseLocalOcrText(sample)
+            assertEquals("Le niveau du QG doit être extrait : $sample",
+                expected, result.power?.niveauPrisonOuQG)
+            assertEquals("La puissance ne doit pas être inventée : $sample",
+                "Non mesurée", result.power?.puissanceTotaleTexte)
+        }
+    }
+
+    @Test
+    fun doesNotUseAnotherBuildingLevelAsHeadquartersLevel() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            "Level 12 Kitchen\\nLevel 8 Warden's Office"
+        )
+
+        assertEquals("Niv. 8", result.power?.niveauPrisonOuQG)
+    }
+
+    @Test
     fun parsesGroupedPowerWithoutTreatingThousandsAsDecimals() {
         val result = LandsOfJailOcrParser.parseLocalOcrText("Puissance : 8,450,120")
 
