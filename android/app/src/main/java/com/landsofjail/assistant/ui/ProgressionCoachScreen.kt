@@ -35,6 +35,7 @@ import com.landsofjail.assistant.model.ProgressionCatalogRecord
 import com.landsofjail.assistant.model.CostConfidence
 import com.landsofjail.assistant.model.ForticladCatalog
 import com.landsofjail.assistant.model.ForticladInventory
+import com.landsofjail.assistant.data.ForticladInventoryStore
 import com.landsofjail.assistant.model.ForticladSelection
 import com.landsofjail.assistant.model.ProgressionCoach
 import com.landsofjail.assistant.model.canonicalProgressionResourceId
@@ -517,15 +518,10 @@ private fun ProgressionCatalogGoalCard(
 @Composable
 private fun ForticladPlannerCard(language: AppLanguage, profileId: String) {
     val context = LocalContext.current
-    val inventoryPrefs = remember(context, profileId) {
-        context.getSharedPreferences("forticlad_inventory_$profileId", Context.MODE_PRIVATE)
-    }
-    var forticladStock by remember(profileId) {
-        mutableStateOf(inventoryPrefs.getLong("forticlad_cores", 0L).toString())
-    }
-    var advancedStock by remember(profileId) {
-        mutableStateOf(inventoryPrefs.getLong("advanced_cores", 0L).toString())
-    }
+    val inventoryStore = remember(context, profileId) { ForticladInventoryStore(context, profileId) }
+    val savedInventory = remember(inventoryStore) { inventoryStore.load() }
+    var forticladStock by remember(profileId) { mutableStateOf(savedInventory.forticladCores.toString()) }
+    var advancedStock by remember(profileId) { mutableStateOf(savedInventory.advancedCores.toString()) }
     var buildingId by remember { mutableStateOf("wardens_office") }
     var currentLevel by remember { mutableStateOf(1) }
     var targetLevel by remember { mutableStateOf(2) }
@@ -595,7 +591,7 @@ private fun ForticladPlannerCard(language: AppLanguage, profileId: String) {
                 onValueChange = { value ->
                     val digits = value.filter(Char::isDigit)
                     forticladStock = digits
-                    inventoryPrefs.edit().putLong("forticlad_cores", digits.toLongOrNull() ?: 0L).apply()
+                    inventoryStore.save(ForticladInventory.parse(digits, advancedStock))
                 },
                 label = { Text(label("Noyaux Forticlad", "Forticlad Cores", "Forticlad-Kerne", "Forticlad çekirdekleri", "Ядра Forticlad", "Forticlad 核心", "Nuclei Forticlad")) },
                 singleLine = true,
@@ -606,7 +602,7 @@ private fun ForticladPlannerCard(language: AppLanguage, profileId: String) {
                 onValueChange = { value ->
                     val digits = value.filter(Char::isDigit)
                     advancedStock = digits
-                    inventoryPrefs.edit().putLong("advanced_cores", digits.toLongOrNull() ?: 0L).apply()
+                    inventoryStore.save(ForticladInventory.parse(forticladStock, digits))
                 },
                 label = { Text(label("Noyaux avancés", "Advanced Cores", "Erweiterte Kerne", "Gelişmiş çekirdekler", "Улучшенные ядра", "高级核心", "Nuclei avanzati")) },
                 singleLine = true,
