@@ -491,7 +491,12 @@ class GameForegroundMonitorService : Service() {
         val width = metrics.widthPixels.coerceAtLeast(1)
         val height = metrics.heightPixels.coerceAtLeast(1)
         val density = metrics.densityDpi
-        val reader = ImageReader.newInstance(width, height, PixelFormat.RGBA_8888, 3)
+        val reader = try {
+            ImageReader.newInstance(width, height, PixelFormat.RGBA_8888, 3)
+        } catch (_: Throwable) {
+            handleAutoProjectionStopped()
+            return
+        }
         imageReader = reader
         try {
             virtualDisplay = projection.createVirtualDisplay(
