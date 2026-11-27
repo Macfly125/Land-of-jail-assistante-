@@ -382,6 +382,7 @@ class GameForegroundMonitorService : Service() {
                     val base64 = Base64.encodeToString(jpegBytes, Base64.NO_WRAP)
 
                     val savedUri = saveCaptureToInternalFile(jpegBytes)
+                    check(savedUri.isNotBlank()) { "Impossible d'enregistrer durablement la capture" }
 
                     check(ScreenCaptureConsentActivity.publishCapture(
                         this@GameForegroundMonitorService,
@@ -543,6 +544,7 @@ class GameForegroundMonitorService : Service() {
                 }
                 val base64 = Base64.encodeToString(jpegBytes, Base64.NO_WRAP)
                 val savedUri = saveCaptureToInternalFile(jpegBytes)
+                check(savedUri.isNotBlank()) { "Impossible d'enregistrer durablement la capture automatique" }
                 autoCaptureAwaitingAnalysis = true
                 nextAutoCaptureAtMillis = now + autoCaptureIntervalMillis
                 Handler(Looper.getMainLooper()).post { updateAutoCaptureSurface(_detectedGameForeground.value) }
