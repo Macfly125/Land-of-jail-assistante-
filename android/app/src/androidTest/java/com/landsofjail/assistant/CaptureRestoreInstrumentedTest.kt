@@ -7,7 +7,12 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.landsofjail.assistant.capture.ScreenCaptureConsentActivity
 import com.landsofjail.assistant.data.ForticladInventoryStore
+import com.landsofjail.assistant.data.ProgressionProfileStore
 import com.landsofjail.assistant.model.ForticladInventory
+import com.landsofjail.assistant.model.PlayerResourceStock
+import com.landsofjail.assistant.model.ProgressionPlayerProfile
+import com.landsofjail.assistant.model.ProgressionProfileCodec
+import kotlinx.coroutines.runBlocking
 import com.landsofjail.assistant.service.cropFrameBitmap
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -215,4 +220,48 @@ class CaptureRestoreInstrumentedTest {
         assertNull(preferences.getString("pending_capture_uri", null))
         outside.delete()
     }
+
+    @Test
+    fun progressionProfileDataStoreMigratesLegacyDataPerProfile() = runBlocking {
+        val firstId = "migration-player-one-${System.nanoTime()}"
+        val secondId = "migration-player-two-${System.nanoTime()}"
+        val firstLegacyProfile = context.getSharedPreferences("progression_profile_$firstId", Context.MODE_PRIVATE)
+        val firstLegacyInventory = context.getSharedPreferences("forticlad_inventory_$firstId", Context.MODE_PRIVATE)
+        val secondLegacyInventory = context.getSharedPreferences("forticlad_inventory_$secondId", Context.MODE_PRIVATE)
+        try {
+            val original = ProgressionPlayerProfile(
+                profileId = firstId,
+                resourceStocks = listOf(PlayerResourceStock("food", 4_000L, true, 10L))
+            )
+            firstLegacyProfile.edit().putString("profile", ProgressionProfileCodec.encode(original)).commit()
+            firstLegacyInventory.edit()
+                .putLong("forticlad_cores", 1_250L)
+                .putLong("advanced_cores", 75L)
+                .commit()
+            secondLegacyInventory.edit()
+                .putLong("forticlad_cores", 90L)
+                .putLong("advanced_cores", 5L)
+                .commit()
+
+            val first = ProgressionProfileStore(context, firstId)
+            val second = ProgressionProfileStore(context, secondId)
+            val migratedFirst = first.load()
+            val migratedSecond = second.load()
+
+            assertEquals(4_000L, migratedFirst.confirmedStock("food"))
+            assertEquals(1_250L, migratedFirst.confirmedStock("forticlad cores"))
+            assertEquals(75L, migratedFirst.confirmedStock("advanced forticlad cores"))
+            assertEquals(90L, migratedSecond.confirmedStock("forticlad cores"))
+            assertEquals(5L, migratedSecond.confirmedStock("advanced forticlad cores"))
+
+            first.save(migratedFirst.copy(updatedAtEpochMillis = 99L))
+            assertEquals(99L, first.load().updatedAtEpochMillis)
+            assertEquals(90L, second.load().confirmedStock("forticlad cores"))
+        } finally {
+            firstLegacyProfile.edit().clear().commit()
+            firstLegacyInventory.edit().clear().commit()
+            secondLegacyInventory.edit().clear().commit()
+        }
+    }
+
 }
