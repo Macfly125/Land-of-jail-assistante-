@@ -34,6 +34,7 @@ import com.landsofjail.assistant.model.ProgressionCatalog
 import com.landsofjail.assistant.model.ProgressionCatalogRecord
 import com.landsofjail.assistant.model.CostConfidence
 import com.landsofjail.assistant.model.ForticladCatalog
+import com.landsofjail.assistant.model.ForticladInventory
 import com.landsofjail.assistant.model.ForticladSelection
 import com.landsofjail.assistant.model.ProgressionCoach
 import com.landsofjail.assistant.model.canonicalProgressionResourceId
@@ -514,7 +515,17 @@ private fun ProgressionCatalogGoalCard(
 }
 
 @Composable
-private fun ForticladPlannerCard(language: AppLanguage) {
+private fun ForticladPlannerCard(language: AppLanguage, profileId: String) {
+    val context = LocalContext.current
+    val inventoryPrefs = remember(context, profileId) {
+        context.getSharedPreferences("forticlad_inventory_$profileId", Context.MODE_PRIVATE)
+    }
+    var forticladStock by remember(profileId) {
+        mutableStateOf(inventoryPrefs.getLong("forticlad_cores", 0L).toString())
+    }
+    var advancedStock by remember(profileId) {
+        mutableStateOf(inventoryPrefs.getLong("advanced_cores", 0L).toString())
+    }
     var buildingId by remember { mutableStateOf("wardens_office") }
     var currentLevel by remember { mutableStateOf(1) }
     var targetLevel by remember { mutableStateOf(2) }
@@ -535,6 +546,8 @@ private fun ForticladPlannerCard(language: AppLanguage) {
         else -> label("Laboratoire Forticlad", "Forticlad Lab", "Forticlad-Labor", "Forticlad Laboratuvarı", "Лаборатория Forticlad", "Forticlad 实验室", "Laboratorio Forticlad")
     }
     val estimate = ForticladCatalog.estimate(buildingId, currentLevel, completedStages, targetLevel)
+    val inventory = ForticladInventory.parse(forticladStock, advancedStock)
+    val missing = estimate?.let(inventory::missingFor)
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(label("Calculateur Forticlad", "Forticlad calculator", "Forticlad-Rechner", "Forticlad hesaplayıcı", "Калькулятор Forticlad", "Forticlad 计算器", "Calcolatore Forticlad"),
@@ -576,6 +589,29 @@ private fun ForticladPlannerCard(language: AppLanguage) {
                     }, label = { Text(stage.toString()) })
                 }
             }
+            Text(label("Stock disponible", "Available inventory", "Verfügbarer Bestand", "Mevcut stok", "Доступный запас", "可用库存", "Scorta disponibile"))
+            OutlinedTextField(
+                value = forticladStock,
+                onValueChange = { value ->
+                    val digits = value.filter(Char::isDigit)
+                    forticladStock = digits
+                    inventoryPrefs.edit().putLong("forticlad_cores", digits.toLongOrNull() ?: 0L).apply()
+                },
+                label = { Text(label("Noyaux Forticlad", "Forticlad Cores", "Forticlad-Kerne", "Forticlad çekirdekleri", "Ядра Forticlad", "Forticlad 核心", "Nuclei Forticlad")) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = advancedStock,
+                onValueChange = { value ->
+                    val digits = value.filter(Char::isDigit)
+                    advancedStock = digits
+                    inventoryPrefs.edit().putLong("advanced_cores", digits.toLongOrNull() ?: 0L).apply()
+                },
+                label = { Text(label("Noyaux avancés", "Advanced Cores", "Erweiterte Kerne", "Gelişmiş çekirdekler", "Улучшенные ядра", "高级核心", "Nuclei avanzati")) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
             if (estimate == null) {
                 Text(label("Coût non publié pour cette plage : aucune estimation n'est inventée.",
                     "No published cost for this range; no estimate is invented.",
@@ -589,6 +625,9 @@ private fun ForticladPlannerCard(language: AppLanguage) {
                 Text("${label("Noyaux Forticlad", "Forticlad Cores", "Forticlad-Kerne", "Forticlad çekirdekleri", "Ядра Forticlad", "Forticlad 核心", "Nuclei Forticlad")}: ${NumberFormat.getIntegerInstance().format(estimate.forticladCores)}")
                 Text("${label("Noyaux avancés", "Advanced Cores", "Erweiterte Kerne", "Gelişmiş çekirdekler", "Улучшенные ядра", "高级核心", "Nuclei avanzati")}: ${NumberFormat.getIntegerInstance().format(estimate.advancedCores)}")
                 Text(label("Étapes incluses", "Included stages", "Enthaltene Stufen", "Dahil edilen aşamalar", "Включённые этапы", "包含阶段", "Fasi incluse") + ": ${estimate.includedStages}")
+                Text(label("Il te manque encore", "Still needed", "Noch benötigt", "Hâlâ gereken", "Ещё требуется", "仍需准备", "Ancora necessari"))
+                Text("${label("Noyaux Forticlad", "Forticlad Cores", "Forticlad-Kerne", "Forticlad çekirdekleri", "Ядра Forticlad", "Forticlad 核心", "Nuclei Forticlad")}: ${NumberFormat.getIntegerInstance().format(missing?.forticladCores ?: 0L)}")
+                Text("${label("Noyaux avancés", "Advanced Cores", "Erweiterte Kerne", "Gelişmiş çekirdekler", "Улучшенные ядра", "高级核心", "Nuclei avanzati")}: ${NumberFormat.getIntegerInstance().format(missing?.advancedCores ?: 0L)}")
                 Text(label("Estimation issue d'une référence communautaire, non vérifiée en jeu.",
                     "Community-reference estimate, not verified in-game.",
                     "Schätzung aus Community-Quelle, nicht im Spiel bestätigt.",
@@ -741,7 +780,7 @@ fun ProgressionCoachScreen(
                 style = MaterialTheme.typography.bodySmall
             )
         }
-        item { ForticladPlannerCard(language) }
+        item { ForticladPlannerCard(language, profileId) }
         item {
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
