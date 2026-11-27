@@ -356,7 +356,8 @@ class GameForegroundMonitorService : Service() {
             }
 
             var attempts = 0
-            reader.setOnImageAvailableListener({ r ->
+            try {
+                reader.setOnImageAvailableListener({ r ->
                 if (handled) return@setOnImageAvailableListener
                 val image = r.acquireLatestImage() ?: return@setOnImageAvailableListener
                 attempts++
@@ -435,7 +436,15 @@ class GameForegroundMonitorService : Service() {
                         finishCaptureFlow(wasMonitoring)
                     }
                 }
-            }, mainHandler)
+                }, mainHandler)
+            } catch (_: Throwable) {
+                handled = true
+                mainHandler.removeCallbacks(timeoutRunnable)
+                isCapturingNow = false
+                releaseProjection()
+                finishCaptureFlow(wasMonitoring)
+                return@postDelayed
+            }
         }, 380L)
     }
 
