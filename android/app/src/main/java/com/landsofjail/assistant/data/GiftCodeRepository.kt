@@ -22,7 +22,8 @@ data class GiftCodeEntry(
     val lastChecked: String = "",
     val expiresAt: String = "",
     val reward: String = "",
-    val note: String = ""
+    val note: String = "",
+    val playerStatus: String = ""
 )
 
 @Serializable
@@ -200,6 +201,14 @@ object GiftCodeRepository {
             note = note
         )
     }
+
+    /** Records a player's local redemption result without changing source validity. */
+    internal fun markAsUsed(snapshot: GiftCodeSnapshot, code: String, used: Boolean): GiftCodeSnapshot =
+        snapshot.copy(entries = snapshot.entries.map { entry ->
+            if (entry.code.equals(code, ignoreCase = true)) {
+                entry.copy(playerStatus = if (used) "ALREADY_USED" else "")
+            } else entry
+        })
 
     /** Applies only an explicit published expiry date; never infers expiry from silence. */
     internal fun applyPublishedExpiryDates(
