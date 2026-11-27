@@ -228,7 +228,7 @@ object LandsOfJailOcrParser {
         val powerRegex = Regex("""(?:\bpuissance\b|\bpower\b|\bcomb\.?\s*power\b|\bcp\b)\s*[:\-]?\s*([0-9][0-9\s.,kmbKMB]*)""", RegexOption.IGNORE_CASE)
         val levelRegex = Regex("""(?:niv\.?|lv\.?|level)\s*([0-9]+)""", RegexOption.IGNORE_CASE)
         val wardenRegex = Regex(
-            """(?:(?:warden(?:['’]s)?\s*office|director(?:['’]s)?\s*office|bureau\s*du\s*directeur|prison|qg|hq)\s*(?:(?:niv(?:eau)?|lv|lvl|level)\.?\s*[:：#-]?\s*)?([0-9]{1,2})|\b([0-9]{1,2})\s+(?:warden(?:['’]s)?\s*office|director(?:['’]s)?\s*office|bureau\s*du\s*directeur|prison|qg|hq)\b)""",
+            """(?:(?:warden(?:['’]s)?\s*office|director(?:['’]s)?\s*office|bureau\s*du\s*directeur|prison|qg|hq)\s*(?:niv(?:eau)?|lv|lvl|level)\.?\s*[:：#-]?\s*([0-9]{1,2})|\b([0-9]{1,2})\s+(?:warden(?:['’]s)?\s*office|director(?:['’]s)?\s*office|bureau\s*du\s*directeur|prison|qg|hq)\b)""",
             RegexOption.IGNORE_CASE
         )
         // Certains écrans affichent le nom du bâtiment et son niveau sur deux lignes.
