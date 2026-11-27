@@ -76,9 +76,17 @@ object GiftCodeRepository {
                 add(GiftCodeEntry(code, "EXPIRED", "LOJ XLab · historique", expiresAt = expiry,
                     note = "Code classé expiré par la source communautaire."))
             }
+            // Code publié le 26/11/2026 dans le canal officiel selon deux
+            // catalogues communautaires ; échéance serveur sans fuseau confirmé.
+            // Il reste à vérifier tant qu'une réponse du jeu n'a pas été rapportée.
+            add(GiftCodeEntry(
+                "4AWwVMpUETEgzM", "NEEDS_REVIEW", "Alliance Portal / MrGuider · 26/11/2026",
+                firstSeen = "26/11/2026", expiresAt = "30/11/2026",
+                note = "Code récent signalé comme publié dans le canal officiel. Échéance annoncée au 30/11/2026 à 23:59 heure serveur, fuseau UTC inconnu. Non testé par l'application ; vérifier le résultat dans le jeu."
+            ))
             // Pocket Gamer affiche encore N4HDYuJxkQKur5 avec une échéance
-            // au 30/11/2026 ; l'ancien catalogue contenait par erreur 2025.
-            add(GiftCodeEntry("N4HDYuJxkQKur5", "NEEDS_REVIEW", "Pocket Gamer · 22/11/2026",
+            // au 30/11/2026, mais une autre source l'indique expiré en 2025.
+            add(GiftCodeEntry("N4HDYuJxkQKur5", "NEEDS_REVIEW", "Pocket Gamer / LOJ XLab · dates contradictoires",
                 firstSeen = "22/11/2026", expiresAt = "30/11/2026",
                 note = "Échéance publiée au 30/11/2026 par Pocket Gamer ; disponibilité non testée par l'application."))
             unverifiedCodes.forEach {
