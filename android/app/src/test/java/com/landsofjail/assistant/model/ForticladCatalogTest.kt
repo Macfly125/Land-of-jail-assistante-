@@ -53,10 +53,20 @@ class ForticladCatalogTest {
     }
 
     @Test
-    fun missingMedicalStationAndForticladLabRowsStayUnknown() {
-        assertNull(ForticladCatalog.estimate("medical_station", 8, 0, 9))
-        assertNull(ForticladCatalog.estimate("medical_station", 9, 0, 10))
-        assertNull(ForticladCatalog.estimate("forticlad_lab", 0, 0, 1))
+    fun newlyPublishedMedicalStationAndForticladLabRowsAreAvailable() {
+        val medical = ForticladCatalog.estimate("medical_station", 8, 0, 10)
+        assertEquals(1_150L, medical?.forticladCores)
+        assertEquals(240L, medical?.advancedCores)
+        assertEquals(ForticladCatalog.MEDICAL_STATION_SOURCE_URL, medical?.sourceUrl)
+
+        val lab = ForticladCatalog.estimate("forticlad_lab", 0, 0, 1)
+        assertEquals(750L, lab?.forticladCores)
+        assertEquals(0L, lab?.advancedCores)
+        assertEquals(ForticladCatalog.FORTICLAD_LAB_SOURCE_URL, lab?.sourceUrl)
+
+        val labSix = ForticladCatalog.estimate("forticlad_lab", 5, 0, 6)
+        assertEquals(350L, labSix?.forticladCores)
+        assertEquals(25L, labSix?.advancedCores)
     }
 
     @Test
