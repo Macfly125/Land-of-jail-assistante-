@@ -807,7 +807,7 @@ private fun resourceUiText(language: AppLanguage, key: String): String {
 }
 
 private enum class AssistantTab {
-    TABLEAU, HEROS, RESSOURCES, CONSEILS, ALLIANCE, HISTORIQUE, AMELIORATIONS, CODES;
+    TABLEAU, HEROS, RESSOURCES, CONSEILS, ALLIANCE, HISTORIQUE, AMELIORATIONS, CODES, PARAMETRES;
 
     fun titleFor(lang: AppLanguage): String = when (this) {
         TABLEAU -> when (lang) {
@@ -881,6 +881,15 @@ private enum class AssistantTab {
             AppLanguage.DE -> "Ideen"
             AppLanguage.EN -> "Ideas"
             AppLanguage.IT -> "Idee"
+        }
+        PARAMETRES -> when (lang) {
+            AppLanguage.FR -> "Paramètres"
+            AppLanguage.EN -> "Settings"
+            AppLanguage.DE -> "Einstellungen"
+            AppLanguage.TR -> "Ayarlar"
+            AppLanguage.RU -> "Настройки"
+            AppLanguage.ZH -> "设置"
+            AppLanguage.IT -> "Impostazioni"
         }
     }
 }
@@ -2306,6 +2315,7 @@ fun LandsOfJailAssistantApp(
                             AssistantTab.HISTORIQUE -> Icons.Outlined.History
                             AssistantTab.AMELIORATIONS -> Icons.Outlined.Lightbulb
                             AssistantTab.CODES -> Icons.Outlined.CardGiftcard
+                            AssistantTab.PARAMETRES -> Icons.Outlined.Settings
                         }
                         NavigationBarItem(
                             selected = currentTab == tab,
@@ -2534,6 +2544,12 @@ fun LandsOfJailAssistantApp(
                         onSaveWorkspace = { allianceWorkspace = it }
                     )
                     AssistantTab.AMELIORATIONS -> ImprovementRequestsScreen(auth = profileAuth)
+                    AssistantTab.PARAMETRES -> SettingsScreen(
+                        currentLang = currentLang,
+                        onChangeLanguage = { currentLang = it },
+                        auth = profileAuth,
+                        onOpenAccount = { currentTab = AssistantTab.ALLIANCE }
+                    )
                     AssistantTab.CODES -> GiftCodesScreen(
                         language = currentLang,
                         snapshot = giftCodeSnapshot,
@@ -5296,6 +5312,137 @@ private fun HistoryScreen(
 }
 }
 
+
+@Composable
+private fun SettingsScreen(
+    currentLang: AppLanguage,
+    onChangeLanguage: (AppLanguage) -> Unit,
+    auth: SupabaseAuthRepository,
+    onOpenAccount: () -> Unit
+) {
+    val scope = rememberCoroutineScope()
+    var session by remember { mutableStateOf(auth.currentSession()) }
+    var busy by remember { mutableStateOf(false) }
+    var showSignOutConfirmation by remember { mutableStateOf(false) }
+    var message by remember { mutableStateOf<String?>(null) }
+    var isError by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        session = auth.currentSession()
+    }
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(vertical = 12.dp, horizontal = 2.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        item {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF151C27)),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(
+                        localizedUiText(currentLang, "Langue de l’application", "App language", "App-Sprache", "Uygulama dili", "Язык приложения", "应用语言", "Lingua dell’app"),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        localizedUiText(currentLang, "Choisis la langue utilisée dans l’application. Ton choix est enregistré automatiquement sur cet appareil.", "Choose the language used in the app. Your choice is saved automatically on this device.", "Wähle die Sprache der App. Deine Auswahl wird automatisch auf diesem Gerät gespeichert.", "Uygulama dilini seç. Seçimin bu cihaza otomatik kaydedilir.", "Выберите язык приложения. Выбор автоматически сохраняется на этом устройстве.", "选择应用语言。你的选择会自动保存在此设备上。", "Scegli la lingua dell’app. La scelta viene salvata automaticamente su questo dispositivo."),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFFB8C3D1)
+                    )
+                    LanguageSelectorRow(currentLang = currentLang, onChangeLang = onChangeLanguage)
+                }
+            }
+        }
+        item {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF151C27)),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(
+                        localizedUiText(currentLang, "Compte de connexion", "Login account", "Anmeldekonto", "Giriş hesabı", "Аккаунт входа", "登录账户", "Account di accesso"),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    if (session != null) {
+                        Text(
+                            localizedUiText(currentLang, "Connecté avec : ${session?.email.orEmpty()}", "Signed in as: ${session?.email.orEmpty()}", "Angemeldet als: ${session?.email.orEmpty()}", "${session?.email.orEmpty()} olarak giriş yapıldı", "Вы вошли как: ${session?.email.orEmpty()}", "当前账号：${session?.email.orEmpty()}", "Connesso come: ${session?.email.orEmpty()}"),
+                            color = Color(0xFF86EFAC),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            localizedUiText(currentLang, "La déconnexion ne supprime pas tes données de jeu enregistrées sur cet appareil. Tu pourras ensuite te connecter avec un autre compte.", "Signing out does not delete game data saved on this device. You can then sign in with another account.", "Beim Abmelden werden lokal gespeicherte Spieldaten nicht gelöscht. Danach kannst du dich mit einem anderen Konto anmelden.", "Çıkış yapmak bu cihazda kayıtlı oyun verilerini silmez. Ardından başka bir hesapla giriş yapabilirsin.", "Выход не удаляет игровые данные, сохранённые на устройстве. После этого можно войти в другой аккаунт.", "退出登录不会删除保存在此设备上的游戏数据。之后可以使用其他账号登录。", "La disconnessione non elimina i dati di gioco salvati su questo dispositivo. Potrai poi accedere con un altro account."),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color(0xFFB8C3D1)
+                        )
+                        OutlinedButton(
+                            onClick = { showSignOutConfirmation = true },
+                            enabled = !busy,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            if (busy) CircularProgressIndicator(modifier = Modifier.size(17.dp), strokeWidth = 2.dp)
+                            else Icon(Icons.Outlined.Logout, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text(localizedUiText(currentLang, "Se déconnecter", "Sign out", "Abmelden", "Çıkış yap", "Выйти", "退出登录", "Disconnetti"))
+                        }
+                    } else {
+                        Text(
+                            localizedUiText(currentLang, "Aucun compte connecté. Ouvre la rubrique Alliance pour te connecter ou créer un compte.", "No account is signed in. Open the Alliance section to sign in or create an account.", "Kein Konto angemeldet. Öffne den Bereich Allianz, um dich anzumelden oder ein Konto zu erstellen.", "Giriş yapılmış hesap yok. Giriş yapmak veya hesap oluşturmak için İttifak bölümünü aç.", "Нет подключённого аккаунта. Откройте раздел «Альянс», чтобы войти или создать аккаунт.", "当前没有登录账号。请打开联盟栏目登录或创建账号。", "Nessun account connesso. Apri la sezione Alleanza per accedere o creare un account."),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color(0xFFB8C3D1)
+                        )
+                        Button(onClick = onOpenAccount, modifier = Modifier.fillMaxWidth()) {
+                            Icon(Icons.Outlined.AccountCircle, contentDescription = null)
+                            Spacer(Modifier.width(8.dp))
+                            Text(localizedUiText(currentLang, "Se connecter / changer de compte", "Sign in / change account", "Anmelden / Konto wechseln", "Giriş yap / hesap değiştir", "Войти / сменить аккаунт", "登录 / 切换账号", "Accedi / cambia account"))
+                        }
+                    }
+                    message?.let {
+                        Text(it, color = if (isError) Color(0xFFFCA5A5) else Color(0xFF86EFAC), style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+            }
+        }
+    }
+
+    if (showSignOutConfirmation) {
+        AlertDialog(
+            onDismissRequest = { if (!busy) showSignOutConfirmation = false },
+            title = { Text(localizedUiText(currentLang, "Confirmer la déconnexion", "Confirm sign out", "Abmeldung bestätigen", "Çıkışı onayla", "Подтвердите выход", "确认退出登录", "Conferma disconnessione")) },
+            text = { Text(localizedUiText(currentLang, "Veux-tu vraiment te déconnecter de ce compte ?", "Do you really want to sign out of this account?", "Möchtest du dich wirklich von diesem Konto abmelden?", "Bu hesaptan çıkış yapmak istiyor musun?", "Вы действительно хотите выйти из этого аккаунта?", "确定要退出此账号吗？", "Vuoi davvero disconnetterti da questo account?")) },
+            confirmButton = {
+                Button(
+                    enabled = !busy,
+                    onClick = {
+                        showSignOutConfirmation = false
+                        scope.launch {
+                            busy = true
+                            auth.signOut()
+                                .onSuccess {
+                                    session = null
+                                    message = localizedUiText(currentLang, "Déconnexion effectuée. Tu peux maintenant choisir un autre compte.", "Signed out. You can now choose another account.", "Abmeldung abgeschlossen. Du kannst jetzt ein anderes Konto auswählen.", "Çıkış yapıldı. Artık başka bir hesap seçebilirsin.", "Вы вышли из аккаунта. Теперь можно выбрать другой.", "已退出登录。现在可以选择其他账号。", "Disconnessione effettuata. Ora puoi scegliere un altro account.")
+                                    isError = false
+                                }
+                                .onFailure {
+                                    message = it.message ?: localizedUiText(currentLang, "Déconnexion impossible.", "Could not sign out.", "Abmeldung nicht möglich.", "Çıkış yapılamadı.", "Не удалось выйти.", "无法退出登录。", "Impossibile disconnettersi.")
+                                    isError = true
+                                }
+                            busy = false
+                        }
+                    }
+                ) { Text(localizedUiText(currentLang, "Confirmer", "Confirm", "Bestätigen", "Onayla", "Подтвердить", "确认", "Conferma")) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showSignOutConfirmation = false }, enabled = !busy) {
+                    Text(localizedUiText(currentLang, "Annuler", "Cancel", "Abbrechen", "İptal", "Отмена", "取消", "Annulla"))
+                }
+            }
+        )
+    }
+}
 
 @Composable
 private fun SupabaseAccountCard(onChangeLanguage: (AppLanguage) -> Unit) {
