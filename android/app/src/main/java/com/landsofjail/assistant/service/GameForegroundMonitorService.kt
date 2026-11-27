@@ -371,11 +371,14 @@ class GameForegroundMonitorService : Service() {
                     handled = true
                     mainHandler.removeCallbacks(timeoutRunnable)
 
-                    val stream = ByteArrayOutputStream()
-                    check(cropped.compress(Bitmap.CompressFormat.JPEG, 88, stream)) {
-                        "Échec de compression de la capture"
+                    val jpegBytes = ByteArrayOutputStream().use { stream ->
+                        check(cropped.compress(Bitmap.CompressFormat.JPEG, 88, stream)) {
+                            "Échec de compression de la capture"
+                        }
+                        stream.toByteArray().also { bytes ->
+                            check(bytes.isNotEmpty()) { "Capture JPEG vide" }
+                        }
                     }
-                    val jpegBytes = stream.toByteArray()
                     val base64 = Base64.encodeToString(jpegBytes, Base64.NO_WRAP)
 
                     val savedUri = saveCaptureToInternalFile(jpegBytes)
