@@ -42,6 +42,22 @@ class ScreenRecognitionEngineTest {
     }
 
     @Test
+    fun doesNotClassifyGenericRobotWordsWithoutARobotIdentity() {
+        listOf("Robot", "Robots", "Droid", "Drone", "Robotics").forEach { sample ->
+            val result = ScreenRecognitionEngine.analyze(sample)
+            assertEquals("Le libellé générique ne suffit pas : $sample", "ocr_local", result.category)
+            assertFalse(result.needsVisualConfirmation)
+        }
+    }
+
+    @Test
+    fun robotIdentityStillClassifiesTheRobotCategory() {
+        val result = ScreenRecognitionEngine.analyze("Robot\nYokozuna\nLevel 10")
+        assertEquals("robots", result.category)
+        assertTrue(result.needsVisualConfirmation)
+    }
+
+    @Test
     fun recognizesRobotNameWithoutClaimingVisualIdentityOrLevel() {
         val result = ScreenRecognitionEngine.analyze("Yokozuna Level 10")
 
