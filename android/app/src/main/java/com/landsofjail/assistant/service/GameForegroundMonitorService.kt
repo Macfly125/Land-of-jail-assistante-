@@ -849,7 +849,8 @@ class GameForegroundMonitorService : Service() {
         monitorJob = serviceScope.launch {
             var wasGameInForeground = false
             while (isActive) {
-                val powerManager = getSystemService(Context.POWER_SERVICE) as android.os.PowerManager
+                try {
+                    val powerManager = getSystemService(Context.POWER_SERVICE) as android.os.PowerManager
                 val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as android.app.KeyguardManager
                 val deviceAvailable = powerManager.isInteractive && !keyguardManager.isKeyguardLocked
                 if (!deviceAvailable) lastKnownForegroundPkg = null
@@ -889,7 +890,16 @@ class GameForegroundMonitorService : Service() {
                     removeFloatingAnalyzeBar()
                 }
 
-                wasGameInForeground = isGameNow
+                    wasGameInForeground = isGameNow
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (_: Exception) {
+                    _detectedGameForeground.value = false
+                    if (_isAutoCapturing.value) {
+                        runCatching { updateAutoCaptureSurface(false) }
+                    }
+                    runCatching { removeFloatingAnalyzeBar() }
+                }
                 delay(1800L)
             }
         }
