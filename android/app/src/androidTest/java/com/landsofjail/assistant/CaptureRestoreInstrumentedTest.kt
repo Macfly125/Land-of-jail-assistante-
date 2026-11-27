@@ -85,6 +85,56 @@ class CaptureRestoreInstrumentedTest {
     }
 
     @Test
+    fun rejectsEmptyAndOversizedPersistedCaptureFiles() {
+        val directory = File(context.filesDir, "captures")
+        assertTrue(directory.exists() || directory.mkdirs())
+
+        val empty = File(directory, "empty_capture.jpg")
+        empty.writeBytes(byteArrayOf())
+        preferences.edit()
+            .putString("pending_capture_uri", Uri.fromFile(empty).toString())
+            .putLong("pending_capture_at", 1L)
+            .commit()
+
+        ScreenCaptureConsentActivity.restorePendingCapture(context)
+
+        assertNull(ScreenCaptureConsentActivity.pendingCapture.value)
+        assertFalse("Le fichier vide invalide doit être supprimé", empty.exists())
+        assertNull(preferences.getString("pending_capture_uri", null))
+
+        val oversized = File(directory, "oversized_capture.jpg")
+        oversized.setLength(20L * 1024L * 1024L + 1L)
+        preferences.edit()
+            .putString("pending_capture_uri", Uri.fromFile(oversized).toString())
+            .putLong("pending_capture_at", 2L)
+            .commit()
+
+        ScreenCaptureConsentActivity.restorePendingCapture(context)
+
+        assertNull(ScreenCaptureConsentActivity.pendingCapture.value)
+        assertFalse("Le fichier trop volumineux invalide doit être supprimé", oversized.exists())
+        assertNull(preferences.getString("pending_capture_uri", null))
+    }
+
+    @Test
+    fun rejectsCorruptedPersistedCaptureImage() {
+        val directory = File(context.filesDir, "captures")
+        assertTrue(directory.exists() || directory.mkdirs())
+        val corrupted = File(directory, "corrupted_capture.jpg")
+        corrupted.writeBytes(byteArrayOf(1, 2, 3, 4, 5, 6))
+        preferences.edit()
+            .putString("pending_capture_uri", Uri.fromFile(corrupted).toString())
+            .putLong("pending_capture_at", 3L)
+            .commit()
+
+        ScreenCaptureConsentActivity.restorePendingCapture(context)
+
+        assertNull(ScreenCaptureConsentActivity.pendingCapture.value)
+        assertFalse("La capture illisible doit être supprimée", corrupted.exists())
+        assertNull(preferences.getString("pending_capture_uri", null))
+    }
+
+    @Test
     fun rejectsCapturePathTraversalOutsidePrivateDirectory() {
         val outside = File(context.filesDir, "traversal_capture.jpg")
         outside.writeBytes(byteArrayOf(1, 2, 3))
