@@ -1628,4 +1628,32 @@ Potential Coil x 8"""
         }
     }
 
+
+    @Test
+    fun parsesSpaceGroupedDecimalsWithSuffixForResourcesAndPower() {
+        val resourceSingleGroup = LandsOfJailOcrParser.parseLocalOcrText("Food: 1 234,5M")
+        val resourceMultipleGroups = LandsOfJailOcrParser.parseLocalOcrText("Wood: 1 234 567,8M")
+        val powerSingleGroup = LandsOfJailOcrParser.parseLocalOcrText("Power: 1 234,5M")
+        val powerMultipleGroups = LandsOfJailOcrParser.parseLocalOcrText("Puissance: 1 234 567,8M")
+
+        assertEquals(1_234_500_000.0,
+            resourceSingleGroup.resources.single().quantiteNumerique ?: 0.0, 0.1)
+        assertEquals(1_234_567_800_000.0,
+            resourceMultipleGroups.resources.single().quantiteNumerique ?: 0.0, 0.1)
+        assertEquals(1_234_500_000L, powerSingleGroup.power?.puissanceTotaleNumerique)
+        assertEquals(1_234_567_800_000L, powerMultipleGroups.power?.puissanceTotaleNumerique)
+    }
+
+    @Test
+    fun rejectsMalformedSpaceGroupedDecimalsWithSuffix() {
+        val malformed = listOf("12 34,5M", "1 23 456,7M", "1 2345,6M")
+        malformed.forEach { value ->
+            val resource = LandsOfJailOcrParser.parseLocalOcrText("Food: $value")
+            val power = LandsOfJailOcrParser.parseLocalOcrText("Power: $value")
+            assertTrue("Groupement invalide accepté comme ressource : $value",
+                resource.resources.isEmpty() || resource.resources.single().quantiteNumerique == null)
+            assertNull("Groupement invalide accepté comme puissance : $value", power.power)
+        }
+    }
+
 }
