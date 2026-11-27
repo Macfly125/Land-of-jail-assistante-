@@ -214,6 +214,31 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun rejectsMalformedNumericSeparatorsInsteadOfSilentlyRemovingThem() {
+        val malformed = listOf("1.2.3", "12,34,56", "1,23.456", "1..234", "1,234.5.6M")
+        malformed.forEach { value ->
+            val result = LandsOfJailOcrParser.parseLocalOcrText("Food: $value")
+            assertTrue("Une valeur mal formée ne doit pas créer un stock fiable : $value",
+                result.resources.isEmpty() || result.resources.single().quantiteNumerique == null)
+        }
+    }
+
+    @Test
+    fun acceptsValidGroupedAndDecimalResourceNumbersWithoutSuffix() {
+        val samples = listOf(
+            "Food: 8,450,120" to 8_450_120.0,
+            "Wood: 8.450.120" to 8_450_120.0,
+            "Steel: 1 234 567" to 1_234_567.0,
+            "Gasoline: 1234,5" to 1234.5
+        )
+        samples.forEach { (sample, expected) ->
+            val result = LandsOfJailOcrParser.parseLocalOcrText(sample)
+            assertEquals(sample, expected,
+                result.resources.singleOrNull()?.quantiteNumerique ?: Double.NaN, 0.1)
+        }
+    }
+
+    @Test
     fun parsesMixedLocaleSeparatorsWithBothDecimalConventions() {
         val us = LandsOfJailOcrParser.parseLocalOcrText("Food: 1,234.5M")
         val european = LandsOfJailOcrParser.parseLocalOcrText("Wood: 1.234,5M")
