@@ -49,6 +49,7 @@ import com.landsofjail.assistant.model.ResearchCatalog
 import com.landsofjail.assistant.model.ResearchTree
 import com.landsofjail.assistant.model.ResourceRecord
 import com.landsofjail.assistant.model.mergeProgressionStocks
+import com.landsofjail.assistant.model.upsertForticladInventoryStocks
 import com.landsofjail.assistant.model.removeProgressionObjective
 import com.landsofjail.assistant.model.upsertProgressionObjective
 import com.landsofjail.assistant.model.sourcedPrerequisitesForRange
@@ -516,12 +517,13 @@ private fun ProgressionCatalogGoalCard(
 }
 
 @Composable
-private fun ForticladPlannerCard(language: AppLanguage, profileId: String) {
-    val context = LocalContext.current
-    val inventoryStore = remember(context, profileId) { ForticladInventoryStore(context, profileId) }
-    val savedInventory = remember(inventoryStore) { inventoryStore.load() }
-    var forticladStock by remember(profileId) { mutableStateOf(savedInventory.forticladCores.toString()) }
-    var advancedStock by remember(profileId) { mutableStateOf(savedInventory.advancedCores.toString()) }
+private fun ForticladPlannerCard(language: AppLanguage, profileId: String, inventory: ForticladInventory, onInventoryChange: (ForticladInventory) -> Unit) {
+    var forticladStock by remember(profileId) { mutableStateOf(inventory.forticladCores.toString()) }
+    var advancedStock by remember(profileId) { mutableStateOf(inventory.advancedCores.toString()) }
+    LaunchedEffect(profileId, inventory) {
+        forticladStock = inventory.forticladCores.toString()
+        advancedStock = inventory.advancedCores.toString()
+    }
     var buildingId by remember { mutableStateOf("wardens_office") }
     var currentLevel by remember { mutableStateOf(1) }
     var targetLevel by remember { mutableStateOf(2) }
@@ -591,7 +593,7 @@ private fun ForticladPlannerCard(language: AppLanguage, profileId: String) {
                 onValueChange = { value ->
                     val digits = value.filter(Char::isDigit)
                     forticladStock = digits
-                    inventoryStore.save(ForticladInventory.parse(digits, advancedStock))
+                    onInventoryChange(ForticladInventory.parse(digits, advancedStock))
                 },
                 label = { Text(label("Noyaux Forticlad", "Forticlad Cores", "Forticlad-Kerne", "Forticlad çekirdekleri", "Ядра Forticlad", "Forticlad 核心", "Nuclei Forticlad")) },
                 singleLine = true,
@@ -602,7 +604,7 @@ private fun ForticladPlannerCard(language: AppLanguage, profileId: String) {
                 onValueChange = { value ->
                     val digits = value.filter(Char::isDigit)
                     advancedStock = digits
-                    inventoryStore.save(ForticladInventory.parse(forticladStock, digits))
+                    onInventoryChange(ForticladInventory.parse(forticladStock, digits))
                 },
                 label = { Text(label("Noyaux avancés", "Advanced Cores", "Erweiterte Kerne", "Gelişmiş çekirdekler", "Улучшенные ядра", "高级核心", "Nuclei avanzati")) },
                 singleLine = true,
@@ -649,7 +651,20 @@ fun ProgressionCoachScreen(
         context.getSharedPreferences("progression_profile_$profileId", Context.MODE_PRIVATE)
     }
     var profile by remember(profileId) {
-        mutableStateOf(ProgressionProfileCodec.decodeOrDefault(prefs.getString("profile", null), profileId))
+        val decoded = ProgressionProfileCodec.decodeOrDefault(prefs.getString("profile", null), profileId)
+        val legacyInventory = ForticladInventoryStore(context, profileId).loadOrNull()
+        val hasForticlad = decoded.confirmedStock("forticlad cores") != null
+        val hasAdvanced = decoded.confirmedStock("advanced forticlad cores") != null
+        val migrated = if (legacyInventory != null && (!hasForticlad || !hasAdvanced)) {
+            decoded.copy(resourceStocks = upsertForticladInventoryStocks(
+                decoded.resourceStocks,
+                decoded.confirmedStock("forticlad cores") ?: legacyInventory.forticladCores,
+                decoded.confirmedStock("advanced forticlad cores") ?: legacyInventory.advancedCores,
+                System.currentTimeMillis()
+            ))
+        } else decoded
+        if (migrated != decoded) prefs.edit().putString("profile", ProgressionProfileCodec.encode(migrated)).apply()
+        mutableStateOf(migrated)
     }
     var selectedDomain by remember(profileId) { mutableStateOf(ProgressionDomain.BUILDING) }
     var targetId by remember(profileId) { mutableStateOf("warden_office") }
@@ -776,7 +791,22 @@ fun ProgressionCoachScreen(
                 style = MaterialTheme.typography.bodySmall
             )
         }
-        item { ForticladPlannerCard(language, profileId) }
+        item {
+            val forticladInventory = ForticladInventory(
+                profile.confirmedStock("forticlad cores") ?: 0L,
+                profile.confirmedStock("advanced forticlad cores") ?: 0L
+            )
+            ForticladPlannerCard(language, profileId, forticladInventory) { updated ->
+                val now = System.currentTimeMillis()
+                profile = profile.copy(
+                    resourceStocks = upsertForticladInventoryStocks(
+                        profile.resourceStocks, updated.forticladCores, updated.advancedCores, now
+                    ),
+                    updatedAtEpochMillis = now
+                )
+                prefs.edit().putString("profile", ProgressionProfileCodec.encode(profile)).apply()
+            }
+        }
         item {
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
