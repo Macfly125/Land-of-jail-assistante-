@@ -598,7 +598,7 @@ private fun ForticladPlannerCard(language: AppLanguage) {
                     "Stima da fonte comunitaria, non verificata nel gioco."),
                     style = MaterialTheme.typography.bodySmall)
             }
-            Text(ForticladCatalog.SOURCE_URL, style = MaterialTheme.typography.bodySmall)
+            Text(estimate?.sourceUrl ?: ForticladCatalog.SOURCE_URL, style = MaterialTheme.typography.bodySmall)
         }
     }
 }
