@@ -355,12 +355,18 @@ class SupabaseAuthRepository(context: Context) {
         allianceTag: String,
         playerName: String,
         requestedRank: String
-    ): Result<String> = callAllianceRpc("submit_alliance_join_request", buildJsonObject {
-        put("p_server_number", serverNumber.trim())
-        put("p_alliance_tag", allianceTag.trim())
-        put("p_player_name", playerName.trim())
-        put("p_requested_rank", requestedRank)
-    })
+    ): Result<String> = runCatching {
+        val normalizedRank = requestedRank.trim().uppercase()
+        require(normalizedRank in setOf("R1", "R2", "R3", "R4", "R5")) {
+            "Rang demandé invalide."
+        }
+        callAllianceRpc("submit_alliance_join_request", buildJsonObject {
+            put("p_server_number", serverNumber.trim())
+            put("p_alliance_tag", allianceTag.trim())
+            put("p_player_name", playerName.trim())
+            put("p_requested_rank", normalizedRank)
+        }).getOrThrow()
+    }
 
     suspend fun fetchPendingAllianceJoinRequests(allianceId: String): Result<List<AllianceJoinRequest>> =
         withContext(Dispatchers.IO) {
@@ -396,11 +402,22 @@ class SupabaseAuthRepository(context: Context) {
         approve: Boolean,
         approvedRank: String = "R1"
     ): Result<Unit> = withContext(Dispatchers.IO) {
-        callAllianceRpc("review_alliance_join_request", buildJsonObject {
-            put("p_request_id", requestId)
-            put("p_approve", approve)
-            put("p_approved_rank", approvedRank)
-        }).map { Unit }
+        runCatching {
+            val normalizedRequestId = requestId.trim()
+            require(normalizedRequestId.matches(
+                Regex("(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
+            )) { "Identifiant de demande invalide." }
+            val normalizedRank = approvedRank.trim().uppercase()
+            require(normalizedRank in setOf("R1", "R2", "R3", "R4", "R5")) {
+                "Rang attribué invalide."
+            }
+            callAllianceRpc("review_alliance_join_request", buildJsonObject {
+                put("p_request_id", normalizedRequestId)
+                put("p_approve", approve)
+                put("p_approved_rank", normalizedRank)
+            }).getOrThrow()
+            Unit
+        }
     }
 
     suspend fun fetchMyAllianceRank(allianceId: String): Result<String?> = withContext(Dispatchers.IO) {
