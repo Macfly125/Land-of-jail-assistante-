@@ -745,8 +745,9 @@ Food: 1200"""
     }
 
     @Test
-    fun extractsTopBarResourceQuantitiesByIconSlotPositionWhenNamesAreNotOcrText() {
-        val boxes = listOf("1.2M", "850K", "42M", "3.4M", "120", "7.8M").mapIndexed { index, value ->
+    fun keepsTopBarCountersUnidentifiedWhenResourceNamesAreNotOcrText() {
+        val values = listOf("1.2M", "850K", "42M", "3.4M", "120", "7.8M")
+        val boxes = values.mapIndexed { index, value ->
             OcrTextBox(value, left = 40 + index * 120, top = 50, right = 95 + index * 120, bottom = 82)
         }
         val result = LandsOfJailOcrParser.parseLocalOcrText(
@@ -755,24 +756,19 @@ Food: 1200"""
             imageWidth = 900,
             imageHeight = 1600
         )
-        assertEquals(6, result.resources.size)
-        assertNull("Les six nombres de la barre de ressources ne sont pas la puissance du joueur", result.power)
-        assertEquals(
-            listOf("Cash / Or", "Nourriture (Food)", "Bois (Wood)", "Acier (Steel)", "Essence (Gasoline)", "Diamants (Gems)"),
-            result.resources.map { it.nom }
-        )
-        assertTrue(result.resources.all { it.incertain && it.quantiteNumerique != null })
+        assertTrue("Aucun compteur sans libellé ne doit devenir une ressource", result.resources.isEmpty())
+        assertNull("Les compteurs de la barre ne sont pas la puissance du joueur", result.power)
+        val hudCounters = result.uncertainItems.filter { it.champ.startsWith("Compteur HUD non identifié") }
+        assertEquals(6, hudCounters.size)
+        assertEquals(values, hudCounters.map { it.valeurObservee })
     }
 
     @Test
-    fun topBarFallbackUsesOneAlignedRowAndIgnoresLowerPanelNumbers() {
-        val boxes = listOf(
-            OcrTextBox("1.2M", 40, 50, 95, 82),
-            OcrTextBox("850K", 160, 52, 215, 84),
-            OcrTextBox("42M", 280, 49, 335, 81),
-            OcrTextBox("3.4M", 400, 51, 455, 83),
-            OcrTextBox("120", 520, 50, 575, 82),
-            OcrTextBox("7.8M", 640, 52, 695, 84),
+    fun keepsOnlyOneAlignedTopHudRowAndDoesNotMapItToResources() {
+        val values = listOf("1.2M", "850K", "42M", "3.4M", "120", "7.8M")
+        val boxes = values.mapIndexed { index, value ->
+            OcrTextBox(value, 40 + index * 120, 50 + index % 2, 95 + index * 120, 82 + index % 2)
+        } + listOf(
             OcrTextBox("999", 100, 420, 150, 452),
             OcrTextBox("888", 220, 900, 270, 932)
         )
@@ -782,8 +778,10 @@ Food: 1200"""
             imageWidth = 900,
             imageHeight = 1600
         )
-        assertEquals(6, result.resources.size)
-        assertEquals(listOf("1.2M", "850K", "42M", "3.4M", "120", "7.8M"), result.resources.map { it.quantiteTexte })
+        assertTrue(result.resources.isEmpty())
+        val hudCounters = result.uncertainItems.filter { it.champ.startsWith("Compteur HUD non identifié") }
+        assertEquals(6, hudCounters.size)
+        assertEquals(values, hudCounters.map { it.valeurObservee })
     }
 
     @Test
