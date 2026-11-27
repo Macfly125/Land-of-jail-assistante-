@@ -461,7 +461,8 @@ class GameForegroundMonitorService : Service() {
         val captureThread = HandlerThread("LojAutoCaptureFrames").apply { start() }
         autoCaptureHandlerThread = captureThread
         reader.setOnImageAvailableListener({ imageReader ->
-            val image = imageReader.acquireLatestImage() ?: return@setOnImageAvailableListener
+            val image = imageReader.acquireLatestImage() ?: return@setImageAvailableListener
+            var bitmapAwaitingTransfer: Bitmap? = null
             try {
                 val now = System.currentTimeMillis()
                 if (!_isAutoCapturing.value || autoCaptureAwaitingAnalysis ||
@@ -480,15 +481,18 @@ class GameForegroundMonitorService : Service() {
                 )
                 fullBitmap.copyPixelsFromBuffer(buffer)
                 val cropped = cropFrameBitmap(fullBitmap, width, height)
+                bitmapAwaitingTransfer = cropped
 
                 if (isBitmapMostlyBlank(cropped)) {
                     cropped.recycle()
+                    bitmapAwaitingTransfer = null
                     nextAutoCaptureAtMillis = now + 1_000L
                     Handler(Looper.getMainLooper()).post { updateAutoCaptureSurface(_detectedGameForeground.value) }
                     return@setOnImageAvailableListener
                 }
                 if (!hasMeaningfulScreenChange(cropped)) {
                     cropped.recycle()
+                    bitmapAwaitingTransfer = null
                     nextAutoCaptureAtMillis = now + autoCaptureIntervalMillis
                     Handler(Looper.getMainLooper()).post { updateAutoCaptureSurface(_detectedGameForeground.value) }
                     return@setOnImageAvailableListener
@@ -510,7 +514,12 @@ class GameForegroundMonitorService : Service() {
                         imageFileUri = savedUri
                     )
                 )
+                // Le bitmap appartient désormais au payload consommé par l'interface.
+                bitmapAwaitingTransfer = null
             } catch (_: Throwable) {
+                bitmapAwaitingTransfer?.let { bitmap ->
+                    if (!bitmap.isRecycled) bitmap.recycle()
+                }
                 autoCaptureAwaitingAnalysis = false
                 nextAutoCaptureAtMillis = System.currentTimeMillis() + autoCaptureIntervalMillis
                 Handler(Looper.getMainLooper()).post { updateAutoCaptureSurface(_detectedGameForeground.value) }
