@@ -851,49 +851,50 @@ class GameForegroundMonitorService : Service() {
             while (isActive) {
                 try {
                     val powerManager = getSystemService(Context.POWER_SERVICE) as android.os.PowerManager
-                val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as android.app.KeyguardManager
-                val deviceAvailable = powerManager.isInteractive && !keyguardManager.isKeyguardLocked
-                if (!deviceAvailable) lastKnownForegroundPkg = null
-
-                // Au démarrage, relire une journée d'événements pour retrouver un jeu
-                // déjà ouvert ; ensuite, une fenêtre courte suffit et évite de rescanner
-                // tout l'historique à chaque cycle.
-                val eventWindow = if (lastKnownForegroundPkg == null) {
-                    24L * 60L * 60L * 1000L
-                } else {
-                    120_000L
-                }
-                val fgPkg = withContext(Dispatchers.IO) {
-                    UsageStatsDetector.getRecentForegroundPackage(applicationContext, eventWindow)
-                }
-                if (!fgPkg.isNullOrBlank() && deviceAvailable) {
-                    lastKnownForegroundPkg = fgPkg
-                }
-                val effectivePkg = if (deviceAvailable) fgPkg ?: lastKnownForegroundPkg else null
-                val isSelfForeground = effectivePkg == applicationContext.packageName
-                val assistantVisible = MainActivity.isAppInForeground.value
-                val isGameNow = UsageStatsDetector.isLandsOfJailPackage(effectivePkg, targetFilter)
-                _detectedGameForeground.value = isGameNow
-                if (_isAutoCapturing.value) updateAutoCaptureSurface(isGameNow)
-
-                if (isGameNow && !wasGameInForeground && !_isAutoCapturing.value) {
-                    showAnalyzePromptNotification()
-                }
-
-                // Ne jamais masquer le TopAppBar de notre propre appli avec la barre flottante,
-                // mais toujours la garder visible au-dessus du jeu / des autres apps.
-                if (_isAutoCapturing.value || isCapturingNow || assistantVisible || isSelfForeground) {
-                    removeFloatingAnalyzeBar()
-                } else if (isGameNow || alwaysShowFloating) {
-                    showFloatingAnalyzeBarIfAllowed()
-                } else {
-                    removeFloatingAnalyzeBar()
-                }
-
-                    wasGameInForeground = isGameNow
+                    val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as android.app.KeyguardManager
+                    val deviceAvailable = powerManager.isInteractive && !keyguardManager.isKeyguardLocked
+                    if (!deviceAvailable) lastKnownForegroundPkg = null
+    
+                    // Au démarrage, relire une journée d'événements pour retrouver un jeu
+                    // déjà ouvert ; ensuite, une fenêtre courte suffit et évite de rescanner
+                    // tout l'historique à chaque cycle.
+                    val eventWindow = if (lastKnownForegroundPkg == null) {
+                        24L * 60L * 60L * 1000L
+                    } else {
+                        120_000L
+                    }
+                    val fgPkg = withContext(Dispatchers.IO) {
+                        UsageStatsDetector.getRecentForegroundPackage(applicationContext, eventWindow)
+                    }
+                    if (!fgPkg.isNullOrBlank() && deviceAvailable) {
+                        lastKnownForegroundPkg = fgPkg
+                    }
+                    val effectivePkg = if (deviceAvailable) fgPkg ?: lastKnownForegroundPkg else null
+                    val isSelfForeground = effectivePkg == applicationContext.packageName
+                    val assistantVisible = MainActivity.isAppInForeground.value
+                    val isGameNow = UsageStatsDetector.isLandsOfJailPackage(effectivePkg, targetFilter)
+                    _detectedGameForeground.value = isGameNow
+                    if (_isAutoCapturing.value) updateAutoCaptureSurface(isGameNow)
+    
+                    if (isGameNow && !wasGameInForeground && !_isAutoCapturing.value) {
+                        showAnalyzePromptNotification()
+                    }
+    
+                    // Ne jamais masquer le TopAppBar de notre propre appli avec la barre flottante,
+                    // mais toujours la garder visible au-dessus du jeu / des autres apps.
+                    if (_isAutoCapturing.value || isCapturingNow || assistantVisible || isSelfForeground) {
+                        removeFloatingAnalyzeBar()
+                    } else if (isGameNow || alwaysShowFloating) {
+                        showFloatingAnalyzeBarIfAllowed()
+                    } else {
+                        removeFloatingAnalyzeBar()
+                    }
+    
+                        wasGameInForeground = isGameNow
                 } catch (cancelled: CancellationException) {
                     throw cancelled
                 } catch (_: Exception) {
+                    wasGameInForeground = false
                     _detectedGameForeground.value = false
                     if (_isAutoCapturing.value) {
                         runCatching { updateAutoCaptureSurface(false) }
