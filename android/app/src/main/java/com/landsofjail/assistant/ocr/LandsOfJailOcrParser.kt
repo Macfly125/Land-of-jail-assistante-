@@ -580,6 +580,7 @@ object LandsOfJailOcrParser {
         // Le fallback textuel sans coordonnées pourrait prendre la nourriture
         // ou une autre ressource pour la puissance et empêcher le badge d'être lu.
         if (power == null && resources.isEmpty() && textBoxes.isEmpty() &&
+            !powerRegex.containsMatchIn(rawText) &&
             !hasPotentialTopResourceNumberRow(textBoxes, imageWidth, imageHeight)
         ) {
             val topPowerLine = lines.take(6).firstOrNull { l ->
