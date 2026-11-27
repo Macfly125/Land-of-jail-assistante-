@@ -1152,7 +1152,7 @@ Potential Coil x 8"""
             "Supreme Honor\nWar Preparation\nSVS" to "svs",
             "Turmoil Surge\nSentry Turret\nWave" to "turmoil_surge",
             "Gold Hunter\nHunter Points" to "gold_hunter",
-            "Robot Center\nRobot Upgrade\nPhantom Cat" to "robots",
+            "Robot Center\nRobot Upgrade\nPhantom Cat" to "batiments",
             "Power Armor Hangar\nSolo Module\nBarrier Module" to "power_armor",
             "Forticlad Lab\nHyperalloy\nForticlad Technology" to "forticlad_lab",
             "Logistics Technology\nEconomy Technology\nMilitary Technology" to "lab",
@@ -1190,7 +1190,7 @@ Potential Coil x 8"""
     @Test
     fun recognizesItalianCoreGameScreenCategories() {
         val samples = listOf(
-            "Centro robot\nMiglioramento robot\nPhantom Cat" to "robots",
+            "Centro robot\nMiglioramento robot\nPhantom Cat" to "batiments",
             "Laboratorio Forticlad\nTecnologia Forticlad\nHyperalloy" to "forticlad_lab",
             "Tecnologia logistica\nTecnologia economica\nTecnologia militare" to "lab",
             "Eroi\nAbilità\nStelle" to "heros",
