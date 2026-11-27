@@ -101,6 +101,16 @@ object ResearchCatalog {
         )
     )
 
+    fun treeForTarget(rawTarget: String): ResearchTree? = when (
+        rawTarget.trim().lowercase().replace(' ', '_').replace('-', '_')
+    ) {
+        "logistics", "logistique", "logistik" -> ResearchTree.LOGISTICS
+        "economy", "économie", "economie", "wirtschaft" -> ResearchTree.ECONOMY
+        "military", "militaire", "militär", "militar" -> ResearchTree.MILITARY
+        "forticlad", "forticlad_lab", "laboratoire_forticlad" -> ResearchTree.FORTICLAD
+        else -> null
+    }
+
     fun overview(tree: ResearchTree): ResearchTreeOverview =
         overviews.single { it.tree == tree }
 
