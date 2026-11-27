@@ -202,9 +202,17 @@ class SupabaseAuthRepository(context: Context) {
                 }
                 val obj = parsed ?: error("Réponse de renouvellement illisible.")
                 val access = obj["access_token"]?.jsonPrimitive?.contentOrNull
-                    ?: error("Jeton d'accès absent de la réponse.")
+                    ?.takeIf { it.isNotBlank() }
+                    ?: run {
+                        clearSession()
+                        error("Jeton d'accès absent ou vide de la réponse.")
+                    }
                 val refresh = obj["refresh_token"]?.jsonPrimitive?.contentOrNull
-                    ?: error("Jeton de renouvellement absent de la réponse.")
+                    ?.takeIf { it.isNotBlank() }
+                    ?: run {
+                        clearSession()
+                        error("Jeton de renouvellement absent ou vide de la réponse.")
+                    }
                 Session(
                     access_token = access,
                     refresh_token = refresh,
