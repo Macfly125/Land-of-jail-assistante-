@@ -464,32 +464,59 @@ class SupabaseAuthRepository(context: Context) {
         }
     }
 
-    suspend fun postAllianceMessage(allianceId: String, body: String): Result<Unit> =
+    suspend fun postAllianceMessage(allianceId: String, body: String): Result<Unit> = runCatching {
+        val normalizedAllianceId = allianceId.trim()
+        require(isUuid(normalizedAllianceId)) { "Identifiant d'alliance invalide." }
+        val normalizedBody = body.trim()
+        require(normalizedBody.isNotEmpty() && normalizedBody.length <= 2000) {
+            "Le message doit contenir entre 1 et 2000 caractères."
+        }
         callAllianceRpc("post_alliance_message", buildJsonObject {
-            put("p_alliance_id", allianceId)
-            put("p_body", body.trim())
-        }).map { Unit }
+            put("p_alliance_id", normalizedAllianceId)
+            put("p_body", normalizedBody)
+        }).getOrThrow()
+        Unit
+    }
 
-    suspend fun deleteAllianceMessage(messageId: String): Result<Unit> =
+    suspend fun deleteAllianceMessage(messageId: String): Result<Unit> = runCatching {
+        val normalizedMessageId = messageId.trim()
+        require(isUuid(normalizedMessageId)) { "Identifiant de message invalide." }
         callAllianceRpc("delete_alliance_message", buildJsonObject {
-            put("p_message_id", messageId)
-        }).map { Unit }
+            put("p_message_id", normalizedMessageId)
+        }).getOrThrow()
+        Unit
+    }
 
-    suspend fun transferAllianceR5(allianceId: String, newR5UserId: String): Result<Unit> =
+    suspend fun transferAllianceR5(allianceId: String, newR5UserId: String): Result<Unit> = runCatching {
+        val normalizedAllianceId = allianceId.trim()
+        val normalizedUserId = newR5UserId.trim()
+        require(isUuid(normalizedAllianceId)) { "Identifiant d'alliance invalide." }
+        require(isUuid(normalizedUserId)) { "Identifiant du nouveau R5 invalide." }
         callAllianceRpc("transfer_alliance_r5", buildJsonObject {
-            put("p_alliance_id", allianceId)
-            put("p_new_r5_user_id", newR5UserId)
-        }).map { Unit }
+            put("p_alliance_id", normalizedAllianceId)
+            put("p_new_r5_user_id", normalizedUserId)
+        }).getOrThrow()
+        Unit
+    }
 
     suspend fun setAllianceMemberRank(
         allianceId: String,
         targetUserId: String,
         newRank: String
-    ): Result<Unit> = callAllianceRpc("set_alliance_member_rank", buildJsonObject {
-        put("p_alliance_id", allianceId)
-        put("p_target_user_id", targetUserId)
-        put("p_new_rank", newRank)
-    }).map { Unit }
+    ): Result<Unit> = runCatching {
+        val normalizedAllianceId = allianceId.trim()
+        val normalizedUserId = targetUserId.trim()
+        val normalizedRank = newRank.trim().uppercase()
+        require(isUuid(normalizedAllianceId)) { "Identifiant d'alliance invalide." }
+        require(isUuid(normalizedUserId)) { "Identifiant du membre invalide." }
+        require(normalizedRank in setOf("R1", "R2", "R3", "R4", "R5")) { "Rang attribué invalide." }
+        callAllianceRpc("set_alliance_member_rank", buildJsonObject {
+            put("p_alliance_id", normalizedAllianceId)
+            put("p_target_user_id", normalizedUserId)
+            put("p_new_rank", normalizedRank)
+        }).getOrThrow()
+        Unit
+    }
 
     suspend fun isAppDeveloper(): Result<Boolean> = callAllianceRpc("is_app_developer", buildJsonObject {}).map { it == "true" }
 
@@ -572,6 +599,9 @@ class SupabaseAuthRepository(context: Context) {
                 }
             }
         }
+
+    private fun isUuid(value: String): Boolean =
+        value.matches(Regex("(?i)^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"))
 
     private fun extractApiError(body: String, code: Int): String {
         val obj = runCatching { json.parseToJsonElement(body).jsonObject }.getOrNull()
