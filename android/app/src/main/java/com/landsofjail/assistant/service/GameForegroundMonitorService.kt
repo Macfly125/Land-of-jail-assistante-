@@ -322,19 +322,38 @@ class GameForegroundMonitorService : Service() {
             if (handled) return@postDelayed
             val activeProjection = mediaProjection ?: return@postDelayed
 
-            val reader = ImageReader.newInstance(width, height, PixelFormat.RGBA_8888, 3)
-            imageReader = reader
+            val reader = try {
+                ImageReader.newInstance(width, height, PixelFormat.RGBA_8888, 3).also {
+                    imageReader = it
+                }
+            } catch (_: Throwable) {
+                handled = true
+                mainHandler.removeCallbacks(timeoutRunnable)
+                isCapturingNow = false
+                releaseProjection()
+                finishCaptureFlow(wasMonitoring)
+                return@postDelayed
+            }
 
-            virtualDisplay = activeProjection.createVirtualDisplay(
-                "LandsOfJailSingleCapture",
-                width,
-                height,
-                density,
-                DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
-                reader.surface,
-                null,
-                mainHandler
-            )
+            virtualDisplay = try {
+                activeProjection.createVirtualDisplay(
+                    "LandsOfJailSingleCapture",
+                    width,
+                    height,
+                    density,
+                    DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
+                    reader.surface,
+                    null,
+                    mainHandler
+                )
+            } catch (_: Throwable) {
+                handled = true
+                mainHandler.removeCallbacks(timeoutRunnable)
+                isCapturingNow = false
+                releaseProjection()
+                finishCaptureFlow(wasMonitoring)
+                return@postDelayed
+            }
 
             var attempts = 0
             reader.setOnImageAvailableListener({ r ->
