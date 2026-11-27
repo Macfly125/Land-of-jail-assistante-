@@ -72,6 +72,11 @@ object ScreenRecognitionEngine {
                 // Quelques mots isolés sont trop génériques pour identifier un écran :
                 // ils ne deviennent des indices que si un autre libellé propre à la
                 // même catégorie est également présent.
+                val profilePowerHasValue = label in listOf("power", "puissance", "macht", "güç", "мощь", "战力") &&
+                    Regex("""\b(?:power|puissance|macht|güç|мощь|战力)\s+[0-9]""").containsMatchIn(normalized)
+                val profilePowerHasContext = label !in listOf("power", "puissance", "macht", "güç", "мощь", "战力") ||
+                    profilePowerHasValue || listOf("profile", "profil", "eliminations", "éliminations", "профиль", "档案")
+                        .any { paddedText.contains(" " + normalize(it) + " ") }
                 val genericLabelContext = when (category to label) {
                     // Les termes isolés sont acceptés uniquement avec un contexte distinctif.
                     "trial_cage" to "cage" -> listOf("trial cage", "damage ranking", "damage dealt", "dégâts infligés", "prüfungskäfig", "schadensrangliste", "verursachter schaden", "deneme kafesi", "verilen hasar", "испытательная клетка", "нанесенный урон", "试炼笼", "造成伤害")
@@ -89,7 +94,8 @@ object ScreenRecognitionEngine {
                         paddedText.contains(" $normalizedContext ")
                     }
                 }
-                isMatch && (category != "lab" || labHasResearchContext) && hasGenericContext
+                isMatch && (category != "lab" || labHasResearchContext) &&
+                    profilePowerHasContext && hasGenericContext
             }.distinct()
             // Un libellé court inclus dans une expression reconnue ne constitue
             // pas un indice indépendant (ex. « robot » dans « robot center »).
