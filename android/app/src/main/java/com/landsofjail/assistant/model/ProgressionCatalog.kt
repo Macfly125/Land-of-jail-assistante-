@@ -201,25 +201,44 @@ object ProgressionCatalog {
             MultiResourceBuildingLevel(10, listOf("wood" to 650_000L, "steel" to 130_000L, "gasoline" to 32_500L), 2_580, 10)
         )
     )
+    // K suffixes are explicit thousands in the LOJ Wiki tables; imported exactly.
     val shieldbearerBarrackBuilding = multiResourceBuilding(
         "Shieldbearer Barracks", SHIELDBEARER_BARRACK_SOURCE, listOf(
             MultiResourceBuildingLevel(2, listOf("wood" to 300L), 9, 7),
             MultiResourceBuildingLevel(3, listOf("wood" to 1_300L), 45, 7),
-            MultiResourceBuildingLevel(4, listOf("wood" to 3_000L, "steel" to 600L), 135, 7)
+            MultiResourceBuildingLevel(4, listOf("wood" to 3_000L, "steel" to 600L), 135, 7),
+            MultiResourceBuildingLevel(5, listOf("wood" to 10_000L, "steel" to 2_000L), 270, 7),
+            MultiResourceBuildingLevel(6, listOf("wood" to 30_000L, "steel" to 6_000L, "gasoline" to 1_500L), 540, 7),
+            MultiResourceBuildingLevel(7, listOf("wood" to 120_000L, "steel" to 24_000L, "gasoline" to 6_000L), 1_080, 7),
+            MultiResourceBuildingLevel(8, listOf("wood" to 180_000L, "steel" to 36_000L, "gasoline" to 9_000L), 1_620, 8),
+            MultiResourceBuildingLevel(9, listOf("wood" to 400_000L, "steel" to 80_000L, "gasoline" to 20_000L), 2_430, 9),
+            MultiResourceBuildingLevel(10, listOf("wood" to 700_000L, "steel" to 140_000L, "gasoline" to 35_000L), 3_240, 10)
         )
     )
     val shooterBarrackBuilding = multiResourceBuilding(
         "Shooter Barracks", SHOOTER_BARRACK_SOURCE, listOf(
             MultiResourceBuildingLevel(2, listOf("wood" to 300L), 9, 8),
             MultiResourceBuildingLevel(3, listOf("wood" to 1_300L), 45, 8),
-            MultiResourceBuildingLevel(4, listOf("wood" to 3_000L, "steel" to 600L), 135, 8)
+            MultiResourceBuildingLevel(4, listOf("wood" to 3_000L, "steel" to 600L), 135, 8),
+            MultiResourceBuildingLevel(5, listOf("wood" to 10_000L, "steel" to 2_000L), 270, 8),
+            MultiResourceBuildingLevel(6, listOf("wood" to 30_000L, "steel" to 6_000L, "gasoline" to 1_500L), 540, 8),
+            MultiResourceBuildingLevel(7, listOf("wood" to 120_000L, "steel" to 24_000L, "gasoline" to 6_000L), 1_080, 8),
+            MultiResourceBuildingLevel(8, listOf("wood" to 180_000L, "steel" to 36_000L, "gasoline" to 9_000L), 1_620, 8),
+            MultiResourceBuildingLevel(9, listOf("wood" to 400_000L, "steel" to 80_000L, "gasoline" to 20_000L), 2_430, 9),
+            MultiResourceBuildingLevel(10, listOf("wood" to 700_000L, "steel" to 140_000L, "gasoline" to 35_000L), 3_240, 10)
         )
     )
     val bomberBarrackBuilding = multiResourceBuilding(
         "Bomber Barracks", BOMBER_BARRACK_SOURCE, listOf(
             MultiResourceBuildingLevel(2, listOf("wood" to 300L), 9, 9),
             MultiResourceBuildingLevel(3, listOf("wood" to 1_300L), 45, 9),
-            MultiResourceBuildingLevel(4, listOf("wood" to 3_000L, "steel" to 600L), 135, 9)
+            MultiResourceBuildingLevel(4, listOf("wood" to 3_000L, "steel" to 600L), 135, 9),
+            MultiResourceBuildingLevel(5, listOf("wood" to 10_000L, "steel" to 2_000L), 270, 9),
+            MultiResourceBuildingLevel(6, listOf("wood" to 30_000L, "steel" to 6_000L, "gasoline" to 1_500L), 540, 9),
+            MultiResourceBuildingLevel(7, listOf("wood" to 120_000L, "steel" to 24_000L, "gasoline" to 6_000L), 1_080, 9),
+            MultiResourceBuildingLevel(8, listOf("wood" to 180_000L, "steel" to 36_000L, "gasoline" to 9_000L), 1_620, 9),
+            MultiResourceBuildingLevel(9, listOf("wood" to 400_000L, "steel" to 80_000L, "gasoline" to 20_000L), 2_430, 9),
+            MultiResourceBuildingLevel(10, listOf("wood" to 700_000L, "steel" to 140_000L, "gasoline" to 35_000L), 3_240, 10)
         )
     )
 
@@ -236,12 +255,18 @@ object ProgressionCatalog {
         )
     )
 
+    // Levels 6–10 use explicit K notation from the source, converted to exact integers.
     val communicationCenterBuilding = multiResourceBuilding(
         "Communication Center", COMMUNICATION_CENTER_SOURCE, listOf(
             MultiResourceBuildingLevel(2, listOf("wood" to 200L), 10, 8),
             MultiResourceBuildingLevel(3, listOf("wood" to 1_000L), 60, 8),
             MultiResourceBuildingLevel(4, listOf("wood" to 2_000L, "steel" to 400L), 120, 8),
-            MultiResourceBuildingLevel(5, listOf("wood" to 8_000L, "steel" to 1_600L), 400, 8)
+            MultiResourceBuildingLevel(5, listOf("wood" to 8_000L, "steel" to 1_600L), 400, 8),
+            MultiResourceBuildingLevel(6, listOf("wood" to 20_000L, "steel" to 4_000L, "gasoline" to 1_000L), 800, 8),
+            MultiResourceBuildingLevel(7, listOf("wood" to 70_000L, "steel" to 14_000L, "gasoline" to 3_500L), 1_500, 8),
+            MultiResourceBuildingLevel(8, listOf("wood" to 120_000L, "steel" to 24_000L, "gasoline" to 6_000L), 2_700, 8),
+            MultiResourceBuildingLevel(9, listOf("wood" to 150_000L, "steel" to 30_000L, "gasoline" to 7_500L), 7_200, 9),
+            MultiResourceBuildingLevel(10, listOf("wood" to 450_000L, "steel" to 90_000L, "gasoline" to 22_500L), 14_220, 10)
         )
     )
 
