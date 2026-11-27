@@ -76,6 +76,19 @@ class ForticladCatalogTest {
     }
 
     @Test
+    fun inventoryCalculatesMissingCoresWithoutNegativeValues() {
+        val estimate = ForticladCatalog.estimate("forticlad_lab", 5, 0, 6)!!
+        assertEquals(ForticladInventory(350L, 25L), ForticladInventory(100L, 30L).missingFor(estimate))
+        assertEquals(ForticladInventory(0L, 0L), ForticladInventory(500L, 50L).missingFor(estimate))
+    }
+
+    @Test
+    fun inventoryParsingAcceptsDigitsAndSafelyDefaultsInvalidOrOverflowValues() {
+        assertEquals(ForticladInventory(12345L, 0L), ForticladInventory.parse("12 345", "abc"))
+        assertEquals(ForticladInventory(0L, 0L), ForticladInventory.parse("999999999999999999999999", "-10"))
+    }
+
+    @Test
     fun invalidRangesAndStageCountsAreRejected() {
         assertNull(ForticladCatalog.estimate("wardens_office", 0, 5, 1))
         assertNull(ForticladCatalog.estimate("wardens_office", 4, 0, 4))
