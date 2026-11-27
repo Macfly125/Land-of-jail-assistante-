@@ -26,6 +26,22 @@ class ScreenRecognitionEngineTest {
     }
 
     @Test
+    fun classifiesRobotCenterAsBuildingNotRobotProfile() {
+        val result = ScreenRecognitionEngine.analyze("Robot Center\\nLevel 12")
+
+        assertEquals("batiments", result.category)
+        assertTrue(result.needsVisualConfirmation)
+    }
+
+    @Test
+    fun robotUpgradePanelIsNotMisclassifiedAsRobotProfile() {
+        val result = ScreenRecognitionEngine.analyze("Robot Upgrade\\nLevel 5")
+
+        assertEquals("batiments", result.category)
+        assertTrue(result.needsVisualConfirmation)
+    }
+
+    @Test
     fun recognizesRobotNameWithoutClaimingVisualIdentityOrLevel() {
         val result = ScreenRecognitionEngine.analyze("Yokozuna Level 10")
 
