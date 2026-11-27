@@ -138,7 +138,11 @@ object ScreenRecognitionEngine {
             else -> ranked.firstOrNull()
         }
         val second = ranked.firstOrNull { it.first != best?.first }
-        val tiedAtTop = best != null && second != null &&
+        val explicitRobotBuildingTitle = listOf(
+            "robot center", "robot upgrade", "centro robot", "robotzentrum",
+            "robot merkezi", "центр роботов", "机器人中心"
+        ).any { paddedText.contains(" ${normalize(it)} ") }
+        val tiedAtTop = !explicitRobotBuildingTitle && best != null && second != null &&
             best.second.size == second.second.size
         // Une égalité entre catégories ne doit jamais être tranchée par l'ordre
         // du dictionnaire (ex. « Felon » apparaît dans Donjon et Arrest).
