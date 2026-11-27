@@ -238,7 +238,9 @@ class GameForegroundMonitorService : Service() {
                     ?: UsageStatsDetector.DEFAULT_GAME_PACKAGE_KEYWORD
                 alwaysShowFloating = intent?.getBooleanExtra(EXTRA_ALWAYS_SHOW_FLOATING, true) ?: true
 
-                startAsMonitoringForeground()
+                if (!restoreMonitoringForegroundOrStop()) {
+                    return START_NOT_STICKY
+                }
                 startPollingUsageStats()
                 return START_STICKY
             }
@@ -716,9 +718,10 @@ class GameForegroundMonitorService : Service() {
         }
     }
 
-    private fun restoreMonitoringForegroundOrStop() {
+    private fun restoreMonitoringForegroundOrStop(): Boolean {
         try {
             startAsMonitoringForeground()
+            return true
         } catch (_: Throwable) {
             // Le service ne peut plus rester actif sans notification foreground.
             _isRunning.value = false
@@ -732,6 +735,7 @@ class GameForegroundMonitorService : Service() {
             removeFloatingAnalyzeBar()
             stopForeground(STOP_FOREGROUND_REMOVE)
             stopSelf()
+            return false
         }
     }
 
