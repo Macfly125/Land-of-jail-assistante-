@@ -1127,13 +1127,15 @@ class GameForegroundMonitorService : Service() {
         autoCaptureAwaitingAnalysis = false
         autoCaptureOwnsMonitor = false
         monitorJob?.cancel()
-        releaseProjection()
-        removeFloatingAnalyzeBar()
+        runCatching { releaseProjection() }
+        runCatching { removeFloatingAnalyzeBar() }
         _isRunning.value = false
         _detectedGameForeground.value = false
-        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        nm.cancel(NOTIF_ANALYZE_PROMPT_ID)
-        stopForeground(STOP_FOREGROUND_REMOVE)
+        runCatching {
+            val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            nm.cancel(NOTIF_ANALYZE_PROMPT_ID)
+        }
+        runCatching { stopForeground(STOP_FOREGROUND_REMOVE) }
         stopSelf()
     }
 
@@ -1141,8 +1143,8 @@ class GameForegroundMonitorService : Service() {
         _isAutoCapturing.value = false
         autoCaptureAwaitingAnalysis = false
         monitorJob?.cancel()
-        releaseProjection()
-        removeFloatingAnalyzeBar()
+        runCatching { releaseProjection() }
+        runCatching { removeFloatingAnalyzeBar() }
         _isRunning.value = false
         serviceScope.cancel()
         super.onDestroy()
