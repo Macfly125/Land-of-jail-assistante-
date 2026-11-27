@@ -197,6 +197,13 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun doesNotTreatPrisonerTextAsTheHeadquartersBuildingName() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText("Prisoner Lv. 6")
+
+        assertNull(result.power?.niveauPrisonOuQG)
+    }
+
+    @Test
     fun parsesGroupedPowerWithoutTreatingThousandsAsDecimals() {
         val result = LandsOfJailOcrParser.parseLocalOcrText("Puissance : 8,450,120")
 
