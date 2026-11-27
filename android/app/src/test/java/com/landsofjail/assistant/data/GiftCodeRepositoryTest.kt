@@ -229,6 +229,37 @@ class GiftCodeRepositoryTest {
     }
 
     @Test
+    fun alliancePortalCodeMarkupPreservesExplicitExpiryAndComparisonDate() {
+        val html = """
+            <p>Lists compared 26.11.2026</p>
+            <h2><code>4AWwVMpUETEgzM</code></h2>
+            <p>Published 26.11.2026</p>
+            <p>Reward contents are not specified.</p>
+            <p>Published expiry date: 30.11.2026. 23:59 Server Time; its UTC offset is not established.</p>
+        """.trimIndent()
+
+        val candidate = GiftCodeRepository.extractCandidatesFromHtml(html)
+            .first { it.first == "4AWwVMpUETEgzM" }
+
+        assertTrue(candidate.second.contains("published expiry date"))
+        assertEquals("30/11/2026", GiftCodeRepository.parsePublishedExpiryDate(candidate.second))
+        assertEquals(
+            LocalDate.of(2026, 11, 26),
+            GiftCodeRepository.parseSourceDate("26.11.2026")
+        )
+    }
+
+    @Test
+    fun explicitExpiredSectionWithoutAnExpiryDateRequiresReviewInsteadOfGuessing() {
+        val entry = GiftCodeRepository.mergeSourceCandidate(
+            null, "OLD2026", "Alliance Portal", "26/11/2026", looksExpired = true
+        )
+
+        assertEquals("NEEDS_REVIEW", entry.status)
+        assertTrue(entry.expiresAt.isBlank())
+    }
+
+    @Test
     fun parserInheritsGiftCodeContextFromSectionHeadingsOnlyWithinThatSection() {
         val html = """
             <h2>Active Gift Codes</h2>
