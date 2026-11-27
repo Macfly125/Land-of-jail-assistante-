@@ -1656,4 +1656,28 @@ Potential Coil x 8"""
         }
     }
 
+
+    @Test
+    fun rejectsNumericValuesOutsideSupportedLongRange() {
+        val oversizedPower = LandsOfJailOcrParser.parseLocalOcrText(
+            "Power: 9,223,372,036,854,775,808"
+        )
+        assertNull("Une puissance hors plage ne doit pas être convertie en Long.MAX_VALUE",
+            oversizedPower.power?.puissanceTotaleNumerique)
+        assertTrue("Une puissance hors plage doit être marquée incertaine",
+            oversizedPower.power?.incertain == true)
+
+        val oversizedResource = LandsOfJailOcrParser.parseLocalOcrText(
+            "Food: 9,223,372,036,854,775,808"
+        )
+        assertTrue("Un stock hors plage doit être rejeté",
+            oversizedResource.resources.isEmpty())
+
+        val suffixOverflow = LandsOfJailOcrParser.parseLocalOcrText(
+            "Wood: 999,999,999,999,999,999B"
+        )
+        assertTrue("Un multiplicateur qui déborde doit être rejeté",
+            suffixOverflow.resources.isEmpty())
+    }
+
 }
