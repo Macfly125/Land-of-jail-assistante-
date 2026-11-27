@@ -320,8 +320,15 @@ object LandsOfJailOcrParser {
                 // On accepte la ligne courante + la suivante, sans recherche floue.
                 val robotText = lines.drop(index).take(2).joinToString(" ")
                 val normalizedLine = " ${normalizeHeroText(robotText)} "
+                val normalizedCurrentLine = " ${normalizeHeroText(line)} "
                 val normalizedRobot = normalizeHeroText(robotName)
-                if (normalizedLine.contains(" $normalizedRobot ") && seenRobotKeys.add(normalizedRobot)) {
+                val currentLineAlreadyNamesARobot = knownRobotNames.any { knownName ->
+                    normalizedCurrentLine.contains(" ${normalizeHeroText(knownName)} ")
+                }
+                val robotNameMatchesCurrentOrSplitLine =
+                    normalizedCurrentLine.contains(" $normalizedRobot ") ||
+                        (!currentLineAlreadyNamesARobot && normalizedLine.contains(" $normalizedRobot "))
+                if (robotNameMatchesCurrentOrSplitLine && seenRobotKeys.add(normalizedRobot)) {
                     // Ne pas emprunter le niveau ou les statistiques du robot suivant
                     // lorsque plusieurs fiches sont visibles dans le même écran.
                     val contextLimit = minOf(lines.size, index + 4)
