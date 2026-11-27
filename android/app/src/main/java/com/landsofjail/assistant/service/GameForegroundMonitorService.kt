@@ -44,6 +44,17 @@ import java.io.File
 import java.io.FileOutputStream
 import kotlin.math.abs
 
+/**
+ * Crop an ImageReader frame without recycling the returned bitmap.
+ * Bitmap.createBitmap may return the source itself when the crop covers it exactly.
+ */
+internal fun cropFrameBitmap(fullBitmap: Bitmap, width: Int, height: Int): Bitmap {
+    require(width > 0 && height > 0 && width <= fullBitmap.width && height <= fullBitmap.height)
+    val cropped = Bitmap.createBitmap(fullBitmap, 0, 0, width, height)
+    if (cropped !== fullBitmap) fullBitmap.recycle()
+    return cropped
+}
+
 class GameForegroundMonitorService : Service() {
 
     companion object {
@@ -338,8 +349,7 @@ class GameForegroundMonitorService : Service() {
                         Bitmap.Config.ARGB_8888
                     )
                     fullBitmap.copyPixelsFromBuffer(buffer)
-                    val cropped = Bitmap.createBitmap(fullBitmap, 0, 0, width, height)
-                    fullBitmap.recycle()
+                    val cropped = cropFrameBitmap(fullBitmap, width, height)
 
                     // Si le tout premier frame est entièrement noir et qu'on a encore le temps, attendre le suivant
                     if (attempts == 1 && isBitmapMostlyBlank(cropped)) {
@@ -469,8 +479,7 @@ class GameForegroundMonitorService : Service() {
                     Bitmap.Config.ARGB_8888
                 )
                 fullBitmap.copyPixelsFromBuffer(buffer)
-                val cropped = Bitmap.createBitmap(fullBitmap, 0, 0, width, height)
-                fullBitmap.recycle()
+                val cropped = cropFrameBitmap(fullBitmap, width, height)
 
                 if (isBitmapMostlyBlank(cropped)) {
                     cropped.recycle()
