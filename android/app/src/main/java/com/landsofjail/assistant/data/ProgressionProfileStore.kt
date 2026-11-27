@@ -16,8 +16,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 
 /**
  * Transactional, per-player progression storage.
@@ -29,12 +27,12 @@ import kotlinx.coroutines.sync.withLock
 class ProgressionProfileStore(context: Context, profileId: String) {
     private val appContext = context.applicationContext
     private val safeProfileId = profileId.trim().ifBlank { "default" }
-    private val dataStore = stores.getOrPut("${appContext.filesDir.absolutePath}:$safeProfileId") {
+    private val dataStore = synchronized(stores) { stores.getOrPut("${appContext.filesDir.absolutePath}:$safeProfileId") {
         PreferenceDataStoreFactory.create(
             scope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
             produceFile = { appContext.preferencesDataStoreFile("progression_profile_$safeProfileId.preferences_pb") }
         )
-    }
+    } }
 
     suspend fun load(): ProgressionPlayerProfile {
         migrateLegacyIfNeeded()
@@ -95,10 +93,5 @@ class ProgressionProfileStore(context: Context, profileId: String) {
         private val PROFILE_JSON = stringPreferencesKey("profile_json")
         private val MIGRATION_COMPLETE = booleanPreferencesKey("legacy_migration_complete")
         private val stores = mutableMapOf<String, DataStore<Preferences>>()
-        private val storesMutex = Mutex()
-
-        // Access to the cache is synchronized by JVM monitor because constructors are synchronous.
-        private fun cacheKey(context: Context, profileId: String) =
-            "${context.applicationContext.filesDir.absolutePath}:${profileId.trim().ifBlank { "default" }}"
     }
 }
