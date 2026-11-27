@@ -47,9 +47,10 @@ object ForticladCatalog {
         ForticladStageCost(id, level, fc, afc, sourceUrl = source)
 
     /**
-     * Per-stage costs. GuideLOJ publishes Medical Station only through FC8
-     * and does not publish Forticlad Lab costs in this table. FC9/FC10
-     * Medical Station rows are also absent. Do not fill these gaps by analogy.
+     * Per-stage costs from the general GuideLOJ table plus dedicated LOJ Wiki
+     * building pages for Forticlad Lab and Medical Station. The latter publishes
+     * Medical Station through FC10; missing rows for other buildings remain
+     * unknown and are never extrapolated by analogy.
      */
     val stageCosts: List<ForticladStageCost> = listOf(
         row("wardens_office", 1, 250), row("shieldbearer_barracks", 1, 130),
