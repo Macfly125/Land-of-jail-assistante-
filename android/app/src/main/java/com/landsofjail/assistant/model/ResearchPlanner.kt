@@ -127,26 +127,26 @@ object ResearchPlanner {
         val included = mutableSetOf<String>()
         val current = request.currentLevels
 
-        fun include(technologyId: String, level: Int) {
+        fun includeThrough(technologyId: String, targetLevel: Int) {
             val currentLevel = current[technologyId] ?: 0
-            if (level <= currentLevel) return
-            val key = "$technologyId#$level"
-            if (key in included) return
-            require(key !in visiting) { "Research prerequisite cycle at $key" }
-            val row = requireNotNull(rows[key]) { "Missing verified research row: $key" }
-            visiting += key
-            row.prerequisites.forEach { include(it.technologyId, it.level) }
-            visiting -= key
-            included += key
-            ordered += row
+            require(targetLevel >= currentLevel) {
+                "Required level is below current level for $technologyId"
+            }
+            for (level in (currentLevel + 1)..targetLevel) {
+                val key = "$technologyId#$level"
+                if (key in included) continue
+                require(key !in visiting) { "Research prerequisite cycle at $key" }
+                val row = requireNotNull(rows[key]) { "Missing verified research row: $key" }
+                visiting += key
+                row.prerequisites.forEach { includeThrough(it.technologyId, it.level) }
+                visiting -= key
+                included += key
+                ordered += row
+            }
         }
 
         request.targets.forEach { (technologyId, targetLevel) ->
-            val start = (current[technologyId] ?: 0) + 1
-            require(targetLevel >= (current[technologyId] ?: 0)) {
-                "Target level is below current level for $technologyId"
-            }
-            for (level in start..targetLevel) include(technologyId, level)
+            includeThrough(technologyId, targetLevel)
         }
 
         val missingLab = ordered.filter { it.labLevel > request.labLevel }
