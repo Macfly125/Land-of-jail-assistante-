@@ -404,9 +404,9 @@ object ProgressionCatalog {
         gateRow(5, listOf("food" to 3_000_000L, "wood" to 3_000_000L, "steel" to 600_000L, "gasoline" to 150_000L), 13_140, 16),
         gateRow(6, listOf("food" to 10_000_000L, "wood" to 10_000_000L, "steel" to 2_000_000L, "gasoline" to 500_000L), 35_520, 20),
         gateRow(7, listOf("food" to 30_000_000L, "wood" to 30_000_000L, "steel" to 6_000_000L, "gasoline" to 1_500_000L), 133_200, 24),
-        gateRow(8, listOf("food" to 75_000_000L, "wood" to 75_000_000L, "steel" to 15_000_000L), 263_100, 27, complete = false),
-        gateRow(9, listOf("food" to 120_000_000L, "wood" to 120_000_000L, "steel" to 24_000_000L), 353_160, 29, complete = false),
-        gateRow(10, listOf("food" to 155_000_000L, "wood" to 155_000_000L, "steel" to 31_000_000L), 406_800, 30, complete = false)
+        gateRow(8, listOf("food" to 75_000_000L, "wood" to 75_000_000L, "steel" to 15_000_000L), 262_500, 27, complete = false),
+        gateRow(9, listOf("food" to 120_000_000L, "wood" to 120_000_000L, "steel" to 24_000_000L), 347_160, 29, complete = false),
+        gateRow(10, listOf("food" to 155_000_000L, "wood" to 155_000_000L, "steel" to 31_000_000L), 414_000, 30, complete = false)
     )
 
     private fun gateRow(
