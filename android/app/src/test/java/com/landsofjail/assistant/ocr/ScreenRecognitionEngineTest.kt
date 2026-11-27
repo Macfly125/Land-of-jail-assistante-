@@ -171,6 +171,23 @@ class ScreenRecognitionEngineTest {
     }
 
     @Test
+    fun explicitPowerArmorTitleWinsOverGenericProfilePowerLabel() {
+        listOf("Power Armor", "Power Armor Hangar", "Prisoner Armor").forEach { sample ->
+            val result = ScreenRecognitionEngine.analyze(sample)
+            assertEquals("L'écran d'armure ne doit pas devenir un profil : $sample",
+                "power_armor", result.category)
+            assertTrue(result.needsVisualConfirmation)
+        }
+    }
+
+    @Test
+    fun playerProfilePowerRemainsClassifiedAsProfileWithoutArmorContext() {
+        val result = ScreenRecognitionEngine.analyze("Player Profile\\nPower 12M\\nEliminations 350")
+        assertEquals("profil", result.category)
+        assertTrue(result.needsVisualConfirmation)
+    }
+
+    @Test
     fun unrelatedTextDoesNotProduceAGameScreenCategory() {
         val result = ScreenRecognitionEngine.analyze("Bonjour, test sans libellé de jeu")
 
