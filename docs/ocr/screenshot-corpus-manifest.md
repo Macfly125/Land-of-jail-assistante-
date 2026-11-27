@@ -211,3 +211,25 @@ La session de test sur téléphone reste donc différée jusqu'à ce que le corp
 - Le joueur identifie le bâtiment entouré en bleu comme **QG / Forticlad niveau 6**. Le niveau 6 est une annotation humaine de contexte ; il n'est pas extrait de l'image d'accueil et doit être confirmé par une capture du panneau du bâtiment.
 - Tests ajoutés : lecture du badge 509 256 511 avec exclusion du compteur 177.1M ; rejet d'une capture qui ne contient que le compteur supérieur ; lecture du niveau 6 uniquement lorsque le texte « QG Forticlad / Niveau 6 » est explicitement présent.
 - Statut : tests de régression ajoutés ; exécution CI en attente. L'image originale reste attachée à la conversation et n'est pas encore stockée comme fichier binaire de fixture dans le dépôt.
+
+
+## Recherche d'images de gameplay — 27 novembre 2026
+
+Nouvelles sources repérées lors d'une recherche publique. Elles sont inscrites comme **candidates documentaires**, pas comme fixtures OCR : aucune image binaire n'a été importée dans le dépôt, aucune annotation champ par champ n'a été validée et les droits de réutilisation doivent encore être vérifiés.
+
+| Catégorie visée | Source / image | Indices réellement visibles | Décision |
+|---|---|---|---|
+| Bâtiments / panneau d'amélioration | [FoxData — Lands of Jail facility management](https://static-cf.foxdata.com/ap-backstage/prod/2025-06-06/1749202360204.jpg) | Montage de vues de gestion avec panneaux Cell Lv.1 / Kitchen Lv.1, progression et éléments d'installation. Le panneau Kitchen montre notamment Stove, Build 135/10, Hunger et Time. | Candidate utile pour définir les champs d'un panneau de bâtiment ; montage composite, ne pas utiliser comme capture brute ou fixture sans retrouver l'original. |
+| Bâtiments / panneau d'amélioration | [Malavida — Lands of Jail screenshot 7](https://imag.malavida.com/mvimgbig/download-fs/lands-of-jail-40257-7.jpg) | Panneau Kitchen Lv.1, barre de progression 50 %, Stove, bouton Build 135/10, Hunger 0+18.6 et Time 0s+8s. | Candidate la plus pertinente pour le vocabulaire du panneau de bâtiment ; conserver comme référence tant que provenance originale, droits et fichier exploitable ne sont pas établis. |
+| Ressources / bandeau supérieur | [BlueStacks — Lands of Jail](https://cdn-icon.bluestacks.com/l-DaTy8gdkeE2O9OY-Ol_VW9O900_WmG6fB_Cr_FPNwecm4_va7__VhBs74IYrtLB5pkHyWLinGLcu5O3MyC918%3Ds0) | Bandeau avec plusieurs icônes et compteurs, notamment puissance 6,175, monnaie 500M, ressource 8k, diamants 20,366 et VIP 8. | Candidate de repérage des zones HUD uniquement ; les icônes et les valeurs ne doivent pas être généralisées à toutes versions/langues ou résolutions. |
+| Bâtiments / vue générale | [Lemon8 — Lands of Jail gameplay](https://p16-lemon8-sg-sign.tiktokcdn-us.com/tos-alisg-v-a3e477-sg/o0CB0mBviAL13O81A2tZECreZ2kEIQAfgzhCyi~tplv-sdweummd6v-text-logo-v1%3AQG1vZHN1cmVlcHJvbg%3D%3D%3Aq75.jpeg?lk3s=c7f08e79&source=lemon8_seo&x-expires=1774180800&x-signature=qcTEHUp5pmW6ogMv9mH4JI7TWos%3D) | Vue isométrique de plusieurs zones de prison et bâtiments. | Vue de gameplay mais sans panneau détaillé lisible ; utile pour contexte, pas pour extraction de niveaux/coûts. |
+| Ressources / vue générale | [GG게임 — Land of Jail screenshots](https://www.ggemguide.com/mobile_screen2/20250421510a2.jpg) | Deux scènes de jeu ; une vue de construction avec matériaux et une scène de combat. | Ancienne capture et langue coréenne ; candidate de vocabulaire/contexte seulement, ne pas déduire de valeurs non lisibles. |
+
+### Conséquence pour les tests
+
+- Le panneau Kitchen constitue une référence utile pour compléter le schéma générique des bâtiments : nom du bâtiment, niveau, progression, équipement/installation, coût d'action, production ou besoin, durée.
+- Le texte « Build 135/10 » ne doit pas être interprété comme un coût de ressource standard sans connaître la sémantique exacte du bouton et l'icône associée.
+- Les valeurs Hunger et Time sont des statistiques de l'installation, pas des ressources globales du compte.
+- Les captures HUD publiques montrent que plusieurs compteurs coexistent dans une zone compacte ; la reconnaissance doit associer chaque nombre à son icône/zone, et non classifier par magnitude seule.
+- Aucune de ces images ne valide la lecture du compteur de nourriture 177.1M ou du badge de puissance 509 256 511 de la capture personnelle annotée dans la section précédente.
+- Tant que les images originales ne sont pas récupérées avec provenance/licence claire, elles restent hors des tests binaires. Les catégories Ressources et Bâtiments demeurent en attente de véritables fixtures annotées.
