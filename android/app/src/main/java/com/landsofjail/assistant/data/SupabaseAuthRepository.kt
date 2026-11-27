@@ -713,7 +713,11 @@ class SupabaseAuthRepository(context: Context) {
                     error
                 )
             } finally {
-                clearSession()
+                // signOut runs on Dispatchers.IO: wait for the local deletion to
+                // reach disk so an immediate process kill cannot restore this account.
+                if (!prefs.edit().clear().commit()) {
+                    error("Impossible d'effacer durablement la session locale.")
+                }
             }
             Unit
         }
