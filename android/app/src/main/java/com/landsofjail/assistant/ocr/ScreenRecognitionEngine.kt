@@ -73,7 +73,7 @@ object ScreenRecognitionEngine {
                 // ils ne deviennent des indices que si un autre libellé propre à la
                 // même catégorie est également présent.
                 val profilePowerHasValue = label in listOf("power", "puissance", "macht", "güç", "мощь", "战力") &&
-                    Regex("""\b(?:power|puissance|macht|güç|мощь|战力)\s+[0-9]""").containsMatchIn(normalized)
+                    Regex("""(?:^|\s)(?:power|puissance|macht|güç|мощь|战力)\s+[0-9]""").containsMatchIn(normalized)
                 val profilePowerHasContext = label !in listOf("power", "puissance", "macht", "güç", "мощь", "战力") ||
                     profilePowerHasValue || listOf("profile", "profil", "eliminations", "éliminations", "профиль", "档案")
                         .any { paddedText.contains(" " + normalize(it) + " ") }
