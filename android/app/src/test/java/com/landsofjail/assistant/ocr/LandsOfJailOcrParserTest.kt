@@ -1368,4 +1368,26 @@ Potential Coil x 8"""
 
         assertNull("Sans badge de puissance ni libellé, le compteur HUD doit rester non classé", result.power)
     }
+    @Test
+    fun doesNotClassifyGenericCageWordAsTrialCage() {
+        val result = ScreenRecognitionEngine.analyze("Cage\\nUpgrade\\nLevel 12")
+        assertEquals("ocr_local", result.category)
+        assertTrue("trial_cage" !in result.alternativeCategories)
+    }
+
+    @Test
+    fun requiresTrialCageOrDamageContextForCageEventClassification() {
+        val samples = listOf(
+            "Trial Cage",
+            "Cage\\nDamage Ranking",
+            "Cage\\nDamage Dealt",
+            "Prüfungskäfig\\nSchadensrangliste",
+            "Deneme Kafesi\\nVerilen hasar",
+            "Испытательная клетка\\nНанесенный урон",
+            "试炼笼\\n造成伤害"
+        )
+        samples.forEach { sample ->
+            assertEquals("L'événement doit rester reconnu : $sample", "trial_cage", ScreenRecognitionEngine.analyze(sample).category)
+        }
+    }
 }
