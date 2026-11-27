@@ -699,6 +699,7 @@ class SupabaseAuthRepository(context: Context) {
             } finally {
                 clearSession()
             }
+            Unit
         }
     }
 
