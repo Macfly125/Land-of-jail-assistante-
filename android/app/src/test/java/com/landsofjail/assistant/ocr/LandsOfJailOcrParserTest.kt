@@ -1592,4 +1592,23 @@ Potential Coil x 8"""
         assertEquals(450.0, result.resources.single { it.nom == "Cash / Or" }.quantiteNumerique ?: 0.0, 0.1)
     }
 
+
+    @Test
+    fun acceptsOnlyProperlyGroupedWhitespaceInResourceQuantities() {
+        val valid = LandsOfJailOcrParser.parseLocalOcrText("Food: 1 234 567")
+        assertEquals(1_234_567.0,
+            valid.resources.single { it.nom == "Nourriture (Food)" }.quantiteNumerique ?: 0.0, 0.1)
+
+        val decimal = LandsOfJailOcrParser.parseLocalOcrText("Food: 1 234,5")
+        assertEquals(1_234.5,
+            decimal.resources.single { it.nom == "Nourriture (Food)" }.quantiteNumerique ?: 0.0, 0.1)
+
+        val malformed = listOf("12 34", "1 23 456", "1234 567")
+        malformed.forEach { value ->
+            val result = LandsOfJailOcrParser.parseLocalOcrText("Food: $value")
+            assertTrue("Un groupement d'espaces invalide doit être rejeté : $value",
+                result.resources.isEmpty() || result.resources.single().quantiteNumerique == null)
+        }
+    }
+
 }
