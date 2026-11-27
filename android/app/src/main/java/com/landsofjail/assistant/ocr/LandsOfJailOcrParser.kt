@@ -227,18 +227,25 @@ object LandsOfJailOcrParser {
 
         val powerRegex = Regex("""(?:^|[^\p{L}\p{N}])(?:puissance|power|macht|güç|мощь|comb\.?\s*power|cp|战力)(?=\s|[:：-]|[0-9])\s*[:：-]?\s*([0-9][0-9\s.,kmbKMB]*)""", RegexOption.IGNORE_CASE)
         val levelRegex = Regex("""(?:niv\.?|lv\.?|level)\s*([0-9]+)""", RegexOption.IGNORE_CASE)
+        // Le niveau du Bureau du directeur peut être affiché avant ou après son nom
+        // selon la langue et la disposition de l'écran. Seul un couple libellé + niveau
+        // explicite est accepté : un niveau de cuisine/caserne ne devient jamais celui du QG.
+        val wardenBuildingNames =
+            """(?:warden(?:['’]s)?\s*office|director(?:['’]s)?\s*office|bureau\s*du\s*directeur|büro\s+des\s+direktors|müdür(?:ün)?\s+ofisi|офис\s+начальника|典狱长办公室|ufficio\s+del\s+direttore|prison|qg|hq)"""
+        val buildingLevelLabels =
+            """(?:niv(?:eau)?|lv|lvl|level|livello|stufe|seviye|уровень|等级)"""
         val wardenRegex = Regex(
-            """(?:(?:warden(?:['’]s)?\s*office|director(?:['’]s)?\s*office|bureau\s*du\s*directeur|prison|qg|hq)\s*(?:niv(?:eau)?|lvl?|level)\.?\s*[:：#-]?\s*([0-9]{1,2})|\b([0-9]{1,2})\s+(?:warden(?:['’]s)?\s*office|director(?:['’]s)?\s*office|bureau\s*du\s*directeur|prison|qg|hq)\b|\b(?:hq|qg)\s+([0-9]{1,2})\b)""",
+            """(?:(?:$wardenBuildingNames)\s*$buildingLevelLabels\.?\s*[:：#-]?\s*([0-9]{1,2})|\b([0-9]{1,2})\s+(?:$wardenBuildingNames)\b|\b$buildingLevelLabels\.?\s*[:：#-]?\s*([0-9]{1,2})\s+(?:$wardenBuildingNames)\b|\b(?:hq|qg)\s+([0-9]{1,2})\b)""",
             RegexOption.IGNORE_CASE
         )
         // Certains écrans affichent le nom du bâtiment et son niveau sur deux lignes.
         // N'accepter que le niveau explicitement étiqueté sur la ligne immédiatement suivante.
         val explicitBuildingLevelRegex = Regex(
-            """(?:niv(?:eau)?|lv|lvl|level)\.?\s*[:：#-]?\s*([0-9]{1,2})""",
+            """$buildingLevelLabels\.?\s*[:：#-]?\s*([0-9]{1,2})""",
             RegexOption.IGNORE_CASE
         )
         val wardenBuildingLabelRegex = Regex(
-            """(?:warden(?:['’]s)?\s*office|director(?:['’]s)?\s*office|bureau\s*du\s*directeur|\bprison\b|\bqg\b|\bhq\b)""",
+            wardenBuildingNames,
             RegexOption.IGNORE_CASE
         )
 
@@ -254,7 +261,7 @@ object LandsOfJailOcrParser {
         for ((index, line) in lines.withIndex()) {
             wardenRegex.find(line)?.let { match ->
                 if (wardenLevel == null) {
-                    wardenLevel = "Niv. ${match.groupValues[1].ifBlank { match.groupValues[2].ifBlank { match.groupValues[3] } }}"
+                    wardenLevel = "Niv. ${match.groupValues.drop(1).firstOrNull { it.isNotBlank() }.orEmpty()}"
                 }
             }
             if (wardenLevel == null && wardenBuildingLabelRegex.containsMatchIn(line)) {
