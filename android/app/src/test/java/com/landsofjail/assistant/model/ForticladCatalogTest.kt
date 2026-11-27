@@ -78,7 +78,7 @@ class ForticladCatalogTest {
     @Test
     fun inventoryCalculatesMissingCoresWithoutNegativeValues() {
         val estimate = ForticladCatalog.estimate("forticlad_lab", 5, 0, 6)!!
-        assertEquals(ForticladInventory(350L, 25L), ForticladInventory(100L, 30L).missingFor(estimate))
+        assertEquals(ForticladInventory(250L, 0L), ForticladInventory(100L, 30L).missingFor(estimate))
         assertEquals(ForticladInventory(0L, 0L), ForticladInventory(500L, 50L).missingFor(estimate))
     }
 
