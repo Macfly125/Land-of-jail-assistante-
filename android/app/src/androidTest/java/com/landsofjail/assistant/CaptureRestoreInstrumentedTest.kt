@@ -74,7 +74,7 @@ class CaptureRestoreInstrumentedTest {
 
         secondBitmap.recycle()
         ScreenCaptureConsentActivity.consumeCapture(context)
-        assertFalse(firstBitmap.isRecycled.not())
+        assertTrue("La première capture est libérée après consommation", firstBitmap.isRecycled)
     }
 
     @Test
