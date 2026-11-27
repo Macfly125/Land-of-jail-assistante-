@@ -225,7 +225,7 @@ object LandsOfJailOcrParser {
         var power: PowerMetric? = null
         var wardenLevel: String? = null
 
-        val powerRegex = Regex("""(?:^|[^\\p{L}\\p{N}])(?:puissance|power|macht|güç|мощь|comb\\.?\\s*power|cp|战力)(?=\\s|[:：-]|[0-9])\\s*[:：-]?\\s*([0-9][0-9\\s.,kmbKMB]*)""", RegexOption.IGNORE_CASE)
+        val powerRegex = Regex("""(?:^|[^\p{L}\p{N}])(?:puissance|power|macht|güç|мощь|comb\.?\s*power|cp|战力)(?=\s|[:：-]|[0-9])\s*[:：-]?\s*([0-9][0-9\s.,kmbKMB]*)""", RegexOption.IGNORE_CASE)
         val levelRegex = Regex("""(?:niv\.?|lv\.?|level)\s*([0-9]+)""", RegexOption.IGNORE_CASE)
         val wardenRegex = Regex(
             """(?:(?:warden(?:['’]s)?\s*office|director(?:['’]s)?\s*office|bureau\s*du\s*directeur|prison|qg|hq)\s*(?:niv(?:eau)?|lv|lvl|level)\.?\s*[:：#-]?\s*([0-9]{1,2})|\b([0-9]{1,2})\s+(?:warden(?:['’]s)?\s*office|director(?:['’]s)?\s*office|bureau\s*du\s*directeur|prison|qg|hq)\b)""",
