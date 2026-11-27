@@ -233,7 +233,7 @@ object LandsOfJailOcrParser {
             RegexOption.IGNORE_CASE
         )
         val wardenBuildingLabelRegex = Regex(
-            """(?:warden(?:['’]s)?\s*office|director(?:['’]s)?\s*office|bureau\s*du\s*directeur|\bprison\b|\bqg\b|\bhq\b|\bforticlad\b)""",
+            """(?:warden(?:['’]s)?\s*office|director(?:['’]s)?\s*office|bureau\s*du\s*directeur|\bprison\b|\bqg\b|\bhq\b|\b\b)""",
             RegexOption.IGNORE_CASE
         )
 
