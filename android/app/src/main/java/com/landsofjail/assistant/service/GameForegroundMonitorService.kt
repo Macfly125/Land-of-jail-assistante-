@@ -272,12 +272,18 @@ class GameForegroundMonitorService : Service() {
         } else {
             0
         }
-        ServiceCompat.startForeground(
-            this,
-            NOTIF_MONITOR_ID,
-            buildPersistentMonitoringNotification(),
-            projectionFgType
-        )
+        try {
+            ServiceCompat.startForeground(
+                this,
+                NOTIF_MONITOR_ID,
+                buildPersistentMonitoringNotification(),
+                projectionFgType
+            )
+        } catch (_: Throwable) {
+            isCapturingNow = false
+            finishCaptureFlow(wasMonitoring)
+            return
+        }
 
         val projectionManager =
             getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
@@ -471,12 +477,24 @@ class GameForegroundMonitorService : Service() {
         } else {
             0
         }
-        ServiceCompat.startForeground(
-            this,
-            NOTIF_MONITOR_ID,
-            buildPersistentMonitoringNotification(),
-            projectionFgType
-        )
+        try {
+            ServiceCompat.startForeground(
+                this,
+                NOTIF_MONITOR_ID,
+                buildPersistentMonitoringNotification(),
+                projectionFgType
+            )
+        } catch (_: Throwable) {
+            _isAutoCapturing.value = false
+            autoCaptureAwaitingAnalysis = false
+            lastAutoFrameSamples = null
+            if (autoCaptureOwnsMonitor) {
+                stopSelf()
+            } else {
+                startAsMonitoringForeground()
+            }
+            return
+        }
         if (!wasMonitoring) startPollingUsageStats()
 
         val projectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
