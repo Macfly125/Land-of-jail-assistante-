@@ -1,5 +1,8 @@
 package com.landsofjail.assistant.model
 
+import kotlin.math.ceil
+import kotlin.math.floor
+
 /**
  * Exact per-level research data. Populate only from a verified source row;
  * aggregate tree totals must never be converted into these records.
