@@ -1398,4 +1398,27 @@ Potential Coil x 8"""
         assertEquals("forticlad_lab", result.detectedCategory)
         assertNull("Le niveau du laboratoire Forticlad ne doit pas devenir le niveau du QG", result.power)
     }
+ 
+    @Test
+    fun doesNotBorrowBuildingLevelForRobotDetails() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            "Phantom Cat\\nKitchen\\nLevel 6"
+        )
+
+        val robot = result.robots.single { it.nom == "Phantom Cat" }
+        assertTrue("Le niveau de la cuisine ne doit pas être attribué au robot", robot.niveau.isBlank())
+        assertTrue(robot.incertain)
+        assertNull("Le niveau de la cuisine ne doit pas devenir celui du QG", result.power)
+    }
+
+    @Test
+    fun keepsRobotLevelWhenItBelongsToTheRobotCard() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            "Phantom Cat\\nLevel 90\\nPower 120"
+        )
+
+        val robot = result.robots.single { it.nom == "Phantom Cat" }
+        assertEquals("90", robot.niveau)
+        assertEquals("120", robot.puissance)
+    }
 }
