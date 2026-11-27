@@ -115,6 +115,19 @@ class ScreenRecognitionEngineTest {
         assertTrue(result.needsVisualConfirmation)
     }
 
+
+    @Test
+    fun allSharedFelonLabelsRemainAmbiguousAcrossLanguages() {
+        listOf("Felons", "Criminal Prisoner", "罪犯").forEach { label ->
+            val result = ScreenRecognitionEngine.analyze(label)
+
+            assertEquals("ocr_local for $label", "ocr_local", result.category)
+            assertTrue("dungeon candidate for $label", result.alternativeCategories.contains("dungeon"))
+            assertTrue("arrest candidate for $label", result.alternativeCategories.contains("arrest"))
+            assertTrue("visual confirmation for $label", result.needsVisualConfirmation)
+        }
+    }
+
     @Test
     fun unrelatedTextDoesNotProduceAGameScreenCategory() {
         val result = ScreenRecognitionEngine.analyze("Bonjour, test sans libellé de jeu")
