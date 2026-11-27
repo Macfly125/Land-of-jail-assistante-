@@ -890,6 +890,9 @@ object LandsOfJailOcrParser {
             }
             else -> rawNumber
         }
-        return normalized.toDoubleOrNull()?.times(multiplier)
+        val value = normalized.toDoubleOrNull()?.times(multiplier) ?: return null
+        // Une valeur hors plage ne doit jamais devenir Long.MAX_VALUE lors de
+        // la conversion de puissance, ni Infinity dans les stocks de ressources.
+        return value.takeIf { it.isFinite() && it <= Long.MAX_VALUE.toDouble() }
     }
 }
