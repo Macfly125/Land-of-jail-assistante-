@@ -1413,8 +1413,9 @@ Potential Coil x 8"""
 
         assertNull("Une rangée de ressources détectée ne doit jamais devenir la puissance du profil", result.power)
         assertTrue("Sans icônes ou libellés, aucun stock ne doit être attribué", result.resources.isEmpty())
-        assertEquals(6, result.uncertainItems.size)
-        assertTrue(result.uncertainItems.all { it.champ.startsWith("Compteur HUD non identifié") })
+        val hudCounters = result.uncertainItems.filter { it.champ.startsWith("Compteur HUD non identifié") }
+        assertEquals(6, hudCounters.size)
+        assertEquals(listOf("1.2M", "850K", "42M", "3.4M", "120", "7.8M"), hudCounters.map { it.valeurObservee })
     }
 
 
