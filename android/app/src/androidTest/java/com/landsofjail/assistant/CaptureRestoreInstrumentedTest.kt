@@ -85,6 +85,24 @@ class CaptureRestoreInstrumentedTest {
     }
 
     @Test
+    fun rejectsCapturePathTraversalOutsidePrivateDirectory() {
+        val outside = File(context.filesDir, "traversal_capture.jpg")
+        outside.writeBytes(byteArrayOf(1, 2, 3))
+        val traversal = File(context.filesDir, "captures/../traversal_capture.jpg")
+        preferences.edit()
+            .putString("pending_capture_uri", Uri.fromFile(traversal).toString())
+            .putLong("pending_capture_at", 1L)
+            .commit()
+
+        ScreenCaptureConsentActivity.restorePendingCapture(context)
+
+        assertNull(ScreenCaptureConsentActivity.pendingCapture.value)
+        assertTrue("Un fichier extérieur ne doit pas être supprimé", outside.exists())
+        assertNull(preferences.getString("pending_capture_uri", null))
+        outside.delete()
+    }
+
+    @Test
     fun rejectsCaptureFileOutsidePrivateCaptureDirectory() {
         val outside = File(context.filesDir, "not-a-capture.jpg")
         outside.writeBytes(byteArrayOf(1, 2, 3))
