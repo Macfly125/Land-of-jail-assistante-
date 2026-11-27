@@ -130,10 +130,11 @@ class SupabaseAuthRepository(context: Context) {
         emailRedirectTo: String? = null
     ): Result<AuthOutcome> = withContext(Dispatchers.IO) {
         runCatching {
-            require(email.contains("@") && email.length <= 254) { "Adresse e-mail invalide." }
+            val normalizedEmail = email.trim()
+            require(normalizedEmail.contains("@") && normalizedEmail.length <= 254) { "Adresse e-mail invalide." }
             require(password.length >= 8) { "Le mot de passe doit contenir au moins 8 caractères." }
             val payload = buildJsonObject {
-                put("email", email)
+                put("email", normalizedEmail)
                 put("password", password)
                 emailRedirectTo?.let { redirect ->
                     put("options", buildJsonObject { put("emailRedirectTo", redirect) })
@@ -167,7 +168,7 @@ class SupabaseAuthRepository(context: Context) {
                         refresh_token = refresh,
                         token_type = obj["token_type"]?.jsonPrimitive?.contentOrNull ?: "bearer",
                         expires_in = obj["expires_in"]?.jsonPrimitive?.contentOrNull?.toLongOrNull() ?: 3600L,
-                        email = obj["user"]?.jsonObject?.get("email")?.jsonPrimitive?.contentOrNull ?: email,
+                        email = obj["user"]?.jsonObject?.get("email")?.jsonPrimitive?.contentOrNull ?: normalizedEmail,
                         user_id = obj["user"]?.jsonObject?.get("id")?.jsonPrimitive?.contentOrNull.orEmpty()
                     )
                 }
