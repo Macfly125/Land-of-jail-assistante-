@@ -866,10 +866,14 @@ class GameForegroundMonitorService : Service() {
                     val fgPkg = withContext(Dispatchers.IO) {
                         UsageStatsDetector.getRecentForegroundPackage(applicationContext, eventWindow)
                     }
-                    if (!fgPkg.isNullOrBlank() && deviceAvailable) {
-                        lastKnownForegroundPkg = fgPkg
+                    if (deviceAvailable && fgPkg != null) {
+                        // null means no fresh event (retain cache); blank means an explicit
+                        // pause/stop/lock event (clear cache so the game is no longer foreground).
+                        lastKnownForegroundPkg = fgPkg.takeIf { it.isNotBlank() }
                     }
-                    val effectivePkg = if (deviceAvailable) fgPkg ?: lastKnownForegroundPkg else null
+                    val effectivePkg = if (deviceAvailable) {
+                        if (fgPkg == null) lastKnownForegroundPkg else fgPkg.takeIf { it.isNotBlank() }
+                    } else null
                     val isSelfForeground = effectivePkg == applicationContext.packageName
                     val assistantVisible = MainActivity.isAppInForeground.value
                     val isGameNow = UsageStatsDetector.isLandsOfJailPackage(effectivePkg, targetFilter)
