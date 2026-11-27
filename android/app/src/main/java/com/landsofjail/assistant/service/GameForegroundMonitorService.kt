@@ -679,8 +679,20 @@ class GameForegroundMonitorService : Service() {
             }
             val uri = Uri.fromFile(outFile).toString()
             // La publication du payload enregistre aussi son URI de façon atomique.
-            // Nettoyer les captures très anciennes (garder les 30 plus récentes).
+            // Préserver le fichier de la capture actuellement en attente :
+            // une nouvelle capture refusée ne doit pas rendre l'ancienne irrécupérable.
+            val pendingUri = ScreenCaptureConsentActivity.pendingCapture.value?.imageFileUri
+                ?.takeIf { it.isNotBlank() }
+                ?: getSharedPreferences("loj_capture_state", Context.MODE_PRIVATE)
+                    .getString("pending_capture_uri", null)
+            val protectedPendingFile = pendingUri?.let { value ->
+                runCatching { File(Uri.parse(value).path.orEmpty()).canonicalFile }
+                    .getOrNull()
+                    ?.takeIf { it.parentFile == dir.canonicalFile }
+            }
+            // Garder les 30 plus récentes, en plus de la capture en attente si elle est plus ancienne.
             dir.listFiles()?.filter { it.isFile && it.extension.equals("jpg", ignoreCase = true) }
+                ?.filter { runCatching { it.canonicalFile != protectedPendingFile }.getOrDefault(true) }
                 ?.sortedByDescending { it.lastModified() }?.drop(30)?.forEach { it.delete() }
             uri
         } catch (_: Throwable) {
