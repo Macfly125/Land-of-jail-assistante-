@@ -6482,22 +6482,29 @@ private fun AllianceScreen(
                                     scope.launch {
                                         profileVerificationBusyFor = member.id
                                         profileVerificationMessage = null
-                                        cloudAuth.verifyAllianceMemberProfile(linkedAllianceId, member.id)
-                                            .onSuccess { result ->
-                                                cloudAuth.fetchAllianceProfileVerifications(linkedAllianceId)
-                                                    .onSuccess { cloudProfileVerifications = it }
-                                                profileVerificationMessage = if (result.alreadyConfirmed) {
-                                                    localizedUiText(language, "Ta confirmation était déjà enregistrée.", "Your confirmation was already recorded.", "Deine Bestätigung war bereits gespeichert.", "Onayın zaten kaydedilmişti.", "Ваше подтверждение уже было сохранено.", "你的确认已记录。", "La tua conferma era già registrata.")
-                                                } else {
-                                                    localizedUiText(language, "Confirmation enregistrée : ${result.confirmationCount}/5.", "Confirmation saved: ${result.confirmationCount}/5.", "Bestätigung gespeichert: ${result.confirmationCount}/5.", "Onay kaydedildi: ${result.confirmationCount}/5.", "Подтверждение сохранено: ${result.confirmationCount}/5.", "确认已保存：${result.confirmationCount}/5。", "Conferma salvata: ${result.confirmationCount}/5.")
+                                        try {
+                                            cloudAuth.verifyAllianceMemberProfile(linkedAllianceId, member.id)
+                                                .onSuccess { result ->
+                                                    profileVerificationMessage = if (result.alreadyConfirmed) {
+                                                        localizedUiText(language, "Ta confirmation était déjà enregistrée.", "Your confirmation was already recorded.", "Deine Bestätigung war bereits gespeichert.", "Onayın zaten kaydedilmişti.", "Ваше подтверждение уже было сохранено.", "你的确认已记录。", "La tua conferma era già registrata.")
+                                                    } else {
+                                                        localizedUiText(language, "Confirmation enregistrée : ${result.confirmationCount}/5.", "Confirmation saved: ${result.confirmationCount}/5.", "Bestätigung gespeichert: ${result.confirmationCount}/5.", "Onay kaydedildi: ${result.confirmationCount}/5.", "Подтверждение сохранено: ${result.confirmationCount}/5.", "确认已保存：${result.confirmationCount}/5。", "Conferma salvata: ${result.confirmationCount}/5.")
+                                                    }
+                                                    profileVerificationError = false
+                                                    cloudAuth.fetchAllianceProfileVerifications(linkedAllianceId)
+                                                        .onSuccess { cloudProfileVerifications = it }
+                                                        .onFailure {
+                                                            profileVerificationMessage = localizedUiText(language, "Confirmation enregistrée, mais actualisation impossible. Réessaie de recharger la liste.", "Confirmation saved, but refresh failed. Reload the list.", "Bestätigung gespeichert, aber Aktualisierung fehlgeschlagen. Lade die Liste erneut.", "Onay kaydedildi ancak yenileme başarısız. Listeyi yeniden yükle.", "Подтверждение сохранено, но обновить список не удалось. Повторите загрузку.", "确认已保存，但刷新失败。请重新加载列表。", "Conferma salvata, ma aggiornamento non riuscito. Ricarica l'elenco.") + " " + (it.message ?: "")
+                                                            profileVerificationError = true
+                                                        }
                                                 }
-                                                profileVerificationError = false
-                                            }
-                                            .onFailure {
-                                                profileVerificationMessage = it.message ?: "Confirmation impossible."
-                                                profileVerificationError = true
-                                            }
-                                        profileVerificationBusyFor = null
+                                                .onFailure {
+                                                    profileVerificationMessage = it.message ?: "Confirmation impossible."
+                                                    profileVerificationError = true
+                                                }
+                                        } finally {
+                                            profileVerificationBusyFor = null
+                                        }
                                     }
                                 },
                                 enabled = profileVerificationBusyFor == null && !alreadyConfirmed && count < 5
