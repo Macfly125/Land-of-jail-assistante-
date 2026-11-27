@@ -720,6 +720,17 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun doesNotPromoteSandseaFuelToGasolineWhenOtherResourcesAreVisible() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            "Sandsea Conquest\nFuel: 1200\nFood: 5000"
+        )
+        assertTrue("Fuel de Sandsea ne doit pas devenir un stock d'essence",
+            result.resources.none { it.nom == "Essence (Gasoline)" })
+        assertTrue("La nourriture explicite doit rester reconnue",
+            result.resources.any { it.nom == "Nourriture (Food)" && it.quantiteNumerique == 5000.0 })
+    }
+
+    @Test
     fun readsResourceQuantitiesOnTheLineAfterTheirLabels() {
         val result = LandsOfJailOcrParser.parseLocalOcrText(
             """Nahrung
