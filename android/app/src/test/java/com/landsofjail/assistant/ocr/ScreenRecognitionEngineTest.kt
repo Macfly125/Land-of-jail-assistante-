@@ -211,6 +211,15 @@ class ScreenRecognitionEngineTest {
     }
 
     @Test
+    fun recognizesLocalizedNumericPowerLabels() {
+        listOf("Puissance 12M", "Macht 12M", "Güç 12M", "мощь 12M", "战力 12M").forEach { sample ->
+            val result = ScreenRecognitionEngine.analyze(sample)
+            assertEquals("Libellé de puissance non reconnu : $sample", "profil", result.category)
+            assertTrue(result.needsVisualConfirmation)
+        }
+    }
+
+    @Test
     fun playerProfilePowerRemainsClassifiedAsProfileWithoutArmorContext() {
         val result = ScreenRecognitionEngine.analyze("Player Profile\nPower 12M\nEliminations 350")
         assertEquals("profil", result.category)
