@@ -765,7 +765,20 @@ class SupabaseAuthRepository(context: Context) {
 
     private fun getOrCreateKey(): SecretKey {
         val keyStore = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
-        (keyStore.getKey(KEY_ALIAS, null) as? SecretKey)?.let { return it }
+        val existingKey = keyStore.getKey(KEY_ALIAS, null) as? SecretKey
+        if (existingKey != null) {
+            val isUsable = runCatching {
+                Cipher.getInstance("AES/GCM/NoPadding").apply {
+                    init(Cipher.ENCRYPT_MODE, existingKey)
+                }
+            }.isSuccess
+            if (isUsable) return existingKey
+
+            // Android may retain an alias whose key was invalidated (for example
+            // after a lock-screen/security change). Remove it before creating a
+            // replacement, otherwise every subsequent sign-in would fail to save.
+            keyStore.deleteEntry(KEY_ALIAS)
+        }
         val generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore")
         generator.init(
             KeyGenParameterSpec.Builder(
