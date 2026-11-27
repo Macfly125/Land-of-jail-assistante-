@@ -32,7 +32,7 @@ class GiftCodeRepositoryTest {
         assertNotNull(thanksgiving)
         assertEquals("EXPIRED", thanksgiving?.status)
         assertEquals("30/11/2025", thanksgiving?.expiresAt)
-        assertTrue(thanksgiving?.note.orEmpty().contains("Thanksgiving 2025"))
+        assertTrue(thanksgiving?.source.orEmpty().contains("Thanksgiving 2025"))
     }
 
 
