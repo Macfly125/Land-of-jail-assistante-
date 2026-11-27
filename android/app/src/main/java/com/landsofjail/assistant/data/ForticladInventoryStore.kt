@@ -10,10 +10,16 @@ class ForticladInventoryStore(context: Context, profileId: String) {
         Context.MODE_PRIVATE
     )
 
-    fun load(): ForticladInventory = ForticladInventory(
-        forticladCores = preferences.getLong(KEY_FORTICLAD, 0L).coerceAtLeast(0L),
-        advancedCores = preferences.getLong(KEY_ADVANCED, 0L).coerceAtLeast(0L)
-    )
+    fun load(): ForticladInventory = loadOrNull() ?: ForticladInventory(0L, 0L)
+
+    /** Returns null when this legacy store has never held a player-entered inventory. */
+    fun loadOrNull(): ForticladInventory? {
+        if (!preferences.contains(KEY_FORTICLAD) && !preferences.contains(KEY_ADVANCED)) return null
+        return ForticladInventory(
+            forticladCores = preferences.getLong(KEY_FORTICLAD, 0L).coerceAtLeast(0L),
+            advancedCores = preferences.getLong(KEY_ADVANCED, 0L).coerceAtLeast(0L)
+        )
+    }
 
     fun save(inventory: ForticladInventory) {
         preferences.edit()
