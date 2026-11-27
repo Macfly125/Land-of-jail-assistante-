@@ -6,6 +6,8 @@ import android.net.Uri
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.landsofjail.assistant.capture.ScreenCaptureConsentActivity
+import com.landsofjail.assistant.data.ForticladInventoryStore
+import com.landsofjail.assistant.model.ForticladInventory
 import com.landsofjail.assistant.service.cropFrameBitmap
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -31,6 +33,22 @@ class CaptureRestoreInstrumentedTest {
         ScreenCaptureConsentActivity.consumeCapture(context)
         preferences.edit().clear().commit()
         File(context.filesDir, "captures").listFiles()?.forEach { it.delete() }
+    }
+
+    @Test
+    fun forticladInventoryRestoresPerProfileWithoutCrossContamination() {
+        val first = ForticladInventoryStore(context, "player-one")
+        val second = ForticladInventoryStore(context, "player-two")
+        try {
+            first.save(ForticladInventory(12_345L, 678L))
+            second.save(ForticladInventory(90L, 4L))
+
+            assertEquals(ForticladInventory(12_345L, 678L), ForticladInventoryStore(context, "player-one").load())
+            assertEquals(ForticladInventory(90L, 4L), ForticladInventoryStore(context, "player-two").load())
+        } finally {
+            context.getSharedPreferences("forticlad_inventory_player-one", Context.MODE_PRIVATE).edit().clear().commit()
+            context.getSharedPreferences("forticlad_inventory_player-two", Context.MODE_PRIVATE).edit().clear().commit()
+        }
     }
 
     @Test
