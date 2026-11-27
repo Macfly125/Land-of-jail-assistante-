@@ -1546,4 +1546,50 @@ Potential Coil x 8"""
         assertEquals("90", robot.niveau)
         assertEquals("120", robot.puissance)
     }
+
+    @Test
+    fun extractsSeveralNamedResourcesFromOneOcrLineWithoutMixingValues() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            "Food: 1200 Wood: 3400 Steel: 5600 Gasoline: 7800 Gems: 90 Gold: 450"
+        )
+
+        assertEquals(6, result.resources.size)
+        assertEquals(1200.0, result.resources.single { it.nom == "Nourriture (Food)" }.quantiteNumerique ?: 0.0, 0.1)
+        assertEquals(3400.0, result.resources.single { it.nom == "Bois (Wood)" }.quantiteNumerique ?: 0.0, 0.1)
+        assertEquals(5600.0, result.resources.single { it.nom == "Acier (Steel)" }.quantiteNumerique ?: 0.0, 0.1)
+        assertEquals(7800.0, result.resources.single { it.nom == "Essence (Gasoline)" }.quantiteNumerique ?: 0.0, 0.1)
+        assertEquals(90.0, result.resources.single { it.nom == "Diamants (Gems)" }.quantiteNumerique ?: 0.0, 0.1)
+        assertEquals(450.0, result.resources.single { it.nom == "Cash / Or" }.quantiteNumerique ?: 0.0, 0.1)
+    }
+
+    @Test
+    fun extractsAllSixResourceTypesFromRussianLabels() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            "еда: 1200\nдерево: 3400\nсталь: 5600\nбензин: 7800\nалмазы: 90\nзолото: 450"
+        )
+
+        assertEquals(6, result.resources.size)
+        assertEquals(1200.0, result.resources.single { it.nom == "Nourriture (Food)" }.quantiteNumerique ?: 0.0, 0.1)
+        assertEquals(3400.0, result.resources.single { it.nom == "Bois (Wood)" }.quantiteNumerique ?: 0.0, 0.1)
+        assertEquals(5600.0, result.resources.single { it.nom == "Acier (Steel)" }.quantiteNumerique ?: 0.0, 0.1)
+        assertEquals(7800.0, result.resources.single { it.nom == "Essence (Gasoline)" }.quantiteNumerique ?: 0.0, 0.1)
+        assertEquals(90.0, result.resources.single { it.nom == "Diamants (Gems)" }.quantiteNumerique ?: 0.0, 0.1)
+        assertEquals(450.0, result.resources.single { it.nom == "Cash / Or" }.quantiteNumerique ?: 0.0, 0.1)
+    }
+
+    @Test
+    fun extractsAllSixResourceTypesFromChineseLabels() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            "食物: 1200\n木材: 3400\n钢材: 5600\n汽油: 7800\n钻石: 90\n金币: 450"
+        )
+
+        assertEquals(6, result.resources.size)
+        assertEquals(1200.0, result.resources.single { it.nom == "Nourriture (Food)" }.quantiteNumerique ?: 0.0, 0.1)
+        assertEquals(3400.0, result.resources.single { it.nom == "Bois (Wood)" }.quantiteNumerique ?: 0.0, 0.1)
+        assertEquals(5600.0, result.resources.single { it.nom == "Acier (Steel)" }.quantiteNumerique ?: 0.0, 0.1)
+        assertEquals(7800.0, result.resources.single { it.nom == "Essence (Gasoline)" }.quantiteNumerique ?: 0.0, 0.1)
+        assertEquals(90.0, result.resources.single { it.nom == "Diamants (Gems)" }.quantiteNumerique ?: 0.0, 0.1)
+        assertEquals(450.0, result.resources.single { it.nom == "Cash / Or" }.quantiteNumerique ?: 0.0, 0.1)
+    }
+
 }
