@@ -874,18 +874,17 @@ object LandsOfJailOcrParser {
                 ) return null
                 groups.joinToString("") + "." + decimalPart
             }
-            // Plusieurs séparateurs identiques ne sont valides que comme groupement milliers.
             hasComma || hasDot -> {
                 val separator = if (hasComma) ',' else '.'
                 val groups = rawNumber.split(separator)
                 if (groups.any { it.isEmpty() }) return null
-                if (groups.size > 2 || (groups.size == 2 && groups[1].length != 3)) {
-                    if (groups.first().length !in 1..3 || groups.drop(1).any { it.length != 3 }) return null
-                    groups.joinToString("")
-                } else if (groups.size == 2 && suffix == null && groups[1].length == 3) {
-                    groups.joinToString("")
-                } else {
-                    groups.joinToString(".")
+                when {
+                    groups.size == 1 -> groups[0]
+                    groups.size == 2 && groups[1].length == 3 -> groups.joinToString("")
+                    groups.size == 2 && groups[1].all(Char::isDigit) -> groups.joinToString(".")
+                    groups.size > 2 && groups.first().length in 1..3 &&
+                        groups.drop(1).all { it.length == 3 } -> groups.joinToString("")
+                    else -> return null
                 }
             }
             else -> rawNumber
