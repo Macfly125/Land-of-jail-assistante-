@@ -113,10 +113,15 @@ object ScreenRecognitionEngine {
         // Le titre explicite « Cosmos Hub » prime sur les libellés génériques
         // Satellite / Data Disk présents dans certaines vues du hub.
         val best = when {
-            // « Robot Center » désigne le bâtiment, pas la fiche d'un robot.
+            // Les titres explicites priment sur les mots génériques partagés.
             listOf("robot center", "robot upgrade", "centro robot", "robotzentrum", "robot merkezi", "центр роботов", "机器人中心")
                 .any { paddedText.contains(" ${normalize(it)} ") } ->
                 ranked.firstOrNull { it.first == "batiments" } ?: ranked.firstOrNull()
+            // « Power » seul est un indicateur de profil ; « Power Armor » désigne
+            // au contraire une catégorie d'équipement distincte.
+            listOf("power armor hangar", "power armor", "prisoner armor")
+                .any { paddedText.contains(" ${normalize(it)} ") } ->
+                ranked.firstOrNull { it.first == "power_armor" } ?: ranked.firstOrNull()
             // Le titre explicite « Cosmos Hub » prime sur les libellés génériques.
             paddedText.contains(" cosmos hub ") ->
                 ranked.firstOrNull { it.first == "cosmos_hub" } ?: ranked.firstOrNull()
