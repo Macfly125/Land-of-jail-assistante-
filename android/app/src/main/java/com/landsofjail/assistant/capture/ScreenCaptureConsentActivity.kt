@@ -44,6 +44,8 @@ class ScreenCaptureConsentActivity : ComponentActivity() {
         private const val PREFS_CAPTURE = "loj_capture_state"
         private const val KEY_PENDING_URI = "pending_capture_uri"
         private const val KEY_PENDING_AT = "pending_capture_at"
+        private const val MAX_CAPTURE_FILE_BYTES = 20L * 1024L * 1024L
+        private const val MAX_CAPTURE_PIXELS = 20_000_000L
 
         private fun clearPendingCaptureState(context: Context) {
             context.getSharedPreferences(PREFS_CAPTURE, Context.MODE_PRIVATE)
@@ -74,17 +76,35 @@ class ScreenCaptureConsentActivity : ComponentActivity() {
                 clearPendingCaptureState(context)
                 return
             }
+            var decodedBitmap: Bitmap? = null
             val restored = runCatching {
+                val fileLength = file.length()
+                require(fileLength in 1..MAX_CAPTURE_FILE_BYTES) {
+                    "Taille de capture invalide"
+                }
                 val bytes = file.readBytes()
+                val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+                val pixelCount = bounds.outWidth.toLong() * bounds.outHeight.toLong()
+                require(bounds.outWidth > 0 && bounds.outHeight > 0 &&
+                    pixelCount in 1..MAX_CAPTURE_PIXELS) {
+                    "Dimensions de capture invalides"
+                }
                 val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
                     ?: throw IllegalStateException("Capture illisible")
-                CapturedScreenPayload(
+                decodedBitmap = bitmap
+                val payload = CapturedScreenPayload(
                     bitmap = bitmap,
                     base64Jpeg = Base64.encodeToString(bytes, Base64.NO_WRAP),
                     capturedAtMillis = prefs.getLong(KEY_PENDING_AT, file.lastModified()),
                     imageFileUri = uriText
                 )
+                decodedBitmap = null
+                payload
             }.getOrNull()
+            decodedBitmap?.let { bitmap ->
+                if (!bitmap.isRecycled) bitmap.recycle()
+            }
             if (restored == null) {
                 file.delete()
                 clearPendingCaptureState(context)
