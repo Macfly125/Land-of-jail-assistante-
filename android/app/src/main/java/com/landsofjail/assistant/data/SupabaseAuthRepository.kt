@@ -671,20 +671,34 @@ class SupabaseAuthRepository(context: Context) {
     suspend fun signOut(): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
             val session = readSession()
-            if (session != null) {
-                val request = Request.Builder()
-                    .url("$BASE_URL/auth/v1/logout")
-                    .header("apikey", PUBLISHABLE_KEY)
-                    .header("Authorization", "Bearer ${session.access_token}")
-                    .post("{}".toRequestBody("application/json".toMediaType()))
-                    .build()
-                client.newCall(request).execute().use { response ->
-                    if (!response.isSuccessful && response.code != 401) {
-                        error("Déconnexion distante impossible (HTTP ${response.code}).")
+            try {
+                if (session != null) {
+                    val request = Request.Builder()
+                        .url("$BASE_URL/auth/v1/logout")
+                        .header("apikey", PUBLISHABLE_KEY)
+                        .header("Authorization", "Bearer ${session.access_token}")
+                        .post("{}".toRequestBody("application/json".toMediaType()))
+                        .build()
+                    // Remote revocation is best-effort: a network outage must not trap
+                    // the user in this account or prevent switching to another account.
+                    client.newCall(request).execute().use { response ->
+                        if (!response.isSuccessful && response.code != 401) {
+                            android.util.Log.w(
+                                "SupabaseAuth",
+                                "Remote sign-out returned HTTP ${response.code}; clearing local session anyway."
+                            )
+                        }
                     }
                 }
+            } catch (error: Exception) {
+                android.util.Log.w(
+                    "SupabaseAuth",
+                    "Remote sign-out unavailable; clearing local session anyway.",
+                    error
+                )
+            } finally {
+                clearSession()
             }
-            clearSession()
         }
     }
 
