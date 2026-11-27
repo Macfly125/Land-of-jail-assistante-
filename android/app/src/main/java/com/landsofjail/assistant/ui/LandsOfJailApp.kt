@@ -6468,7 +6468,7 @@ private fun AllianceScreen(
                         }
                         verification?.confirmations.orEmpty().forEach { confirmation ->
                             Text(
-                                "${confirmation.verifierName} · ${confirmation.verifiedAt}",
+                                "${confirmation.verifierName} · ${formatAllianceVerificationTimestamp(confirmation.verifiedAt)}",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
