@@ -169,19 +169,20 @@ class ScreenCaptureConsentActivity : ComponentActivity() {
     private val projectionLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+        val resultData = result.data
+        if (result.resultCode == Activity.RESULT_OK && resultData != null) {
             if (autoCaptureRequested) {
                 GameForegroundMonitorService.startAutoCapture(
                     context = applicationContext,
                     resultCode = result.resultCode,
-                    resultData = result.data!!,
+                    resultData = resultData,
                     intervalMillis = autoCaptureIntervalMillis
                 )
             } else {
                 GameForegroundMonitorService.runSingleCapture(
                     context = applicationContext,
                     resultCode = result.resultCode,
-                    resultData = result.data!!
+                    resultData = resultData
                 )
             }
         }
