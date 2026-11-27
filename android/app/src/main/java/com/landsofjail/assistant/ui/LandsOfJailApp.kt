@@ -6281,6 +6281,7 @@ private fun AllianceScreen(
                                     cloudRosterMessage = null
                                     cloudAuth.fetchAllianceRoster(linkedAllianceId)
                                         .onSuccess { cloudMembers ->
+                                            cloudVerificationRoster = cloudMembers
                                             cloudMemberIds = cloudMembers.map { it.id }.toSet()
                                             val cloudNames = cloudMembers.map { it.playerName.lowercase() }.toSet()
                                             val mergedMembers = cloudMembers.map { cloudMember ->
@@ -6300,6 +6301,12 @@ private fun AllianceScreen(
                                                 cloudNames.contains(local.playerName.lowercase())
                                             }
                                             onSaveWorkspace(workspace.copy(members = mergedMembers))
+                                            cloudAuth.fetchAllianceProfileVerifications(linkedAllianceId)
+                                                .onSuccess { cloudProfileVerifications = it }
+                                                .onFailure {
+                                                    profileVerificationMessage = it.message ?: "Chargement des vérifications impossible."
+                                                    profileVerificationError = true
+                                                }
                                             cloudRosterMessage = "Roster cloud actualisé : ${cloudMembers.size} membre(s) récupéré(s). Les profils masqués par les droits de rang restent non détaillés."
                                             cloudRosterError = false
                                             simulation = emptyList()
@@ -6451,9 +6458,9 @@ private fun AllianceScreen(
                             Text(member.playerName, fontWeight = FontWeight.SemiBold)
                             Text(
                                 when {
-                                    verification?.verified == true -> "Vérifié"
-                                    verification?.profileUpdatedAt.isNullOrBlank() -> "Profil absent"
-                                    else -> "À vérifier · $count/5"
+                                    verification?.verified == true -> localizedUiText(language, "Vérifié", "Verified", "Verifiziert", "Doğrulandı", "Проверено", "已验证", "Verificato")
+                                    verification?.profileUpdatedAt.isNullOrBlank() -> localizedUiText(language, "Profil absent", "No profile", "Kein Profil", "Profil yok", "Нет профиля", "无资料", "Profilo assente")
+                                    else -> localizedUiText(language, "À vérifier · $count/5", "Needs verification · $count/5", "Zu prüfen · $count/5", "Doğrulanmalı · $count/5", "Требует проверки · $count/5", "待验证 · $count/5", "Da verificare · $count/5")
                                 },
                                 color = if (verification?.verified == true) Color(0xFF34D399) else Color(0xFFFBBF24),
                                 style = MaterialTheme.typography.labelSmall
@@ -6467,7 +6474,7 @@ private fun AllianceScreen(
                             )
                         }
                         if (verification?.profileUpdatedAt.isNullOrBlank()) {
-                            Text("Aucun profil synchronisé à vérifier.", style = MaterialTheme.typography.bodySmall)
+                            Text(localizedUiText(language, "Aucun profil synchronisé à vérifier.", "No synchronized profile to verify.", "Kein synchronisiertes Profil zum Prüfen.", "Doğrulanacak eşitlenmiş profil yok.", "Нет синхронизированного профиля для проверки.", "没有可验证的同步资料。", "Nessun profilo sincronizzato da verificare."), style = MaterialTheme.typography.bodySmall)
                         } else if (member.id != currentUserId) {
                             OutlinedButton(
                                 onClick = {
@@ -6480,9 +6487,9 @@ private fun AllianceScreen(
                                                 cloudAuth.fetchAllianceProfileVerifications(linkedAllianceId)
                                                     .onSuccess { cloudProfileVerifications = it }
                                                 profileVerificationMessage = if (result.alreadyConfirmed) {
-                                                    "Ta confirmation était déjà enregistrée."
+                                                    localizedUiText(language, "Ta confirmation était déjà enregistrée.", "Your confirmation was already recorded.", "Deine Bestätigung war bereits gespeichert.", "Onayın zaten kaydedilmişti.", "Ваше подтверждение уже было сохранено.", "你的确认已记录。", "La tua conferma era già registrata.")
                                                 } else {
-                                                    "Confirmation enregistrée : ${result.confirmationCount}/5."
+                                                    localizedUiText(language, "Confirmation enregistrée : ${result.confirmationCount}/5.", "Confirmation saved: ${result.confirmationCount}/5.", "Bestätigung gespeichert: ${result.confirmationCount}/5.", "Onay kaydedildi: ${result.confirmationCount}/5.", "Подтверждение сохранено: ${result.confirmationCount}/5.", "确认已保存：${result.confirmationCount}/5。", "Conferma salvata: ${result.confirmationCount}/5.")
                                                 }
                                                 profileVerificationError = false
                                             }
@@ -6497,10 +6504,10 @@ private fun AllianceScreen(
                             ) {
                                 Text(
                                     when {
-                                        profileVerificationBusyFor == member.id -> "Enregistrement…"
-                                        alreadyConfirmed -> "Déjà confirmé par toi"
-                                        count >= 5 -> "Maximum atteint"
-                                        else -> "Confirmer ce profil"
+                                        profileVerificationBusyFor == member.id -> localizedUiText(language, "Enregistrement…", "Saving…", "Wird gespeichert…", "Kaydediliyor…", "Сохранение…", "正在保存…", "Salvataggio…")
+                                        alreadyConfirmed -> localizedUiText(language, "Déjà confirmé par toi", "Already confirmed by you", "Von dir bereits bestätigt", "Zaten sen onayladın", "Уже подтверждено вами", "你已确认", "Già confermato da te")
+                                        count >= 5 -> localizedUiText(language, "Maximum atteint", "Maximum reached", "Maximum erreicht", "Sınıra ulaşıldı", "Достигнут максимум", "已达上限", "Limite raggiunto")
+                                        else -> localizedUiText(language, "Confirmer ce profil", "Verify this profile", "Dieses Profil bestätigen", "Bu profili doğrula", "Подтвердить профиль", "确认此资料", "Verifica questo profilo")
                                     }
                                 )
                             }
