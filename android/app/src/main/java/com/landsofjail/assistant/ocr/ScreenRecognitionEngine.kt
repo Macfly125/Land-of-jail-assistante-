@@ -78,11 +78,7 @@ object ScreenRecognitionEngine {
                     "turmoil_surge" to "wave" -> listOf("turmoil", "sentry turret")
                     "sandsea_conquest" to "fuel" -> listOf("sandsea", "vessel station", "lighthouse")
                     "batiments" to "upgrade" -> listOf("building", "bâtiment", "construction", "warden office", "barracks", "laboratory")
-                    "robots" to "robot",
-                    "robots" to "robots",
-                    "robots" to "droid",
-                    "robots" to "drone",
-                    "robots" to "robotics" -> listOf("musashimaru", "phantom cat", "ranger", "infercore", "hercules", "halo", "light cone", "atlax", "yokozuna", "bastion", "pluto", "dauntless", "valiant", "scorpio", "chat fantôme")
+                    in listOf("robots" to "robot", "robots" to "robots", "robots" to "droid", "robots" to "drone", "robots" to "robotics") -> listOf("musashimaru", "phantom cat", "ranger", "infercore", "hercules", "halo", "light cone", "atlax", "yokozuna", "bastion", "pluto", "dauntless", "valiant", "scorpio", "chat fantôme")
                     else -> null
                 }
                 val hasGenericContext = genericLabelContext == null || genericLabelContext.any { contextLabel ->
