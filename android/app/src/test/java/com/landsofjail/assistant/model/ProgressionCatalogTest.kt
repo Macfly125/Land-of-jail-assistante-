@@ -286,20 +286,31 @@ class ProgressionCatalogTest {
     }
 
     @Test
-    fun communicationCenterCatalogContainsOnlyExactEarlyUpgradeCosts() {
+    fun communicationCenterCatalogCoversExactLevelsTwoToTen() {
         val rows = ProgressionCatalog.communicationCenterBuilding
-        assertEquals((2..5).toList(), rows.map { it.step.toLevel })
-        assertEquals(listOf(10L, 60L, 120L, 400L), rows.map { it.step.durationSeconds })
+        assertEquals((2..10).toList(), rows.map { it.step.toLevel })
+        assertEquals(listOf(10L, 60L, 120L, 400L, 800L, 1_500L, 2_700L, 7_200L, 14_220L),
+            rows.map { it.step.durationSeconds })
         assertEquals(listOf(
             mapOf("wood" to 200L),
             mapOf("wood" to 1_000L),
             mapOf("wood" to 2_000L, "steel" to 400L),
-            mapOf("wood" to 8_000L, "steel" to 1_600L)
+            mapOf("wood" to 8_000L, "steel" to 1_600L),
+            mapOf("wood" to 20_000L, "steel" to 4_000L, "gasoline" to 1_000L),
+            mapOf("wood" to 70_000L, "steel" to 14_000L, "gasoline" to 3_500L),
+            mapOf("wood" to 120_000L, "steel" to 24_000L, "gasoline" to 6_000L),
+            mapOf("wood" to 150_000L, "steel" to 30_000L, "gasoline" to 7_500L),
+            mapOf("wood" to 450_000L, "steel" to 90_000L, "gasoline" to 22_500L)
         ), rows.map { row -> row.step.costs.associate { it.resourceId to it.quantity } })
-        assertTrue(rows.all { it.prerequisiteNotes == listOf("Warden's Office Lv.8") })
-        assertTrue(rows.all { it.sourceUrl == ProgressionCatalog.COMMUNICATION_CENTER_SOURCE })
-        assertTrue(rows.all { it.checkedOn == ProgressionCatalog.SOURCE_CHECKED_ON })
-        assertTrue(rows.none { it.step.toLevel > 5 })
+        assertEquals(listOf(8, 8, 8, 8, 8, 8, 8, 9, 10), rows.map {
+            it.prerequisiteNotes.single().substringAfter("Lv.").toInt()
+        })
+        assertTrue(rows.all { row -> row.step.dataComplete &&
+            row.sourceUrl == ProgressionCatalog.COMMUNICATION_CENTER_SOURCE &&
+            row.checkedOn == ProgressionCatalog.SOURCE_CHECKED_ON &&
+            row.step.costs.all { it.confidence == CostConfidence.COMMUNITY_REFERENCE &&
+                it.sourceUrl == ProgressionCatalog.COMMUNICATION_CENTER_SOURCE }
+        })
     }
 
     @Test
@@ -318,23 +329,44 @@ class ProgressionCatalogTest {
     }
 
     @Test
-    fun threeBarracksCatalogsUseTheirOwnWardenPrerequisites() {
+    fun threeBarracksCatalogsCoverExactLevelsTwoToTenAndKeepDistinctPrerequisites() {
         val catalogs = listOf(
             Triple(ProgressionCatalog.shieldbearerBarrackBuilding, ProgressionCatalog.SHIELDBEARER_BARRACK_SOURCE, 7),
             Triple(ProgressionCatalog.shooterBarrackBuilding, ProgressionCatalog.SHOOTER_BARRACK_SOURCE, 8),
             Triple(ProgressionCatalog.bomberBarrackBuilding, ProgressionCatalog.BOMBER_BARRACK_SOURCE, 9)
         )
-        catalogs.forEach { (rows, source, wardenLevel) ->
-            assertEquals((2..4).toList(), rows.map { it.step.toLevel })
-            assertEquals(listOf(9L, 45L, 135L), rows.map { it.step.durationSeconds })
-            assertEquals(listOf(
-                mapOf("wood" to 300L),
-                mapOf("wood" to 1_300L),
-                mapOf("wood" to 3_000L, "steel" to 600L)
-            ), rows.map { row -> row.step.costs.associate { it.resourceId to it.quantity } })
-            assertTrue(rows.all { it.prerequisiteNotes == listOf("Warden's Office Lv.$wardenLevel") })
-            assertTrue(rows.all { it.sourceUrl == source && it.checkedOn == ProgressionCatalog.SOURCE_CHECKED_ON })
-            assertTrue(rows.none { it.step.toLevel > 4 })
+        val expectedCosts = listOf(
+            mapOf("wood" to 300L),
+            mapOf("wood" to 1_300L),
+            mapOf("wood" to 3_000L, "steel" to 600L),
+            mapOf("wood" to 10_000L, "steel" to 2_000L),
+            mapOf("wood" to 30_000L, "steel" to 6_000L, "gasoline" to 1_500L),
+            mapOf("wood" to 120_000L, "steel" to 24_000L, "gasoline" to 6_000L),
+            mapOf("wood" to 180_000L, "steel" to 36_000L, "gasoline" to 9_000L),
+            mapOf("wood" to 400_000L, "steel" to 80_000L, "gasoline" to 20_000L),
+            mapOf("wood" to 700_000L, "steel" to 140_000L, "gasoline" to 35_000L)
+        )
+        val expectedTimes = listOf(9L, 45L, 135L, 270L, 540L, 1_080L, 1_620L, 2_430L, 3_240L)
+        catalogs.forEach { (rows, source, baseWardenLevel) ->
+            assertEquals((2..10).toList(), rows.map { it.step.toLevel })
+            assertEquals(expectedTimes, rows.map { it.step.durationSeconds })
+            assertEquals(expectedCosts, rows.map { row -> row.step.costs.associate { it.resourceId to it.quantity } })
+            assertEquals((2..10).map { level ->
+                val required = when {
+                    level == 10 -> 10
+                    level == 9 -> 9
+                    baseWardenLevel == 7 && level <= 7 -> 7
+                    baseWardenLevel == 7 -> 8
+                    baseWardenLevel == 8 && level <= 8 -> 8
+                    baseWardenLevel == 8 -> 9
+                    else -> 9
+                }
+                listOf("Warden's Office Lv.$required")
+            }, rows.map { it.prerequisiteNotes })
+            assertTrue(rows.all { row -> row.step.dataComplete && row.sourceUrl == source &&
+                row.checkedOn == ProgressionCatalog.SOURCE_CHECKED_ON &&
+                row.step.costs.all { it.confidence == CostConfidence.COMMUNITY_REFERENCE && it.sourceUrl == source }
+            })
         }
     }
 
