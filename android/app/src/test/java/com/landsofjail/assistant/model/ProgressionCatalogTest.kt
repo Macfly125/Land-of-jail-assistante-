@@ -58,10 +58,11 @@ class ProgressionCatalogTest {
     fun gateCatalogContainsOnlyPreciselyPublishedLevelsTwoToSeven() {
         val rows = ProgressionCatalog.gateBuilding
 
-        assertEquals((2..7).toList(), rows.map { it.step.toLevel })
+        assertEquals((2..10).toList(), rows.map { it.step.toLevel })
         assertTrue(rows.all { it.step.fromLevel == it.step.toLevel - 1 })
         assertTrue(rows.all { it.step.itemName == "Gate" })
-        assertTrue(rows.all { it.step.dataComplete })
+        assertTrue(rows.take(6).all { it.step.dataComplete })
+        assertTrue(rows.drop(6).all { !it.step.dataComplete })
         assertTrue(rows.all { it.sourceUrl == ProgressionCatalog.GATE_SOURCE })
         assertTrue(rows.all { it.checkedOn == ProgressionCatalog.SOURCE_CHECKED_ON })
         assertTrue(rows.all { it.prerequisiteNotes.isNotEmpty() })
@@ -71,6 +72,10 @@ class ProgressionCatalogTest {
                     it.sourceUrl == ProgressionCatalog.GATE_SOURCE
             }
         })
+        assertEquals(listOf(27, 29, 30), rows.drop(6).map {
+            it.prerequisiteNotes.single().substringAfter("Lv.").toInt()
+        })
+        assertTrue(rows.drop(6).all { row -> row.step.costs.none { it.resourceId == "gasoline" } })
     }
 
     @Test
@@ -88,6 +93,28 @@ class ProgressionCatalogTest {
         assertTrue(ProgressionCatalog.gateBuilding.none { it.step.toLevel > 7 })
     }
 
+
+    @Test
+    fun gateLevelsEightToTenExposeOnlyExactPublishedCostsAndKeepGasolineUnknown() {
+        val rows = ProgressionCatalog.gateBuilding.drop(6)
+        assertEquals(listOf(8, 9, 10), rows.map { it.step.toLevel })
+        assertEquals(listOf(263_100L, 353_160L, 406_800L), rows.map { it.step.durationSeconds })
+        assertEquals(
+            listOf(
+                mapOf("food" to 75_000_000L, "wood" to 75_000_000L, "steel" to 15_000_000L),
+                mapOf("food" to 120_000_000L, "wood" to 120_000_000L, "steel" to 24_000_000L),
+                mapOf("food" to 155_000_000L, "wood" to 155_000_000L, "steel" to 31_000_000L)
+            ),
+            rows.map { row -> row.step.costs.associate { it.resourceId to it.quantity } }
+        )
+        val plan = ProgressionCoach.calculate(rows.map { it.step }, emptyList())
+        assertEquals(listOf("gate-7-8", "gate-8-9", "gate-9-10"), plan.unknownStepIds)
+        assertTrue(plan.requirements.none { it.resourceId == "gasoline" })
+        assertEquals(350_000_000L, plan.requirements.single { it.resourceId == "food" }.required)
+        assertEquals(350_000_000L, plan.requirements.single { it.resourceId == "wood" }.required)
+        assertEquals(70_000_000L, plan.requirements.single { it.resourceId == "steel" }.required)
+        assertEquals(null, plan.totalKnownDurationSeconds)
+    }
 
     @Test
     fun fiveAdditionalBuildingCatalogsContainOnlyPublishedExactEarlyLevels() {
