@@ -226,7 +226,8 @@ class LandsOfJailOcrParserTest {
     @Test
     fun skipsMalformedResourceValueAndStillAcceptsLaterValidValue() {
         val result = LandsOfJailOcrParser.parseLocalOcrText(
-            "Food: 1.2.3\\nFood: 1200"
+            """Food: 1.2.3
+Food: 1200"""
         )
 
         val food = result.resources.single { it.nom == "Nourriture (Food)" }
