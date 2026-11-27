@@ -280,6 +280,25 @@ object LandsOfJailOcrParser {
                             incertain = isAmbiguous,
                             raisonIncertitude = if (isAmbiguous) "Abréviation OCR à confirmer" else null
                         )
+                    } else {
+                        // Une valeur correctement groupée mais supérieure à Long.MAX_VALUE
+                        // reste visible comme mesure incertaine, sans conversion numérique.
+                        val isGroupedInteger = Regex("""^[0-9]{1,3}(?:[,\\.][0-9]{3}){2,}$""")
+                            .matches(valueText)
+                        val digits = valueText.filter(Char::isDigit)
+                        val exceedsLongRange = isGroupedInteger &&
+                            digits.length >= Long.MAX_VALUE.toString().length &&
+                            (digits.length > Long.MAX_VALUE.toString().length ||
+                                digits > Long.MAX_VALUE.toString())
+                        if (exceedsLongRange) {
+                            power = PowerMetric(
+                                puissanceTotaleTexte = valueText,
+                                puissanceTotaleNumerique = null,
+                                niveauPrisonOuQG = wardenLevel,
+                                incertain = true,
+                                raisonIncertitude = "Valeur supérieure à la plage numérique prise en charge"
+                            )
+                        }
                     }
                 }
             }
