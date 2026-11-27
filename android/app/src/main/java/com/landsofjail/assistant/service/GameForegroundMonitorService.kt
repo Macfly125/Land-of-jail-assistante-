@@ -295,7 +295,7 @@ class GameForegroundMonitorService : Service() {
 
         if (projection == null) {
             isCapturingNow = false
-            if (!wasMonitoring) stopSelf() else startAsMonitoringForeground()
+            if (!wasMonitoring) stopSelf() else restoreMonitoringForegroundOrStop()
             return
         }
 
@@ -493,7 +493,7 @@ class GameForegroundMonitorService : Service() {
             if (autoCaptureOwnsMonitor) {
                 stopSelf()
             } else {
-                startAsMonitoringForeground()
+                restoreMonitoringForegroundOrStop()
             }
             return
         }
@@ -507,7 +507,7 @@ class GameForegroundMonitorService : Service() {
         }
         if (projection == null) {
             _isAutoCapturing.value = false
-            if (autoCaptureOwnsMonitor) stopMonitoringAndSelf() else startAsMonitoringForeground()
+            if (autoCaptureOwnsMonitor) stopMonitoringAndSelf() else restoreMonitoringForegroundOrStop()
             return
         }
 
@@ -709,13 +709,32 @@ class GameForegroundMonitorService : Service() {
         if (autoCaptureOwnsMonitor) {
             stopMonitoringAndSelf()
         } else {
+            restoreMonitoringForegroundOrStop()
+        }
+    }
+
+    private fun restoreMonitoringForegroundOrStop() {
+        try {
             startAsMonitoringForeground()
+        } catch (_: Throwable) {
+            // Le service ne peut plus rester actif sans notification foreground.
+            _isRunning.value = false
+            _detectedGameForeground.value = false
+            _isAutoCapturing.value = false
+            isCapturingNow = false
+            autoCaptureAwaitingAnalysis = false
+            lastAutoFrameSamples = null
+            monitorJob?.cancel()
+            monitorJob = null
+            removeFloatingAnalyzeBar()
+            stopForeground(STOP_FOREGROUND_REMOVE)
+            stopSelf()
         }
     }
 
     private fun finishCaptureFlow(wasMonitoring: Boolean) {
         if (wasMonitoring) {
-            startAsMonitoringForeground()
+            restoreMonitoringForegroundOrStop()
         } else {
             stopForeground(STOP_FOREGROUND_REMOVE)
             stopSelf()
