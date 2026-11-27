@@ -728,10 +728,11 @@ class SupabaseAuthRepository(context: Context) {
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
         cipher.init(Cipher.ENCRYPT_MODE, getOrCreateKey())
         val encrypted = cipher.doFinal(json.encodeToString(session).toByteArray(Charsets.UTF_8))
-        prefs.edit()
+        val persisted = prefs.edit()
             .putString("iv", Base64.encodeToString(cipher.iv, Base64.NO_WRAP))
             .putString("payload", Base64.encodeToString(encrypted, Base64.NO_WRAP))
-            .apply()
+            .commit()
+        check(persisted) { "Impossible d'enregistrer durablement la session locale." }
     }
 
     private fun readSession(): Session? {
