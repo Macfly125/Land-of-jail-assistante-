@@ -114,6 +114,8 @@ fun canonicalProgressionResourceId(rawId: String): String {
         "prisoner armor data", "donnees armure prisonnier", "donnees d armure prisonnier" -> "prisoner armor data"
         "power modules", "module de puissance", "modules de puissance" -> "power modules"
         "advanced power modules", "modules de puissance avances", "module de puissance avance" -> "advanced power modules"
+        "forticlad cores", "forticlad core", "forticlad nuclei", "noyaux forticlad", "noyau forticlad", "forticlad kerne", "forticlad çekirdekleri", "ядра forticlad", "forticlad 核心", "nuclei forticlad" -> "forticlad cores"
+        "advanced forticlad cores", "advanced forticlad core", "advanced forticlad nuclei", "noyaux forticlad avances", "noyaux avances forticlad", "advanced cores", "erweiterte forticlad kerne", "gelişmiş çekirdekler", "улучшенные ядра forticlad", "高级核心", "nuclei forticlad avanzati" -> "advanced forticlad cores"
         "core chips", "puces de noyau", "puces noyau" -> "core chips"
         "equipment exp", "exp equipement", "experience equipement" -> "equipment exp"
         "magnets", "aimants", "magneti" -> "magnets"
@@ -152,6 +154,16 @@ fun mergeProgressionStocks(
             )
         }
         .sortedBy { it.resourceId }
+}
+
+
+/** Replace the manually confirmed Forticlad quantities in the shared player inventory. */
+fun upsertForticladInventoryStocks(existing: List<PlayerResourceStock>, forticladCores: Long, advancedCores: Long, updatedAtEpochMillis: Long): List<PlayerResourceStock> {
+    val ids = setOf("forticlad cores", "advanced forticlad cores")
+    return (existing.filterNot { canonicalProgressionResourceId(it.resourceId) in ids } + listOf(
+        PlayerResourceStock("forticlad cores", forticladCores.coerceAtLeast(0L), true, updatedAtEpochMillis),
+        PlayerResourceStock("advanced forticlad cores", advancedCores.coerceAtLeast(0L), true, updatedAtEpochMillis)
+    )).sortedBy { canonicalProgressionResourceId(it.resourceId) }
 }
 
 /**
