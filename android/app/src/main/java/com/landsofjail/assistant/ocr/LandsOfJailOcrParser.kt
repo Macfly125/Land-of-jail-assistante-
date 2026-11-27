@@ -215,6 +215,11 @@ object LandsOfJailOcrParser {
         val seenEquipmentKeys = mutableSetOf<String>()
         val seenRobotKeys = mutableSetOf<String>()
         val knownRobotNames = (RobotCatalog.entries.map { it.name } + listOf("Chat Fantôme", "Hercules Alpha", "Valiant", "Scorpio")).distinct()
+        // Un panneau de bâtiment est une frontière : ses niveaux ne décrivent jamais le robot précédent.
+        val buildingPanelLabelRegex = Regex(
+            """(?:^|\\b)(?:forticlad\\s+lab|laboratory|laboratoire|kitchen|cuisine|warehouse|entrep[oô]t|barracks|caserne|medical\\s+station|infirmary|infirmerie|command\\s+center|centre\\s+de\\s+commandement|gate|porte|warden(?:['’]s)?\\s+office|director(?:['’]s)?\\s+office|bureau\\s+du\\s+directeur|robot\\s+center|yard|cour|cell|cellule|comms|communication\\s+center)(?:$|\\b)""",
+            RegexOption.IGNORE_CASE
+        )
         val seenHeroKeys = mutableSetOf<String>()
         val seenResKeys = mutableSetOf<String>()
         var power: PowerMetric? = null
@@ -339,7 +344,11 @@ object LandsOfJailOcrParser {
                             normalizedCandidate.contains(" ${normalizeHeroText(candidateName)} ")
                         }
                     }
-                    val contextEnd = nextRobotIndex ?: contextLimit
+                    val nextBuildingPanelIndex = (index + 1 until contextLimit).firstOrNull { candidateIndex ->
+                        buildingPanelLabelRegex.containsMatchIn(lines[candidateIndex])
+                    }
+                    // Ne jamais emprunter un niveau de bâtiment, même si aucune autre fiche robot ne suit.
+                    val contextEnd = listOfNotNull(nextRobotIndex, nextBuildingPanelIndex).minOrNull() ?: contextLimit
                     val context = lines.subList(index, maxOf(index + 1, contextEnd)).joinToString(" ")
                     val level = Regex("""(?:lv\.?|level|niv\.?|niveau|seviye|уровень|等级)\s*[:：]?\s*([0-9]{1,3})""", RegexOption.IGNORE_CASE)
                         .find(context)?.groupValues?.get(1)
