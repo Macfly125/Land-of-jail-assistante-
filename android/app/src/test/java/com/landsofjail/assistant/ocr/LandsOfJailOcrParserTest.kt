@@ -1134,6 +1134,20 @@ Potential Coil x 8"""
     }
 
     @Test
+    fun doesNotMistakeWardenCapacityForItsLevel() {
+        val samples = listOf(
+            "Warden Office 40/40\nPower: 12,345",
+            "Bureau du directeur 40/40\nCapacité des prisonniers 40/40",
+            "Prison 35/40\nNiveau de danger 9"
+        )
+        samples.forEach { sample ->
+            val result = LandsOfJailOcrParser.parseLocalOcrText(sample)
+            assertNull("Une capacité ne doit pas devenir le niveau du bâtiment : $sample",
+                result.power?.niveauPrisonOuQG)
+        }
+    }
+
+    @Test
     fun doesNotUsePrisonerDangerLevelAsWardenOfficeLevel() {
         val result = LandsOfJailOcrParser.parseLocalOcrText(
             "509 256 511\nBureau du directeur\nCapacité des prisonniers 40/40\nNiveau de danger 9"
