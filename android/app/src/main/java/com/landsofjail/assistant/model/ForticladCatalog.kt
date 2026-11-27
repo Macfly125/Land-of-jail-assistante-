@@ -157,3 +157,18 @@ object ForticladCatalog {
         )
     }
 }
+
+/** Player-owned Forticlad inventory; missing values are clamped at zero. */
+data class ForticladInventory(val forticladCores: Long, val advancedCores: Long) {
+    fun missingFor(estimate: ForticladCostEstimate): ForticladInventory = ForticladInventory(
+        forticladCores = (estimate.forticladCores - forticladCores).coerceAtLeast(0L),
+        advancedCores = (estimate.advancedCores - advancedCores).coerceAtLeast(0L)
+    )
+
+    companion object {
+        fun parse(forticladCores: String, advancedCores: String): ForticladInventory = ForticladInventory(
+            forticladCores = forticladCores.filter(Char::isDigit).toLongOrNull() ?: 0L,
+            advancedCores = advancedCores.filter(Char::isDigit).toLongOrNull() ?: 0L
+        )
+    }
+}
