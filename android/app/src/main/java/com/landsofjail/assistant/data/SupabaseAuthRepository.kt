@@ -237,11 +237,20 @@ class SupabaseAuthRepository(context: Context) {
 
 
     /** Creates the alliance and assigns its creator as R5 atomically on the server. */
-    suspend fun createAlliance(serverNumber: String, allianceName: String): Result<String> =
+    suspend fun createAlliance(serverNumber: String, allianceName: String): Result<String> = runCatching {
+        val normalizedServer = serverNumber.trim()
+        val normalizedTag = allianceName.trim()
+        require(normalizedServer.matches(Regex("^[0-9]{1,6}$"))) {
+            "Le numéro de serveur doit contenir 1 à 6 chiffres."
+        }
+        require(normalizedTag.length in 1..12) {
+            "Le tag d'alliance doit contenir de 1 à 12 caractères."
+        }
         callAllianceRpc("create_alliance_as_r5", buildJsonObject {
-            put("p_server_number", serverNumber.trim())
-            put("p_alliance_tag", allianceName.trim())
-        })
+            put("p_server_number", normalizedServer)
+            put("p_alliance_tag", normalizedTag)
+        }).getOrThrow()
+    }
 
     /**
      * Loads alliance membership first, then player profiles. Profile visibility is
@@ -338,16 +347,23 @@ class SupabaseAuthRepository(context: Context) {
             }
         }
 
-    suspend fun createAllianceInvite(allianceId: String, maxUses: Int = 1): Result<String> =
+    suspend fun createAllianceInvite(allianceId: String, maxUses: Int = 1): Result<String> = runCatching {
+        val normalizedAllianceId = allianceId.trim()
+        require(isUuid(normalizedAllianceId)) { "Identifiant d'alliance invalide." }
+        require(maxUses in 1..105) { "Le nombre d'utilisations doit être compris entre 1 et 105." }
         callAllianceRpc("create_alliance_invite", buildJsonObject {
-            put("p_alliance_id", allianceId)
-            put("p_max_uses", maxUses.coerceIn(1, 105))
-        })
+            put("p_alliance_id", normalizedAllianceId)
+            put("p_max_uses", maxUses)
+        }).getOrThrow()
+    }
 
-    suspend fun acceptAllianceInvite(token: String): Result<String> =
+    suspend fun acceptAllianceInvite(token: String): Result<String> = runCatching {
+        val normalizedToken = token.trim()
+        require(normalizedToken.isNotEmpty()) { "Le code d'invitation est obligatoire." }
         callAllianceRpc("accept_alliance_invite", buildJsonObject {
-            put("p_token", token.trim())
-        })
+            put("p_token", normalizedToken)
+        }).getOrThrow()
+    }
 
     /** A player can request membership, but cannot assign their own effective alliance rank. */
     suspend fun submitAllianceJoinRequest(
@@ -356,14 +372,26 @@ class SupabaseAuthRepository(context: Context) {
         playerName: String,
         requestedRank: String
     ): Result<String> = runCatching {
+        val normalizedServer = serverNumber.trim()
+        val normalizedTag = allianceTag.trim()
+        val normalizedPlayerName = playerName.trim()
         val normalizedRank = requestedRank.trim().uppercase()
+        require(normalizedServer.matches(Regex("^[0-9]{1,6}$"))) {
+            "Le numéro de serveur doit contenir 1 à 6 chiffres."
+        }
+        require(normalizedTag.length in 1..12) {
+            "Le tag d'alliance doit contenir de 1 à 12 caractères."
+        }
+        require(normalizedPlayerName.length in 1..40) {
+            "Le nom du joueur doit contenir de 1 à 40 caractères."
+        }
         require(normalizedRank in setOf("R1", "R2", "R3", "R4", "R5")) {
             "Rang demandé invalide."
         }
         callAllianceRpc("submit_alliance_join_request", buildJsonObject {
-            put("p_server_number", serverNumber.trim())
-            put("p_alliance_tag", allianceTag.trim())
-            put("p_player_name", playerName.trim())
+            put("p_server_number", normalizedServer)
+            put("p_alliance_tag", normalizedTag)
+            put("p_player_name", normalizedPlayerName)
             put("p_requested_rank", normalizedRank)
         }).getOrThrow()
     }
