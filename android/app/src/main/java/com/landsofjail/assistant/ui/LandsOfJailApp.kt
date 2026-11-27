@@ -2465,6 +2465,9 @@ fun LandsOfJailAssistantApp(
                     AssistantTab.HEROS -> HeroesScreen(
                         language = currentLang,
                         heroes = heroes,
+                        robots = robots,
+                        profileId = activeProfileId,
+                        onSaveRobots = { robots = it },
                         onAddHero = { entry ->
                             val newHero = HeroRecord(
                                 nom = entry.nom,
@@ -3224,6 +3227,9 @@ private fun HeroPortraitFallback(typeTroupe: String?) {
 private fun HeroesScreen(
     language: AppLanguage,
     heroes: List<HeroRecord>,
+    robots: List<RobotRecord>,
+    profileId: String,
+    onSaveRobots: (List<RobotRecord>) -> Unit,
     onAddHero: (HeroCatalogEntry) -> HeroRecord,
     onUpdateHero: (HeroRecord, HeroRecord) -> Unit
 ) {
@@ -3445,6 +3451,14 @@ private fun HeroesScreen(
                 Text(localizedUiText(language, "Aucun héros ne correspond à cette recherche.", "No heroes match this search.", "Keine Helden entsprechen dieser Suche.", "Bu aramayla eşleşen kahraman yok.", "Герои не найдены.", "没有符合此搜索的英雄。", "Nessun eroe corrisponde a questa ricerca."))
             }
         }
+        item {
+            RobotsProfileSection(
+                language = language,
+                profileId = profileId,
+                robots = robots,
+                onSaveRobots = onSaveRobots
+            )
+        }
         val detectedOutsideCatalog = heroes.filter { detected ->
             HeroCatalog.entries.none { it.nom.equals(detected.nom, ignoreCase = true) }
         }
@@ -3470,6 +3484,125 @@ private fun HeroesScreen(
                 editingHero = null
             }
         )
+    }
+}
+
+
+@Composable
+private fun RobotsProfileSection(
+    language: AppLanguage,
+    profileId: String,
+    robots: List<RobotRecord>,
+    onSaveRobots: (List<RobotRecord>) -> Unit
+) {
+    var robotName by remember(profileId) { mutableStateOf("") }
+    var robotLevel by remember(profileId) { mutableStateOf("") }
+    var robotRarity by remember(profileId) { mutableStateOf("") }
+    var robotPower by remember(profileId) { mutableStateOf("") }
+    var robotBonus by remember(profileId) { mutableStateOf("") }
+    var robotSkills by remember(profileId) { mutableStateOf("") }
+
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text(
+            localizedUiText(language, "Robots de ton profil", "Your profile robots", "Roboter deines Profils", "Profil robotların", "Роботы профиля", "个人档案机器人", "Robot del tuo profilo"),
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold
+        )
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(resourceUiText(language, "robot_inventory"), fontWeight = FontWeight.Bold)
+                Text(
+                    localizedUiText(language,
+                        "Les robots sont regroupés avec tes héros. Renseigne les bonus tels qu’ils apparaissent en jeu ; aucune statistique n’est devinée.",
+                        "Robots are grouped with your heroes. Enter bonuses exactly as shown in game; no statistics are guessed.",
+                        "Roboter werden zusammen mit deinen Helden angezeigt. Trage Boni wie im Spiel ein; Werte werden nicht erraten.",
+                        "Robotlar kahramanlarınla birlikte gösterilir. Bonusları oyunda göründüğü gibi gir; hiçbir istatistik tahmin edilmez.",
+                        "Роботы сгруппированы с героями. Вводите бонусы точно как в игре; характеристики не додумываются.",
+                        "机器人与英雄归在一起。请按游戏显示填写加成，不会猜测任何数据。",
+                        "I robot sono raggruppati con gli eroi. Inserisci i bonus come appaiono nel gioco; nessuna statistica viene inventata."),
+                    style = MaterialTheme.typography.bodySmall
+                )
+                OutlinedTextField(robotName, { robotName = it }, label = { Text(resourceUiText(language, "robot_name")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(robotLevel, { robotLevel = it }, label = { Text(resourceUiText(language, "level")) }, modifier = Modifier.weight(1f), singleLine = true)
+                    OutlinedTextField(robotRarity, { robotRarity = it }, label = { Text(resourceUiText(language, "rarity_stars")) }, modifier = Modifier.weight(1f), singleLine = true)
+                }
+                OutlinedTextField(robotPower, { robotPower = it }, label = { Text(resourceUiText(language, "power_optional")) }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+                OutlinedTextField(robotBonus, { robotBonus = it }, label = { Text(resourceUiText(language, "active_bonuses")) }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+                OutlinedTextField(robotSkills, { robotSkills = it }, label = { Text(resourceUiText(language, "skills_effects")) }, modifier = Modifier.fillMaxWidth(), minLines = 2)
+                Button(
+                    enabled = robotName.isNotBlank(),
+                    onClick = {
+                        val now = Instant.now().toString()
+                        val normalizedName = robotName.trim()
+                        val previous = robots.firstOrNull { it.nom.equals(normalizedName, ignoreCase = true) }
+                        val fieldsToCheck = when {
+                            previous == null -> setOf("niveau", "rarete", "bonus", "competences", "puissance")
+                            previous.incertain && previous.champsIncertains.isEmpty() ->
+                                setOf("niveau", "rarete", "bonus", "competences", "puissance")
+                            else -> previous.champsIncertains.map { it.lowercase() }.toSet()
+                        }
+                        val remaining = fieldsToCheck.filter { field ->
+                            when (field) {
+                                "niveau" -> robotLevel.isBlank()
+                                "rarete" -> robotRarity.isBlank()
+                                "bonus" -> robotBonus.isBlank()
+                                "competences" -> robotSkills.isBlank()
+                                "puissance" -> robotPower.isBlank()
+                                else -> true
+                            }
+                        }
+                        val updated = RobotRecord(
+                            id = previous?.id ?: UUID.randomUUID().toString(),
+                            nom = normalizedName,
+                            niveau = robotLevel.trim().ifBlank { previous?.niveau.orEmpty() },
+                            rarete = robotRarity.trim().ifBlank { previous?.rarete.orEmpty() },
+                            bonus = robotBonus.trim().ifBlank { previous?.bonus.orEmpty() },
+                            competences = robotSkills.trim().ifBlank { previous?.competences.orEmpty() },
+                            puissance = robotPower.trim().ifBlank { previous?.puissance.orEmpty() },
+                            champsIncertains = remaining,
+                            incertain = remaining.isNotEmpty(),
+                            raisonIncertitude = if (remaining.isNotEmpty()) "Certains champs du robot restent à vérifier." else null,
+                            source = "saisie_manuel",
+                            updatedAtIso = now
+                        )
+                        onSaveRobots(robots.filterNot { it.nom.equals(normalizedName, ignoreCase = true) } + updated)
+                        robotName = ""; robotLevel = ""; robotRarity = ""
+                        robotPower = ""; robotBonus = ""; robotSkills = ""
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text(resourceUiText(language, "save_robot")) }
+            }
+        }
+        if (robots.isEmpty()) {
+            Text(resourceUiText(language, "no_robot"), style = MaterialTheme.typography.bodySmall)
+        } else {
+            robots.forEach { robot ->
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Text("🤖", fontSize = 28.sp)
+                            Column(Modifier.weight(1f)) {
+                                Text(robot.nom, fontWeight = FontWeight.SemiBold)
+                                if (robot.niveau.isNotBlank()) Text("Niv. ${robot.niveau}", style = MaterialTheme.typography.bodySmall)
+                            }
+                            TextButton(onClick = { onSaveRobots(robots.filterNot { it.id == robot.id }) }) {
+                                Text(resourceUiText(language, "remove"))
+                            }
+                        }
+                        val meta = listOf(robot.rarete, robot.puissance.takeIf { it.isNotBlank() }?.let { "Puissance $it" }).filterNotNull()
+                        if (meta.isNotEmpty()) Text(meta.joinToString(" · "), style = MaterialTheme.typography.bodySmall)
+                        if (robot.bonus.isNotBlank()) Text("Bonus : ${robot.bonus}", style = MaterialTheme.typography.bodySmall)
+                        if (robot.competences.isNotBlank()) Text("Compétences : ${robot.competences}", style = MaterialTheme.typography.bodySmall)
+                        if (robot.incertain) Text(
+                            localizedUiText(language, "Données à vérifier sur l’écran du jeu.", "Data must be checked against the game screen.", "Daten müssen im Spiel überprüft werden.", "Veriler oyun ekranında doğrulanmalı.", "Данные нужно сверить с экраном игры.", "数据需要与游戏画面核对。", "I dati devono essere verificati nel gioco."),
+                            color = Color(0xFFFBBF24),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -3846,7 +3979,7 @@ private fun ResourcesScreen(
         item {
             Spacer(Modifier.height(8.dp))
             LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                items(ResourceSubTab.entries) { t ->
+                items(ResourceSubTab.entries.filterNot { it == ResourceSubTab.ROBOTS }) { t ->
                     FilterChip(
                         selected = subTab == t,
                         onClick = { subTab = t },
