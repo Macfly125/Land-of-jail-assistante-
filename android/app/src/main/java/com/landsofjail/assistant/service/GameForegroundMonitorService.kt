@@ -529,9 +529,14 @@ class GameForegroundMonitorService : Service() {
                     return@setOnImageAvailableListener
                 }
 
-                val stream = ByteArrayOutputStream()
-                cropped.compress(Bitmap.CompressFormat.JPEG, 88, stream)
-                val jpegBytes = stream.toByteArray()
+                val jpegBytes = ByteArrayOutputStream().use { stream ->
+                    check(cropped.compress(Bitmap.CompressFormat.JPEG, 88, stream)) {
+                        "Échec de compression de la capture automatique"
+                    }
+                    stream.toByteArray().also { bytes ->
+                        check(bytes.isNotEmpty()) { "Capture JPEG vide" }
+                    }
+                }
                 val base64 = Base64.encodeToString(jpegBytes, Base64.NO_WRAP)
                 val savedUri = saveCaptureToInternalFile(jpegBytes)
                 autoCaptureAwaitingAnalysis = true
