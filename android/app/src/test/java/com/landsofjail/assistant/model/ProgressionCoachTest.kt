@@ -24,6 +24,8 @@ class ProgressionCoachTest {
         assertEquals(130L, plan.requirements.first { it.resourceId == "wood" }.missing)
         assertNull(plan.requirements.first { it.resourceId == "steel" }.missing)
         assertEquals(40L, plan.requirements.first { it.resourceId == "steel" }.required)
+        assertEquals(CostConfidence.COMMUNITY_REFERENCE,
+            plan.requirements.first { it.resourceId == "wood" }.confidence)
     }
 
     @Test
