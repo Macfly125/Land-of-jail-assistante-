@@ -16,7 +16,11 @@ class ForticladCatalogTest {
                 it.forticladCores > 0 &&
                 it.advancedCores >= 0 &&
                 it.confidence == CostConfidence.COMMUNITY_REFERENCE &&
-                it.sourceUrl == ForticladCatalog.SOURCE_URL
+                it.sourceUrl in setOf(
+                    ForticladCatalog.SOURCE_URL,
+                    ForticladCatalog.FORTICLAD_LAB_SOURCE_URL,
+                    ForticladCatalog.MEDICAL_STATION_SOURCE_URL
+                )
         })
         assertEquals(8, ForticladCatalog.eligibleBuildingIds.size)
         assertFalse(ForticladCatalog.stageCosts.any { it.buildingId == "forticlad_lab" })
