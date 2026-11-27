@@ -33,6 +33,23 @@ class CaptureRestoreInstrumentedTest {
     }
 
     @Test
+    fun croppedFrameIsNeverRecycledWithItsSource() {
+        val exactSizeSource = Bitmap.createBitmap(32, 32, Bitmap.Config.ARGB_8888)
+        val exactSizeCrop = cropFrameBitmap(exactSizeSource, 32, 32)
+        assertFalse("Le bitmap transmis doit rester utilisable", exactSizeCrop.isRecycled)
+        exactSizeCrop.setPixel(0, 0, android.graphics.Color.RED)
+        assertEquals(android.graphics.Color.RED, exactSizeCrop.getPixel(0, 0))
+        if (exactSizeCrop !== exactSizeSource) assertTrue(exactSizeSource.isRecycled)
+        else exactSizeCrop.recycle()
+
+        val paddedSource = Bitmap.createBitmap(40, 32, Bitmap.Config.ARGB_8888)
+        val paddedCrop = cropFrameBitmap(paddedSource, 32, 32)
+        assertTrue("La source avec padding doit être libérée", paddedSource.isRecycled)
+        assertFalse("Le crop doit rester utilisable", paddedCrop.isRecycled)
+        paddedCrop.recycle()
+    }
+
+    @Test
     fun restoresPersistedCaptureAndConsumesItSafely() {
         val directory = File(context.filesDir, "captures")
         assertTrue(directory.exists() || directory.mkdirs())
