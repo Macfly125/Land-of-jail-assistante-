@@ -7,6 +7,20 @@ import org.junit.Test
 
 class ProgressionPlayerProfileTest {
     @Test
+    fun forticladInventoryUsesSharedConfirmedStocksAndPreservesOtherResources() {
+        val existing = listOf(
+            PlayerResourceStock("wood", 500L, true, 10L),
+            PlayerResourceStock("Forticlad Cores", 7L, false, 20L)
+        )
+        val updated = upsertForticladInventoryStocks(existing, 1_250L, 80L, 30L)
+        val profile = ProgressionPlayerProfile(profileId = "p1", resourceStocks = updated)
+        assertEquals(500L, profile.confirmedStock("wood"))
+        assertEquals(1_250L, profile.confirmedStock("forticlad cores"))
+        assertEquals(80L, profile.confirmedStock("advanced forticlad cores"))
+        assertEquals(2, updated.count { it.confirmed && it.resourceId.contains("forticlad") })
+    }
+
+    @Test
     fun codecRoundTripsObjectivesLevelsAndConfirmedStocks() {
         val profile = ProgressionPlayerProfile(
             profileId = "main",
