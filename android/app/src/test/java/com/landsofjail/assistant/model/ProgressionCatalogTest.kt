@@ -303,18 +303,18 @@ class ProgressionCatalogTest {
     }
 
     @Test
-    fun commandCenterCatalogStopsBeforeAbbreviatedCashAmounts() {
+    fun commandCenterKNotationIsConvertedExactlyThroughLevelTen() {
         val rows = ProgressionCatalog.commandCenterBuilding
-        assertEquals((2..4).toList(), rows.map { it.step.toLevel })
-        assertEquals(listOf(8L, 34L, 105L), rows.map { it.step.durationSeconds })
-        assertEquals(listOf(
-            mapOf("wood" to 200L),
-            mapOf("wood" to 1_200L),
-            mapOf("wood" to 2_400L, "steel" to 480L)
-        ), rows.map { row -> row.step.costs.associate { it.resourceId to it.quantity } })
+        assertEquals((2..10).toList(), rows.map { it.step.toLevel })
+        assertEquals(listOf(8L, 34L, 105L, 215L, 430L, 840L, 1_290L, 1_920L, 2_580L),
+            rows.map { it.step.durationSeconds })
+        assertEquals(17_500L, rows.single { it.step.toLevel == 9 }
+            .step.costs.single { it.resourceId == "gasoline" }.quantity)
+        assertEquals(32_500L, rows.single { it.step.toLevel == 10 }
+            .step.costs.single { it.resourceId == "gasoline" }.quantity)
         assertTrue(rows.all { it.prerequisiteNotes == listOf("Warden's Office Lv.10") })
         assertTrue(rows.all { it.sourceUrl == ProgressionCatalog.COMMAND_CENTER_SOURCE })
-        assertTrue(rows.none { it.step.toLevel > 4 })
+        assertTrue(rows.all { it.step.dataComplete })
     }
 
     @Test
