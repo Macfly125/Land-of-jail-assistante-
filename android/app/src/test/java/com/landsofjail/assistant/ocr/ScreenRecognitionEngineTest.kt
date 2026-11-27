@@ -182,7 +182,7 @@ class ScreenRecognitionEngineTest {
 
     @Test
     fun playerProfilePowerRemainsClassifiedAsProfileWithoutArmorContext() {
-        val result = ScreenRecognitionEngine.analyze("Player Profile\\nPower 12M\\nEliminations 350")
+        val result = ScreenRecognitionEngine.analyze("Player Profile\nPower 12M\nEliminations 350")
         assertEquals("profil", result.category)
         assertTrue(result.needsVisualConfirmation)
     }
