@@ -166,9 +166,15 @@ data class ForticladInventory(val forticladCores: Long, val advancedCores: Long)
     )
 
     companion object {
+        private fun parseNonNegativeInteger(value: String): Long {
+            // Do not turn a negative entry such as "-10" into a positive stock of 10.
+            if (value.any { it == '-' }) return 0L
+            return value.filter(Char::isDigit).toLongOrNull() ?: 0L
+        }
+
         fun parse(forticladCores: String, advancedCores: String): ForticladInventory = ForticladInventory(
-            forticladCores = forticladCores.filter(Char::isDigit).toLongOrNull() ?: 0L,
-            advancedCores = advancedCores.filter(Char::isDigit).toLongOrNull() ?: 0L
+            forticladCores = parseNonNegativeInteger(forticladCores),
+            advancedCores = parseNonNegativeInteger(advancedCores)
         )
     }
 }
