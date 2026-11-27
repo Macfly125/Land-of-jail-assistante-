@@ -231,7 +231,7 @@ object LandsOfJailOcrParser {
         // selon la langue et la disposition de l'écran. Seul un couple libellé + niveau
         // explicite est accepté : un niveau de cuisine/caserne ne devient jamais celui du QG.
         val wardenBuildingNames =
-            """(?:warden(?:['’]s)?\s*office|director(?:['’]s)?\s*office|bureau\s*du\s*directeur|büro\s+des\s+direktors|müdür(?:ün)?\s+ofisi|офис\s+начальника|典狱长办公室|ufficio\s+del\s+direttore|prison|qg|hq)"""
+            """(?:\bwarden(?:['’]s)?\s*office\b|\bdirector(?:['’]s)?\s*office\b|\bbureau\s*du\s*directeur\b|\bbüro\s+des\s+direktors\b|\bmüdür(?:ün)?\s+ofisi\b|\bофис\s+начальника\b|典狱长办公室|\bufficio\s+del\s+direttore\b|\bprison\b|\bqg\b|\bhq\b)"""
         val buildingLevelLabels =
             """(?:niv(?:eau)?|lv|lvl|level|livello|stufe|seviye|уровень|等级)"""
         val wardenRegex = Regex(
