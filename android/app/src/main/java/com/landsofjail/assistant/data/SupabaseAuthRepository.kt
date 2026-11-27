@@ -96,10 +96,11 @@ class SupabaseAuthRepository(context: Context) {
 
     suspend fun resendSignupConfirmation(email: String): Result<String> = withContext(Dispatchers.IO) {
         runCatching {
-            require(email.contains("@") && email.length <= 254) { "Adresse e-mail invalide." }
+            val normalizedEmail = email.trim()
+            require(normalizedEmail.contains("@") && normalizedEmail.length <= 254) { "Adresse e-mail invalide." }
             val payload = buildJsonObject {
                 put("type", "signup")
-                put("email", email.trim())
+                put("email", normalizedEmail)
             }.toString()
             val request = Request.Builder()
                 .url("$BASE_URL/auth/v1/resend")
