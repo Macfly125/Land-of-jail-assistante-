@@ -19,6 +19,16 @@ class ResearchCatalogTest {
     }
 
     @Test
+    fun researchGoalAliasesResolveOnlyToKnownTrees() {
+        assertEquals(ResearchTree.LOGISTICS, ResearchCatalog.treeForTarget("Logistics"))
+        assertEquals(ResearchTree.LOGISTICS, ResearchCatalog.treeForTarget("Logistique"))
+        assertEquals(ResearchTree.ECONOMY, ResearchCatalog.treeForTarget("économie"))
+        assertEquals(ResearchTree.MILITARY, ResearchCatalog.treeForTarget("military"))
+        assertEquals(ResearchTree.FORTICLAD, ResearchCatalog.treeForTarget("Forticlad Lab"))
+        assertNull(ResearchCatalog.treeForTarget("unknown research"))
+    }
+
+    @Test
     fun forticladIsSeparateAndSeasonDependent() {
         assertEquals(9, ResearchTree.FORTICLAD.technologyCount)
         assertTrue(ResearchTree.FORTICLAD.seasonDependent)
