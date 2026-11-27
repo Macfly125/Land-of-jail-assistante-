@@ -669,13 +669,26 @@ class GameForegroundMonitorService : Service() {
         monitorJob = serviceScope.launch {
             var wasGameInForeground = false
             while (isActive) {
-                val fgPkg = withContext(Dispatchers.IO) {
-                    UsageStatsDetector.getRecentForegroundPackage(applicationContext)
+                val powerManager = getSystemService(Context.POWER_SERVICE) as android.os.PowerManager
+                val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as android.app.KeyguardManager
+                val deviceAvailable = powerManager.isInteractive && !keyguardManager.isKeyguardLocked
+                if (!deviceAvailable) lastKnownForegroundPkg = null
+
+                // Au démarrage, relire une journée d'événements pour retrouver un jeu
+                // déjà ouvert ; ensuite, une fenêtre courte suffit et évite de rescanner
+                // tout l'historique à chaque cycle.
+                val eventWindow = if (lastKnownForegroundPkg == null) {
+                    24L * 60L * 60L * 1000L
+                } else {
+                    120_000L
                 }
-                if (!fgPkg.isNullOrBlank()) {
+                val fgPkg = withContext(Dispatchers.IO) {
+                    UsageStatsDetector.getRecentForegroundPackage(applicationContext, eventWindow)
+                }
+                if (!fgPkg.isNullOrBlank() && deviceAvailable) {
                     lastKnownForegroundPkg = fgPkg
                 }
-                val effectivePkg = fgPkg ?: lastKnownForegroundPkg
+                val effectivePkg = if (deviceAvailable) fgPkg ?: lastKnownForegroundPkg else null
                 val isSelfForeground = effectivePkg == applicationContext.packageName
                 val assistantVisible = MainActivity.isAppInForeground.value
                 val isGameNow = UsageStatsDetector.isLandsOfJailPackage(effectivePkg, targetFilter)
