@@ -555,7 +555,13 @@ object LandsOfJailOcrParser {
         // Une grande quantité de ressource dans la barre supérieure ne doit jamais
         // être réinterprétée comme la puissance du joueur. Sans libellé explicite,
         // le fallback puissance n'est autorisé que si aucune ressource n'a été lue.
-        if (power == null && resources.isEmpty() && !hasPotentialTopResourceNumberRow(textBoxes, imageWidth, imageHeight)) {
+        // Dès que des boîtes OCR avec coordonnées existent, les nombres doivent
+        // être interprétés à partir de leur position réelle (badge ou rangée HUD).
+        // Le fallback textuel sans coordonnées pourrait prendre la nourriture
+        // ou une autre ressource pour la puissance et empêcher le badge d'être lu.
+        if (power == null && resources.isEmpty() && textBoxes.isEmpty() &&
+            !hasPotentialTopResourceNumberRow(textBoxes, imageWidth, imageHeight)
+        ) {
             val topPowerLine = lines.take(6).firstOrNull { l ->
                 Regex("""\b\d{1,3}(?:[.,\s]\d{3}){2,}\b|\b\d+(?:[.,]\d+)?\s*[MB]\b""").containsMatchIn(l)
             }
