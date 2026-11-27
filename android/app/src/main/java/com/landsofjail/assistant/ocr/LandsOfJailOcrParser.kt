@@ -322,7 +322,18 @@ object LandsOfJailOcrParser {
                 val normalizedLine = " ${normalizeHeroText(robotText)} "
                 val normalizedRobot = normalizeHeroText(robotName)
                 if (normalizedLine.contains(" $normalizedRobot ") && seenRobotKeys.add(normalizedRobot)) {
-                    val context = lines.subList(index, minOf(lines.size, index + 4)).joinToString(" ")
+                    // Ne pas emprunter le niveau ou les statistiques du robot suivant
+                    // lorsque plusieurs fiches sont visibles dans le même écran.
+                    val contextLimit = minOf(lines.size, index + 4)
+                    val nextRobotIndex = (index + 1 until contextLimit).firstOrNull { candidateIndex ->
+                        val candidateText = lines.drop(candidateIndex).take(2).joinToString(" ")
+                        val normalizedCandidate = " ${normalizeHeroText(candidateText)} "
+                        knownRobotNames.any { candidateName ->
+                            normalizedCandidate.contains(" ${normalizeHeroText(candidateName)} ")
+                        }
+                    }
+                    val contextEnd = nextRobotIndex ?: contextLimit
+                    val context = lines.subList(index, maxOf(index + 1, contextEnd)).joinToString(" ")
                     val level = Regex("""(?:lv\.?|level|niv\.?|niveau|seviye|уровень|等级)\s*[:：]?\s*([0-9]{1,3})""", RegexOption.IGNORE_CASE)
                         .find(context)?.groupValues?.get(1)
                     val powerText = Regex("""(?:power|puissance|atk|attack|güç|мощь|сила|战力)\s*[:：]?\s*([0-9]+(?:[.,][0-9]+)?\s*%?)""", RegexOption.IGNORE_CASE)
