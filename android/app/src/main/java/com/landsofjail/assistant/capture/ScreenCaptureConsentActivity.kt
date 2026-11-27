@@ -34,8 +34,31 @@ class ScreenCaptureConsentActivity : ComponentActivity() {
         private val _pendingCapture = MutableStateFlow<CapturedScreenPayload?>(null)
         val pendingCapture = _pendingCapture.asStateFlow()
 
-        fun publishCapture(payload: CapturedScreenPayload) {
+        @Synchronized
+        fun publishCapture(context: Context, payload: CapturedScreenPayload): Boolean {
+            // Une capture non consommée est prioritaire : ne jamais l'écraser.
+            if (_pendingCapture.value != null) {
+                ownedCaptureFile(context, payload.imageFileUri)?.delete()
+                return false
+            }
+
+            val uriText = payload.imageFileUri
+            if (uriText.isNotBlank()) {
+                val file = ownedCaptureFile(context, uriText)
+                if (file == null || !file.isFile || file.length() <= 0L) return false
+                val persisted = context.getSharedPreferences(PREFS_CAPTURE, Context.MODE_PRIVATE)
+                    .edit()
+                    .putString(KEY_PENDING_URI, uriText)
+                    .putLong(KEY_PENDING_AT, payload.capturedAtMillis)
+                    .commit()
+                if (!persisted) {
+                    file.delete()
+                    return false
+                }
+            }
+
             _pendingCapture.value = payload
+            return true
         }
 
         const val EXTRA_AUTO_CAPTURE = "extra_auto_capture"
