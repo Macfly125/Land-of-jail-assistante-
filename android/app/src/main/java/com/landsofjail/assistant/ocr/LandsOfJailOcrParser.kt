@@ -228,7 +228,7 @@ object LandsOfJailOcrParser {
         val powerRegex = Regex("""(?:^|[^\p{L}\p{N}])(?:puissance|power|macht|güç|мощь|comb\.?\s*power|cp|战力)(?=\s|[:：-]|[0-9])\s*[:：-]?\s*([0-9][0-9\s.,kmbKMB]*)""", RegexOption.IGNORE_CASE)
         val levelRegex = Regex("""(?:niv\.?|lv\.?|level)\s*([0-9]+)""", RegexOption.IGNORE_CASE)
         val wardenRegex = Regex(
-            """(?:(?:warden(?:['’]s)?\s*office|director(?:['’]s)?\s*office|bureau\s*du\s*directeur|prison|qg|hq)\s*(?:niv(?:eau)?|lv|lvl|level)\.?\s*[:：#-]?\s*([0-9]{1,2})|\b([0-9]{1,2})\s+(?:warden(?:['’]s)?\s*office|director(?:['’]s)?\s*office|bureau\s*du\s*directeur|prison|qg|hq)\b)""",
+            """(?:(?:warden(?:['’]s)?\s*office|director(?:['’]s)?\s*office|bureau\s*du\s*directeur|prison|qg|hq)\s*(?:niv(?:eau)?|lvl?|level)\.?\s*[:：#-]?\s*([0-9]{1,2})|\b([0-9]{1,2})\s+(?:warden(?:['’]s)?\s*office|director(?:['’]s)?\s*office|bureau\s*du\s*directeur|prison|qg|hq)\b|\b(?:hq|qg)\s+([0-9]{1,2})\b)""",
             RegexOption.IGNORE_CASE
         )
         // Certains écrans affichent le nom du bâtiment et son niveau sur deux lignes.
@@ -254,7 +254,7 @@ object LandsOfJailOcrParser {
         for ((index, line) in lines.withIndex()) {
             wardenRegex.find(line)?.let { match ->
                 if (wardenLevel == null) {
-                    wardenLevel = "Niv. ${match.groupValues[1].ifBlank { match.groupValues[2] }}"
+                    wardenLevel = "Niv. ${match.groupValues[1].ifBlank { match.groupValues[2].ifBlank { match.groupValues[3] } }}"
                 }
             }
             if (wardenLevel == null && wardenBuildingLabelRegex.containsMatchIn(line)) {
@@ -849,9 +849,12 @@ object LandsOfJailOcrParser {
         if (spacedNumber.any(Char::isWhitespace)) {
             val groups = spacedNumber.trim().split(Regex("\\s+"))
             val validFirstGroup = groups.firstOrNull()?.matches(Regex("[0-9]{1,3}")) == true
-            val validFollowingGroups = groups.drop(1).all { group ->
-                Regex("[0-9]{3}(?:[.,][0-9]+)?").matches(group)
-            }
+            val followingGroups = groups.drop(1)
+            val validFollowingGroups = followingGroups.isNotEmpty() &&
+                followingGroups.dropLast(1).all { group -> Regex("[0-9]{3}").matches(group) } &&
+                followingGroups.last().let { group ->
+                    Regex("[0-9]{3}(?:[.,][0-9]+)?").matches(group)
+                }
             if (!validFirstGroup || !validFollowingGroups) return null
         }
         val cleaned = original.replace(Regex("\\s+"), "")
