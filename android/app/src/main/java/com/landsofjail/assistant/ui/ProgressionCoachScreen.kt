@@ -41,6 +41,8 @@ import com.landsofjail.assistant.model.ProgressionLevelRecord
 import com.landsofjail.assistant.model.ProgressionObjective
 import com.landsofjail.assistant.model.ProgressionPlayerProfile
 import com.landsofjail.assistant.model.ProgressionProfileCodec
+import com.landsofjail.assistant.model.ResearchCatalog
+import com.landsofjail.assistant.model.ResearchTree
 import com.landsofjail.assistant.model.ResourceRecord
 import com.landsofjail.assistant.model.mergeProgressionStocks
 import com.landsofjail.assistant.model.removeProgressionObjective
@@ -248,6 +250,86 @@ private fun progressionLabel(domain: ProgressionDomain, lang: AppLanguage): Stri
     ProgressionDomain.ROBOT_CORE -> when (lang) {
         AppLanguage.FR -> "Noyaux robots"; AppLanguage.EN -> "Robot cores"; AppLanguage.DE -> "Roboterkerne"
         AppLanguage.TR -> "Robot çekirdekleri"; AppLanguage.RU -> "Ядра роботов"; AppLanguage.ZH -> "机器人核心"; AppLanguage.IT -> "Nuclei robot"
+    }
+}
+
+@Composable
+private fun ResearchTreeSummaryCard(
+    goal: ProgressionObjective,
+    language: AppLanguage
+) {
+    val tree = ResearchCatalog.treeForTarget(goal.targetId) ?: return
+    val summary = ResearchCatalog.aggregateSummary(tree)
+    fun text(fr: String, en: String, de: String, tr: String, ru: String, zh: String, it: String) =
+        when (language) {
+            AppLanguage.FR -> fr; AppLanguage.EN -> en; AppLanguage.DE -> de
+            AppLanguage.TR -> tr; AppLanguage.RU -> ru; AppLanguage.ZH -> zh; AppLanguage.IT -> it
+        }
+    val treeName = when (tree) {
+        ResearchTree.LOGISTICS -> text("Logistique", "Logistics", "Logistik", "Lojistik", "Логистика", "后勤", "Logistica")
+        ResearchTree.ECONOMY -> text("Économie", "Economy", "Wirtschaft", "Ekonomi", "Экономика", "经济", "Economia")
+        ResearchTree.MILITARY -> text("Militaire", "Military", "Militär", "Askerî", "Военное дело", "军事", "Militare")
+        ResearchTree.FORTICLAD -> text("Laboratoire Forticlad", "Forticlad Lab", "Forticlad-Labor", "Forticlad Laboratuvarı", "Лаборатория Forticlad", "Forticlad 实验室", "Laboratorio Forticlad")
+    }
+    val minDays = summary.minimumDurationSeconds / 86400L
+    val maxDays = summary.maximumDurationSeconds / 86400L
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(
+                text(fr = "Aperçu de recherche : $treeName", en = "Research overview: $treeName",
+                    de = "Forschungsübersicht: $treeName", tr = "Araştırma özeti: $treeName",
+                    ru = "Обзор исследований: $treeName", zh = "研究概览：$treeName", it = "Panoramica ricerca: $treeName"),
+                style = MaterialTheme.typography.titleMedium
+            )
+            Text(text(fr = "${tree.technologyCount} technologies · puissance totale ${NumberFormat.getIntegerInstance().format(summary.totalPower)}",
+                en = "${tree.technologyCount} technologies · total power ${NumberFormat.getIntegerInstance().format(summary.totalPower)}",
+                de = "${tree.technologyCount} Technologien · Gesamtstärke ${NumberFormat.getIntegerInstance().format(summary.totalPower)}",
+                tr = "${tree.technologyCount} teknoloji · toplam güç ${NumberFormat.getIntegerInstance().format(summary.totalPower)}",
+                ru = "${tree.technologyCount} технологий · общая мощь ${NumberFormat.getIntegerInstance().format(summary.totalPower)}",
+                zh = "${tree.technologyCount} 项科技 · 总战力 ${NumberFormat.getIntegerInstance().format(summary.totalPower)}",
+                it = "${tree.technologyCount} tecnologie · potenza totale ${NumberFormat.getIntegerInstance().format(summary.totalPower)}"))
+            Text(text(fr = "Coûts agrégés publiés : ${summary.costSummary}",
+                en = "Published aggregate costs: ${summary.costSummary}",
+                de = "Veröffentlichte Gesamtkosten: ${summary.costSummary}",
+                tr = "Yayımlanan toplam maliyetler: ${summary.costSummary}",
+                ru = "Опубликованные общие затраты: ${summary.costSummary}",
+                zh = "已发布的总费用：${summary.costSummary}",
+                it = "Costi aggregati pubblicati: ${summary.costSummary}"))
+            Text(text = if (tree == ResearchTree.FORTICLAD) {
+                text(fr = "Durée globale publiée : ${minDays} à ${maxDays} jours (dépend de la saison).",
+                    en = "Published overall duration: ${minDays}–${maxDays} days (season-dependent).",
+                    de = "Veröffentlichte Gesamtdauer: ${minDays}–${maxDays} Tage (saisonabhängig).",
+                    tr = "Yayımlanan toplam süre: ${minDays}–${maxDays} gün (sezona bağlı).",
+                    ru = "Опубликованная общая длительность: ${minDays}–${maxDays} дней (зависит от сезона).",
+                    zh = "已公布总时长：${minDays}–${maxDays} 天（取决于赛季）。",
+                    it = "Durata totale pubblicata: ${minDays}–${maxDays} giorni (dipende dalla stagione).")
+            } else {
+                val duration = tree.aggregateBaseDurationSeconds ?: 0L
+                text(fr = "Durée globale publiée : ${duration / 86400L} jours ${(duration % 86400L) / 3600L} h.",
+                    en = "Published overall duration: ${duration / 86400L} days ${(duration % 86400L) / 3600L} h.",
+                    de = "Veröffentlichte Gesamtdauer: ${duration / 86400L} Tage ${(duration % 86400L) / 3600L} Std.",
+                    tr = "Yayımlanan toplam süre: ${duration / 86400L} gün ${(duration % 86400L) / 3600L} sa.",
+                    ru = "Опубликованная общая длительность: ${duration / 86400L} дн. ${(duration % 86400L) / 3600L} ч.",
+                    zh = "已公布总时长：${duration / 86400L} 天 ${(duration % 86400L) / 3600L} 小时。",
+                    it = "Durata totale pubblicata: ${duration / 86400L} giorni ${(duration % 86400L) / 3600L} h.")
+            })
+            Text(text(fr = "Source : ${tree.sourceUrl} · consultée le ${ResearchCatalog.overview(tree).checkedOn}",
+                en = "Source: ${tree.sourceUrl} · checked ${ResearchCatalog.overview(tree).checkedOn}",
+                de = "Quelle: ${tree.sourceUrl} · geprüft am ${ResearchCatalog.overview(tree).checkedOn}",
+                tr = "Kaynak: ${tree.sourceUrl} · kontrol tarihi ${ResearchCatalog.overview(tree).checkedOn}",
+                ru = "Источник: ${tree.sourceUrl} · проверено ${ResearchCatalog.overview(tree).checkedOn}",
+                zh = "来源：${tree.sourceUrl} · 核查日期 ${ResearchCatalog.overview(tree).checkedOn}",
+                it = "Fonte: ${tree.sourceUrl} · verificato il ${ResearchCatalog.overview(tree).checkedOn}"),
+                style = MaterialTheme.typography.bodySmall)
+            Text(text(fr = "Ces chiffres couvrent l'arbre entier : ils ne permettent pas de calculer une cible partielle. Les coûts par niveau et prérequis ne sont pas encore importés ; aucun coût individuel n'est estimé.",
+                en = "These figures cover the entire tree and cannot calculate a partial target. Per-level costs and prerequisites are not imported; no individual cost is estimated.",
+                de = "Diese Werte gelten für den gesamten Baum und berechnen kein Teilziel. Kosten je Stufe und Voraussetzungen sind nicht importiert.",
+                tr = "Bu rakamlar tüm ağacı kapsar, kısmi hedef hesaplamaz. Seviye maliyetleri ve ön koşullar aktarılmadı; bireysel maliyet tahmin edilmez.",
+                ru = "Эти данные относятся ко всему дереву и не рассчитывают частичную цель. Затраты по уровням и требования не импортированы.",
+                zh = "这些数据涵盖整个科技树，不能用于计算部分目标。尚未导入逐级费用和前置条件，不会估算单项费用。",
+                it = "Questi dati coprono l'intero albero e non calcolano un obiettivo parziale. Costi per livello e prerequisiti non sono importati."),
+                style = MaterialTheme.typography.bodySmall)
+        }
     }
 }
 
@@ -942,6 +1024,9 @@ fun ProgressionCoachScreen(
             val trainingType = if (goal.domain == ProgressionDomain.TROOPS) troopTrainingType(goal.targetId) else null
             if (trainingType != null) {
                 TroopTrainingCalculatorCard(goal, profile, language, trainingType)
+            } else if (goal.domain == ProgressionDomain.RESEARCH &&
+                ResearchCatalog.treeForTarget(goal.targetId) != null) {
+                ResearchTreeSummaryCard(goal, language)
             } else if (catalog.isNotEmpty()) {
                 ProgressionCatalogGoalCard(goal, profile, catalog, language)
             } else {
