@@ -17,7 +17,7 @@ internal fun formatAllianceVerificationTimestamp(
         .getOrNull()
         ?: return value
 
-    return DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
+    return DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM)
         .withLocale(locale)
         .withZone(zoneId)
         .format(instant)
