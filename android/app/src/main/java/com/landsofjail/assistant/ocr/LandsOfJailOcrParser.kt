@@ -642,29 +642,18 @@ object LandsOfJailOcrParser {
         // Ne jamais mélanger des valeurs nommées avec une supposition par position.
         // Le mode positionnel n'est utilisé que si aucune ressource n'a été lue par son nom.
         val topNumbers = topResourceNumberBoxes(textBoxes, imageWidth, imageHeight)
-        val resourceOrder = listOf(
-            "Cash / Or", "Nourriture (Food)", "Bois (Wood)",
-            "Acier (Steel)", "Essence (Gasoline)", "Diamants (Gems)"
-        )
-        // Sans libellés ni reconnaissance d'icônes, une correspondance partielle
-        // par position serait dangereuse : un emplacement manquant décalerait
-        // toutes les ressources suivantes. On n'associe les positions que si
-        // les six emplacements sont présents sur la même rangée.
-        if (resources.isEmpty() && topNumbers.size >= resourceOrder.size) {
-            topNumbers.take(resourceOrder.size).forEachIndexed { index, box ->
-                val name = resourceOrder[index]
-                if (seenResKeys.add(name)) {
-                    val quantity = box.text.trim()
-                    resources.add(
-                        ResourceRecord(
-                            nom = name,
-                            quantiteTexte = quantity,
-                            quantiteNumerique = parseCompactNumeric(quantity),
-                            incertain = true,
-                            raisonIncertitude = "Valeur associée à la position de l'icône dans la barre supérieure ; confirmer visuellement."
-                        )
+        // Les compteurs HUD ne portent pas leur libellé OCR. Leur attribuer un type
+        // par simple ordre horizontal est trop fragile : la barre varie selon l'écran.
+        // On conserve les valeurs pour revue, mais elles ne deviennent jamais un stock.
+        if (resources.isEmpty() && topNumbers.isNotEmpty()) {
+            topNumbers.forEachIndexed { index, box ->
+                uncertain.add(
+                    UncertainItem(
+                        champ = "Compteur HUD non identifié " + (index + 1),
+                        valeurObservee = box.text.trim(),
+                        raison = "Icône/libellé de ressource non reconnu ; attribution automatique interdite."
                     )
-                }
+                )
             }
         }
 
