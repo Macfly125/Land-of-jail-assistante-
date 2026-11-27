@@ -461,7 +461,7 @@ class GameForegroundMonitorService : Service() {
         val captureThread = HandlerThread("LojAutoCaptureFrames").apply { start() }
         autoCaptureHandlerThread = captureThread
         reader.setOnImageAvailableListener({ imageReader ->
-            val image = imageReader.acquireLatestImage() ?: return@setImageAvailableListener
+            val image = imageReader.acquireLatestImage() ?: return@setOnImageAvailableListener
             var bitmapAwaitingTransfer: Bitmap? = null
             try {
                 val now = System.currentTimeMillis()
