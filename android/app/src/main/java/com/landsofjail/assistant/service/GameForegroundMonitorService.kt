@@ -295,11 +295,18 @@ class GameForegroundMonitorService : Service() {
 
         mediaProjection = projection
         val mainHandler = Handler(Looper.getMainLooper())
-        projection.registerCallback(object : MediaProjection.Callback() {
-            override fun onStop() {
-                releaseProjection()
-            }
-        }, mainHandler)
+        try {
+            projection.registerCallback(object : MediaProjection.Callback() {
+                override fun onStop() {
+                    releaseProjection()
+                }
+            }, mainHandler)
+        } catch (_: Throwable) {
+            isCapturingNow = false
+            releaseProjection()
+            finishCaptureFlow(wasMonitoring)
+            return
+        }
 
         val metrics = resources.displayMetrics
         val width = metrics.widthPixels.coerceAtLeast(1)
@@ -486,15 +493,20 @@ class GameForegroundMonitorService : Service() {
 
         mediaProjection = projection
         val mainHandler = Handler(Looper.getMainLooper())
-        projection.registerCallback(object : MediaProjection.Callback() {
-            override fun onStop() {
-                if (_isAutoCapturing.value) {
-                    handleAutoProjectionStopped()
-                } else {
-                    releaseProjection()
+        try {
+            projection.registerCallback(object : MediaProjection.Callback() {
+                override fun onStop() {
+                    if (_isAutoCapturing.value) {
+                        handleAutoProjectionStopped()
+                    } else {
+                        releaseProjection()
+                    }
                 }
-            }
-        }, mainHandler)
+            }, mainHandler)
+        } catch (_: Throwable) {
+            handleAutoProjectionStopped()
+            return
+        }
 
         val metrics = resources.displayMetrics
         val width = metrics.widthPixels.coerceAtLeast(1)
