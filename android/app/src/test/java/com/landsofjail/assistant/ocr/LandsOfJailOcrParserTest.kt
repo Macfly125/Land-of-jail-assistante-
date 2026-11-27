@@ -1137,8 +1137,8 @@ Potential Coil x 8"""
     fun doesNotMistakeWardenCapacityForItsLevel() {
         val samples = listOf(
             "Warden Office 40/40\nPower: 12,345",
-            "Bureau du directeur 40/40\nCapacité des prisonniers 40/40",
-            "Prison 35/40\nNiveau de danger 9"
+            "Bureau du directeur 40/40\nCapacité des prisonniers 40/40\nPower: 12,345",
+            "Prison 35/40\nNiveau de danger 9\nPower: 12,345"
         )
         samples.forEach { sample ->
             val result = LandsOfJailOcrParser.parseLocalOcrText(sample)
