@@ -89,8 +89,11 @@ class ProgressionCatalogTest {
     }
 
     @Test
-    fun gateHigherLevelsAreNotEstimatedFromRoundedWikiAmounts() {
-        assertTrue(ProgressionCatalog.gateBuilding.none { it.step.toLevel > 7 })
+    fun gateHigherLevelsNeverTreatRoundedGasolineAmountsAsExact() {
+        val higherLevels = ProgressionCatalog.gateBuilding.filter { it.step.toLevel > 7 }
+        assertEquals(listOf(8, 9, 10), higherLevels.map { it.step.toLevel })
+        assertTrue(higherLevels.all { !it.step.dataComplete })
+        assertTrue(higherLevels.all { row -> row.step.costs.none { it.resourceId == "gasoline" } })
     }
 
 
