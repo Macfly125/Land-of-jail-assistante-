@@ -72,6 +72,11 @@ object RobotPortraitMatcher {
         val rankedRobots = compatible
             .groupBy { it.robotId }
             .mapNotNull { (robotId, variants) ->
+                // Un même identifiant ne peut pas désigner plusieurs noms :
+                // le catalogue est alors incohérent, donc on refuse cette entrée.
+                if (variants.map { it.displayName }.distinct().size != 1) {
+                    return@mapNotNull null
+                }
                 val bestVariant = variants
                     .map { template -> template to similarity(argbPixels, template.argbPixels) }
                     .maxByOrNull { it.second } ?: return@mapNotNull null
