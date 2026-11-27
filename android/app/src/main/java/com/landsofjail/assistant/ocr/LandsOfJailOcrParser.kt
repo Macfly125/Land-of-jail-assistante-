@@ -845,12 +845,20 @@ object LandsOfJailOcrParser {
         val rawNumber = if (suffix != null) cleaned.dropLast(1) else cleaned
         // Sans suffixe, les groupes de trois chiffres séparés par . ou , sont des milliers
         // (ex. 8,450,120 ou 8.450.120), pas des décimales.
-        val isGroupedInteger = suffix == null &&
-            Regex("\\d{1,3}(?:[.,]\\d{3})+").matches(rawNumber)
-        val normalized = if (isGroupedInteger) {
-            rawNumber.replace(Regex("[.,]"), "")
-        } else {
-            rawNumber.replace(",", ".")
+        val hasComma = rawNumber.contains(',')
+        val hasDot = rawNumber.contains('.')
+        val normalized = when {
+            // Les deux séparateurs indiquent un format localisé mixte :
+            // le dernier est décimal, les précédents sont des séparateurs de milliers.
+            hasComma && hasDot -> {
+                val decimalIndex = rawNumber.lastIndexOfAny(charArrayOf(',', '.'))
+                rawNumber.substring(0, decimalIndex).replace(Regex("[.,]"), "") +
+                    "." + rawNumber.substring(decimalIndex + 1)
+            }
+            // Sans suffixe, les groupes de trois chiffres séparés par . ou , sont des milliers.
+            suffix == null && Regex("\\d{1,3}(?:[.,]\\d{3})+").matches(rawNumber) ->
+                rawNumber.replace(Regex("[.,]"), "")
+            else -> rawNumber.replace(",", ".")
         }
         val numPart = normalized.replace(Regex("[^0-9.]"), "")
         return numPart.toDoubleOrNull()?.times(multiplier)
