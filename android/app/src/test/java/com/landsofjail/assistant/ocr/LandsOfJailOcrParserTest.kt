@@ -1402,7 +1402,7 @@ Potential Coil x 8"""
     @Test
     fun doesNotBorrowBuildingLevelForRobotDetails() {
         val result = LandsOfJailOcrParser.parseLocalOcrText(
-            "Phantom Cat\\nKitchen\\nLevel 6"
+            "Phantom Cat\nKitchen\nLevel 6"
         )
 
         val robot = result.robots.single { it.nom == "Phantom Cat" }
@@ -1414,7 +1414,7 @@ Potential Coil x 8"""
     @Test
     fun keepsRobotLevelWhenItBelongsToTheRobotCard() {
         val result = LandsOfJailOcrParser.parseLocalOcrText(
-            "Phantom Cat\\nLevel 90\\nPower 120"
+            "Phantom Cat\nLevel 90\nPower 120"
         )
 
         val robot = result.robots.single { it.nom == "Phantom Cat" }
