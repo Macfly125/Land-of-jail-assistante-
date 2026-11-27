@@ -522,7 +522,8 @@ class GameForegroundMonitorService : Service() {
             return
         }
         autoCaptureHandlerThread = captureThread
-        reader.setOnImageAvailableListener({ imageReader ->
+        try {
+            reader.setOnImageAvailableListener({ imageReader ->
             val image = imageReader.acquireLatestImage() ?: return@setOnImageAvailableListener
             var bitmapAwaitingTransfer: Bitmap? = null
             var sourceBitmapAwaitingRelease: Bitmap? = null
@@ -601,7 +602,11 @@ class GameForegroundMonitorService : Service() {
                 }
                 image.close()
             }
-        }, Handler(captureThread.looper))
+            }, Handler(captureThread.looper))
+        } catch (_: Throwable) {
+            handleAutoProjectionStopped()
+            return
+        }
         mainHandler.postDelayed({ updateAutoCaptureSurface(_detectedGameForeground.value) }, 750L)
     }
 
