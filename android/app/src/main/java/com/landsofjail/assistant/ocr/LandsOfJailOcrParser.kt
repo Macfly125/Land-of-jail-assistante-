@@ -217,7 +217,7 @@ object LandsOfJailOcrParser {
         val knownRobotNames = (RobotCatalog.entries.map { it.name } + listOf("Chat Fantôme", "Hercules Alpha", "Valiant", "Scorpio")).distinct()
         // Un panneau de bâtiment est une frontière : ses niveaux ne décrivent jamais le robot précédent.
         val buildingPanelLabelRegex = Regex(
-            """(?:^|\b)(?:forticlad\s+lab|laboratory|laboratoire|kitchen|cuisine|warehouse|entrep[oô]t|barracks|caserne|medical\s+station|infirmary|infirmerie|command\s+center|centre\s+de\s+commandement|gate|porte|warden(?:['’]s)?\s+office|director(?:['’]s)?\s+office|bureau\s+du\s+directeur|robot\s+center|yard|cour|cell|cellule|comms|communication\s+center)(?:$|\b)""",
+            """(?:^|\b)(?:forticlad\s+lab|laboratory|laboratoire|laboratorio|kitchen|cuisine|cucina|küche|mutfak|кухня|厨房|warehouse|entrep[oô]t|lagerhaus|depo|склад|仓库|barracks|caserne|kaserne|kışla|казармы|兵营|medical\s+station|infirmary|infirmerie|medizinische\s+station|tıbbi\s+istasyon|медпункт|医疗站|command\s+center|centre\s+de\s+commandement|kommandozentrum|komuta\s+merkezi|командный\s+центр|指挥中心|gate|porte|tor|kapı|ворота|大门|warden(?:['’]s)?\s+office|director(?:['’]s)?\s+office|bureau\s+du\s+directeur|robot\s+center|yard|cour|hof|avlu|двор|院子|cell|cellule|zelle|hücre|камера|牢房|comms|communication\s+center|kommunikationszentrum|iletişim\s+merkezi|центр\s+связи|通讯中心)(?:$|\b)""",
             RegexOption.IGNORE_CASE
         )
         val seenHeroKeys = mutableSetOf<String>()
