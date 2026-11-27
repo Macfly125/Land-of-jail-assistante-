@@ -31,6 +31,8 @@ data class ForticladCostEstimate(
 object ForticladCatalog {
     const val SOURCE_URL = "https://guideloj.com/en/calculators/forticlad"
     const val RULES_SOURCE_URL = "https://lojwiki.com/calculator/forticlad/"
+    const val FORTICLAD_LAB_SOURCE_URL = "https://lojwiki.com/buildings/forticlad-lab/"
+    const val MEDICAL_STATION_SOURCE_URL = "https://lojwiki.com/buildings/medical-station/"
     const val CHECKED_ON = "2026-11-27"
     const val STAGES_PER_LEVEL = 5
 
@@ -41,8 +43,8 @@ object ForticladCatalog {
         "command_center", "forticlad_lab"
     )
 
-    private fun row(id: String, level: Int, fc: Long, afc: Long = 0L) =
-        ForticladStageCost(id, level, fc, afc)
+    private fun row(id: String, level: Int, fc: Long, afc: Long = 0L, source: String = SOURCE_URL) =
+        ForticladStageCost(id, level, fc, afc, sourceUrl = source)
 
     /**
      * Per-stage costs. GuideLOJ publishes Medical Station only through FC8
@@ -96,7 +98,21 @@ object ForticladCatalog {
 
         row("wardens_office", 10, 630, 168), row("shieldbearer_barracks", 10, 290, 75),
         row("bomber_barracks", 10, 290, 75), row("shooter_barracks", 10, 290, 75),
-        row("communication_center", 10, 160, 41), row("command_center", 10, 130, 34)
+        row("communication_center", 10, 160, 41), row("command_center", 10, 130, 34),
+        row("medical_station", 9, 100, 14, MEDICAL_STATION_SOURCE_URL),
+        row("medical_station", 10, 130, 34, MEDICAL_STATION_SOURCE_URL),
+
+        // Forticlad Lab costs are published on its dedicated LOJ Wiki building page.
+        row("forticlad_lab", 1, 150, source = FORTICLAD_LAB_SOURCE_URL),
+        row("forticlad_lab", 2, 150, source = FORTICLAD_LAB_SOURCE_URL),
+        row("forticlad_lab", 3, 200, source = FORTICLAD_LAB_SOURCE_URL),
+        row("forticlad_lab", 4, 250, source = FORTICLAD_LAB_SOURCE_URL),
+        row("forticlad_lab", 5, 300, source = FORTICLAD_LAB_SOURCE_URL),
+        row("forticlad_lab", 6, 70, 5, FORTICLAD_LAB_SOURCE_URL),
+        row("forticlad_lab", 7, 80, 8, FORTICLAD_LAB_SOURCE_URL),
+        row("forticlad_lab", 8, 90, 10, FORTICLAD_LAB_SOURCE_URL),
+        row("forticlad_lab", 9, 100, 14, FORTICLAD_LAB_SOURCE_URL),
+        row("forticlad_lab", 10, 130, 34, FORTICLAD_LAB_SOURCE_URL)
     )
 
     private val byBuildingAndTarget = stageCosts.associateBy { it.buildingId to it.targetLevel }
@@ -136,7 +152,7 @@ object ForticladCatalog {
             advancedCores = afc,
             includedStages = stages,
             confidence = CostConfidence.COMMUNITY_REFERENCE,
-            sourceUrl = SOURCE_URL
+            sourceUrl = byBuildingAndTarget[buildingId to (currentLevel + 1)]?.sourceUrl ?: SOURCE_URL
         )
     }
 }
