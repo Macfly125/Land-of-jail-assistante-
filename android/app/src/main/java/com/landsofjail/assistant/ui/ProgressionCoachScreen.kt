@@ -33,6 +33,8 @@ import com.landsofjail.assistant.model.PlayerResourceStock
 import com.landsofjail.assistant.model.ProgressionCatalog
 import com.landsofjail.assistant.model.ProgressionCatalogRecord
 import com.landsofjail.assistant.model.CostConfidence
+import com.landsofjail.assistant.model.ForticladCatalog
+import com.landsofjail.assistant.model.ForticladSelection
 import com.landsofjail.assistant.model.ProgressionCoach
 import com.landsofjail.assistant.model.canonicalProgressionResourceId
 import com.landsofjail.assistant.model.ProgressionDomain
@@ -512,6 +514,96 @@ private fun ProgressionCatalogGoalCard(
 }
 
 @Composable
+private fun ForticladPlannerCard(language: AppLanguage) {
+    var buildingId by remember { mutableStateOf("wardens_office") }
+    var currentLevel by remember { mutableStateOf(0) }
+    var targetLevel by remember { mutableStateOf(1) }
+    var completedStages by remember { mutableStateOf(0) }
+    fun label(fr: String, en: String, de: String, tr: String, ru: String, zh: String, it: String) =
+        when (language) {
+            AppLanguage.FR -> fr; AppLanguage.EN -> en; AppLanguage.DE -> de
+            AppLanguage.TR -> tr; AppLanguage.RU -> ru; AppLanguage.ZH -> zh; AppLanguage.IT -> it
+        }
+    fun buildingName(id: String) = when (id) {
+        "wardens_office" -> label("Bureau du directeur", "Warden's Office", "Direktorenbüro", "Müdür Ofisi", "Офис директора", "典狱长办公室", "Ufficio del Direttore")
+        "shieldbearer_barracks" -> label("Caserne de boucliers", "Shieldbearer Barracks", "Schildträger-Kaserne", "Kalkanlı Kışlası", "Казарма щитоносцев", "盾卫兵营", "Caserma scudieri")
+        "bomber_barracks" -> label("Caserne de bombardiers", "Bomber Barracks", "Bomber-Kaserne", "Bombacı Kışlası", "Казарма бомбардировщиков", "轰炸兵营", "Caserma bombardieri")
+        "shooter_barracks" -> label("Caserne de tireurs", "Shooter Barracks", "Schützenkaserne", "Nişancı Kışlası", "Казарма стрелков", "射手兵营", "Caserma tiratori")
+        "communication_center" -> label("Centre des communications", "Communication Center", "Kommunikationszentrum", "İletişim Merkezi", "Центр связи", "通讯中心", "Centro comunicazioni")
+        "medical_station" -> label("Infirmerie", "Medical Station", "Krankenstation", "Revir", "Медпункт", "医疗站", "Infermeria")
+        "command_center" -> label("Centre de commandement", "Command Center", "Kommandozentrale", "Komuta Merkezi", "Командный центр", "指挥中心", "Centro di comando")
+        else -> label("Laboratoire Forticlad", "Forticlad Lab", "Forticlad-Labor", "Forticlad Laboratuvarı", "Лаборатория Forticlad", "Forticlad 实验室", "Laboratorio Forticlad")
+    }
+    val estimate = ForticladCatalog.estimate(buildingId, currentLevel, completedStages, targetLevel)
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(label("Calculateur Forticlad", "Forticlad calculator", "Forticlad-Rechner", "Forticlad hesaplayıcı", "Калькулятор Forticlad", "Forticlad 计算器", "Calcolatore Forticlad"),
+                style = MaterialTheme.typography.titleMedium)
+            Text(label("Choisis un bâtiment.", "Choose a building.", "Gebäude auswählen.", "Bir bina seç.", "Выбери здание.", "选择建筑。", "Scegli un edificio."),
+                style = MaterialTheme.typography.bodySmall)
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                items(ForticladCatalog.eligibleBuildingIds.sorted()) { id ->
+                    FilterChip(selected = buildingId == id, onClick = { buildingId = id },
+                        label = { Text(buildingName(id)) })
+                }
+            }
+            Text(label("Niveau Forticlad actuel", "Current Forticlad level", "Aktuelles Forticlad-Level", "Mevcut Forticlad seviyesi", "Текущий уровень Forticlad", "当前 Forticlad 等级", "Livello Forticlad attuale"))
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                items(ForticladSelection.currentLevels().toList()) { level ->
+                    FilterChip(selected = currentLevel == level, onClick = {
+                        currentLevel = ForticladSelection.normalizeCurrentLevel(level)
+                        targetLevel = ForticladSelection.targetAfterCurrentChange(currentLevel, targetLevel)
+                    }, label = { Text(level.toString()) })
+                }
+            }
+            Text(label("Niveau cible", "Target level", "Ziel-Level", "Hedef seviye", "Целевой уровень", "目标等级", "Livello obiettivo"))
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                items(ForticladSelection.targetLevels(currentLevel).toList()) { level ->
+                    FilterChip(selected = targetLevel == level, onClick = { targetLevel = level }, label = { Text(level.toString()) })
+                }
+            }
+            Text(label("Étapes déjà terminées dans le niveau en cours (0 à 4)",
+                "Stages already completed in the current level (0–4)",
+                "Bereits abgeschlossene Stufen im aktuellen Level (0–4)",
+                "Mevcut seviyede tamamlanan aşamalar (0–4)",
+                "Уже завершённые этапы текущего уровня (0–4)",
+                "当前等级已完成阶段（0–4）",
+                "Fasi già completate nel livello attuale (0–4)"))
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                items(ForticladSelection.completedSteps().toList()) { stage ->
+                    FilterChip(selected = completedStages == stage, onClick = {
+                        completedStages = ForticladSelection.normalizeCompletedSteps(stage)
+                    }, label = { Text(stage.toString()) })
+                }
+            }
+            if (estimate == null) {
+                Text(label("Coût non publié pour cette plage : aucune estimation n'est inventée.",
+                    "No published cost for this range; no estimate is invented.",
+                    "Für diesen Bereich sind keine Kosten veröffentlicht; es wird nichts geschätzt.",
+                    "Bu aralık için yayımlanmış maliyet yok; tahmin yapılmaz.",
+                    "Для этого диапазона стоимость не опубликована; оценка не выдумывается.",
+                    "此范围没有已发布费用；不会虚构估算。",
+                    "Nessun costo pubblicato per questo intervallo; non viene inventata alcuna stima."),
+                    style = MaterialTheme.typography.bodySmall)
+            } else {
+                Text("${label("Noyaux Forticlad", "Forticlad Cores", "Forticlad-Kerne", "Forticlad çekirdekleri", "Ядра Forticlad", "Forticlad 核心", "Nuclei Forticlad")}: ${NumberFormat.getIntegerInstance().format(estimate.forticladCores)}")
+                Text("${label("Noyaux avancés", "Advanced Cores", "Erweiterte Kerne", "Gelişmiş çekirdekler", "Улучшенные ядра", "高级核心", "Nuclei avanzati")}: ${NumberFormat.getIntegerInstance().format(estimate.advancedCores)}")
+                Text(label("Étapes incluses", "Included stages", "Enthaltene Stufen", "Dahil edilen aşamalar", "Включённые этапы", "包含阶段", "Fasi incluse") + ": ${estimate.includedStages}")
+                Text(label("Estimation issue d'une référence communautaire, non vérifiée en jeu.",
+                    "Community-reference estimate, not verified in-game.",
+                    "Schätzung aus Community-Quelle, nicht im Spiel bestätigt.",
+                    "Topluluk kaynağı tahmini; oyunda doğrulanmadı.",
+                    "Оценка по сообществу, не проверена в игре.",
+                    "社区参考估算，未经游戏内验证。",
+                    "Stima da fonte comunitaria, non verificata nel gioco."),
+                    style = MaterialTheme.typography.bodySmall)
+            }
+            Text(ForticladCatalog.SOURCE_URL, style = MaterialTheme.typography.bodySmall)
+        }
+    }
+}
+
+@Composable
 fun ProgressionCoachScreen(
     profileId: String,
     language: AppLanguage,
@@ -649,6 +741,7 @@ fun ProgressionCoachScreen(
                 style = MaterialTheme.typography.bodySmall
             )
         }
+        item { ForticladPlannerCard(language) }
         item {
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
