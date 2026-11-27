@@ -336,6 +336,7 @@ class GameForegroundMonitorService : Service() {
                 if (handled) return@setOnImageAvailableListener
                 val image = r.acquireLatestImage() ?: return@setOnImageAvailableListener
                 attempts++
+                var bitmapAwaitingTransfer: Bitmap? = null
                 try {
                     val plane = image.planes[0]
                     val buffer = plane.buffer
@@ -350,10 +351,12 @@ class GameForegroundMonitorService : Service() {
                     )
                     fullBitmap.copyPixelsFromBuffer(buffer)
                     val cropped = cropFrameBitmap(fullBitmap, width, height)
+                    bitmapAwaitingTransfer = cropped
 
                     // Si le tout premier frame est entièrement noir et qu'on a encore le temps, attendre le suivant
                     if (attempts == 1 && isBitmapMostlyBlank(cropped)) {
                         cropped.recycle()
+                        bitmapAwaitingTransfer = null
                         return@setOnImageAvailableListener
                     }
 
@@ -361,7 +364,9 @@ class GameForegroundMonitorService : Service() {
                     mainHandler.removeCallbacks(timeoutRunnable)
 
                     val stream = ByteArrayOutputStream()
-                    cropped.compress(Bitmap.CompressFormat.JPEG, 88, stream)
+                    check(cropped.compress(Bitmap.CompressFormat.JPEG, 88, stream)) {
+                        "Échec de compression de la capture"
+                    }
                     val jpegBytes = stream.toByteArray()
                     val base64 = Base64.encodeToString(jpegBytes, Base64.NO_WRAP)
 
@@ -375,7 +380,19 @@ class GameForegroundMonitorService : Service() {
                             imageFileUri = savedUri
                         )
                     )
+                    // Le bitmap est maintenant détenu par le payload affiché dans l'interface.
+                    bitmapAwaitingTransfer = null
+                } catch (_: Throwable) {
+                    handled = true
+                    mainHandler.removeCallbacks(timeoutRunnable)
+                    bitmapAwaitingTransfer?.let { bitmap ->
+                        if (!bitmap.isRecycled) bitmap.recycle()
+                    }
+                    bitmapAwaitingTransfer = null
                 } finally {
+                    bitmapAwaitingTransfer?.let { bitmap ->
+                        if (!bitmap.isRecycled) bitmap.recycle()
+                    }
                     image.close()
                     if (handled) {
                         isCapturingNow = false
