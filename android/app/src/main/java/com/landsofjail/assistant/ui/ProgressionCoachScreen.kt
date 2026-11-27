@@ -516,8 +516,8 @@ private fun ProgressionCatalogGoalCard(
 @Composable
 private fun ForticladPlannerCard(language: AppLanguage) {
     var buildingId by remember { mutableStateOf("wardens_office") }
-    var currentLevel by remember { mutableStateOf(0) }
-    var targetLevel by remember { mutableStateOf(1) }
+    var currentLevel by remember { mutableStateOf(1) }
+    var targetLevel by remember { mutableStateOf(2) }
     var completedStages by remember { mutableStateOf(0) }
     fun label(fr: String, en: String, de: String, tr: String, ru: String, zh: String, it: String) =
         when (language) {
@@ -562,13 +562,13 @@ private fun ForticladPlannerCard(language: AppLanguage) {
                     FilterChip(selected = targetLevel == level, onClick = { targetLevel = level }, label = { Text(level.toString()) })
                 }
             }
-            Text(label("Étapes déjà terminées dans le niveau en cours (0 à 4)",
-                "Stages already completed in the current level (0–4)",
-                "Bereits abgeschlossene Stufen im aktuellen Level (0–4)",
-                "Mevcut seviyede tamamlanan aşamalar (0–4)",
-                "Уже завершённые этапы текущего уровня (0–4)",
-                "当前等级已完成阶段（0–4）",
-                "Fasi già completate nel livello attuale (0–4)"))
+            Text(label("Étapes déjà terminées vers le niveau suivant (0 à 4)",
+                "Stages already completed toward the next level (0–4)",
+                "Bereits abgeschlossene Stufen für das nächste Level (0–4)",
+                "Sonraki seviyeye doğru tamamlanan aşamalar (0–4)",
+                "Этапы, уже пройденные для следующего уровня (0–4)",
+                "升至下一级已完成阶段（0–4）",
+                "Fasi già completate verso il livello successivo (0–4)"))
             LazyRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 items(ForticladSelection.completedSteps().toList()) { stage ->
                     FilterChip(selected = completedStages == stage, onClick = {
