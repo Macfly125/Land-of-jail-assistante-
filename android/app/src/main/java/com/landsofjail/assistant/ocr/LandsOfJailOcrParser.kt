@@ -268,14 +268,19 @@ object LandsOfJailOcrParser {
                 if (power == null) {
                     val valueText = powerMatch.groupValues[1].trim()
                     val numeric = parseCompactNumeric(valueText)
-                    val isAmbiguous = valueText.contains("k", true) || valueText.contains("m", true) || numeric == null
-                    power = PowerMetric(
-                        puissanceTotaleTexte = valueText,
-                        puissanceTotaleNumerique = numeric?.toLong(),
-                        niveauPrisonOuQG = wardenLevel,
-                        incertain = isAmbiguous,
-                        raisonIncertitude = if (isAmbiguous) "Abréviation ou séparateur OCR à confirmer" else null
-                    )
+                    // Ne pas créer de puissance si le nombre OCR est invalide :
+                    // un objet PowerMetric avec une valeur nulle masquerait une
+                    // lecture rejetée et ferait croire qu'une puissance existe.
+                    if (numeric != null) {
+                        val isAmbiguous = valueText.contains("k", true) || valueText.contains("m", true)
+                        power = PowerMetric(
+                            puissanceTotaleTexte = valueText,
+                            puissanceTotaleNumerique = numeric.toLong(),
+                            niveauPrisonOuQG = wardenLevel,
+                            incertain = isAmbiguous,
+                            raisonIncertitude = if (isAmbiguous) "Abréviation OCR à confirmer" else null
+                        )
+                    }
                 }
             }
 
