@@ -170,6 +170,21 @@ class GiftCodeRepositoryTest {
     }
 
     @Test
+    fun alreadyUsedIsPlayerStatePreservedWithoutChangingSourceValidity() {
+        val initial = GiftCodeSnapshot(entries = listOf(
+            GiftCodeEntry("LOJ777", "COMMUNITY_LISTED", "Community source")
+        ))
+        val used = GiftCodeRepository.markAsUsed(initial, "loj777", true)
+        val entry = used.entries.single()
+        assertEquals("ALREADY_USED", entry.playerStatus)
+        assertEquals("COMMUNITY_LISTED", entry.status)
+
+        val reset = GiftCodeRepository.markAsUsed(used, "LOJ777", false)
+        assertEquals("", reset.entries.single().playerStatus)
+        assertEquals("COMMUNITY_LISTED", reset.entries.single().status)
+    }
+
+    @Test
     fun parsesSupportedExpiryDateFormatsWithoutGuessingInvalidDates() {
         val entries = listOf(
             GiftCodeEntry("SLASH", "UNVERIFIED", "source", expiresAt = "24/11/2026"),
