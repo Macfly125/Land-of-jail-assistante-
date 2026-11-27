@@ -209,10 +209,10 @@ class LandsOfJailOcrParserTest {
     @Test
     fun acceptsLocalizedPowerLabelsAcrossSupportedGameLanguages() {
         val samples = listOf(
-            "Macht: 8.6M\\nFood: 12.4M" to 8_600_000L,
-            "Güç: 7.2M\\nWood: 4.1M" to 7_200_000L,
-            "мощь: 950000\\nSteel: 3.1M" to 950_000L,
-            "战力: 12M\\nFood: 1200" to 12_000_000L
+            "Macht: 8.6M\nFood: 12.4M" to 8_600_000L,
+            "Güç: 7.2M\nWood: 4.1M" to 7_200_000L,
+            "мощь: 950000\nSteel: 3.1M" to 950_000L,
+            "战力: 12M\nFood: 1200" to 12_000_000L
         )
         samples.forEach { (sample, expected) ->
             val result = LandsOfJailOcrParser.parseLocalOcrText(sample)
