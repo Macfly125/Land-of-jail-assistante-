@@ -286,12 +286,16 @@ object LandsOfJailOcrParser {
                 if (match != null) {
                     // « Fuel » peut désigner la ressource Essence ou le carburant
                     // d'un écran Sandsea. Seul, ce mot ne suffit pas à créer un stock.
-                    val isAmbiguousFuelOnly = resLabel == "Essence (Gasoline)" &&
-                        Regex("""^fuel\b""", RegexOption.IGNORE_CASE).containsMatchIn(line) &&
-                        !Regex(
-                            """\b(gasoline|essence|benzina|carburante|benzin|汽油|бензин)\b""",
-                            RegexOption.IGNORE_CASE
-                        ).containsMatchIn(line)
+                    val isFuelLabel = resLabel == "Essence (Gasoline)" &&
+                        Regex("""^fuel\b""", RegexOption.IGNORE_CASE).containsMatchIn(line)
+                    val hasSandseaContext = Regex(
+                        """\b(sandsea|vessel\s+station|lighthouse|sandmeer|schiffsstation|leuchtturm|kum\s+denizi|gemi\s+istasyonu|deniz\s+feneri|песчаное\s+море|станция\s+судов|маяк)\b|沙海|船只站|灯塔""",
+                        RegexOption.IGNORE_CASE
+                    ).containsMatchIn(rawText)
+                    val hasOtherResourceLabel = resourcePatterns
+                        .filter { it.first != "Essence (Gasoline)" }
+                        .any { (_, resourceRegex) -> resourceRegex.containsMatchIn(rawText) }
+                    val isAmbiguousFuelOnly = isFuelLabel && (hasSandseaContext || !hasOtherResourceLabel)
                     if (isAmbiguousFuelOnly) continue
                     val inlineQuantity = match.groupValues.drop(1).firstOrNull { it.isNotBlank() }?.trim()
                     val nextLineQuantity = (index + 1..minOf(lines.lastIndex, index + 2))
