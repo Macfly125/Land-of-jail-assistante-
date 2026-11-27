@@ -95,11 +95,23 @@ class ScreenRecognitionEngineTest {
     }
 
     @Test
-    fun ambiguousFelonLabelRequiresVisualConfirmation() {
+    fun ambiguousFelonLabelIsNotForcedIntoAnArbitraryCategory() {
         val result = ScreenRecognitionEngine.analyze("Felon")
 
-        assertTrue(result.category == "dungeon" || result.category == "arrest")
-        assertTrue(result.alternativeCategories.isNotEmpty())
+        assertEquals("ocr_local", result.category)
+        assertTrue(result.alternativeCategories.contains("dungeon"))
+        assertTrue(result.alternativeCategories.contains("arrest"))
+        assertTrue(result.needsVisualConfirmation)
+        assertEquals(0.52f, result.confidence, 0.0001f)
+    }
+
+    @Test
+    fun tiedDungeonAndArrestEvidenceRemainsUnclassified() {
+        val result = ScreenRecognitionEngine.analyze("Felon\nCriminal Prisoner")
+
+        assertEquals("ocr_local", result.category)
+        assertTrue(result.alternativeCategories.contains("dungeon"))
+        assertTrue(result.alternativeCategories.contains("arrest"))
         assertTrue(result.needsVisualConfirmation)
     }
 
