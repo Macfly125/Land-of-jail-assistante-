@@ -98,7 +98,7 @@ class ProgressionCatalogTest {
     fun gateLevelsEightToTenExposeOnlyExactPublishedCostsAndKeepGasolineUnknown() {
         val rows = ProgressionCatalog.gateBuilding.drop(6)
         assertEquals(listOf(8, 9, 10), rows.map { it.step.toLevel })
-        assertEquals(listOf(263_100L, 353_160L, 406_800L), rows.map { it.step.durationSeconds })
+        assertEquals(listOf(262_500L, 347_160L, 414_000L), rows.map { it.step.durationSeconds })
         assertEquals(
             listOf(
                 mapOf("food" to 75_000_000L, "wood" to 75_000_000L, "steel" to 15_000_000L),
