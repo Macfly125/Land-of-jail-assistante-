@@ -32,12 +32,13 @@ internal data class UsageEventSnapshot(
  * was opened earlier but has since been left.
  */
 internal fun resolveForegroundPackage(events: List<UsageEventSnapshot>): String? {
-    val lastResumeIndex = events.indexOfLast { it.kind == UsageEventKind.RESUMED }
+    val orderedEvents = events.sortedBy { it.timestamp }
+    val lastResumeIndex = orderedEvents.indexOfLast { it.kind == UsageEventKind.RESUMED }
     if (lastResumeIndex < 0) return null
 
-    val resumed = events[lastResumeIndex]
+    val resumed = orderedEvents[lastResumeIndex]
     val packageName = resumed.packageName?.takeIf { it.isNotBlank() } ?: return null
-    val laterEvents = events.drop(lastResumeIndex + 1)
+    val laterEvents = orderedEvents.drop(lastResumeIndex + 1)
 
     val appMovedToBackground = laterEvents.any {
         it.packageName == packageName &&
