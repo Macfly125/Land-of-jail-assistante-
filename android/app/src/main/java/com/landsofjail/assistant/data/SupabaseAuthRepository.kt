@@ -268,19 +268,36 @@ class SupabaseAuthRepository(context: Context) {
             }).getOrThrow()
             result.jsonArray.map { element ->
                 val item = element.jsonObject
+                val memberId = item["member_user_id"]?.jsonPrimitive?.contentOrNull.orEmpty()
+                require(isUuid(memberId)) { "Le serveur a retourné un membre invalide." }
                 val confirmations = item["confirmations"]?.jsonArray.orEmpty().map { confirmation ->
                     val value = confirmation.jsonObject
-                    AllianceProfileConfirmation(
-                        verifierUserId = value["verifier_user_id"]?.jsonPrimitive?.contentOrNull.orEmpty(),
-                        verifierName = value["verifier_name"]?.jsonPrimitive?.contentOrNull ?: "Membre",
-                        verifiedAt = value["verified_at"]?.jsonPrimitive?.contentOrNull.orEmpty()
-                    )
+                    val verifierId = value["verifier_user_id"]?.jsonPrimitive?.contentOrNull.orEmpty()
+                    val verifierName = value["verifier_name"]?.jsonPrimitive?.contentOrNull
+                        ?.trim()?.takeIf { it.isNotEmpty() } ?: "Membre"
+                    val verifiedAt = value["verified_at"]?.jsonPrimitive?.contentOrNull.orEmpty()
+                    require(isUuid(verifierId) && verifierId != memberId) {
+                        "Le serveur a retourné un vérificateur invalide."
+                    }
+                    require(verifiedAt.isNotBlank()) { "Date de vérification absente." }
+                    AllianceProfileConfirmation(verifierId, verifierName, verifiedAt)
                 }
+                val count = item["verification_count"]?.jsonPrimitive?.contentOrNull?.toIntOrNull()
+                    ?: error("Nombre de confirmations invalide.")
+                val verified = item["verified"]?.jsonPrimitive?.contentOrNull?.toBooleanStrictOrNull()
+                    ?: error("Statut de vérification invalide.")
+                require(count in 0..5 && count == confirmations.size) {
+                    "Le nombre de confirmations retourné est incohérent."
+                }
+                require(confirmations.map { it.verifierUserId }.distinct().size == confirmations.size) {
+                    "Le serveur a retourné des confirmations en double."
+                }
+                require(verified == (count >= 2)) { "Le statut de vérification est incohérent." }
                 AllianceProfileVerification(
-                    memberUserId = item["member_user_id"]?.jsonPrimitive?.contentOrNull.orEmpty(),
+                    memberUserId = memberId,
                     profileUpdatedAt = item["profile_updated_at"]?.jsonPrimitive?.contentOrNull,
-                    confirmationCount = item["verification_count"]?.jsonPrimitive?.contentOrNull?.toIntOrNull() ?: 0,
-                    verified = item["verified"]?.jsonPrimitive?.contentOrNull?.toBooleanStrictOrNull() ?: false,
+                    confirmationCount = count,
+                    verified = verified,
                     confirmations = confirmations
                 )
             }
@@ -301,11 +318,16 @@ class SupabaseAuthRepository(context: Context) {
                 put("p_alliance_id", normalizedAllianceId)
                 put("p_member_user_id", normalizedMemberId)
             }).getOrThrow().jsonObject
-            AllianceProfileVerificationResult(
-                confirmationCount = result["count"]?.jsonPrimitive?.contentOrNull?.toIntOrNull() ?: 0,
-                verified = result["verified"]?.jsonPrimitive?.contentOrNull?.toBooleanStrictOrNull() ?: false,
-                alreadyConfirmed = result["already_confirmed"]?.jsonPrimitive?.contentOrNull?.toBooleanStrictOrNull() ?: false
-            )
+            val count = result["count"]?.jsonPrimitive?.contentOrNull?.toIntOrNull()
+                ?: error("Nombre de confirmations invalide.")
+            val verified = result["verified"]?.jsonPrimitive?.contentOrNull?.toBooleanStrictOrNull()
+                ?: error("Statut de vérification invalide.")
+            val alreadyConfirmed = result["already_confirmed"]?.jsonPrimitive?.contentOrNull?.toBooleanStrictOrNull()
+                ?: error("Résultat de confirmation invalide.")
+            require(count in 0..5 && verified == (count >= 2)) {
+                "Le résultat de vérification retourné est incohérent."
+            }
+            AllianceProfileVerificationResult(count, verified, alreadyConfirmed)
         }
     }
 
