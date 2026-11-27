@@ -387,6 +387,8 @@ private fun ProgressionCatalogGoalCard(
             "Hassas Dişliler", "Прецизионные шестерни", "精密齿轮", "Ingranaggi di precisione")
         "hero shards" -> text("Fragments de héros", "Hero Shards", "Heldenfragmente",
             "Kahraman Parçaları", "Осколки героев", "英雄碎片", "Frammenti eroe")
+        "forticlad cores" -> text("Noyaux Forticlad", "Forticlad Cores", "Forticlad-Kerne", "Forticlad Çekirdekleri", "Ядра Forticlad", "Forticlad 核心", "Nuclei Forticlad")
+        "advanced forticlad cores" -> text("Noyaux Forticlad avancés", "Advanced Forticlad Cores", "Erweiterte Forticlad-Kerne", "Gelişmiş Forticlad Çekirdekleri", "Улучшенные ядра Forticlad", "高级 Forticlad 核心", "Nuclei Forticlad avanzati")
         else -> resourceId
     }
 
@@ -1256,6 +1258,8 @@ fun ProgressionCoachScreen(
                         "gasoline" -> text("Essence", "Gasoline", "Benzin", "Benzin", "Бензин", "汽油", "Benzina")
                         "gold" -> text("Argent liquide", "Cash", "Bargeld", "Nakit", "Наличные", "现金", "Contanti")
                         "diamonds" -> text("Diamants", "Diamonds", "Diamanten", "Elmas", "Алмазы", "钻石", "Diamanti")
+                        "forticlad cores" -> text("Noyaux Forticlad", "Forticlad Cores", "Forticlad-Kerne", "Forticlad Çekirdekleri", "Ядра Forticlad", "Forticlad 核心", "Nuclei Forticlad")
+                        "advanced forticlad cores" -> text("Noyaux Forticlad avancés", "Advanced Forticlad Cores", "Erweiterte Forticlad-Kerne", "Gelişmiş Forticlad Çekirdekleri", "Улучшенные ядра Forticlad", "高级 Forticlad 核心", "Nuclei Forticlad avanzati")
                         else -> stock.resourceId
                     }
                     Text("$resourceLabel: ${NumberFormat.getIntegerInstance().format(stock.quantity)}")
