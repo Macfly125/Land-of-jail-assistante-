@@ -836,15 +836,25 @@ object LandsOfJailOcrParser {
     }
 
     private fun parseCompactNumeric(text: String): Double? {
-        val cleaned = text.trim().lowercase().replace(Regex("\\s+"), "")
-        if (cleaned.isEmpty()) return null
-        val suffix = cleaned.lastOrNull()?.takeIf { it in listOf('k', 'm', 'b') }
+        val original = text.trim().lowercase()
+        if (original.isEmpty()) return null
+        val suffix = original.lastOrNull()?.takeIf { it in listOf('k', 'm', 'b') }
         val multiplier = when (suffix) {
             'b' -> 1_000_000_000.0
             'm' -> 1_000_000.0
             'k' -> 1_000.0
             else -> 1.0
         }
+        val spacedNumber = if (suffix != null) original.dropLast(1) else original
+        if (spacedNumber.any(Char::isWhitespace)) {
+            val groups = spacedNumber.trim().split(Regex("\\s+"))
+            val validFirstGroup = groups.firstOrNull()?.matches(Regex("[0-9]{1,3}")) == true
+            val validFollowingGroups = groups.drop(1).all { group ->
+                Regex("[0-9]{3}(?:[.,][0-9]+)?").matches(group)
+            }
+            if (!validFirstGroup || !validFollowingGroups) return null
+        }
+        val cleaned = original.replace(Regex("\\s+"), "")
         val rawNumber = if (suffix != null) cleaned.dropLast(1) else cleaned
         if (rawNumber.isEmpty() || !Regex("[0-9.,]+").matches(rawNumber)) return null
 
