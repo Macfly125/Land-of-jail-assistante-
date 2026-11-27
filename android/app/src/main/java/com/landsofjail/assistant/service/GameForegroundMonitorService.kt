@@ -383,14 +383,15 @@ class GameForegroundMonitorService : Service() {
 
                     val savedUri = saveCaptureToInternalFile(jpegBytes)
 
-                    ScreenCaptureConsentActivity.publishCapture(
+                    check(ScreenCaptureConsentActivity.publishCapture(
+                        this@GameForegroundMonitorService,
                         CapturedScreenPayload(
                             bitmap = cropped,
                             base64Jpeg = base64,
                             capturedAtMillis = System.currentTimeMillis(),
                             imageFileUri = savedUri
                         )
-                    )
+                    )) { "Une capture précédente est encore en attente d'analyse" }
                     // Le bitmap est maintenant détenu par le payload affiché dans l'interface.
                     bitmapAwaitingTransfer = null
                 } catch (_: Throwable) {
@@ -545,14 +546,15 @@ class GameForegroundMonitorService : Service() {
                 autoCaptureAwaitingAnalysis = true
                 nextAutoCaptureAtMillis = now + autoCaptureIntervalMillis
                 Handler(Looper.getMainLooper()).post { updateAutoCaptureSurface(_detectedGameForeground.value) }
-                ScreenCaptureConsentActivity.publishCapture(
+                check(ScreenCaptureConsentActivity.publishCapture(
+                    this@GameForegroundMonitorService,
                     CapturedScreenPayload(
                         bitmap = cropped,
                         base64Jpeg = base64,
                         capturedAtMillis = now,
                         imageFileUri = savedUri
                     )
-                )
+                )) { "Une capture précédente est encore en attente d'analyse" }
                 // Le bitmap appartient désormais au payload consommé par l'interface.
                 bitmapAwaitingTransfer = null
             } catch (_: Throwable) {
@@ -676,15 +678,7 @@ class GameForegroundMonitorService : Service() {
                 return ""
             }
             val uri = Uri.fromFile(outFile).toString()
-            val persisted = getSharedPreferences("loj_capture_state", Context.MODE_PRIVATE)
-                .edit()
-                .putString("pending_capture_uri", uri)
-                .putLong("pending_capture_at", timestamp)
-                .commit()
-            if (!persisted) {
-                outFile.delete()
-                return ""
-            }
+            // La publication du payload enregistre aussi son URI de façon atomique.
             // Nettoyer les captures très anciennes (garder les 30 plus récentes).
             dir.listFiles()?.filter { it.isFile && it.extension.equals("jpg", ignoreCase = true) }
                 ?.sortedByDescending { it.lastModified() }?.drop(30)?.forEach { it.delete() }
