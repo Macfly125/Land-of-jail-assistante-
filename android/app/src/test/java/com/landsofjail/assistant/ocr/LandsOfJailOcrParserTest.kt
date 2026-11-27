@@ -731,6 +731,16 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun acceptsFuelAsResourceWhenAnotherResourceConfirmsTheResourcePanel() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            "Fuel: 1200\nFood: 5000"
+        )
+        assertTrue("Fuel doit pouvoir être reconnu dans un panneau de ressources",
+            result.resources.any { it.nom == "Essence (Gasoline)" && it.quantiteNumerique == 1200.0 })
+        assertTrue(result.resources.any { it.nom == "Nourriture (Food)" && it.quantiteNumerique == 5000.0 })
+    }
+
+    @Test
     fun readsResourceQuantitiesOnTheLineAfterTheirLabels() {
         val result = LandsOfJailOcrParser.parseLocalOcrText(
             """Nahrung
