@@ -515,7 +515,12 @@ class GameForegroundMonitorService : Service() {
             return
         }
 
-        val captureThread = HandlerThread("LojAutoCaptureFrames").apply { start() }
+        val captureThread = try {
+            HandlerThread("LojAutoCaptureFrames").apply { start() }
+        } catch (_: Throwable) {
+            handleAutoProjectionStopped()
+            return
+        }
         autoCaptureHandlerThread = captureThread
         reader.setOnImageAvailableListener({ imageReader ->
             val image = imageReader.acquireLatestImage() ?: return@setOnImageAvailableListener
