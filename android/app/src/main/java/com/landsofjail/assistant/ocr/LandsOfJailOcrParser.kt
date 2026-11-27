@@ -835,6 +835,7 @@ object LandsOfJailOcrParser {
 
     private fun parseCompactNumeric(text: String): Double? {
         val cleaned = text.trim().lowercase().replace(Regex("\\s+"), "")
+        if (cleaned.isEmpty()) return null
         val suffix = cleaned.lastOrNull()?.takeIf { it in listOf('k', 'm', 'b') }
         val multiplier = when (suffix) {
             'b' -> 1_000_000_000.0
@@ -843,24 +844,40 @@ object LandsOfJailOcrParser {
             else -> 1.0
         }
         val rawNumber = if (suffix != null) cleaned.dropLast(1) else cleaned
-        // Sans suffixe, les groupes de trois chiffres séparés par . ou , sont des milliers
-        // (ex. 8,450,120 ou 8.450.120), pas des décimales.
+        if (rawNumber.isEmpty() || !Regex("[0-9.,]+").matches(rawNumber)) return null
+
         val hasComma = rawNumber.contains(',')
         val hasDot = rawNumber.contains('.')
         val normalized = when {
-            // Les deux séparateurs indiquent un format localisé mixte :
-            // le dernier est décimal, les précédents sont des séparateurs de milliers.
+            // En format mixte, le dernier séparateur est décimal ; les groupes
+            // précédents doivent être des milliers de trois chiffres.
             hasComma && hasDot -> {
                 val decimalIndex = rawNumber.lastIndexOfAny(charArrayOf(',', '.'))
-                rawNumber.substring(0, decimalIndex).replace(Regex("[.,]"), "") +
-                    "." + rawNumber.substring(decimalIndex + 1)
+                val integerPart = rawNumber.substring(0, decimalIndex)
+                val decimalPart = rawNumber.substring(decimalIndex + 1)
+                val groups = integerPart.split(',', '.')
+                if (groups.isEmpty() || groups.first().length !in 1..3 ||
+                    groups.drop(1).any { it.length != 3 } ||
+                    decimalPart.isEmpty() || !decimalPart.all(Char::isDigit)
+                ) return null
+                groups.joinToString("") + "." + decimalPart
             }
-            // Sans suffixe, les groupes de trois chiffres séparés par . ou , sont des milliers.
-            suffix == null && Regex("\\d{1,3}(?:[.,]\\d{3})+").matches(rawNumber) ->
-                rawNumber.replace(Regex("[.,]"), "")
-            else -> rawNumber.replace(",", ".")
+            // Plusieurs séparateurs identiques ne sont valides que comme groupement milliers.
+            hasComma || hasDot -> {
+                val separator = if (hasComma) ',' else '.'
+                val groups = rawNumber.split(separator)
+                if (groups.any { it.isEmpty() }) return null
+                if (groups.size > 2 || (groups.size == 2 && groups[1].length != 3)) {
+                    if (groups.first().length !in 1..3 || groups.drop(1).any { it.length != 3 }) return null
+                    groups.joinToString("")
+                } else if (groups.size == 2 && suffix == null && groups[1].length == 3) {
+                    groups.joinToString("")
+                } else {
+                    groups.joinToString(".")
+                }
+            }
+            else -> rawNumber
         }
-        val numPart = normalized.replace(Regex("[^0-9.]"), "")
-        return numPart.toDoubleOrNull()?.times(multiplier)
+        return normalized.toDoubleOrNull()?.times(multiplier)
     }
 }
