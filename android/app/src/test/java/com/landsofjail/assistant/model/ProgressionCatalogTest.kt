@@ -120,6 +120,27 @@ class ProgressionCatalogTest {
     }
 
     @Test
+    fun commandCenterCatalogIncludesExactKNotationThroughLevelTen() {
+        val rows = ProgressionCatalog.commandCenterBuilding
+        assertEquals((2..10).toList(), rows.map { it.step.toLevel })
+        assertTrue(rows.all { it.step.dataComplete })
+        assertEquals(
+            listOf(8L, 34L, 105L, 215L, 430L, 840L, 1_290L, 1_920L, 2_580L),
+            rows.map { it.step.durationSeconds }
+        )
+        assertEquals(17_500L, rows.single { it.step.toLevel == 9 }
+            .step.costs.single { it.resourceId == "gasoline" }.quantity)
+        assertEquals(32_500L, rows.single { it.step.toLevel == 10 }
+            .step.costs.single { it.resourceId == "gasoline" }.quantity)
+        assertTrue(rows.all { row ->
+            row.step.costs.all {
+                it.confidence == CostConfidence.COMMUNITY_REFERENCE &&
+                    it.sourceUrl == ProgressionCatalog.COMMAND_CENTER_SOURCE
+            }
+        })
+    }
+
+    @Test
     fun fiveAdditionalBuildingCatalogsContainOnlyPublishedExactEarlyLevels() {
         val catalogs = listOf(
             Triple(ProgressionCatalog.kitchenBuilding, ProgressionCatalog.KITCHEN_SOURCE, 7),
