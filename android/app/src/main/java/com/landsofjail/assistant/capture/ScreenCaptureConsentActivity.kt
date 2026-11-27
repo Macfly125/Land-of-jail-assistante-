@@ -90,6 +90,7 @@ class ScreenCaptureConsentActivity : ComponentActivity() {
             }.getOrNull()
         }
 
+        @Synchronized
         fun restorePendingCapture(context: Context) {
             if (_pendingCapture.value != null) return
             val prefs = context.getSharedPreferences(PREFS_CAPTURE, Context.MODE_PRIVATE)
@@ -136,6 +137,7 @@ class ScreenCaptureConsentActivity : ComponentActivity() {
             }
         }
 
+        @Synchronized
         fun consumeCapture(context: Context) {
             val consumed = _pendingCapture.value
             _pendingCapture.value = null
