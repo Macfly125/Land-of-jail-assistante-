@@ -531,7 +531,7 @@ class SupabaseAuthRepository(context: Context) {
     private suspend fun callAllianceRpc(functionName: String, payload: kotlinx.serialization.json.JsonObject): Result<String> =
         withContext(Dispatchers.IO) {
             runCatching {
-                require(functionName in setOf("is_app_developer", "submit_app_improvement", "review_app_improvement", "create_alliance_as_r5", "transfer_alliance_r5", "create_alliance_invite", "accept_alliance_invite", "submit_alliance_join_request", "review_alliance_join_request")) {
+                require(functionName in setOf("is_app_developer", "submit_app_improvement", "review_app_improvement", "create_alliance_as_r5", "transfer_alliance_r5", "create_alliance_invite", "accept_alliance_invite", "submit_alliance_join_request", "review_alliance_join_request", "post_alliance_message", "delete_alliance_message", "set_alliance_member_rank")) {
                     "Action d'alliance non autorisée."
                 }
                 require(payload.toString().length <= 4096) { "Données d'invitation trop longues." }
