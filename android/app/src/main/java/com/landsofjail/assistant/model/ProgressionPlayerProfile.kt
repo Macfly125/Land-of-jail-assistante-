@@ -102,6 +102,7 @@ fun canonicalProgressionResourceId(rawId: String): String {
         .replace("é", "e").replace("è", "e").replace("ê", "e")
         .replace("à", "a").replace("â", "a").replace("î", "i")
         .replace("ô", "o").replace("û", "u").replace("ç", "c")
+        .replace("ı", "i").replace("ş", "s").replace("ğ", "g").replace("ü", "u").replace("ö", "o")
         .replace(Regex("[^a-z0-9]+"), " ")
         .trim()
         .replace(Regex("\\s+"), " ")
@@ -119,7 +120,7 @@ fun canonicalProgressionResourceId(rawId: String): String {
         "power modules", "module de puissance", "modules de puissance" -> "power modules"
         "advanced power modules", "modules de puissance avances", "module de puissance avance" -> "advanced power modules"
         "forticlad cores", "forticlad core", "forticlad nuclei", "noyaux forticlad", "noyau forticlad", "forticlad kerne", "forticlad cekirdekleri", "nuclei forticlad" -> "forticlad cores"
-        "advanced forticlad cores", "advanced forticlad core", "advanced forticlad nuclei", "noyaux forticlad avances", "noyaux avances forticlad", "advanced cores", "erweiterte forticlad kerne", "gelişmiş çekirdekler", "nuclei forticlad avanzati" -> "advanced forticlad cores"
+        "advanced forticlad cores", "advanced forticlad core", "advanced forticlad nuclei", "noyaux forticlad avances", "noyaux avances forticlad", "advanced cores", "erweiterte forticlad kerne", "gelismis cekirdekler", "gelismis forticlad cekirdekleri", "nuclei forticlad avanzati" -> "advanced forticlad cores"
         "core chips", "puces de noyau", "puces noyau" -> "core chips"
         "equipment exp", "exp equipement", "experience equipement" -> "equipment exp"
         "magnets", "aimants", "magneti" -> "magnets"
