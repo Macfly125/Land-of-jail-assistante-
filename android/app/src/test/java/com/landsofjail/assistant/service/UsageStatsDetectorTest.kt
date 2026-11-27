@@ -7,6 +7,33 @@ import org.junit.Test
 class UsageStatsDetectorTest {
 
     @Test
+    fun marksExplicitPauseAsForegroundExit() {
+        val events = listOf(
+            UsageEventSnapshot("com.justgame.jails", UsageEventKind.RESUMED, 100L),
+            UsageEventSnapshot("com.justgame.jails", UsageEventKind.PAUSED, 200L)
+        )
+        assertNull(resolveForegroundPackage(events))
+        org.junit.Assert.assertEquals(true, hasExplicitForegroundExit(events))
+    }
+
+    @Test
+    fun doesNotMarkAnEmptyEventWindowAsForegroundExit() {
+        assertEquals(false, hasExplicitForegroundExit(emptyList()))
+        assertEquals(false, hasExplicitForegroundExit(
+            listOf(UsageEventSnapshot("com.justgame.jails", UsageEventKind.RESUMED, 100L))
+        ))
+    }
+
+    @Test
+    fun marksScreenLockAsForegroundExit() {
+        val events = listOf(
+            UsageEventSnapshot("com.justgame.jails", UsageEventKind.RESUMED, 100L),
+            UsageEventSnapshot("android", UsageEventKind.KEYGUARD_SHOWN, 200L)
+        )
+        assertEquals(true, hasExplicitForegroundExit(events))
+    }
+
+    @Test
     fun returnsMostRecentlyResumedPackage() {
         val result = resolveForegroundPackage(
             listOf(
