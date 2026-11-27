@@ -724,6 +724,15 @@ class GameForegroundMonitorService : Service() {
         val tempFile = File(dir, "capture_$timestamp.jpg.tmp")
         return try {
             if (!dir.exists() && !dir.mkdirs()) return ""
+            // Supprimer les fichiers temporaires abandonnés depuis plus de 24 h
+            // après un arrêt brutal, sans toucher aux captures JPG valides.
+            val staleTempCutoff = System.currentTimeMillis() - 24L * 60L * 60L * 1000L
+            dir.listFiles()
+                ?.filter {
+                    it.isFile && it.name.startsWith("capture_") &&
+                        it.name.endsWith(".jpg.tmp") && it.lastModified() < staleTempCutoff
+                }
+                ?.forEach { it.delete() }
             // Écrire d'abord dans un fichier temporaire pour qu'un arrêt brutal
             // ne laisse jamais une capture partiellement écrite référencée comme valide.
             FileOutputStream(tempFile).use { fos ->
