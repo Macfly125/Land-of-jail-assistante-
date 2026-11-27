@@ -380,7 +380,10 @@ class SupabaseAuthRepository(context: Context) {
                         AllianceJoinRequest(
                             id = obj["id"]?.jsonPrimitive?.contentOrNull.orEmpty(),
                             playerName = obj["player_name"]?.jsonPrimitive?.contentOrNull.orEmpty(),
-                            requestedRank = obj["requested_rank"]?.jsonPrimitive?.contentOrNull ?: "R1",
+                            requestedRank = obj["requested_rank"]?.jsonPrimitive?.contentOrNull
+                                ?.uppercase()
+                                ?.takeIf { it in setOf("R1", "R2", "R3", "R4", "R5") }
+                                ?: "R1",
                             createdAt = obj["created_at"]?.jsonPrimitive?.contentOrNull.orEmpty()
                         )
                     }
