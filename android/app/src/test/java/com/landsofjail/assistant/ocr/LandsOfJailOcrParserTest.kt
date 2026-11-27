@@ -1393,7 +1393,7 @@ Potential Coil x 8"""
 
     @Test
     fun doesNotStoreForticladLabLevelAsHeadquartersLevel() {
-        val result = LandsOfJailOcrParser.parseLocalOcrText("Forticlad Lab\\nLevel 6")
+        val result = LandsOfJailOcrParser.parseLocalOcrText("Forticlad Lab\nLevel 6")
 
         assertEquals("forticlad_lab", result.detectedCategory)
         assertNull("Le niveau du laboratoire Forticlad ne doit pas devenir le niveau du QG", result.power)
