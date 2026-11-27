@@ -10,9 +10,49 @@ import android.os.Build
 import android.os.Process
 import android.provider.Settings
 
+internal enum class UsageEventKind {
+    RESUMED,
+    PAUSED,
+    STOPPED,
+    SCREEN_NON_INTERACTIVE,
+    KEYGUARD_SHOWN,
+    OTHER
+}
+
+internal data class UsageEventSnapshot(
+    val packageName: String?,
+    val kind: UsageEventKind,
+    val timestamp: Long
+)
+
+/**
+ * Resolves the latest foreground activity from chronological UsageEvents.
+ * A stale lastTimeUsed value is deliberately not treated as proof that an app
+ * is still visible: queryUsageStats is aggregated and can describe an app that
+ * was opened earlier but has since been left.
+ */
+internal fun resolveForegroundPackage(events: List<UsageEventSnapshot>): String? {
+    val lastResumeIndex = events.indexOfLast { it.kind == UsageEventKind.RESUMED }
+    if (lastResumeIndex < 0) return null
+
+    val resumed = events[lastResumeIndex]
+    val packageName = resumed.packageName?.takeIf { it.isNotBlank() } ?: return null
+    val laterEvents = events.drop(lastResumeIndex + 1)
+
+    val appMovedToBackground = laterEvents.any {
+        it.packageName == packageName &&
+            (it.kind == UsageEventKind.PAUSED || it.kind == UsageEventKind.STOPPED)
+    }
+    val deviceBecameInactive = laterEvents.any {
+        it.kind == UsageEventKind.SCREEN_NON_INTERACTIVE ||
+            it.kind == UsageEventKind.KEYGUARD_SHOWN
+    }
+
+    return packageName.takeUnless { appMovedToBackground || deviceBecameInactive }
+}
+
 object UsageStatsDetector {
 
-    // Vrai identifiant Google Play de Lands of Jail (Just Game Technology)
     const val DEFAULT_GAME_PACKAGE_KEYWORD = "com.justgame.jails"
 
     fun hasUsageStatsPermission(context: Context): Boolean {
@@ -52,49 +92,38 @@ object UsageStatsDetector {
     }
 
     /**
-     * Retourne le package actuellement au premier plan via UsageStatsManager.
-     * Combine queryEvents (fenêtre large 2 min) et queryUsageStats (dernier usage actif)
-     * afin de ne pas perdre l'état quand le joueur reste longtemps dans le jeu sans changer d'écran.
+     * Reads actual foreground/background events. The caller can use a wide
+     * initial window, then a short rolling window while retaining the last
+     * confirmed package between polls.
      */
     fun getRecentForegroundPackage(context: Context, windowMs: Long = 120_000L): String? {
         if (!hasUsageStatsPermission(context)) return null
         val usm = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
         val endTime = System.currentTimeMillis()
-        val startTime = endTime - windowMs
-
-        val events = usm.queryEvents(startTime, endTime)
+        val events = usm.queryEvents(endTime - windowMs.coerceAtLeast(1_000L), endTime)
+            ?: return null
+        val snapshots = mutableListOf<UsageEventSnapshot>()
         val event = UsageEvents.Event()
-        var latestPackage: String? = null
-        var latestTimestamp = 0L
 
         while (events.hasNextEvent()) {
             events.getNextEvent(event)
-            val isForegroundEvent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                event.eventType == UsageEvents.Event.ACTIVITY_RESUMED
-            } else {
-                @Suppress("DEPRECATION")
-                event.eventType == UsageEvents.Event.MOVE_TO_FOREGROUND
+            val kind = when (event.eventType) {
+                UsageEvents.Event.ACTIVITY_RESUMED -> UsageEventKind.RESUMED
+                UsageEvents.Event.ACTIVITY_PAUSED,
+                UsageEvents.Event.MOVE_TO_BACKGROUND -> UsageEventKind.PAUSED
+                else -> when {
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
+                        event.eventType == UsageEvents.Event.ACTIVITY_STOPPED -> UsageEventKind.STOPPED
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.P &&
+                        event.eventType == UsageEvents.Event.SCREEN_NON_INTERACTIVE -> UsageEventKind.SCREEN_NON_INTERACTIVE
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.P &&
+                        event.eventType == UsageEvents.Event.KEYGUARD_SHOWN -> UsageEventKind.KEYGUARD_SHOWN
+                    else -> UsageEventKind.OTHER
+                }
             }
-            if (isForegroundEvent && event.timeStamp >= latestTimestamp) {
-                latestTimestamp = event.timeStamp
-                latestPackage = event.packageName
-            }
+            snapshots += UsageEventSnapshot(event.packageName, kind, event.timeStamp)
         }
-
-        if (!latestPackage.isNullOrBlank()) {
-            return latestPackage
-        }
-
-        // Repli sur queryUsageStats si aucun nouvel événement ACTIVITY_RESUMED n'a eu lieu récemment
-        val stats = usm.queryUsageStats(
-            UsageStatsManager.INTERVAL_DAILY,
-            endTime - 600_000L,
-            endTime
-        )
-        return stats
-            ?.filter { it.lastTimeUsed > 0L }
-            ?.maxByOrNull { it.lastTimeUsed }
-            ?.packageName
+        return resolveForegroundPackage(snapshots)
     }
 
     fun isLandsOfJailPackage(packageName: String?, targetFilter: String): Boolean {
