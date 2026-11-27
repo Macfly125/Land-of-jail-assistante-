@@ -310,14 +310,16 @@ object LandsOfJailOcrParser {
                             }
                         }
                     val qtyText = inlineQuantity ?: nextLineQuantity ?: continue
+                    val numericQuantity = parseCompactNumeric(qtyText) ?: continue
                     seenResKeys.add(resLabel)
+                    val isAbbreviated = qtyText.contains(Regex("[kmb]$", RegexOption.IGNORE_CASE))
                     resources.add(
                         ResourceRecord(
                             nom = resLabel,
                             quantiteTexte = qtyText,
-                            quantiteNumerique = parseCompactNumeric(qtyText),
-                            incertain = qtyText.contains(Regex("[kmb]$", RegexOption.IGNORE_CASE)) || parseCompactNumeric(qtyText) == null,
-                            raisonIncertitude = if (qtyText.contains(Regex("[kmb]$", RegexOption.IGNORE_CASE))) "Valeur OCR locale abrégée" else if (parseCompactNumeric(qtyText) == null) "Valeur numérique non interprétable" else null
+                            quantiteNumerique = numericQuantity,
+                            incertain = isAbbreviated,
+                            raisonIncertitude = if (isAbbreviated) "Valeur OCR locale abrégée" else null
                         )
                     )
                 }
