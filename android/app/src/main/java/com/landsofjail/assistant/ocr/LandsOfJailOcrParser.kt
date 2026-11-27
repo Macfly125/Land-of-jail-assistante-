@@ -283,7 +283,7 @@ object LandsOfJailOcrParser {
                     } else {
                         // Une valeur correctement groupée mais supérieure à Long.MAX_VALUE
                         // reste visible comme mesure incertaine, sans conversion numérique.
-                        val isGroupedInteger = Regex("""^[0-9]{1,3}(?:[,\\.][0-9]{3}){2,}$""")
+                        val isGroupedInteger = Regex("""^[0-9]{1,3}(?:[,.][0-9]{3}){2,}$""")
                             .matches(valueText)
                         val digits = valueText.filter(Char::isDigit)
                         val exceedsLongRange = isGroupedInteger &&
