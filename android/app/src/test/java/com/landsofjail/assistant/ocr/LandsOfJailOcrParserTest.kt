@@ -1412,6 +1412,24 @@ Potential Coil x 8"""
     }
 
     @Test
+    fun localizedBuildingPanelsStopRobotLevelContext() {
+        val buildingLabels = listOf(
+            "Cucina", "Küche", "Mutfak", "Кухня", "厨房",
+            "Lagerhaus", "Depo", "Склад", "仓库",
+            "Kaserne", "Kışla", "Казармы", "兵营"
+        )
+
+        buildingLabels.forEach { label ->
+            val result = LandsOfJailOcrParser.parseLocalOcrText(
+                "Phantom Cat\n$label\nLevel 6"
+            )
+            val robot = result.robots.single { it.nom == "Phantom Cat" }
+            assertTrue("Le niveau du panneau '$label' ne doit pas être attribué au robot", robot.niveau.isBlank())
+            assertTrue(robot.incertain)
+        }
+    }
+
+    @Test
     fun keepsRobotLevelWhenItBelongsToTheRobotCard() {
         val result = LandsOfJailOcrParser.parseLocalOcrText(
             "Phantom Cat\nLevel 90\nPower 120"
