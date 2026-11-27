@@ -50,7 +50,12 @@ import kotlin.math.abs
  */
 internal fun cropFrameBitmap(fullBitmap: Bitmap, width: Int, height: Int): Bitmap {
     require(width > 0 && height > 0 && width <= fullBitmap.width && height <= fullBitmap.height)
-    val cropped = Bitmap.createBitmap(fullBitmap, 0, 0, width, height)
+    val cropped = try {
+        Bitmap.createBitmap(fullBitmap, 0, 0, width, height)
+    } catch (error: Throwable) {
+        if (!fullBitmap.isRecycled) fullBitmap.recycle()
+        throw error
+    }
     if (cropped !== fullBitmap) fullBitmap.recycle()
     return cropped
 }
@@ -337,6 +342,7 @@ class GameForegroundMonitorService : Service() {
                 val image = r.acquireLatestImage() ?: return@setOnImageAvailableListener
                 attempts++
                 var bitmapAwaitingTransfer: Bitmap? = null
+                var sourceBitmapAwaitingRelease: Bitmap? = null
                 try {
                     val plane = image.planes[0]
                     val buffer = plane.buffer
@@ -349,8 +355,10 @@ class GameForegroundMonitorService : Service() {
                         height,
                         Bitmap.Config.ARGB_8888
                     )
+                    sourceBitmapAwaitingRelease = fullBitmap
                     fullBitmap.copyPixelsFromBuffer(buffer)
                     val cropped = cropFrameBitmap(fullBitmap, width, height)
+                    sourceBitmapAwaitingRelease = null
                     bitmapAwaitingTransfer = cropped
 
                     // Si le tout premier frame est entièrement noir et qu'on a encore le temps, attendre le suivant
@@ -390,6 +398,9 @@ class GameForegroundMonitorService : Service() {
                     }
                     bitmapAwaitingTransfer = null
                 } finally {
+                    sourceBitmapAwaitingRelease?.let { bitmap ->
+                        if (!bitmap.isRecycled) bitmap.recycle()
+                    }
                     bitmapAwaitingTransfer?.let { bitmap ->
                         if (!bitmap.isRecycled) bitmap.recycle()
                     }
@@ -480,6 +491,7 @@ class GameForegroundMonitorService : Service() {
         reader.setOnImageAvailableListener({ imageReader ->
             val image = imageReader.acquireLatestImage() ?: return@setOnImageAvailableListener
             var bitmapAwaitingTransfer: Bitmap? = null
+            var sourceBitmapAwaitingRelease: Bitmap? = null
             try {
                 val now = System.currentTimeMillis()
                 if (!_isAutoCapturing.value || autoCaptureAwaitingAnalysis ||
@@ -496,8 +508,10 @@ class GameForegroundMonitorService : Service() {
                     height,
                     Bitmap.Config.ARGB_8888
                 )
+                sourceBitmapAwaitingRelease = fullBitmap
                 fullBitmap.copyPixelsFromBuffer(buffer)
                 val cropped = cropFrameBitmap(fullBitmap, width, height)
+                sourceBitmapAwaitingRelease = null
                 bitmapAwaitingTransfer = cropped
 
                 if (isBitmapMostlyBlank(cropped)) {
@@ -541,6 +555,9 @@ class GameForegroundMonitorService : Service() {
                 nextAutoCaptureAtMillis = System.currentTimeMillis() + autoCaptureIntervalMillis
                 Handler(Looper.getMainLooper()).post { updateAutoCaptureSurface(_detectedGameForeground.value) }
             } finally {
+                sourceBitmapAwaitingRelease?.let { bitmap ->
+                    if (!bitmap.isRecycled) bitmap.recycle()
+                }
                 image.close()
             }
         }, Handler(captureThread.looper))
