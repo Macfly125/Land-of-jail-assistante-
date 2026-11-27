@@ -449,8 +449,8 @@ Food: 1200"""
     }
 
     @Test
-    fun identifiesRobotScreensWithoutInventingRobotStats() {
-        val result = LandsOfJailOcrParser.parseLocalOcrText("Robot\nUpgrade level")
+    fun identifiesNamedRobotScreensWithoutInventingRobotStats() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText("Yokozuna\nUpgrade level")
 
         assertEquals("robots", result.detectedCategory)
         assertTrue(result.heroes.isEmpty())
@@ -539,15 +539,16 @@ Food: 1200"""
     }
 
     @Test
-    fun nestedRobotLabelsDoNotArtificiallyIncreaseScreenConfidence() {
+    fun nestedRobotBuildingLabelsDoNotArtificiallyIncreaseScreenConfidence() {
         val singlePhrase = ScreenRecognitionEngine.analyze("Robot Center")
 
-        assertEquals("robots", singlePhrase.category)
+        assertEquals("batiments", singlePhrase.category)
         assertEquals(listOf("robot center"), singlePhrase.matchedLabels)
         assertTrue(singlePhrase.confidence < 0.8f)
         assertTrue(singlePhrase.needsVisualConfirmation)
 
         val independentPhrases = ScreenRecognitionEngine.analyze("Robot Center\nRobot Upgrade")
+        assertEquals("batiments", independentPhrases.category)
         assertEquals(listOf("robot center", "robot upgrade"), independentPhrases.matchedLabels)
         assertTrue(independentPhrases.confidence >= 0.8f)
         assertTrue(independentPhrases.needsVisualConfirmation)
