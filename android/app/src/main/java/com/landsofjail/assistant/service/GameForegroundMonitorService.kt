@@ -854,7 +854,7 @@ class GameForegroundMonitorService : Service() {
                     val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as android.app.KeyguardManager
                     val deviceAvailable = powerManager.isInteractive && !keyguardManager.isKeyguardLocked
                     if (!deviceAvailable) lastKnownForegroundPkg = null
-    
+
                     // Au démarrage, relire une journée d'événements pour retrouver un jeu
                     // déjà ouvert ; ensuite, une fenêtre courte suffit et évite de rescanner
                     // tout l'historique à chaque cycle.
@@ -875,11 +875,11 @@ class GameForegroundMonitorService : Service() {
                     val isGameNow = UsageStatsDetector.isLandsOfJailPackage(effectivePkg, targetFilter)
                     _detectedGameForeground.value = isGameNow
                     if (_isAutoCapturing.value) updateAutoCaptureSurface(isGameNow)
-    
+
                     if (isGameNow && !wasGameInForeground && !_isAutoCapturing.value) {
                         showAnalyzePromptNotification()
                     }
-    
+
                     // Ne jamais masquer le TopAppBar de notre propre appli avec la barre flottante,
                     // mais toujours la garder visible au-dessus du jeu / des autres apps.
                     if (_isAutoCapturing.value || isCapturingNow || assistantVisible || isSelfForeground) {
@@ -889,8 +889,8 @@ class GameForegroundMonitorService : Service() {
                     } else {
                         removeFloatingAnalyzeBar()
                     }
-    
-                        wasGameInForeground = isGameNow
+
+                    wasGameInForeground = isGameNow
                 } catch (cancelled: CancellationException) {
                     throw cancelled
                 } catch (_: Exception) {
