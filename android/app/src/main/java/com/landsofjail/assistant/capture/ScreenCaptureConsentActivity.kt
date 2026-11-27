@@ -36,6 +36,16 @@ class ScreenCaptureConsentActivity : ComponentActivity() {
 
         @Synchronized
         fun publishCapture(context: Context, payload: CapturedScreenPayload): Boolean {
+            // Refuser un payload incomplet avant de le rendre visible à l'interface.
+            val bitmap = payload.bitmap
+            if (bitmap.isRecycled || bitmap.width <= 0 || bitmap.height <= 0 ||
+                bitmap.width.toLong() * bitmap.height.toLong() !in 1..MAX_CAPTURE_PIXELS ||
+                payload.base64Jpeg.isBlank()
+            ) {
+                ownedCaptureFile(context, payload.imageFileUri)?.delete()
+                return false
+            }
+
             // Une capture non consommée est prioritaire : ne jamais l'écraser.
             if (_pendingCapture.value != null) {
                 ownedCaptureFile(context, payload.imageFileUri)?.delete()
