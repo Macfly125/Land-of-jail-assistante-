@@ -197,6 +197,20 @@ class ScreenRecognitionEngineTest {
     }
 
     @Test
+    fun doesNotClassifyBarePowerLabelAsPlayerProfile() {
+        val result = ScreenRecognitionEngine.analyze("Power")
+        assertEquals("ocr_local", result.category)
+        assertFalse(result.needsVisualConfirmation)
+    }
+
+    @Test
+    fun recognizesExplicitNumericPowerWithoutProfileHeader() {
+        val result = ScreenRecognitionEngine.analyze("Power 12M")
+        assertEquals("profil", result.category)
+        assertTrue(result.needsVisualConfirmation)
+    }
+
+    @Test
     fun playerProfilePowerRemainsClassifiedAsProfileWithoutArmorContext() {
         val result = ScreenRecognitionEngine.analyze("Player Profile\nPower 12M\nEliminations 350")
         assertEquals("profil", result.category)
