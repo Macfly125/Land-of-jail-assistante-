@@ -224,6 +224,32 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun skipsMalformedResourceValueAndStillAcceptsLaterValidValue() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            "Food: 1.2.3\\nFood: 1200"
+        )
+
+        val food = result.resources.single { it.nom == "Nourriture (Food)" }
+        assertEquals("1200", food.quantiteTexte)
+        assertEquals(1200.0, food.quantiteNumerique ?: 0.0, 0.1)
+    }
+
+    @Test
+    fun doesNotCreateResourceRecordsForMalformedQuantities() {
+        val samples = listOf(
+            "Food: 1.2.3",
+            "Wood: 12,34,56",
+            "Steel: 1,23.456",
+            "Gasoline: 1..234"
+        )
+        samples.forEach { sample ->
+            val result = LandsOfJailOcrParser.parseLocalOcrText(sample)
+            assertTrue("Une quantité invalide ne doit pas créer de ressource : $sample",
+                result.resources.isEmpty())
+        }
+    }
+
+    @Test
     fun acceptsValidGroupedAndDecimalResourceNumbersWithoutSuffix() {
         val samples = listOf(
             "Food: 8,450,120" to 8_450_120.0,
