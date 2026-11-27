@@ -334,7 +334,8 @@ class ProgressionPlayerProfileTest {
             "Ядра Forticlad" to "forticlad cores",
             "Forticlad 核心" to "forticlad cores",
             "Noyaux Forticlad avancés" to "advanced forticlad cores",
-            "高级核心" to "advanced forticlad cores"
+            "高级核心" to "advanced forticlad cores",
+            "Gelişmiş Forticlad Çekirdekleri" to "advanced forticlad cores"
         )
         aliases.forEach { (input, expected) ->
             assertEquals(input, expected, canonicalProgressionResourceId(input))
