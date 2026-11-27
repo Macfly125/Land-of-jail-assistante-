@@ -1414,8 +1414,9 @@ Potential Coil x 8"""
         )
 
         assertNull("Une rangée de ressources détectée ne doit jamais devenir la puissance du profil", result.power)
-        assertEquals(6, result.resources.size)
-        assertTrue(result.resources.all { it.incertain })
+        assertTrue("Sans icônes ou libellés, aucun stock ne doit être attribué", result.resources.isEmpty())
+        assertEquals(6, result.uncertainItems.size)
+        assertTrue(result.uncertainItems.all { it.champ.startsWith("Compteur HUD non identifié") })
     }
 
 
@@ -1432,12 +1433,11 @@ Potential Coil x 8"""
             imageHeight = 1600
         )
 
-        assertEquals(
-            listOf("Cash / Or", "Nourriture (Food)", "Bois (Wood)", "Acier (Steel)", "Essence (Gasoline)", "Diamants (Gems)"),
-            result.resources.map { it.nom }
-        )
-        assertEquals(values, result.resources.map { it.quantiteTexte })
-        assertTrue("Une association par position doit toujours demander confirmation", result.resources.all { it.incertain })
+        assertTrue("Les compteurs sans icônes reconnues ne doivent pas recevoir de noms inventés", result.resources.isEmpty())
+        assertEquals(values, result.uncertainItems.map { it.valeurObservee })
+        assertEquals(6, result.uncertainItems.size)
+        assertTrue("Chaque compteur doit rester explicitement non identifié",
+            result.uncertainItems.all { it.raison.contains("attribution automatique interdite") })
         assertNull("Les compteurs de la barre ne doivent pas devenir une puissance", result.power)
     }
 
