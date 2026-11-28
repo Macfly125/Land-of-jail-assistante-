@@ -31,7 +31,8 @@ data class LocalOcrExtraction(
     val heroes: List<HeroRecord>,
     val robots: List<RobotRecord> = emptyList(),
     val uncertainItems: List<UncertainItem>,
-    val equipment: List<EquipmentRecord> = emptyList()
+    val equipment: List<EquipmentRecord> = emptyList(),
+    val resourceStatsRows: List<ResourceStatsRow> = emptyList()
 )
 
 object LandsOfJailOcrParser {
@@ -251,6 +252,7 @@ object LandsOfJailOcrParser {
         val lowerFull = rawText.lowercase()
         val uncertain = mutableListOf<UncertainItem>()
         val resources = mutableListOf<ResourceRecord>()
+        val resourceStatsRows = parseResourceStatsRows(rawText)
         val heroes = mutableListOf<HeroRecord>()
         val robots = mutableListOf<RobotRecord>()
         val equipment = mutableListOf<EquipmentRecord>()
@@ -850,10 +852,46 @@ object LandsOfJailOcrParser {
             heroes = heroes,
             robots = robots,
             uncertainItems = uncertain,
-            equipment = equipment
+            equipment = equipment,
+            resourceStatsRows = resourceStatsRows
         )
     }
 
+    /**
+     * Conserves les deux quantités d'une ligne uniquement si les deux en-têtes
+     * sont présents et si exactement deux valeurs sont lisibles sur la même ligne.
+     * Une cellule manquante ne décale jamais les valeurs des lignes suivantes.
+     */
+    private fun parseResourceStatsRows(rawText: String): List<ResourceStatsRow> {
+        val hasObjectsHeader = Regex("total\\s+des\\s+objets|total\\s+items", RegexOption.IGNORE_CASE).containsMatchIn(rawText)
+        val hasResourcesHeader = Regex("ressources\\s+totales|total\\s+resources", RegexOption.IGNORE_CASE).containsMatchIn(rawText)
+        if (!hasObjectsHeader || !hasResourcesHeader) return emptyList()
+        val labels = listOf(
+            "Argent liquide" to "Cash / Or", "Nourriture" to "Nourriture (Food)",
+            "Bois" to "Bois (Wood)", "Acier" to "Acier (Steel)",
+            "Essence" to "Essence (Gasoline)", "Carte en or" to "Carte en or (Gold Card)",
+            "Endurance" to "Endurance (Stamina)", "EXP d'équipement" to "EXP d'équipement (Equipment EXP)",
+            "XP de héros" to "XP de héros (Hero XP)"
+        )
+        val result = mutableListOf<ResourceStatsRow>()
+        rawText.lines().forEach { rawLine ->
+            val line = rawLine.trim()
+            val entry = labels.firstOrNull { (label, _) ->
+                line.startsWith(label, ignoreCase = true) && line.length > label.length &&
+                    (line[label.length].isWhitespace() || line[label.length] == ':' || line[label.length] == '：')
+            } ?: return@forEach
+            val remainder = line.drop(entry.first.length).trim().trimStart(':', '：').trim()
+            val values = Regex("[0-9][0-9.,\\s]*[kmbKMB]?").findAll(remainder)
+                .map { it.value.trim() }.filter { it.isNotEmpty() }.toList()
+            if (values.size != 2) return@forEach
+            val first = parseCompactNumeric(values[0])
+            val second = parseCompactNumeric(values[1])
+            result.add(ResourceStatsRow(entry.second, values[0], values[1], first, second,
+                first == null || second == null,
+                if (first == null || second == null) "Une quantité du tableau n'a pas pu être convertie" else null))
+        }
+        return result
+    }
     private fun normalizeEquipmentText(value: String): String =
         java.text.Normalizer.normalize(value.lowercase(), java.text.Normalizer.Form.NFD)
             .replace(Regex("\\p{Mn}+"), "")
