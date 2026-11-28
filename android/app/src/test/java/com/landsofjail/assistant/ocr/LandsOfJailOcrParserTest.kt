@@ -489,6 +489,26 @@ Food: 1200"""
     }
 
     @Test
+    fun alignsStatisticsValuesUsingOcrColumnCoordinates() {
+        val boxes = listOf(
+            OcrTextBox("Total des objets", 140, 10, 250, 35),
+            OcrTextBox("Ressources totales", 285, 10, 420, 35),
+            OcrTextBox("Bois", 20, 90, 90, 120),
+            OcrTextBox("6.6B", 155, 90, 210, 120),
+            OcrTextBox("7.0B", 310, 90, 365, 120)
+        )
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            "Total des objets Ressources totales Bois",
+            textBoxes = boxes,
+            imageWidth = 450,
+            imageHeight = 160
+        )
+        val wood = result.resourceStatsRows.single { it.nom == "Bois (Wood)" }
+        assertEquals("6.6B", wood.totalObjetsTexte)
+        assertEquals("7.0B", wood.ressourcesTotalesTexte)
+    }
+
+    @Test
     fun doesNotParseTwoColumnStatsWithoutBothHeaders() {
         val result = LandsOfJailOcrParser.parseLocalOcrText("Bois 6.6B 7.0B")
         assertTrue(result.resourceStatsRows.isEmpty())
