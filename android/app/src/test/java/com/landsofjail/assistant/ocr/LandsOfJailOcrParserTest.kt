@@ -1096,6 +1096,15 @@ Stahl
     }
 
     @Test
+    fun readsTotalPowerWithSpanishAndJapaneseLabels() {
+        val spanish = LandsOfJailOcrParser.parseLocalOcrText("Potencia: 82,5M")
+        assertEquals(82_500_000L, spanish.power?.puissanceTotaleNumerique)
+
+        val japanese = LandsOfJailOcrParser.parseLocalOcrText("戦力: 72.3M")
+        assertEquals(72_300_000L, japanese.power?.puissanceTotaleNumerique)
+    }
+
+    @Test
     fun readsTotalPowerWithItalianAndGermanLabelsWithoutConfusingFood() {
         val italian = LandsOfJailOcrParser.parseLocalOcrText("Potenza: 509 256 511")
         assertEquals(509_256_511L, italian.power?.puissanceTotaleNumerique)
