@@ -5,6 +5,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.landsofjail.assistant.model.AppLanguage
@@ -36,6 +37,10 @@ class ResourceNestedListsTest {
             }
         }
 
+        // DataStore loads the profile asynchronously; wait for the screen content.
+        composeRule.waitUntil(timeoutMillis = 10_000) {
+            composeRule.onAllNodesWithText("Nouvel objectif").fetchSemanticsNodes().isNotEmpty()
+        }
         composeRule.onNodeWithText("Nouvel objectif").assertIsDisplayed()
         composeRule.onNodeWithText("Enregistrer l’objectif")
             .performScrollTo()
