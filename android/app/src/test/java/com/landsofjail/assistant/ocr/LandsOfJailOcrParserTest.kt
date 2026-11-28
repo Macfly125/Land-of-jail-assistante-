@@ -602,6 +602,41 @@ Food: 1200"""
     }
 
     @Test
+    fun refusesTextOrderFallbackWhenStatisticsHeadersAreReversedOrOverlapping() {
+        val reversedHeaders = listOf(
+            OcrTextBox("Ressources totales", 120, 10, 250, 35),
+            OcrTextBox("Total des objets", 285, 10, 420, 35),
+            OcrTextBox("Bois", 20, 90, 90, 120),
+            OcrTextBox("6.6B", 155, 90, 210, 120),
+            OcrTextBox("7.0B", 310, 90, 365, 120)
+        )
+        val reversed = LandsOfJailOcrParser.parseLocalOcrText(
+            "Total des objets Ressources totales Bois 6.6B 7.0B",
+            textBoxes = reversedHeaders,
+            imageWidth = 450,
+            imageHeight = 160
+        )
+        assertTrue("Des en-têtes inversés ne doivent pas faire attribuer les valeurs selon l'ordre OCR",
+            reversed.resourceStatsRows.isEmpty())
+
+        val overlappingHeaders = listOf(
+            OcrTextBox("Total des objets", 140, 10, 300, 35),
+            OcrTextBox("Ressources totales", 250, 10, 420, 35),
+            OcrTextBox("Bois", 20, 90, 90, 120),
+            OcrTextBox("6.6B", 155, 90, 210, 120),
+            OcrTextBox("7.0B", 310, 90, 365, 120)
+        )
+        val overlapping = LandsOfJailOcrParser.parseLocalOcrText(
+            "Total des objets Ressources totales Bois 6.6B 7.0B",
+            textBoxes = overlappingHeaders,
+            imageWidth = 450,
+            imageHeight = 160
+        )
+        assertTrue("Des en-têtes qui se chevauchent doivent rester non attribués",
+            overlapping.resourceStatsRows.isEmpty())
+    }
+
+    @Test
     fun doesNotParseTwoColumnStatsWithoutBothHeaders() {
         val result = LandsOfJailOcrParser.parseLocalOcrText("Bois 6.6B 7.0B")
         assertTrue(result.resourceStatsRows.isEmpty())
