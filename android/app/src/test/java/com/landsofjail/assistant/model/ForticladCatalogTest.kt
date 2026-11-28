@@ -8,6 +8,20 @@ import org.junit.Test
 
 class ForticladCatalogTest {
     @Test
+    fun firstForticladUpgradeFromBaseLevelThirtyCosts1250Cores() {
+        val estimate = ForticladCatalog.estimate(
+            buildingId = "wardens_office",
+            currentLevel = 0,
+            completedStages = 0,
+            targetLevel = 1
+        )
+
+        assertEquals(1_250L, estimate?.forticladCores)
+        assertEquals(0L, estimate?.advancedCores)
+        assertEquals(5, estimate?.includedStages)
+        assertEquals(CostConfidence.COMMUNITY_REFERENCE, estimate?.confidence)
+    }
+    @Test
     fun catalogRowsAreUniqueSourcedAndCommunityOnly() {
         val keys = ForticladCatalog.stageCosts.map { it.buildingId to it.targetLevel }
         assertEquals(keys.size, keys.toSet().size)
