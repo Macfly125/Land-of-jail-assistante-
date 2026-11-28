@@ -79,6 +79,32 @@ class ResourceNestedListsTest {
     }
 
     @Test
+    fun forticladCanPlanFirstUpgradeFromBaseLevelThirty() {
+        composeRule.setContent {
+            MaterialTheme {
+                LazyColumn {
+                    item {
+                        ProgressionCoachScreen(
+                            profileId = "instrumented-forticlad-initial-upgrade",
+                            language = AppLanguage.FR,
+                            resources = emptyList()
+                        )
+                    }
+                }
+            }
+        }
+
+        composeRule.waitUntil(timeoutMillis = 10_000) {
+            composeRule.onAllNodesWithText("Coach de progression").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithTag("progression-coach-list").performScrollToIndex(1)
+        composeRule.onNodeWithTag("forticlad-current-level-row").performScrollToIndex(0)
+        composeRule.onNodeWithTag("forticlad-current-level-0").assertIsSelected()
+        composeRule.onNodeWithTag("forticlad-target-level-1").assertIsSelected()
+        composeRule.onNodeWithText("1 250").assertIsDisplayed()
+    }
+
+    @Test
     fun svsPlannerMeasuresAndScrollsInsideParentLazyColumn() {
         composeRule.setContent {
             MaterialTheme {
