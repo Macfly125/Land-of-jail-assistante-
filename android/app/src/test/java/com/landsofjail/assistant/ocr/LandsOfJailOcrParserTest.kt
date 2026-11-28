@@ -469,6 +469,32 @@ Food: 1200"""
     }
 
     @Test
+    fun readsBothStatisticsColumnsWithoutShiftingMissingValues() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            """
+            Ressources Total des objets Ressources totales
+            Argent liquide 1.0B 1.1B
+            Nourriture 9.2B
+            Bois 6.6B 7.0B
+            Acier 2.0B 2.0B
+            """.trimIndent()
+        )
+        assertEquals(3, result.resourceStatsRows.size)
+        val wood = result.resourceStatsRows.single { it.nom == "Bois (Wood)" }
+        assertEquals("6.6B", wood.totalObjetsTexte)
+        assertEquals("7.0B", wood.ressourcesTotalesTexte)
+        assertEquals(6_600_000_000.0, wood.totalObjetsNumerique!!, 0.1)
+        assertEquals(7_000_000_000.0, wood.ressourcesTotalesNumerique!!, 0.1)
+        assertFalse("Une ligne à une seule valeur ne doit pas décaler les colonnes", result.resourceStatsRows.any { it.nom == "Nourriture (Food)" })
+    }
+
+    @Test
+    fun doesNotParseTwoColumnStatsWithoutBothHeaders() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText("Bois 6.6B 7.0B")
+        assertTrue(result.resourceStatsRows.isEmpty())
+    }
+
+    @Test
     fun extractsNamedResourcesAndKeepsCompactValuesExplicit() {
         val result = LandsOfJailOcrParser.parseLocalOcrText("Food: 1.2M\nWood: 850K")
 
