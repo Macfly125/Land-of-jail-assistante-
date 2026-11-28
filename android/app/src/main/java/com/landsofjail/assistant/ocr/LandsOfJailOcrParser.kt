@@ -297,7 +297,11 @@ object LandsOfJailOcrParser {
             "Acier (Steel)" to Regex("""(?:acier|steel|fer|iron|stahl|çelik|сталь|钢材|acciaio)(?=$|\s|[:：\-]|[0-9])\s*[:：\-]?\s*([0-9][0-9.,\s]*[kmbKMB]?)?""", RegexOption.IGNORE_CASE),
             "Essence (Gasoline)" to Regex("""(?:essence|gasoline|fuel|p[ée]trole|benzina|carburante|benzin|бензин|汽油)(?=$|\s|[:：\-]|[0-9])\s*[:：\-]?\s*([0-9][0-9.,\s]*[kmbKMB]?)?""", RegexOption.IGNORE_CASE),
             "Diamants (Gems)" to Regex("""(?:diamanti|diamants?|diamonds?|gemmes?|gems?|diamanten|elmas|алмазы|钻石|宝石)(?=$|\s|[:：\-]|[0-9])\s*[:：\-]?\s*([0-9][0-9.,\s]*[kmbKMB]?)?""", RegexOption.IGNORE_CASE),
-            "Cash / Or" to Regex("""(?:cash|gold|g[oö]ld|argent\s+liquide|altın|золото|金币|黄金|oro)(?=$|\s|[:：\-]|[0-9])\s*[:：\-]?\s*([0-9][0-9.,\s]*[kmbKMB]?)?|^or\s*[:：\-]\s*([0-9][0-9.,\s]*[kmbKMB]?)?""", RegexOption.IGNORE_CASE)
+            "Cash / Or" to Regex("""(?:cash|gold|g[oö]ld|argent\s+liquide|altın|золото|金币|黄金|oro)(?=$|\s|[:：\-]|[0-9])\s*[:：\-]?\s*([0-9][0-9.,\s]*[kmbKMB]?)?|^or\s*[:：\-]\s*([0-9][0-9.,\s]*[kmbKMB]?)?""", RegexOption.IGNORE_CASE),
+            "Carte en or (Gold Card)" to Regex("""(?:carte\s+en\s+or|gold\s+card|golden\s+card)(?=$|\s|[:：\-]|[0-9])\s*[:：\-]?\s*([0-9][0-9.,\s]*[kmbKMB]?)?""", RegexOption.IGNORE_CASE),
+            "Endurance (Stamina)" to Regex("""(?:endurance|stamina|ausdauer|resistenza|выносливость|体力)(?=$|\s|[:：\-]|[0-9])\s*[:：\-]?\s*([0-9][0-9.,\s]*[kmbKMB]?)?""", RegexOption.IGNORE_CASE),
+            "EXP d'équipement (Equipment EXP)" to Regex("""(?:exp\s+d['’]équipement|equipment\s+exp|equipment\s+experience|ausrüstungs-?\s*ep)(?=$|\s|[:：\-]|[0-9])\s*[:：\-]?\s*([0-9][0-9.,\s]*[kmbKMB]?)?""", RegexOption.IGNORE_CASE),
+            "XP de héros (Hero XP)" to Regex("""(?:xp\s+de\s+h[ée]ros|hero\s+xp|hero\s+experience|helden-?\s*ep)(?=$|\s|[:：\-]|[0-9])\s*[:：\-]?\s*([0-9][0-9.,\s]*[kmbKMB]?)?""", RegexOption.IGNORE_CASE)
         )
 
         for ((index, line) in lines.withIndex()) {
