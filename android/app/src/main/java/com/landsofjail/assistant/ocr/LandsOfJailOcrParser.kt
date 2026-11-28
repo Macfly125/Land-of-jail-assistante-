@@ -163,6 +163,44 @@ object LandsOfJailOcrParser {
         }
     }
 
+    /**
+     * Player profile cards show total power beside a fist icon, above Eliminations.
+     * This is a separate layout from the home-screen power badge and from the top
+     * resource counters. Use the elimination row (or profile metadata below it)
+     * as a positional anchor so the elimination amount itself is never selected.
+     */
+    private fun profilePowerBadgeFromCoordinates(
+        boxes: List<OcrTextBox>,
+        imageWidth: Int,
+        imageHeight: Int
+    ): String? {
+        if (boxes.isEmpty() || imageWidth <= 0 || imageHeight <= 0) return null
+        val compactNumber = Regex("""\\b[0-9]+(?:[.,][0-9]+)?\\s*[MB]\\b""", RegexOption.IGNORE_CASE)
+        val eliminationBox = boxes.firstOrNull {
+            Regex("""[ée]liminations?""", RegexOption.IGNORE_CASE).containsMatchIn(it.text)
+        }
+        val metadataBox = boxes.firstOrNull {
+            Regex("""\\b(?:alliance|serveur|server)\\b""", RegexOption.IGNORE_CASE).containsMatchIn(it.text)
+        }
+        val anchorY = eliminationBox?.let { (it.top + it.bottom) / 2f }
+            ?: metadataBox?.let { (it.top + it.bottom) / 2f }
+            ?: return null
+        val minY = if (eliminationBox != null) anchorY - imageHeight * 0.10f
+            else anchorY - imageHeight * 0.18f
+        return boxes.asSequence()
+            .filter { box ->
+                val centerY = (box.top + box.bottom) / 2f
+                centerY in minY..anchorY &&
+                    box.left >= imageWidth * 0.30f &&
+                    box.left <= imageWidth * 0.90f &&
+                    box.right <= imageWidth * 0.95f
+            }
+            .mapNotNull { box ->
+                compactNumber.find(box.text)?.value?.trim()
+            }
+            .firstOrNull()
+    }
+
     private fun topResourceNumberBoxes(
         boxes: List<OcrTextBox>,
         imageWidth: Int,
@@ -594,6 +632,23 @@ object LandsOfJailOcrParser {
                         raisonIncertitude = null
                     )
                 }
+            }
+        }
+
+        // Player profile-card badge: unlike the home screen, this value is in the
+        // right-side profile panel, immediately above the Eliminations row.
+        // Coordinates disambiguate it from the elimination count and top resource HUD.
+        if (power == null && textBoxes.isNotEmpty()) {
+            val profileBadge = profilePowerBadgeFromCoordinates(textBoxes, imageWidth, imageHeight)
+            val numeric = profileBadge?.let(::parseCompactNumeric)
+            if (profileBadge != null && numeric != null) {
+                power = PowerMetric(
+                    puissanceTotaleTexte = profileBadge,
+                    puissanceTotaleNumerique = numeric.toLong(),
+                    niveauPrisonOuQG = wardenLevel,
+                    incertain = false,
+                    raisonIncertitude = null
+                )
             }
         }
 
