@@ -6169,7 +6169,11 @@ private fun AllianceScreen(
                             minLines = 4,
                             maxLines = 10
                         )
-                        TextButton(onClick = { allianceMessageDraft = DEFAULT_ALLIANCE_NOTICE }) {
+                        TextButton(onClick = {
+                            allianceMessageDraft = DEFAULT_ALLIANCE_NOTICE
+                            if (allianceMessageTitleDraft.isBlank()) allianceMessageTitleDraft = "Rappel · Événement de la Cage"
+                            allianceMessageCategory = "event"
+                        }) {
                             Text(localizedUiText(language, "Charger le message modèle de la Cage", "Load the Cage message template", "Käfig-Nachrichtenvorlage laden", "Kafes mesaj şablonunu yükle", "Загрузить шаблон сообщения для Клетки", "载入试炼笼消息模板", "Carica il modello di messaggio della Gabbia"))
                         }
                         Button(
