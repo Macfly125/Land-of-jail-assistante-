@@ -2713,13 +2713,52 @@ private fun LanguageSelectorRow(
     currentLang: AppLanguage,
     onChangeLang: (AppLanguage) -> Unit
 ) {
-    LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        items(AppLanguage.entries) { lang ->
-            FilterChip(
-                selected = currentLang == lang,
-                onClick = { onChangeLang(lang) },
-                label = { Text(lang.label, fontSize = 11.sp, maxLines = 1) }
-            )
+    var expanded by remember { mutableStateOf(false) }
+    val languageName = when (currentLang) {
+        AppLanguage.FR -> "Français"
+        AppLanguage.EN -> "English"
+        AppLanguage.DE -> "Deutsch"
+        AppLanguage.TR -> "Türkçe"
+        AppLanguage.RU -> "Русский"
+        AppLanguage.ZH -> "中文"
+        AppLanguage.IT -> "Italiano"
+    }
+
+    Box(modifier = Modifier.fillMaxWidth()) {
+        OutlinedButton(
+            onClick = { expanded = true },
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
+        ) {
+            Text(languageName, modifier = Modifier.weight(1f), textAlign = androidx.compose.ui.text.style.TextAlign.Start)
+            Icon(Icons.Outlined.ArrowDropDown, contentDescription = null)
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.fillMaxWidth(0.92f)
+        ) {
+            AppLanguage.entries.forEach { lang ->
+                val label = when (lang) {
+                    AppLanguage.FR -> "Français"
+                    AppLanguage.EN -> "English"
+                    AppLanguage.DE -> "Deutsch"
+                    AppLanguage.TR -> "Türkçe"
+                    AppLanguage.RU -> "Русский"
+                    AppLanguage.ZH -> "中文"
+                    AppLanguage.IT -> "Italiano"
+                }
+                DropdownMenuItem(
+                    text = { Text(label) },
+                    onClick = {
+                        expanded = false
+                        if (currentLang != lang) onChangeLang(lang)
+                    },
+                    leadingIcon = {
+                        if (currentLang == lang) Icon(Icons.Outlined.Check, contentDescription = null)
+                    }
+                )
+            }
         }
     }
 }
