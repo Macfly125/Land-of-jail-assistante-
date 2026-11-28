@@ -234,4 +234,21 @@ class ScreenRecognitionEngineTest {
         assertEquals(0f, result.confidence, 0.0001f)
         assertFalse("Un texte sans catégorie de jeu ne doit pas déclencher une confirmation visuelle", result.needsVisualConfirmation)
     }
+    @Test
+    fun recognizesWardenOfficeBuildingLabelsAcrossAllLocalizedNames() {
+        val samples = listOf(
+            "Büro des Direktors" to "German",
+            "Müdürün Ofisi" to "Turkish",
+            "Офис начальника" to "Russian",
+            "典狱长办公室" to "Chinese",
+            "Ufficio del Direttore" to "Italian"
+        )
+
+        samples.forEach { (label, language) ->
+            val result = ScreenRecognitionEngine.analyze(label)
+            assertEquals("Le Bureau du directeur doit être reconnu en $language", "batiments", result.category)
+            assertTrue("Une confirmation visuelle reste nécessaire en $language", result.needsVisualConfirmation)
+        }
+    }
+
 }
