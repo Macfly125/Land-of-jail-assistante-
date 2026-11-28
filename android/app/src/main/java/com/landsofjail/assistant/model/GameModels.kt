@@ -390,6 +390,17 @@ data class ResourceRecord(
 )
 
 @Serializable
+data class ResourceStatsRow(
+    val nom: String,
+    val totalObjetsTexte: String,
+    val ressourcesTotalesTexte: String,
+    val totalObjetsNumerique: Double? = null,
+    val ressourcesTotalesNumerique: Double? = null,
+    val incertain: Boolean = false,
+    val raisonIncertitude: String? = null
+)
+
+@Serializable
 data class RobotRecord(
     val id: String = "",
     val nom: String,
