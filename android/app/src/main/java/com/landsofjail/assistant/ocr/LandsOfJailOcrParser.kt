@@ -885,8 +885,11 @@ object LandsOfJailOcrParser {
         if (objectsHeader != null && totalsHeader != null) {
             val objectCenterX = (objectsHeader.left + objectsHeader.right) / 2
             val totalsCenterX = (totalsHeader.left + totalsHeader.right) / 2
-            if (objectCenterX < totalsCenterX) {
-                val result = mutableListOf<ResourceStatsRow>()
+            // Les deux colonnes doivent être géométriquement ordonnées. Si les
+            // en-têtes sont inversés ou superposés, ne jamais retomber sur l'ordre
+            // textuel OCR : il pourrait attribuer une valeur à la mauvaise colonne.
+            if (objectCenterX >= totalsCenterX) return emptyList()
+            val result = mutableListOf<ResourceStatsRow>()
                 val labelBoxes = normalizedBoxes.mapNotNull { box ->
                     val entry = labels.firstOrNull { (label, _) ->
                         Regex("^" + Regex.escape(label) + "(?:\\s|$)", RegexOption.IGNORE_CASE).containsMatchIn(box.text.trim())
@@ -915,8 +918,7 @@ object LandsOfJailOcrParser {
                         if (first == null || second == null) "Une quantité du tableau n'a pas pu être convertie" else null
                     ))
                 }
-                if (result.isNotEmpty()) return result.distinctBy { it.nom }
-            }
+            return result.distinctBy { it.nom }
         }
 
         val hasObjectsHeader = Regex("total\\s+des\\s+objets|total\\s+items", RegexOption.IGNORE_CASE).containsMatchIn(rawText)
