@@ -1734,11 +1734,11 @@ Potential Coil x 8"""
     @Test
     fun extractsWardenOfficeLevelsFromGermanTurkishRussianChineseAndItalianLabels() {
         val samples = listOf(
-            "Büro des Direktors\\nStufe 18" to "Niv. 18",
-            "Müdürün Ofisi\\nSeviye 16" to "Niv. 16",
-            "Офис начальника\\nУровень 12" to "Niv. 12",
-            "典狱长办公室\\n等级 20" to "Niv. 20",
-            "Ufficio del Direttore\\nLivello 14" to "Niv. 14"
+            "Büro des Direktors\nStufe 18" to "Niv. 18",
+            "Müdürün Ofisi\nSeviye 16" to "Niv. 16",
+            "Офис начальника\nУровень 12" to "Niv. 12",
+            "典狱长办公室\n等级 20" to "Niv. 20",
+            "Ufficio del Direttore\nLivello 14" to "Niv. 14"
         )
 
         samples.forEach { (sample, expectedLevel) ->
