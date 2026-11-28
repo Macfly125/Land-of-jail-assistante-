@@ -184,7 +184,7 @@ class LandsOfJailOcrParserTest {
     @Test
     fun recognizesSpanishAndJapanesePlayerProfilePowerAnchors() {
         val spanish = LandsOfJailOcrParser.parseLocalOcrText(
-            "ID: 1046814571\\n504.5M\\nEliminaciones · 2M\\nAlianza: YRo\\nServidor: 311",
+            "ID: 1046814571\n504.5M\nEliminaciones · 2M\nAlianza: YRo\nServidor: 311",
             textBoxes = listOf(
                 OcrTextBox("ID: 1046814571", 430, 970, 690, 1010),
                 OcrTextBox("504.5M", 490, 1030, 675, 1080),
@@ -198,7 +198,7 @@ class LandsOfJailOcrParserTest {
         assertEquals(504_500_000L, spanish.power?.puissanceTotaleNumerique)
 
         val japanese = LandsOfJailOcrParser.parseLocalOcrText(
-            "ID: 1046814571\\n504.5M\\n撃破数 · 2M\\n同盟: YRo\\nサーバー: 311",
+            "ID: 1046814571\n504.5M\n撃破数 · 2M\n同盟: YRo\nサーバー: 311",
             textBoxes = listOf(
                 OcrTextBox("ID: 1046814571", 430, 970, 690, 1010),
                 OcrTextBox("504.5M", 490, 1030, 675, 1080),
@@ -215,7 +215,7 @@ class LandsOfJailOcrParserTest {
     @Test
     fun recognizesChineseAndKoreanPlayerProfilePowerAnchors() {
         val chinese = LandsOfJailOcrParser.parseLocalOcrText(
-            "ID: 1046814571\\n504.5M\\n击杀数 · 2M\\n联盟: YRo\\n服务器: 311",
+            "ID: 1046814571\n504.5M\n击杀数 · 2M\n联盟: YRo\n服务器: 311",
             textBoxes = listOf(
                 OcrTextBox("ID: 1046814571", 430, 970, 690, 1010),
                 OcrTextBox("504.5M", 490, 1030, 675, 1080),
@@ -229,7 +229,7 @@ class LandsOfJailOcrParserTest {
         assertEquals(504_500_000L, chinese.power?.puissanceTotaleNumerique)
 
         val korean = LandsOfJailOcrParser.parseLocalOcrText(
-            "ID: 1046814571\\n504.5M\\n처치 · 2M\\n동맹: YRo\\n서버: 311",
+            "ID: 1046814571\n504.5M\n처치 · 2M\n동맹: YRo\n서버: 311",
             textBoxes = listOf(
                 OcrTextBox("ID: 1046814571", 430, 970, 690, 1010),
                 OcrTextBox("504.5M", 490, 1030, 675, 1080),
@@ -338,7 +338,7 @@ class LandsOfJailOcrParserTest {
     @Test
     fun doesNotUseAnotherBuildingLevelAsHeadquartersLevel() {
         val result = LandsOfJailOcrParser.parseLocalOcrText(
-            "Level 12 Kitchen\\nLevel 8 Warden's Office"
+            "Level 12 Kitchen\nLevel 8 Warden's Office"
         )
 
         assertEquals("Niv. 8", result.power?.niveauPrisonOuQG)
@@ -1148,8 +1148,8 @@ Stahl
     @Test
     fun readsRobotLevelsInItalianAndGerman() {
         val samples = listOf(
-            "Ranger\\nLivello 30" to "30",
-            "Ranger\\nStufe 31" to "31"
+            "Ranger\nLivello 30" to "30",
+            "Ranger\nStufe 31" to "31"
         )
         samples.forEach { (sample, expectedLevel) ->
             val robot = LandsOfJailOcrParser.parseLocalOcrText(sample).robots.single()
@@ -1181,13 +1181,13 @@ Stahl
     @Test
     fun readsRobotPowerAndSkillsInItalianAndGerman() {
         val italian = LandsOfJailOcrParser.parseLocalOcrText(
-            "Ranger\\nPotenza: 120\\nAbilità: Colpo rapido"
+            "Ranger\nPotenza: 120\nAbilità: Colpo rapido"
         ).robots.single()
         assertEquals("120", italian.puissance)
         assertTrue(italian.competences.contains("Colpo rapido"))
 
         val german = LandsOfJailOcrParser.parseLocalOcrText(
-            "Ranger\\nKampfkraft: 135\\nFähigkeiten: Präzisionsschuss"
+            "Ranger\nKampfkraft: 135\nFähigkeiten: Präzisionsschuss"
         ).robots.single()
         assertEquals("135", german.puissance)
         assertTrue(german.competences.contains("Präzisionsschuss"))
