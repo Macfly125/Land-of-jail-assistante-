@@ -100,6 +100,7 @@ class LandsOfJailOcrParserTest {
         val result = LandsOfJailOcrParser.parseLocalOcrText(
             rawText = "Eugène\nID: 1046814571\n504.5M\nÉliminations · 2M\nAlliance: YRo\nServeur: 311",
             textBoxes = listOf(
+                OcrTextBox("ID: 1046814571", 430, 970, 690, 1010),
                 OcrTextBox("504.5M", 490, 1030, 675, 1080),
                 OcrTextBox("Éliminations", 430, 1084, 640, 1120),
                 OcrTextBox("2M", 690, 1084, 760, 1120),
@@ -120,14 +121,33 @@ class LandsOfJailOcrParserTest {
         val result = LandsOfJailOcrParser.parseLocalOcrText(
             rawText = "504.5M\nAlliance: YRo\nServeur: 311",
             textBoxes = listOf(
+                OcrTextBox("ID: 1046814571", 430, 970, 690, 1010),
                 OcrTextBox("504.5M", 490, 1030, 675, 1080),
-                OcrTextBox("Alliance: YRo", 430, 1140, 760, 1180)
+                OcrTextBox("Éliminations", 430, 1084, 640, 1120),
+                OcrTextBox("Alliance: YRo", 430, 1140, 760, 1180),
+                OcrTextBox("Serveur: 311", 430, 1190, 650, 1230)
             ),
             imageWidth = 1152,
             imageHeight = 1536
         )
 
         assertEquals(504_500_000L, result.power?.puissanceTotaleNumerique)
+    }
+
+    @Test
+    fun doesNotInferPlayerPowerFromEliminationsWithoutPlayerProfileAnchors() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            rawText = "504.5M\\nÉliminations · 2M",
+            textBoxes = listOf(
+                OcrTextBox("504.5M", 490, 1030, 675, 1080),
+                OcrTextBox("Éliminations", 430, 1084, 640, 1120),
+                OcrTextBox("2M", 690, 1084, 760, 1120)
+            ),
+            imageWidth = 1152,
+            imageHeight = 1536
+        )
+
+        assertNull(result.power?.puissanceTotaleNumerique)
     }
 
     @Test
