@@ -888,7 +888,7 @@ object LandsOfJailOcrParser {
                 val result = mutableListOf<ResourceStatsRow>()
                 val labelBoxes = normalizedBoxes.mapNotNull { box ->
                     val entry = labels.firstOrNull { (label, _) ->
-                        Regex("^" + Regex.escape(label) + "(?:\\\\s|$)", RegexOption.IGNORE_CASE).containsMatchIn(box.text.trim())
+                        Regex("^" + Regex.escape(label) + "(?:\\s|$)", RegexOption.IGNORE_CASE).containsMatchIn(box.text.trim())
                     } ?: return@mapNotNull null
                     box to entry
                 }
@@ -939,35 +939,7 @@ object LandsOfJailOcrParser {
         }
         return result
     }
-        val hasObjectsHeader = Regex("total\\s+des\\s+objets|total\\s+items", RegexOption.IGNORE_CASE).containsMatchIn(rawText)
-        val hasResourcesHeader = Regex("ressources\\s+totales|total\\s+resources", RegexOption.IGNORE_CASE).containsMatchIn(rawText)
-        if (!hasObjectsHeader || !hasResourcesHeader) return emptyList()
-        val labels = listOf(
-            "Argent liquide" to "Cash / Or", "Nourriture" to "Nourriture (Food)",
-            "Bois" to "Bois (Wood)", "Acier" to "Acier (Steel)",
-            "Essence" to "Essence (Gasoline)", "Carte en or" to "Carte en or (Gold Card)",
-            "Endurance" to "Endurance (Stamina)", "EXP d'équipement" to "EXP d'équipement (Equipment EXP)",
-            "XP de héros" to "XP de héros (Hero XP)"
-        )
-        val result = mutableListOf<ResourceStatsRow>()
-        rawText.lines().forEach { rawLine ->
-            val line = rawLine.trim()
-            val entry = labels.firstOrNull { (label, _) ->
-                line.startsWith(label, ignoreCase = true) && line.length > label.length &&
-                    (line[label.length].isWhitespace() || line[label.length] == ':' || line[label.length] == '：')
-            } ?: return@forEach
-            val remainder = line.drop(entry.first.length).trim().trimStart(':', '：').trim()
-            val values = Regex("(?:[0-9]{1,3}(?:[ ,][0-9]{3})+|[0-9]+(?:[.,][0-9]+)?)[kmbKMB]?").findAll(remainder)
-                .map { it.value.trim() }.filter { it.isNotEmpty() }.toList()
-            if (values.size != 2) return@forEach
-            val first = parseCompactNumeric(values[0])
-            val second = parseCompactNumeric(values[1])
-            result.add(ResourceStatsRow(entry.second, values[0], values[1], first, second,
-                first == null || second == null,
-                if (first == null || second == null) "Une quantité du tableau n'a pas pu être convertie" else null))
-        }
-        return result
-    }
+
     private fun normalizeEquipmentText(value: String): String =
         java.text.Normalizer.normalize(value.lowercase(), java.text.Normalizer.Form.NFD)
             .replace(Regex("\\p{Mn}+"), "")
