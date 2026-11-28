@@ -70,7 +70,10 @@ class SupabaseAuthRepository(context: Context) {
         val id: String,
         val authorUserId: String,
         val authorName: String,
+        val title: String,
         val body: String,
+        val category: String,
+        val isPinned: Boolean,
         val createdAt: String
     )
 
@@ -566,7 +569,7 @@ class SupabaseAuthRepository(context: Context) {
             require(allianceId.matches(Regex("[0-9a-fA-F-]{36}"))) { "Identifiant d'alliance invalide." }
             val active = refreshSession().getOrThrow()
             val request = Request.Builder()
-                .url("$BASE_URL/rest/v1/alliance_messages?select=id,author_user_id,author_name,body,created_at&alliance_id=eq.$allianceId&order=created_at.desc&limit=100")
+                .url("$BASE_URL/rest/v1/alliance_messages?select=id,author_user_id,author_name,title,body,category,is_pinned,created_at&alliance_id=eq.$allianceId&order=is_pinned.desc,created_at.desc&limit=100")
                 .header("apikey", PUBLISHABLE_KEY)
                 .header("Authorization", "Bearer ${active.access_token}")
                 .get().build()
@@ -579,7 +582,10 @@ class SupabaseAuthRepository(context: Context) {
                         id = obj["id"]?.jsonPrimitive?.contentOrNull.orEmpty(),
                         authorUserId = obj["author_user_id"]?.jsonPrimitive?.contentOrNull.orEmpty(),
                         authorName = obj["author_name"]?.jsonPrimitive?.contentOrNull ?: "Membre",
+                        title = obj["title"]?.jsonPrimitive?.contentOrNull.orEmpty(),
                         body = obj["body"]?.jsonPrimitive?.contentOrNull.orEmpty(),
+                        category = obj["category"]?.jsonPrimitive?.contentOrNull ?: "general",
+                        isPinned = obj["is_pinned"]?.jsonPrimitive?.contentOrNull?.toBooleanStrictOrNull() ?: false,
                         createdAt = obj["created_at"]?.jsonPrimitive?.contentOrNull.orEmpty()
                     )
                 }
@@ -587,16 +593,43 @@ class SupabaseAuthRepository(context: Context) {
         }
     }
 
-    suspend fun postAllianceMessage(allianceId: String, body: String): Result<Unit> = runCatching {
+    suspend fun postAllianceAnnouncement(
+        allianceId: String,
+        title: String,
+        body: String,
+        category: String,
+        pinned: Boolean
+    ): Result<Unit> = runCatching {
         val normalizedAllianceId = allianceId.trim()
         require(isUuid(normalizedAllianceId)) { "Identifiant d'alliance invalide." }
+        val normalizedTitle = title.trim()
         val normalizedBody = body.trim()
+        val normalizedCategory = category.trim().lowercase()
+        require(normalizedTitle.isNotEmpty() && normalizedTitle.length <= 120) {
+            "Le titre doit contenir entre 1 et 120 caractères."
+        }
         require(normalizedBody.isNotEmpty() && normalizedBody.length <= 2000) {
             "Le message doit contenir entre 1 et 2000 caractères."
         }
-        callAllianceRpc("post_alliance_message", buildJsonObject {
+        require(normalizedCategory in setOf("general", "event", "war", "rules", "recruitment")) {
+            "Catégorie de message invalide."
+        }
+        callAllianceRpc("post_alliance_announcement", buildJsonObject {
             put("p_alliance_id", normalizedAllianceId)
+            put("p_title", normalizedTitle)
             put("p_body", normalizedBody)
+            put("p_category", normalizedCategory)
+            put("p_is_pinned", pinned)
+        }).getOrThrow()
+        Unit
+    }
+
+    suspend fun setAllianceMessagePinned(messageId: String, pinned: Boolean): Result<Unit> = runCatching {
+        val normalizedMessageId = messageId.trim()
+        require(isUuid(normalizedMessageId)) { "Identifiant de message invalide." }
+        callAllianceRpc("set_alliance_message_pinned", buildJsonObject {
+            put("p_message_id", normalizedMessageId)
+            put("p_is_pinned", pinned)
         }).getOrThrow()
         Unit
     }
@@ -701,7 +734,7 @@ class SupabaseAuthRepository(context: Context) {
     private suspend fun callAllianceRpc(functionName: String, payload: kotlinx.serialization.json.JsonObject): Result<String> =
         withContext(Dispatchers.IO) {
             runCatching {
-                require(functionName in setOf("is_app_developer", "submit_app_improvement", "review_app_improvement", "create_alliance_as_r5", "transfer_alliance_r5", "create_alliance_invite", "accept_alliance_invite", "submit_alliance_join_request", "review_alliance_join_request", "post_alliance_message", "delete_alliance_message", "set_alliance_member_rank")) {
+                require(functionName in setOf("is_app_developer", "submit_app_improvement", "review_app_improvement", "create_alliance_as_r5", "transfer_alliance_r5", "create_alliance_invite", "accept_alliance_invite", "submit_alliance_join_request", "review_alliance_join_request", "post_alliance_message", "post_alliance_announcement", "set_alliance_message_pinned", "delete_alliance_message", "set_alliance_member_rank")) {
                     "Action d'alliance non autorisée."
                 }
                 require(payload.toString().length <= 4096) { "Données d'action d'alliance trop longues." }
