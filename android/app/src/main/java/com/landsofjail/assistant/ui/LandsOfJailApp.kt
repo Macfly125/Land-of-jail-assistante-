@@ -215,6 +215,13 @@ private fun localizedCaptureSummary(item: ScreenshotAnalysis, language: AppLangu
             }
             add(if (language == AppLanguage.IT) "Risorse: $values" else localizedUiText(language, "Ressources : $values", "Resources: $values", "Ressourcen: $values", "Kaynaklar: $values", "Ресурсы: $values", "资源：$values", "Risorse: $values"))
         }
+        if (item.resourceStatsRows.isNotEmpty()) {
+            val objectLabel = localizedUiText(language, "Objets", "Items", "Objekte", "Ögeler", "Предметы", "物品", "Oggetti")
+            val totalLabel = localizedUiText(language, "Total ressources", "Total resources", "Ressourcen gesamt", "Toplam kaynak", "Всего ресурсов", "资源总量", "Risorse totali")
+            item.resourceStatsRows.forEach { row ->
+                add("${localizedResourceName(language, row.nom)} · $objectLabel: ${row.totalObjetsTexte} · $totalLabel: ${row.ressourcesTotalesTexte}")
+            }
+        }
         if (item.heros.isNotEmpty()) {
             val names = item.heros.take(4).joinToString(", ") { it.nom }
             add(if (language == AppLanguage.IT) "Eroi: $names" else localizedUiText(language, "Héros : $names", "Heroes: $names", "Helden: $names", "Kahramanlar: $names", "Герои: $names", "英雄：$names", "Eroi: $names"))
