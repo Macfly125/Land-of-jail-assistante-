@@ -693,10 +693,11 @@ object ResourceNameMatcher {
 }
 
 object ForticladSelection {
-    fun currentLevels(): IntRange = 1..9
+    // Level 0 represents the ordinary level-30 building before the first Forticlad upgrade.
+    fun currentLevels(): IntRange = 0..9
     fun completedSteps(): IntRange = 0..4
 
-    fun normalizeCurrentLevel(currentLevel: Int): Int = currentLevel.coerceIn(1, 9)
+    fun normalizeCurrentLevel(currentLevel: Int): Int = currentLevel.coerceIn(0, 9)
 
     fun targetLevels(currentLevel: Int): IntRange =
         (normalizeCurrentLevel(currentLevel) + 1)..10
