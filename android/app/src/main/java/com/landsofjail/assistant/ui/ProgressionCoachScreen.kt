@@ -521,10 +521,10 @@ private fun ProgressionCatalogGoalCard(
 private fun ForticladPlannerCard(language: AppLanguage, profileId: String, inventory: ForticladInventory, onInventoryChange: (ForticladInventory) -> Unit) {
     var forticladStock by remember(profileId) { mutableStateOf(inventory.forticladCores.toString()) }
     var advancedStock by remember(profileId) { mutableStateOf(inventory.advancedCores.toString()) }
-    var buildingId by remember { mutableStateOf("wardens_office") }
+    var buildingId by remember(profileId) { mutableStateOf("wardens_office") }
     var currentLevel by remember(profileId) { mutableStateOf(0) }
     var targetLevel by remember(profileId) { mutableStateOf(1) }
-    var completedStages by remember { mutableStateOf(0) }
+    var completedStages by remember(profileId) { mutableStateOf(0) }
     fun label(fr: String, en: String, de: String, tr: String, ru: String, zh: String, it: String) =
         when (language) {
             AppLanguage.FR -> fr; AppLanguage.EN -> en; AppLanguage.DE -> de
