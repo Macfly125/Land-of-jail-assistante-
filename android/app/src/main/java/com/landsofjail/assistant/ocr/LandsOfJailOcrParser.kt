@@ -252,7 +252,7 @@ object LandsOfJailOcrParser {
         val lowerFull = rawText.lowercase()
         val uncertain = mutableListOf<UncertainItem>()
         val resources = mutableListOf<ResourceRecord>()
-        val resourceStatsRows = parseResourceStatsRows(rawText)
+        val resourceStatsRows = parseResourceStatsRows(rawText, textBoxes)
         val heroes = mutableListOf<HeroRecord>()
         val robots = mutableListOf<RobotRecord>()
         val equipment = mutableListOf<EquipmentRecord>()
@@ -862,7 +862,83 @@ object LandsOfJailOcrParser {
      * sont présents et si exactement deux valeurs sont lisibles sur la même ligne.
      * Une cellule manquante ne décale jamais les valeurs des lignes suivantes.
      */
-    private fun parseResourceStatsRows(rawText: String): List<ResourceStatsRow> {
+    private fun parseResourceStatsRows(rawText: String, textBoxes: List<OcrTextBox>): List<ResourceStatsRow> {
+        val labels = listOf(
+            "Argent liquide" to "Cash / Or", "Nourriture" to "Nourriture (Food)",
+            "Bois" to "Bois (Wood)", "Acier" to "Acier (Steel)",
+            "Essence" to "Essence (Gasoline)", "Carte en or" to "Carte en or (Gold Card)",
+            "Endurance" to "Endurance (Stamina)", "EXP d'équipement" to "EXP d'équipement (Equipment EXP)",
+            "XP de héros" to "XP de héros (Hero XP)"
+        )
+        val numberRegex = Regex("(?:[0-9]{1,3}(?:[ ,][0-9]{3})+|[0-9]+(?:[.,][0-9]+)?)[kmbKMB]?")
+        val normalizedBoxes = textBoxes.filter { it.text.isNotBlank() && it.right > it.left && it.bottom > it.top }
+        val objectsHeader = normalizedBoxes.firstOrNull {
+            Regex("total\\s+des\\s+objets|total\\s+items", RegexOption.IGNORE_CASE).containsMatchIn(it.text)
+        }
+        val totalsHeader = normalizedBoxes.firstOrNull {
+            Regex("ressources\\s+totales|total\\s+resources", RegexOption.IGNORE_CASE).containsMatchIn(it.text)
+        }
+
+        // La géométrie des boîtes est prioritaire : chaque quantité est affectée
+        // à la colonne dont l'en-tête est au-dessus, jamais selon son seul ordre OCR.
+        if (objectsHeader != null && totalsHeader != null) {
+            val objectCenterX = (objectsHeader.left + objectsHeader.right) / 2
+            val totalsCenterX = (totalsHeader.left + totalsHeader.right) / 2
+            if (objectCenterX < totalsCenterX) {
+                val result = mutableListOf<ResourceStatsRow>()
+                val labelBoxes = normalizedBoxes.mapNotNull { box ->
+                    val entry = labels.firstOrNull { (label, _) ->
+                        Regex("^" + Regex.escape(label) + "(?:\\\\s|$)", RegexOption.IGNORE_CASE).containsMatchIn(box.text.trim())
+                    } ?: return@mapNotNull null
+                    box to entry
+                }
+                labelBoxes.forEach { (labelBox, entry) ->
+                    val rowCenterY = (labelBox.top + labelBox.bottom) / 2
+                    val rowTolerance = maxOf(24, (labelBox.bottom - labelBox.top) * 2)
+                    val rowBoxes = normalizedBoxes.filter { box ->
+                        val centerY = (box.top + box.bottom) / 2
+                        kotlin.math.abs(centerY - rowCenterY) <= rowTolerance &&
+                            box.left >= labelBox.right - 4 &&
+                            box.text.trim() != labelBox.text.trim()
+                    }
+                    val objectValues = rowBoxes.filter { (it.left + it.right) / 2 < (objectCenterX + totalsCenterX) / 2 }
+                        .flatMap { numberRegex.findAll(it.text).map { match -> match.value }.toList() }
+                    val totalValues = rowBoxes.filter { (it.left + it.right) / 2 >= (objectCenterX + totalsCenterX) / 2 }
+                        .flatMap { numberRegex.findAll(it.text).map { match -> match.value }.toList() }
+                    if (objectValues.size != 1 || totalValues.size != 1) return@forEach
+                    val first = parseCompactNumeric(objectValues.single())
+                    val second = parseCompactNumeric(totalValues.single())
+                    result.add(ResourceStatsRow(
+                        entry.second, objectValues.single(), totalValues.single(), first, second,
+                        first == null || second == null,
+                        if (first == null || second == null) "Une quantité du tableau n'a pas pu être convertie" else null
+                    ))
+                }
+                if (result.isNotEmpty()) return result.distinctBy { it.nom }
+            }
+        }
+
+        val hasObjectsHeader = Regex("total\\s+des\\s+objets|total\\s+items", RegexOption.IGNORE_CASE).containsMatchIn(rawText)
+        val hasResourcesHeader = Regex("ressources\\s+totales|total\\s+resources", RegexOption.IGNORE_CASE).containsMatchIn(rawText)
+        if (!hasObjectsHeader || !hasResourcesHeader) return emptyList()
+        val result = mutableListOf<ResourceStatsRow>()
+        rawText.lines().forEach { rawLine ->
+            val line = rawLine.trim()
+            val entry = labels.firstOrNull { (label, _) ->
+                line.startsWith(label, ignoreCase = true) && line.length > label.length &&
+                    (line[label.length].isWhitespace() || line[label.length] == ':' || line[label.length] == '：')
+            } ?: return@forEach
+            val remainder = line.drop(entry.first.length).trim().trimStart(':', '：').trim()
+            val values = numberRegex.findAll(remainder).map { it.value.trim() }.filter { it.isNotEmpty() }.toList()
+            if (values.size != 2) return@forEach
+            val first = parseCompactNumeric(values[0])
+            val second = parseCompactNumeric(values[1])
+            result.add(ResourceStatsRow(entry.second, values[0], values[1], first, second,
+                first == null || second == null,
+                if (first == null || second == null) "Une quantité du tableau n'a pas pu être convertie" else null))
+        }
+        return result
+    }
         val hasObjectsHeader = Regex("total\\s+des\\s+objets|total\\s+items", RegexOption.IGNORE_CASE).containsMatchIn(rawText)
         val hasResourcesHeader = Regex("ressources\\s+totales|total\\s+resources", RegexOption.IGNORE_CASE).containsMatchIn(rawText)
         if (!hasObjectsHeader || !hasResourcesHeader) return emptyList()
