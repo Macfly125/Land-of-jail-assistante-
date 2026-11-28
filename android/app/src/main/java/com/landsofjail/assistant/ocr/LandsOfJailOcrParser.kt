@@ -175,12 +175,12 @@ object LandsOfJailOcrParser {
         imageHeight: Int
     ): String? {
         if (boxes.isEmpty() || imageWidth <= 0 || imageHeight <= 0) return null
-        val compactNumber = Regex("""\\b[0-9]+(?:[.,][0-9]+)?\\s*[MB]\\b""", RegexOption.IGNORE_CASE)
+        val compactNumber = Regex("""\b[0-9]+(?:[.,][0-9]+)?\s*[MB]\b""", RegexOption.IGNORE_CASE)
         val eliminationBox = boxes.firstOrNull {
             Regex("""[ée]liminations?""", RegexOption.IGNORE_CASE).containsMatchIn(it.text)
         }
         val metadataBox = boxes.firstOrNull {
-            Regex("""\\b(?:alliance|serveur|server)\\b""", RegexOption.IGNORE_CASE).containsMatchIn(it.text)
+            Regex("""\b(?:alliance|serveur|server)\b""", RegexOption.IGNORE_CASE).containsMatchIn(it.text)
         }
         val anchorY = eliminationBox?.let { (it.top + it.bottom) / 2f }
             ?: metadataBox?.let { (it.top + it.bottom) / 2f }
