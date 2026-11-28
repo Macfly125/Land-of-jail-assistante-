@@ -1709,6 +1709,7 @@ fun LandsOfJailAssistantApp(
                 equipements = (remoteResult.equipements + localExtraction.equipment).distinctBy {
                     (it.piece + it.niveau).lowercase()
                 },
+                resourceStatsRows = localExtraction.resourceStatsRows,
                 champsIncertains = (remoteResult.champsIncertains + localExtraction.uncertainItems)
                     .distinctBy { normalizedKey(it.champ) + normalizedKey(it.valeurObservee) }
             )
@@ -1746,6 +1747,7 @@ fun LandsOfJailAssistantApp(
                 heros = localExtraction.heroes,
                 robots = localExtraction.robots,
                 equipements = localExtraction.equipment,
+                resourceStatsRows = localExtraction.resourceStatsRows,
                 champsIncertains = localExtraction.uncertainItems + UncertainItem(
                     "Analyse en ligne",
                     "Indisponible",
@@ -1880,6 +1882,7 @@ fun LandsOfJailAssistantApp(
                             equipements = (remote.equipements + localExtraction.equipment).distinctBy {
                                 (it.piece + it.niveau).lowercase()
                             },
+                            resourceStatsRows = localExtraction.resourceStatsRows,
                             champsIncertains = (remote.champsIncertains + localExtraction.uncertainItems)
                                 .distinctBy { normalizedKey(it.champ) + normalizedKey(it.valeurObservee) }
                         )
@@ -1916,6 +1919,7 @@ fun LandsOfJailAssistantApp(
                         heros = localExtraction.heroes,
                         robots = localExtraction.robots,
                         equipements = localExtraction.equipment,
+                        resourceStatsRows = localExtraction.resourceStatsRows,
                         champsIncertains = localExtraction.uncertainItems
                     )
                 }
