@@ -1096,6 +1096,18 @@ Stahl
     }
 
     @Test
+    fun readsTotalPowerWithItalianAndGermanLabelsWithoutConfusingFood() {
+        val italian = LandsOfJailOcrParser.parseLocalOcrText("Potenza: 509 256 511")
+        assertEquals(509_256_511L, italian.power?.puissanceTotaleNumerique)
+
+        val german = LandsOfJailOcrParser.parseLocalOcrText("Kampfkraft: 177,1M")
+        assertEquals(177_100_000L, german.power?.puissanceTotaleNumerique)
+
+        val foodOnly = LandsOfJailOcrParser.parseLocalOcrText("Cibo: 177,1M")
+        assertNull("La nourriture ne doit jamais être interprétée comme puissance", foodOnly.power)
+    }
+
+    @Test
     fun readsRobotPowerAndSkillsInItalianAndGerman() {
         val italian = LandsOfJailOcrParser.parseLocalOcrText(
             "Ranger\\nPotenza: 120\\nAbilità: Colpo rapido"
