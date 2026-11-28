@@ -137,7 +137,7 @@ class LandsOfJailOcrParserTest {
     @Test
     fun doesNotInferPlayerPowerFromEliminationsWithoutPlayerProfileAnchors() {
         val result = LandsOfJailOcrParser.parseLocalOcrText(
-            rawText = "504.5M\\nÉliminations · 2M",
+            rawText = "504.5M\nÉliminations · 2M",
             textBoxes = listOf(
                 OcrTextBox("504.5M", 490, 1030, 675, 1080),
                 OcrTextBox("Éliminations", 430, 1084, 640, 1120),
