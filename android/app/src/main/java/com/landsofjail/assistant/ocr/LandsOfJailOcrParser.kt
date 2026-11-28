@@ -599,6 +599,23 @@ object LandsOfJailOcrParser {
             )
         }
 
+        // Player profile-card badge: unlike the home screen, this value is in the
+        // right-side profile panel, immediately above the Eliminations row.
+        // Coordinates disambiguate it from the elimination count and top resource HUD.
+        if (power == null && textBoxes.isNotEmpty()) {
+            val profileBadge = profilePowerBadgeFromCoordinates(textBoxes, imageWidth, imageHeight)
+            val numeric = profileBadge?.let(::parseCompactNumeric)
+            if (profileBadge != null && numeric != null) {
+                power = PowerMetric(
+                    puissanceTotaleTexte = profileBadge,
+                    puissanceTotaleNumerique = numeric.toLong(),
+                    niveauPrisonOuQG = wardenLevel,
+                    incertain = false,
+                    raisonIncertitude = null
+                )
+            }
+        }
+
         // Profil joueur : la puissance est affichée avec une icône de poing,
         // juste avant la ligne « Eliminations », sans libellé « Puissance ».
         // La ligne numérique située avant « Eliminations » peut aussi être une
@@ -632,23 +649,6 @@ object LandsOfJailOcrParser {
                         raisonIncertitude = null
                     )
                 }
-            }
-        }
-
-        // Player profile-card badge: unlike the home screen, this value is in the
-        // right-side profile panel, immediately above the Eliminations row.
-        // Coordinates disambiguate it from the elimination count and top resource HUD.
-        if (power == null && textBoxes.isNotEmpty()) {
-            val profileBadge = profilePowerBadgeFromCoordinates(textBoxes, imageWidth, imageHeight)
-            val numeric = profileBadge?.let(::parseCompactNumeric)
-            if (profileBadge != null && numeric != null) {
-                power = PowerMetric(
-                    puissanceTotaleTexte = profileBadge,
-                    puissanceTotaleNumerique = numeric.toLong(),
-                    niveauPrisonOuQG = wardenLevel,
-                    incertain = false,
-                    raisonIncertitude = null
-                )
             }
         }
 
