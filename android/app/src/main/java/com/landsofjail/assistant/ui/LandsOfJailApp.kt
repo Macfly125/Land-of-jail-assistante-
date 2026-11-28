@@ -844,7 +844,7 @@ private enum class AssistantTab {
             AppLanguage.TR -> "Kaynaklar"
             AppLanguage.RU -> "Ресурсы"
             AppLanguage.ZH -> "资源"
-            AppLanguage.DE -> "Ressourc."
+            AppLanguage.DE -> "Ressourcen"
             AppLanguage.EN -> "Resources"
             AppLanguage.IT -> "Risorse"
         }
@@ -2344,7 +2344,7 @@ fun LandsOfJailAssistantApp(
                             val selected = currentTab == tab
                             Column(
                                 modifier = Modifier
-                                    .width(82.dp)
+                                    .width(96.dp)
                                     .clip(RoundedCornerShape(12.dp))
                                     .clickable { currentTab = tab }
                                     .padding(horizontal = 3.dp, vertical = 5.dp),
@@ -2359,10 +2359,10 @@ fun LandsOfJailAssistantApp(
                                 )
                                 Text(
                                     text = tab.titleFor(currentLang),
-                                    maxLines = 1,
-                                    softWrap = false,
+                                    maxLines = 2,
+                                    softWrap = true,
                                     overflow = TextOverflow.Clip,
-                                    fontSize = 9.sp,
+                                    fontSize = 10.sp,
                                     fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
                                     color = if (selected) Color(0xFFFF9A55) else Color(0xFF6E7785)
                                 )
