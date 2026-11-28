@@ -182,6 +182,37 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun recognizesSpanishAndJapanesePlayerProfilePowerAnchors() {
+        val spanish = LandsOfJailOcrParser.parseLocalOcrText(
+            "ID: 1046814571\\n504.5M\\nEliminaciones · 2M\\nAlianza: YRo\\nServidor: 311",
+            textBoxes = listOf(
+                OcrTextBox("ID: 1046814571", 430, 970, 690, 1010),
+                OcrTextBox("504.5M", 490, 1030, 675, 1080),
+                OcrTextBox("Eliminaciones", 430, 1084, 640, 1120),
+                OcrTextBox("Alianza: YRo", 430, 1140, 760, 1180),
+                OcrTextBox("Servidor: 311", 430, 1190, 650, 1230)
+            ),
+            imageWidth = 1152,
+            imageHeight = 1536
+        )
+        assertEquals(504_500_000L, spanish.power?.puissanceTotaleNumerique)
+
+        val japanese = LandsOfJailOcrParser.parseLocalOcrText(
+            "ID: 1046814571\\n504.5M\\n撃破数 · 2M\\n同盟: YRo\\nサーバー: 311",
+            textBoxes = listOf(
+                OcrTextBox("ID: 1046814571", 430, 970, 690, 1010),
+                OcrTextBox("504.5M", 490, 1030, 675, 1080),
+                OcrTextBox("撃破数", 430, 1084, 640, 1120),
+                OcrTextBox("同盟: YRo", 430, 1140, 760, 1180),
+                OcrTextBox("サーバー: 311", 430, 1190, 650, 1230)
+            ),
+            imageWidth = 1152,
+            imageHeight = 1536
+        )
+        assertEquals(504_500_000L, japanese.power?.puissanceTotaleNumerique)
+    }
+
+    @Test
     fun recognizesHomeScreenPowerBadgeByItsPositionWithoutReadingFoodAsPower() {
         val result = LandsOfJailOcrParser.parseLocalOcrText(
             rawText = "VIP8",
