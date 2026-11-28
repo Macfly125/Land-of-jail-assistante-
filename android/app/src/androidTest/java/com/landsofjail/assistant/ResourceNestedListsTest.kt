@@ -3,6 +3,8 @@ package com.landsofjail.assistant
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onNodeWithTag
@@ -52,6 +54,31 @@ class ResourceNestedListsTest {
     }
 
     @Test
+    @Test
+    fun forticladLevelSixSelectionIsPreservedAndTargetAdjusted() {
+        composeRule.setContent {
+            MaterialTheme {
+                LazyColumn {
+                    item {
+                        ProgressionCoachScreen(
+                            profileId = "instrumented-forticlad-level-six",
+                            language = AppLanguage.FR,
+                            resources = emptyList()
+                        )
+                    }
+                }
+            }
+        }
+
+        composeRule.waitUntil(timeoutMillis = 10_000) {
+            composeRule.onAllNodesWithText("Coach de progression").fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithTag("progression-coach-list").performScrollToIndex(1)
+        composeRule.onNodeWithTag("forticlad-current-level-row").performScrollToIndex(5)
+        composeRule.onNodeWithTag("forticlad-current-level-6").performClick().assertIsSelected()
+        composeRule.onNodeWithTag("forticlad-target-level-7").assertIsSelected()
+    }
+
     fun svsPlannerMeasuresAndScrollsInsideParentLazyColumn() {
         composeRule.setContent {
             MaterialTheme {
