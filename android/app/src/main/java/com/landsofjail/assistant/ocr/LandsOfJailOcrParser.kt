@@ -439,11 +439,11 @@ object LandsOfJailOcrParser {
                     val context = lines.subList(index, maxOf(index + 1, contextEnd)).joinToString(" ")
                     val level = Regex("""(?:lv\.?|level|niv\.?|niveau|livello|stufe|seviye|уровень|等级)\s*[:：]?\s*([0-9]{1,3})""", RegexOption.IGNORE_CASE)
                         .find(context)?.groupValues?.get(1)
-                    val powerText = Regex("""(?:power|puissance|atk|attack|güç|мощь|сила|战力)\s*[:：]?\s*([0-9]+(?:[.,][0-9]+)?\s*%?)""", RegexOption.IGNORE_CASE)
+                    val powerText = Regex("""(?:power|puissance|potenza|kampfkraft|atk|attack|güç|мощь|сила|战力)\s*[:：]?\s*([0-9]+(?:[.,][0-9]+)?\s*%?)""", RegexOption.IGNORE_CASE)
                         .find(context)?.groupValues?.get(1)?.trim().orEmpty()
                     val bonusText = Regex("""(?:bonus|buff|boost|bonus troop|troop bonus|бонус|加成|奖励)\s*[:：]?\s*([^,;。]{3,70})""", RegexOption.IGNORE_CASE)
                         .find(context)?.groupValues?.get(1)?.trim().orEmpty()
-                    val skillText = Regex("""(?:skill|skills|comp[ée]tence|comp[ée]tences|core|beceri|beceriler|навык|навыки|技能)\s*[:：]?\s*([^,;。]{3,90})""", RegexOption.IGNORE_CASE)
+                    val skillText = Regex("""(?:skill|skills|comp[ée]tence|comp[ée]tences|abilità|abilita|fähigkeit|fähigkeiten|faehigkeit|faehigkeiten|core|beceri|beceriler|навык|навыки|技能)\s*[:：]?\s*([^,;。]{3,90})""", RegexOption.IGNORE_CASE)
                         .find(context)?.groupValues?.get(1)?.trim().orEmpty()
                     val hasDetails = level != null || powerText.isNotBlank() || bonusText.isNotBlank() || skillText.isNotBlank()
                     robots.add(RobotRecord(
