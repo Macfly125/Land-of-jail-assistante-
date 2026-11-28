@@ -16,7 +16,9 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -807,7 +809,7 @@ private fun resourceUiText(language: AppLanguage, key: String): String {
 }
 
 private enum class AssistantTab {
-    TABLEAU, HEROS, RESSOURCES, CONSEILS, ALLIANCE, HISTORIQUE, AMELIORATIONS, CODES, PARAMETRES;
+    TABLEAU, HEROS, ROBOTS, RESSOURCES, CONSEILS, ALLIANCE, HISTORIQUE, AMELIORATIONS, CODES, PARAMETRES;
 
     fun titleFor(lang: AppLanguage): String = when (this) {
         TABLEAU -> when (lang) {
@@ -827,6 +829,15 @@ private enum class AssistantTab {
             AppLanguage.DE -> "Helden"
             AppLanguage.EN -> "Heroes"
             AppLanguage.IT -> "Eroi"
+        }
+        ROBOTS -> when (lang) {
+            AppLanguage.FR -> "Robots"
+            AppLanguage.TR -> "Robotlar"
+            AppLanguage.RU -> "Роботы"
+            AppLanguage.ZH -> "机器人"
+            AppLanguage.DE -> "Roboter"
+            AppLanguage.EN -> "Robots"
+            AppLanguage.IT -> "Robot"
         }
         RESSOURCES -> when (lang) {
             AppLanguage.FR -> "Ressources"
@@ -2305,45 +2316,58 @@ fun LandsOfJailAssistantApp(
                 )
             },
             bottomBar = {
-                NavigationBar(
-                    containerColor = Color(0xFF0B0D13),
-                    contentColor = Color(0xFF9AA8BA),
+                Surface(
+                    color = Color(0xFF0B0D13),
                     tonalElevation = 0.dp
                 ) {
-                    AssistantTab.entries.forEach { tab ->
-                        val icon = when (tab) {
-                            AssistantTab.TABLEAU -> Icons.Outlined.Dashboard
-                            AssistantTab.HEROS -> Icons.Outlined.Groups
-                            AssistantTab.RESSOURCES -> Icons.Outlined.Inventory2
-                            AssistantTab.CONSEILS -> Icons.Outlined.MilitaryTech
-                            AssistantTab.ALLIANCE -> Icons.Outlined.Groups
-                            AssistantTab.HISTORIQUE -> Icons.Outlined.History
-                            AssistantTab.AMELIORATIONS -> Icons.Outlined.Lightbulb
-                            AssistantTab.CODES -> Icons.Outlined.CardGiftcard
-                            AssistantTab.PARAMETRES -> Icons.Outlined.Settings
-                        }
-                        NavigationBarItem(
-                            selected = currentTab == tab,
-                            onClick = { currentTab = tab },
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = Color(0xFFFF9A55),
-                                selectedTextColor = Color(0xFFFF9A55),
-                                indicatorColor = Color(0xFF5B2D1D),
-                                unselectedIconColor = Color(0xFF6E7785),
-                                unselectedTextColor = Color(0xFF6E7785)
-                            ),
-                            icon = { Icon(icon, contentDescription = tab.titleFor(currentLang)) },
-                            label = {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState())
+                            .padding(horizontal = 4.dp, vertical = 5.dp),
+                        horizontalArrangement = Arrangement.spacedBy(2.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        AssistantTab.entries.forEach { tab ->
+                            val icon = when (tab) {
+                                AssistantTab.TABLEAU -> Icons.Outlined.Dashboard
+                                AssistantTab.HEROS -> Icons.Outlined.Groups
+                                AssistantTab.ROBOTS -> Icons.Outlined.Android
+                                AssistantTab.RESSOURCES -> Icons.Outlined.Inventory2
+                                AssistantTab.CONSEILS -> Icons.Outlined.MilitaryTech
+                                AssistantTab.ALLIANCE -> Icons.Outlined.Groups
+                                AssistantTab.HISTORIQUE -> Icons.Outlined.History
+                                AssistantTab.AMELIORATIONS -> Icons.Outlined.Lightbulb
+                                AssistantTab.CODES -> Icons.Outlined.CardGiftcard
+                                AssistantTab.PARAMETRES -> Icons.Outlined.Settings
+                            }
+                            val selected = currentTab == tab
+                            Column(
+                                modifier = Modifier
+                                    .width(82.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .clickable { currentTab = tab }
+                                    .padding(horizontal = 3.dp, vertical = 5.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(3.dp)
+                            ) {
+                                Icon(
+                                    icon,
+                                    contentDescription = tab.titleFor(currentLang),
+                                    tint = if (selected) Color(0xFFFF9A55) else Color(0xFF6E7785),
+                                    modifier = Modifier.size(21.dp)
+                                )
                                 Text(
                                     text = tab.titleFor(currentLang),
                                     maxLines = 1,
                                     softWrap = false,
-                                    overflow = TextOverflow.Ellipsis,
-                                    fontSize = 10.sp,
-                                    fontWeight = if (currentTab == tab) FontWeight.Bold else FontWeight.Medium
+                                    overflow = TextOverflow.Clip,
+                                    fontSize = 9.sp,
+                                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                                    color = if (selected) Color(0xFFFF9A55) else Color(0xFF6E7785)
                                 )
                             }
-                        )
+                        }
                     }
                 }
             }
@@ -2480,9 +2504,6 @@ fun LandsOfJailAssistantApp(
                     AssistantTab.HEROS -> HeroesScreen(
                         language = currentLang,
                         heroes = heroes,
-                        robots = robots,
-                        profileId = activeProfileId,
-                        onSaveRobots = { robots = it },
                         onAddHero = { entry ->
                             val newHero = HeroRecord(
                                 nom = entry.nom,
@@ -2500,6 +2521,12 @@ fun LandsOfJailAssistantApp(
                         onUpdateHero = { original, updated ->
                             heroes = heroes.map { if (it.nom == original.nom) updated else it }
                         }
+                    )
+                    AssistantTab.ROBOTS -> RobotsScreen(
+                        language = currentLang,
+                        profileId = activeProfileId,
+                        robots = robots,
+                        onSaveRobots = { robots = it }
                     )
                     AssistantTab.RESSOURCES -> ResourcesScreen(
                         currentLang, currentPower, resources, activeProfileId,
@@ -3288,9 +3315,6 @@ private fun HeroPortraitFallback(typeTroupe: String?) {
 private fun HeroesScreen(
     language: AppLanguage,
     heroes: List<HeroRecord>,
-    robots: List<RobotRecord>,
-    profileId: String,
-    onSaveRobots: (List<RobotRecord>) -> Unit,
     onAddHero: (HeroCatalogEntry) -> HeroRecord,
     onUpdateHero: (HeroRecord, HeroRecord) -> Unit
 ) {
@@ -3346,12 +3370,18 @@ private fun HeroesScreen(
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
+                val classFilters = listOf(
+                    "Tous" to localizedUiText(language, "Tous", "All", "Alle", "Tümü", "Все", "全部", "Tutti"),
+                    "Shieldbearer" to localizedUiText(language, "Porteur de bouclier", "Shieldbearer", "Schildträger", "Kalkanlı", "Щитоносец", "盾卫", "Scudiero"),
+                    "Shooter" to localizedUiText(language, "Tireur", "Shooter", "Schütze", "Nişancı", "Стрелок", "射手", "Tiratore"),
+                    "Bomber" to localizedUiText(language, "Bombardier", "Bomber", "Bomber", "Bombacı", "Бомбардировщик", "轰炸兵", "Bombardiere")
+                )
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    items(listOf("Tous", "Shieldbearer", "Shooter", "Bomber")) { troopClass ->
+                    items(classFilters) { (troopClass, label) ->
                         FilterChip(
                             selected = selectedClass == troopClass,
                             onClick = { selectedClass = troopClass },
-                            label = { Text(troopClass) }
+                            label = { Text(label) }
                         )
                     }
                 }
@@ -3361,14 +3391,6 @@ private fun HeroesScreen(
                     color = Color(0xFFFBBF24)
                 )
             }
-        }
-        item {
-            RobotsProfileSection(
-                language = language,
-                profileId = profileId,
-                robots = robots,
-                onSaveRobots = onSaveRobots
-            )
         }
         item {
             Text(
@@ -3550,6 +3572,25 @@ private fun HeroesScreen(
 
 
 @Composable
+private fun RobotsScreen(
+    language: AppLanguage,
+    profileId: String,
+    robots: List<RobotRecord>,
+    onSaveRobots: (List<RobotRecord>) -> Unit
+) {
+    LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        item {
+            RobotsProfileSection(
+                language = language,
+                profileId = profileId,
+                robots = robots,
+                onSaveRobots = onSaveRobots
+            )
+        }
+    }
+}
+
+@Composable
 private fun RobotsProfileSection(
     language: AppLanguage,
     profileId: String,
@@ -3574,13 +3615,13 @@ private fun RobotsProfileSection(
                 Text(resourceUiText(language, "robot_inventory"), fontWeight = FontWeight.Bold)
                 Text(
                     localizedUiText(language,
-                        "Les robots sont regroupés avec tes héros. Renseigne les bonus tels qu’ils apparaissent en jeu ; aucune statistique n’est devinée.",
-                        "Robots are grouped with your heroes. Enter bonuses exactly as shown in game; no statistics are guessed.",
-                        "Roboter werden zusammen mit deinen Helden angezeigt. Trage Boni wie im Spiel ein; Werte werden nicht erraten.",
-                        "Robotlar kahramanlarınla birlikte gösterilir. Bonusları oyunda göründüğü gibi gir; hiçbir istatistik tahmin edilmez.",
-                        "Роботы сгруппированы с героями. Вводите бонусы точно как в игре; характеристики не додумываются.",
-                        "机器人与英雄归在一起。请按游戏显示填写加成，不会猜测任何数据。",
-                        "I robot sono raggruppati con gli eroi. Inserisci i bonus come appaiono nel gioco; nessuna statistica viene inventata."),
+                        "Les robots disposent maintenant de leur propre onglet. Renseigne les bonus tels qu’ils apparaissent en jeu ; aucune statistique n’est devinée.",
+                        "Robots now have their own tab. Enter bonuses exactly as shown in game; no statistics are guessed.",
+                        "Roboter haben jetzt einen eigenen Tab. Trage Boni wie im Spiel ein; Werte werden nicht erraten.",
+                        "Robotların artık ayrı bir sekmesi var. Bonusları oyunda göründüğü gibi gir; hiçbir istatistik tahmin edilmez.",
+                        "У роботов теперь отдельная вкладка. Вводите бонусы точно как в игре; характеристики не додумываются.",
+                        "机器人现在有独立标签页。请按游戏显示填写加成，不会猜测任何数据。",
+                        "I robot ora hanno una scheda dedicata. Inserisci i bonus come appaiono nel gioco; nessuna statistica viene inventata."),
                     style = MaterialTheme.typography.bodySmall
                 )
                 OutlinedTextField(robotName, { robotName = it }, label = { Text(resourceUiText(language, "robot_name")) }, singleLine = true, modifier = Modifier.fillMaxWidth())
