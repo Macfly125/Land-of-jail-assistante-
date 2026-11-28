@@ -176,19 +176,21 @@ object LandsOfJailOcrParser {
         imageHeight: Int
     ): String? {
         if (boxes.isEmpty() || imageWidth <= 0 || imageHeight <= 0) return null
-        val compactNumber = Regex("""\b[0-9]+(?:[.,][0-9]+)?\s*[MB]\b""", RegexOption.IGNORE_CASE)
+        val compactNumber = Regex("""\b[0-9]+(?:[.,][0-9]+)?\s*[KMB]\b""", RegexOption.IGNORE_CASE)
         // Require profile-specific anchors. A lone "Eliminations" label can occur
         // in other screens and must never turn a nearby quantity into player power.
         val hasPlayerId = boxes.any {
             Regex("""\bID\s*[:#]?\s*[0-9]{5,}""", RegexOption.IGNORE_CASE).containsMatchIn(it.text)
         }
         val hasProfileMetadata = boxes.any {
-            Regex("""\b(?:alliance|serveur|server)\b""", RegexOption.IGNORE_CASE).containsMatchIn(it.text)
+            Regex("""\b(?:alliance|serveur|server|allianz|alleanza|alianza|ittifak|альянс|сервер)\b|联盟""", RegexOption.IGNORE_CASE).containsMatchIn(it.text)
         }
         if (!hasPlayerId || !hasProfileMetadata) return null
 
+        // Le nom de la ligne d'éliminations varie selon la langue du jeu.
+        // On ne prend que cette ancre dans le panneau profil, jamais un compteur HUD.
         val eliminationBox = boxes.firstOrNull {
-            Regex("""[ée]liminations?""", RegexOption.IGNORE_CASE).containsMatchIn(it.text)
+            Regex("""(?:[ée]liminations?|eliminazione|eliminaciones|eliminierungen|eliminasyon(?:lar[ıi])?|убийств[а-яё]*|淘汰|击杀)""", RegexOption.IGNORE_CASE).containsMatchIn(it.text)
         } ?: return null
         val anchorY = (eliminationBox.top + eliminationBox.bottom) / 2f
         val minY = anchorY - imageHeight * 0.10f
