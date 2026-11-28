@@ -2738,7 +2738,7 @@ private fun LanguageSelectorRow(
             onDismissRequest = { expanded = false },
             modifier = Modifier.fillMaxWidth(0.92f)
         ) {
-            AppLanguage.entries.forEach { lang ->
+            listOf(AppLanguage.DE, AppLanguage.EN, AppLanguage.FR, AppLanguage.IT, AppLanguage.RU, AppLanguage.TR, AppLanguage.ZH).forEach { lang ->
                 val label = when (lang) {
                     AppLanguage.FR -> "Français"
                     AppLanguage.EN -> "English"
