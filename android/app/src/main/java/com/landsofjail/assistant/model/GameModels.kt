@@ -522,7 +522,8 @@ data class ScreenshotAnalysis(
     val heros: List<HeroRecord> = emptyList(),
     val robots: List<RobotRecord> = emptyList(),
     val equipements: List<EquipmentRecord> = emptyList(),
-    val champsIncertains: List<UncertainItem> = emptyList()
+    val champsIncertains: List<UncertainItem> = emptyList(),
+    val resourceStatsRows: List<ResourceStatsRow> = emptyList()
 )
 
 @Serializable
