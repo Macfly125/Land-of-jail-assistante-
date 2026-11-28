@@ -1084,6 +1084,18 @@ Stahl
     }
 
     @Test
+    fun readsRobotLevelsInItalianAndGerman() {
+        val samples = listOf(
+            "Ranger\\nLivello 30" to "30",
+            "Ranger\\nStufe 31" to "31"
+        )
+        samples.forEach { (sample, expectedLevel) ->
+            val robot = LandsOfJailOcrParser.parseLocalOcrText(sample).robots.single()
+            assertEquals(expectedLevel, robot.niveau)
+        }
+    }
+
+    @Test
     fun doesNotBorrowTheNextRobotsLevelWhenSeveralRobotCardsAreVisible() {
         val result = LandsOfJailOcrParser.parseLocalOcrText(
             "Ranger\nPhantom Cat\nLevel 90"
