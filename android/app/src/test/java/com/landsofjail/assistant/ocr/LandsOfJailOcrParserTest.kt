@@ -172,6 +172,16 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun recognizesLocalizedTextOnlyProfilePowerWithKSuffix() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            rawText = "ID: 1046814571\n730K\nУбийства · 2M\nАльянс: YRo\nСервер: 311"
+        )
+
+        assertEquals("730K", result.power?.puissanceTotaleTexte)
+        assertEquals(730_000L, result.power?.puissanceTotaleNumerique)
+    }
+
+    @Test
     fun recognizesHomeScreenPowerBadgeByItsPositionWithoutReadingFoodAsPower() {
         val result = LandsOfJailOcrParser.parseLocalOcrText(
             rawText = "VIP8",
