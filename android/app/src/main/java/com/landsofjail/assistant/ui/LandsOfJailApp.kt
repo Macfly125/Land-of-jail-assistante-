@@ -5879,6 +5879,10 @@ private fun AllianceScreen(
     var joinRequestError by remember { mutableStateOf(false) }
     var joinRequestMessage by remember { mutableStateOf<String?>(null) }
     var allianceMessages by remember { mutableStateOf<List<SupabaseAuthRepository.AllianceMessage>>(emptyList()) }
+    var allianceMessageTitleDraft by remember { mutableStateOf("") }
+    var allianceMessageCategory by remember { mutableStateOf("general") }
+    var allianceMessagePinnedDraft by remember { mutableStateOf(false) }
+    var allianceCategoryMenuExpanded by remember { mutableStateOf(false) }
     var allianceMessageDraft by remember { mutableStateOf("") }
     var allianceMessagesBusy by remember { mutableStateOf(false) }
     var allianceMessagesNotice by remember { mutableStateOf<String?>(null) }
@@ -6104,6 +6108,59 @@ private fun AllianceScreen(
                     )
                     if (cloudMyRank == "R4" || cloudMyRank == "R5") {
                         OutlinedTextField(
+                            value = allianceMessageTitleDraft,
+                            onValueChange = { allianceMessageTitleDraft = it.take(120) },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text(localizedUiText(language, "Titre de l'annonce", "Announcement title", "Titel der Ankündigung", "Duyuru başlığı", "Заголовок объявления", "公告标题", "Titolo dell'annuncio")) },
+                            singleLine = true
+                        )
+                        Box {
+                            OutlinedButton(
+                                onClick = { allianceCategoryMenuExpanded = true },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    localizedUiText(language, "Catégorie : ", "Category: ", "Kategorie: ", "Kategori: ", "Категория: ", "类别：", "Categoria: ") +
+                                        when (allianceMessageCategory) {
+                                            "event" -> localizedUiText(language, "Événement", "Event", "Event", "Etkinlik", "Событие", "活动", "Evento")
+                                            "war" -> localizedUiText(language, "Guerre", "War", "Krieg", "Savaş", "Война", "战争", "Guerra")
+                                            "rules" -> localizedUiText(language, "Règles", "Rules", "Regeln", "Kurallar", "Правила", "规则", "Regole")
+                                            "recruitment" -> localizedUiText(language, "Recrutement", "Recruitment", "Rekrutierung", "Üye alımı", "Набор", "招募", "Reclutamento")
+                                            else -> localizedUiText(language, "Général", "General", "Allgemein", "Genel", "Общее", "一般", "Generale")
+                                        }
+                                )
+                            }
+                            DropdownMenu(
+                                expanded = allianceCategoryMenuExpanded,
+                                onDismissRequest = { allianceCategoryMenuExpanded = false }
+                            ) {
+                                listOf(
+                                    "general" to localizedUiText(language, "Général", "General", "Allgemein", "Genel", "Общее", "一般", "Generale"),
+                                    "event" to localizedUiText(language, "Événement", "Event", "Event", "Etkinlik", "Событие", "活动", "Evento"),
+                                    "war" to localizedUiText(language, "Guerre", "War", "Krieg", "Savaş", "Война", "战争", "Guerra"),
+                                    "rules" to localizedUiText(language, "Règles", "Rules", "Regeln", "Kurallar", "Правила", "规则", "Regole"),
+                                    "recruitment" to localizedUiText(language, "Recrutement", "Recruitment", "Rekrutierung", "Üye alımı", "Набор", "招募", "Reclutamento")
+                                ).forEach { (key, label) ->
+                                    DropdownMenuItem(
+                                        text = { Text(label) },
+                                        onClick = {
+                                            allianceMessageCategory = key
+                                            allianceCategoryMenuExpanded = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                        if (cloudMyRank == "R5" || appDeveloper) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Checkbox(
+                                    checked = allianceMessagePinnedDraft,
+                                    onCheckedChange = { allianceMessagePinnedDraft = it }
+                                )
+                                Text(localizedUiText(language, "Épingler en haut de la liste", "Pin to top of the list", "Oben in der Liste anheften", "Listenin en üstüne sabitle", "Закрепить вверху списка", "置顶显示", "Fissa in cima all'elenco"))
+                            }
+                        }
+                        OutlinedTextField(
                             value = allianceMessageDraft,
                             onValueChange = { allianceMessageDraft = it.take(2000) },
                             modifier = Modifier.fillMaxWidth(),
@@ -6121,9 +6178,17 @@ private fun AllianceScreen(
                                 scope.launch {
                                     allianceMessagesBusy = true
                                     allianceMessagesNotice = null
-                                    cloudAuth.postAllianceMessage(linkedAllianceId, allianceMessageDraft)
-                                        .onSuccess {
+                                    cloudAuth.postAllianceAnnouncement(
+                                        linkedAllianceId,
+                                        allianceMessageTitleDraft,
+                                        allianceMessageDraft,
+                                        allianceMessageCategory,
+                                        allianceMessagePinnedDraft
+                                    ).onSuccess {
+                                            allianceMessageTitleDraft = ""
                                             allianceMessageDraft = ""
+                                            allianceMessageCategory = "general"
+                                            allianceMessagePinnedDraft = false
                                             cloudAuth.fetchAllianceMessages(linkedAllianceId).onSuccess { allianceMessages = it }
                                             allianceMessagesNotice = "Message enregistré pour l'alliance."
                                             allianceMessagesError = false
@@ -6135,7 +6200,7 @@ private fun AllianceScreen(
                                     allianceMessagesBusy = false
                                 }
                             },
-                            enabled = !allianceMessagesBusy && allianceMessageDraft.isNotBlank() &&
+                            enabled = !allianceMessagesBusy && allianceMessageTitleDraft.isNotBlank() && allianceMessageDraft.isNotBlank() &&
                                 accountPrefs.getString("cloud_alliance_id", "").orEmpty().isNotBlank(),
                             modifier = Modifier.fillMaxWidth()
                         ) {
@@ -6211,6 +6276,30 @@ private fun AllianceScreen(
                                                 onClick = {
                                                     scope.launch {
                                                         allianceMessagesBusy = true
+                                                        cloudAuth.setAllianceMessagePinned(message.id, !message.isPinned)
+                                                            .onSuccess {
+                                                                val linkedAllianceId = accountPrefs.getString("cloud_alliance_id", "").orEmpty()
+                                                                cloudAuth.fetchAllianceMessages(linkedAllianceId).onSuccess { allianceMessages = it }
+                                                                allianceMessagesNotice = if (message.isPinned) localizedUiText(language, "Message désépinglé.", "Message unpinned.", "Nachricht gelöst.", "Sabitleme kaldırıldı.", "Закрепление снято.", "已取消置顶。", "Messaggio rimosso dai fissati.") else localizedUiText(language, "Message épinglé en haut.", "Message pinned to top.", "Nachricht oben angeheftet.", "Mesaj en üste sabitlendi.", "Сообщение закреплено сверху.", "消息已置顶。", "Messaggio fissato in cima.")
+                                                                allianceMessagesError = false
+                                                            }
+                                                            .onFailure {
+                                                                allianceMessagesNotice = it.message ?: "Modification du message impossible."
+                                                                allianceMessagesError = true
+                                                            }
+                                                        allianceMessagesBusy = false
+                                                    }
+                                                },
+                                                enabled = !allianceMessagesBusy
+                                            ) {
+                                                Text(if (message.isPinned) localizedUiText(language, "Désépingler", "Unpin", "Lösen", "Sabitlemeyi kaldır", "Открепить", "取消置顶", "Rimuovi") else localizedUiText(language, "Épingler", "Pin", "Anheften", "Sabitle", "Закрепить", "置顶", "Fissa"))
+                                            }
+                                        }
+                                        if (cloudMyRank == "R5" || appDeveloper) {
+                                            TextButton(
+                                                onClick = {
+                                                    scope.launch {
+                                                        allianceMessagesBusy = true
                                                         cloudAuth.deleteAllianceMessage(message.id)
                                                             .onSuccess {
                                                                 allianceMessages = allianceMessages.filterNot { it.id == message.id }
@@ -6231,6 +6320,23 @@ private fun AllianceScreen(
                                                 Text(localizedUiText(language, "Supprimer", "Delete", "Löschen", "Sil", "Удалить", "删除", "Elimina"))
                                             }
                                         }
+                                    }
+                                    val messageCategoryLabel = when (message.category) {
+                                        "event" -> localizedUiText(language, "Événement", "Event", "Event", "Etkinlik", "Событие", "活动", "Evento")
+                                        "war" -> localizedUiText(language, "Guerre", "War", "Krieg", "Savaş", "Война", "战争", "Guerra")
+                                        "rules" -> localizedUiText(language, "Règles", "Rules", "Regeln", "Kurallar", "Правила", "规则", "Regole")
+                                        "recruitment" -> localizedUiText(language, "Recrutement", "Recruitment", "Rekrutierung", "Üye alımı", "Набор", "招募", "Reclutamento")
+                                        else -> localizedUiText(language, "Général", "General", "Allgemein", "Genel", "Общее", "一般", "Generale")
+                                    }
+                                    Text(
+                                        if (message.isPinned) localizedUiText(language, "ÉPINGLÉ · $messageCategoryLabel", "PINNED · $messageCategoryLabel", "ANGEHEFTET · $messageCategoryLabel", "SABİTLENDİ · $messageCategoryLabel", "ЗАКРЕПЛЕНО · $messageCategoryLabel", "已置顶 · $messageCategoryLabel", "FISSATO · $messageCategoryLabel")
+                                        else messageCategoryLabel,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = if (message.isPinned) Color(0xFFFBBF24) else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    if (message.title.isNotBlank()) {
+                                        Text(message.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                                     }
                                     Text(message.body, style = MaterialTheme.typography.bodyMedium)
                                 }
