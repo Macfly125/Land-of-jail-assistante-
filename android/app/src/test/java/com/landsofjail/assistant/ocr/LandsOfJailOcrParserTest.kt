@@ -98,7 +98,7 @@ class LandsOfJailOcrParserTest {
     @Test
     fun recognizesPlayerProfilePowerBadgeAboveEliminationsWithoutTakingEliminationCount() {
         val result = LandsOfJailOcrParser.parseLocalOcrText(
-            rawText = "Eugène\\nID: 1046814571\\n504.5M\\nÉliminations · 2M\\nAlliance: YRo\\nServeur: 311",
+            rawText = "Eugène\nID: 1046814571\n504.5M\nÉliminations · 2M\nAlliance: YRo\nServeur: 311",
             textBoxes = listOf(
                 OcrTextBox("504.5M", 490, 1030, 675, 1080),
                 OcrTextBox("Éliminations", 430, 1084, 640, 1120),
@@ -118,7 +118,7 @@ class LandsOfJailOcrParserTest {
     @Test
     fun recognizesProfilePowerBadgeEvenWhenEliminationsLabelIsNotReadButProfileMetadataIs() {
         val result = LandsOfJailOcrParser.parseLocalOcrText(
-            rawText = "504.5M\\nAlliance: YRo\\nServeur: 311",
+            rawText = "504.5M\nAlliance: YRo\nServeur: 311",
             textBoxes = listOf(
                 OcrTextBox("504.5M", 490, 1030, 675, 1080),
                 OcrTextBox("Alliance: YRo", 430, 1140, 760, 1180)
