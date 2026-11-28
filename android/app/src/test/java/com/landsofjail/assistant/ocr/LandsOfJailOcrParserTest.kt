@@ -434,6 +434,41 @@ Food: 1200"""
     }
 
     @Test
+    fun extractsAllResourceTypesShownInPlayerResourceStatistics() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            """
+            Argent liquide: 1.0B
+            Nourriture: 9.2B
+            Bois: 6.6B
+            Acier: 2.0B
+            Essence: 1.1B
+            Carte en or: 21.1M
+            Endurance: 1 752
+            EXP d'équipement: 53.1K
+            XP de héros: 121.0M
+            """.trimIndent()
+        )
+
+        val expected = mapOf(
+            "Cash / Or" to 1_000_000_000.0,
+            "Nourriture (Food)" to 9_200_000_000.0,
+            "Bois (Wood)" to 6_600_000_000.0,
+            "Acier (Steel)" to 2_000_000_000.0,
+            "Essence (Gasoline)" to 1_100_000_000.0,
+            "Carte en or (Gold Card)" to 21_100_000.0,
+            "Endurance (Stamina)" to 1_752.0,
+            "EXP d'équipement (Equipment EXP)" to 53_100.0,
+            "XP de héros (Hero XP)" to 121_000_000.0
+        )
+        expected.forEach { (name, value) ->
+            val resource = result.resources.singleOrNull { it.nom == name }
+            assertNotNull("Ressource manquante ou dupliquée : $name", resource)
+            assertEquals(name, value, resource!!.quantiteNumerique ?: Double.NaN, 0.1)
+        }
+        assertEquals("Le tableau contient neuf catégories distinctes", 9, result.resources.size)
+    }
+
+    @Test
     fun extractsNamedResourcesAndKeepsCompactValuesExplicit() {
         val result = LandsOfJailOcrParser.parseLocalOcrText("Food: 1.2M\nWood: 850K")
 
