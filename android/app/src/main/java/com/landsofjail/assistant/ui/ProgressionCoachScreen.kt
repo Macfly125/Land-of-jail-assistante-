@@ -26,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.landsofjail.assistant.model.AppLanguage
 import com.landsofjail.assistant.model.PlayerResourceStock
@@ -765,7 +766,7 @@ fun ProgressionCoachScreen(
         }
     }
 
-    LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth().heightIn(max = 640.dp)) {
+    LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth().heightIn(max = 640.dp).testTag("progression-coach-list")) {
         item {
             Text(
                 text(fr = "Coach de progression", en = "Progression coach", de = "Fortschrittscoach",
