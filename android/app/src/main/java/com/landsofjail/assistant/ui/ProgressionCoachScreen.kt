@@ -556,7 +556,7 @@ private fun ForticladPlannerCard(language: AppLanguage, profileId: String, inven
                 }
             }
             Text(label("Niveau Forticlad actuel", "Current Forticlad level", "Aktuelles Forticlad-Level", "Mevcut Forticlad seviyesi", "Текущий уровень Forticlad", "当前 Forticlad 等级", "Livello Forticlad attuale"))
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.testTag("forticlad-current-level-row")) {
                 items(ForticladSelection.currentLevels().toList()) { level ->
                     FilterChip(
                         selected = currentLevel == level,
@@ -570,7 +570,7 @@ private fun ForticladPlannerCard(language: AppLanguage, profileId: String, inven
                 }
             }
             Text(label("Niveau cible", "Target level", "Ziel-Level", "Hedef seviye", "Целевой уровень", "目标等级", "Livello obiettivo"))
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.testTag("forticlad-target-level-row")) {
                 items(ForticladSelection.targetLevels(currentLevel).toList()) { level ->
                     FilterChip(selected = targetLevel == level, onClick = { targetLevel = level },
                         modifier = Modifier.testTag("forticlad-target-level-$level"), label = { Text(level.toString()) })
