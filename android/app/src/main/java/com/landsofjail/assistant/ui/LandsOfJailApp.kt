@@ -2344,7 +2344,7 @@ fun LandsOfJailAssistantApp(
                             val selected = currentTab == tab
                             Column(
                                 modifier = Modifier
-                                    .width(96.dp)
+                                    .width(108.dp)
                                     .clip(RoundedCornerShape(12.dp))
                                     .clickable { currentTab = tab }
                                     .padding(horizontal = 3.dp, vertical = 5.dp),
@@ -2359,6 +2359,7 @@ fun LandsOfJailAssistantApp(
                                 )
                                 Text(
                                     text = tab.titleFor(currentLang),
+                                    modifier = Modifier.fillMaxWidth(),
                                     maxLines = 2,
                                     softWrap = true,
                                     overflow = TextOverflow.Clip,
