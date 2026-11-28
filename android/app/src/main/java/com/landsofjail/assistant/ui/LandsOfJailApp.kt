@@ -1093,6 +1093,7 @@ fun LandsOfJailAssistantApp(
             .putString("app_language_code", currentLang.code)
             .apply()
     }
+    var languageMenuExpanded by remember { mutableStateOf(false) }
     var currentTab by remember { mutableStateOf(AssistantTab.TABLEAU) }
     val giftCodeJson = remember { Json { ignoreUnknownKeys = true } }
     val giftCodePrefs = remember(context) { context.getSharedPreferences("gift_codes_cache_v1", Context.MODE_PRIVATE) }
@@ -2285,6 +2286,46 @@ fun LandsOfJailAssistantApp(
                         }
                     },
                     actions = {
+                        Box {
+                            TextButton(onClick = { languageMenuExpanded = true }, contentPadding = PaddingValues(horizontal = 6.dp, vertical = 4.dp)) {
+                                Text(
+                                    when (currentLang) {
+                                        AppLanguage.FR -> "FR"
+                                        AppLanguage.EN -> "EN"
+                                        AppLanguage.DE -> "DE"
+                                        AppLanguage.TR -> "TR"
+                                        AppLanguage.RU -> "RU"
+                                        AppLanguage.ZH -> "中文"
+                                        AppLanguage.IT -> "IT"
+                                    },
+                                    color = Color(0xFFFFC18A),
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 12.sp
+                                )
+                                Icon(Icons.Outlined.ArrowDropDown, contentDescription = localizedUiText(currentLang, "Choisir la langue", "Choose language", "Sprache wählen", "Dil seç", "Выбрать язык", "选择语言", "Scegli lingua"), tint = Color(0xFFFFC18A))
+                            }
+                            DropdownMenu(expanded = languageMenuExpanded, onDismissRequest = { languageMenuExpanded = false }) {
+                                listOf(AppLanguage.FR, AppLanguage.EN, AppLanguage.DE, AppLanguage.TR, AppLanguage.RU, AppLanguage.ZH, AppLanguage.IT).forEach { lang ->
+                                    val label = when (lang) {
+                                        AppLanguage.FR -> "Français"
+                                        AppLanguage.EN -> "English"
+                                        AppLanguage.DE -> "Deutsch"
+                                        AppLanguage.TR -> "Türkçe"
+                                        AppLanguage.RU -> "Русский"
+                                        AppLanguage.ZH -> "中文"
+                                        AppLanguage.IT -> "Italiano"
+                                    }
+                                    DropdownMenuItem(
+                                        text = { Text(label) },
+                                        leadingIcon = { if (currentLang == lang) Icon(Icons.Outlined.Check, contentDescription = null) },
+                                        onClick = {
+                                            languageMenuExpanded = false
+                                            currentLang = lang
+                                        }
+                                    )
+                                }
+                            }
+                        }
                         TextButton(enabled = !isAnalyzing && !isAutoCapturing, onClick = { showProfileDialog = true }) {
                             Text(
                                 localProfiles.firstOrNull { it.id == activeProfileId }?.name ?: "Profil",
