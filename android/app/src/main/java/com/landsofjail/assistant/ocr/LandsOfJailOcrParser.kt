@@ -881,7 +881,7 @@ object LandsOfJailOcrParser {
                     (line[label.length].isWhitespace() || line[label.length] == ':' || line[label.length] == '：')
             } ?: return@forEach
             val remainder = line.drop(entry.first.length).trim().trimStart(':', '：').trim()
-            val values = Regex("[0-9][0-9.,\\s]*[kmbKMB]?").findAll(remainder)
+            val values = Regex("(?:[0-9]{1,3}(?:[ ,][0-9]{3})+|[0-9]+(?:[.,][0-9]+)?)[kmbKMB]?").findAll(remainder)
                 .map { it.value.trim() }.filter { it.isNotEmpty() }.toList()
             if (values.size != 2) return@forEach
             val first = parseCompactNumeric(values[0])
