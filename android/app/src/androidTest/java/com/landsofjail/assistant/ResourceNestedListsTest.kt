@@ -37,11 +37,12 @@ class ResourceNestedListsTest {
             }
         }
 
-        // DataStore loads the profile asynchronously; wait for the screen content.
+        // DataStore loads the profile asynchronously; first wait for the visible header.
         composeRule.waitUntil(timeoutMillis = 10_000) {
-            composeRule.onAllNodesWithText("Nouvel objectif").fetchSemanticsNodes().isNotEmpty()
+            composeRule.onAllNodesWithText("Coach de progression").fetchSemanticsNodes().isNotEmpty()
         }
-        composeRule.onNodeWithText("Nouvel objectif").assertIsDisplayed()
+        // The Forticlad planner now occupies the first viewport, so scroll the nested list.
+        composeRule.onNodeWithText("Nouvel objectif").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("Enregistrer l’objectif")
             .performScrollTo()
             .assertIsDisplayed()
