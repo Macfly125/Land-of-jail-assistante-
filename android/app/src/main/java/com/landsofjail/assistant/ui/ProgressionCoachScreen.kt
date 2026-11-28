@@ -522,8 +522,8 @@ private fun ForticladPlannerCard(language: AppLanguage, profileId: String, inven
     var forticladStock by remember(profileId) { mutableStateOf(inventory.forticladCores.toString()) }
     var advancedStock by remember(profileId) { mutableStateOf(inventory.advancedCores.toString()) }
     var buildingId by remember { mutableStateOf("wardens_office") }
-    var currentLevel by remember { mutableStateOf(1) }
-    var targetLevel by remember { mutableStateOf(2) }
+    var currentLevel by remember(profileId) { mutableStateOf(0) }
+    var targetLevel by remember(profileId) { mutableStateOf(1) }
     var completedStages by remember { mutableStateOf(0) }
     fun label(fr: String, en: String, de: String, tr: String, ru: String, zh: String, it: String) =
         when (language) {
@@ -565,10 +565,11 @@ private fun ForticladPlannerCard(language: AppLanguage, profileId: String, inven
                             targetLevel = ForticladSelection.targetAfterCurrentChange(currentLevel, targetLevel)
                         },
                         modifier = Modifier.testTag("forticlad-current-level-$level"),
-                        label = { Text(level.toString()) }
+                        label = { Text(if (level == 0) "30" else level.toString()) }
                     )
                 }
             }
+            Text(label("Le niveau 30 est le point de départ avant Forticlad 1.", "Level 30 is the starting point before Forticlad 1.", "Level 30 ist der Ausgangspunkt vor Forticlad 1.", "Seviye 30, Forticlad 1 öncesindeki başlangıçtır.", "Уровень 30 — исходная точка перед Forticlad 1.", "30级是升级至 Forticlad 1 之前的起点。", "Il livello 30 è il punto di partenza prima di Forticlad 1."), style = MaterialTheme.typography.bodySmall)
             Text(label("Niveau cible", "Target level", "Ziel-Level", "Hedef seviye", "Целевой уровень", "目标等级", "Livello obiettivo"))
             LazyRow(horizontalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.testTag("forticlad-target-level-row")) {
                 items(ForticladSelection.targetLevels(currentLevel).toList()) { level ->
