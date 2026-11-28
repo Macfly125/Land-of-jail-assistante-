@@ -233,3 +233,22 @@ Nouvelles sources repérées lors d'une recherche publique. Elles sont inscrites
 - Les captures HUD publiques montrent que plusieurs compteurs coexistent dans une zone compacte ; la reconnaissance doit associer chaque nombre à son icône/zone, et non classifier par magnitude seule.
 - Aucune de ces images ne valide la lecture du compteur de nourriture 177.1M ou du badge de puissance 509 256 511 de la capture personnelle annotée dans la section précédente.
 - Tant que les images originales ne sont pas récupérées avec provenance/licence claire, elles restent hors des tests binaires. Les catégories Ressources et Bâtiments demeurent en attente de véritables fixtures annotées.
+
+
+## Échantillons authentiques fournis — statistiques des ressources (28 novembre 2026)
+
+Les trois images suivantes ont été fournies directement par le joueur dans la conversation. Elles sont annotées ci-dessous mais ne sont pas copiées dans le dépôt ; le manifeste ne prétend donc pas qu'un test automatisé sur fichiers a déjà été exécuté.
+
+| ID | Catégorie | Écran exact | Type de preuve | Langue | Résolution | Annotation relue | Statut |
+|---|---|---|---|---|---|---|---|
+| user-resource-legend-2026-11-28-01 | Ressources | Légende des icônes et libellés | Capture fournie par le joueur | Français | 1152 × 1536 | Argent liquide ; Nourriture ; Bois ; Acier ; Essence ; Carte en or ; Endurance ; EXP d'équipement ; XP de héros | collected / annotated |
+| user-resource-stats-2026-11-28-01 | Ressources | Statistiques des ressources et d'accélération | Capture fournie par le joueur | Français | 698 × 1536 | Colonnes « Total des objets » et « Ressources totales ». Valeurs visibles : Bois 6.6B / 7.0B ; Acier 2.0B / 2.0B ; Essence 1.1B / 1.1B ; Carte en or 0 / 21.1M ; Endurance 1 670 / 1 752 ; EXP équipement 0 / 53.1K ; XP héros 311K / 121.0M. Ligne Nourriture partiellement coupée : 9.2B / 9.5B (lecture à confirmer en cas de test OCR). | collected / annotated |
+| user-home-resources-2026-11-28-01 | Ressources / écran d'accueil | Barre supérieure et puissance du compte | Capture fournie par le joueur | Français | 698 × 1536 | Puissance 509 256 511 ; nourriture 177.1M ; autres compteurs visibles 1.0B, 234.9M, 60.6M et 60.0M sans attribution certaine dans cette annotation. | collected / partially annotated |
+
+### Règles spécifiques confirmées par ces captures
+
+- La liste de neuf libellés de la légende sert de dictionnaire de noms ; « Carte en or » est distincte de « Argent liquide ».
+- Le tableau des statistiques a deux colonnes numériques distinctes : « Total des objets » et « Ressources totales ». Ne jamais fusionner ni décaler les valeurs de ces colonnes. Si l'OCR ne conserve pas les en-têtes ou l'alignement, marquer la lecture comme partielle / à confirmer.
+- La barre supérieure de l'écran d'accueil est une disposition différente du tableau des statistiques. Les compteurs sans libellé OCR ne reçoivent pas de type par simple ordre supposé.
+- Le compteur de puissance avec icône de poing ne doit pas être interprété comme nourriture ou comme un stock.
+- Les fichiers originaux restent dans les pièces jointes de la conversation ; avant de déclarer les tests image « ocr-tested », il faut intégrer des fixtures image dans le dépôt après validation de la procédure et des droits de stockage.
