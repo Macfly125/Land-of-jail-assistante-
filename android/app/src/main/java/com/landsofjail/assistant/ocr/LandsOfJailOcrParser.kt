@@ -635,20 +635,19 @@ object LandsOfJailOcrParser {
         // cette position que si aucune ressource nommée ni rangée de ressources
         // supérieure n'a été détectée. La sécurité prime sur une valeur supposée.
         val hasPlayerProfileText = Regex("""\bID\s*[:#]?\s*[0-9]{5,}""", RegexOption.IGNORE_CASE).containsMatchIn(rawText) &&
-            Regex("""\b(?:alliance|serveur|server)\b""", RegexOption.IGNORE_CASE).containsMatchIn(rawText)
+            Regex("""\b(?:alliance|serveur|server|allianz|alleanza|alianza|ittifak|альянс|сервер)\b|联盟""", RegexOption.IGNORE_CASE).containsMatchIn(rawText)
         if (power == null && resources.isEmpty() && hasPlayerProfileText &&
             !hasPotentialTopResourceNumberRow(textBoxes, imageWidth, imageHeight)
         ) {
-            val eliminationLineIndex = lines.indexOfFirst {
-                Regex("""[ée]liminations?""", RegexOption.IGNORE_CASE).containsMatchIn(it)
-            }
+            val eliminationLabel = Regex("""(?:[ée]liminations?|eliminazione|eliminaciones|eliminierungen|eliminasyon(?:lar[ıi])?|убийств[а-яё]*|淘汰|击杀)""", RegexOption.IGNORE_CASE)
+            val eliminationLineIndex = lines.indexOfFirst { eliminationLabel.containsMatchIn(it) }
             if (eliminationLineIndex >= 0) {
-                val compactValueRegex = Regex("""\b\d+(?:[.,]\d+)?\s*[MB]\b""", RegexOption.IGNORE_CASE)
+                val compactValueRegex = Regex("""\b\d+(?:[.,]\d+)?\s*[KMB]\b""", RegexOption.IGNORE_CASE)
                 val candidate = (eliminationLineIndex downTo maxOf(0, eliminationLineIndex - 2))
                     .firstNotNullOfOrNull { lineIndex ->
                         val line = lines[lineIndex]
                         val beforeEliminations = if (lineIndex == eliminationLineIndex) {
-                            (Regex("""[ée]liminations?""", RegexOption.IGNORE_CASE).find(line)?.range?.first?.let { line.take(it) } ?: line)
+                            (eliminationLabel.find(line)?.range?.first?.let { line.take(it) } ?: line)
                         } else {
                             line
                         }
