@@ -23,7 +23,7 @@ class ForticladSelectionTest {
     fun allCurrentAndPersistedTargetCombinationsNormalizeSafely() {
         for (current in -2..12) {
             val normalizedCurrent = ForticladSelection.normalizeCurrentLevel(current)
-            assertTrue(normalizedCurrent in 1..9)
+            assertTrue(normalizedCurrent in 0..9)
             val targets = ForticladSelection.targetLevels(current)
             assertEquals(normalizedCurrent + 1, targets.first)
             assertEquals(10, targets.last)
@@ -44,11 +44,13 @@ class ForticladSelectionTest {
 
     @Test
     fun allDropdownRangesStayWithinGameBounds() {
-        assertEquals(1, ForticladSelection.currentLevels().first)
+        assertEquals(0, ForticladSelection.currentLevels().first)
         assertEquals(9, ForticladSelection.currentLevels().last)
         assertEquals(0, ForticladSelection.completedSteps().first)
         assertEquals(4, ForticladSelection.completedSteps().last)
         assertEquals(10, ForticladSelection.targetLevels(9).single())
+        assertEquals(1, ForticladSelection.targetLevels(0).first)
         assertEquals(2, ForticladSelection.targetLevels(1).first)
+        assertEquals(1, ForticladSelection.targetAfterCurrentChange(0, 0))
     }
 }
