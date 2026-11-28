@@ -176,17 +176,21 @@ object LandsOfJailOcrParser {
     ): String? {
         if (boxes.isEmpty() || imageWidth <= 0 || imageHeight <= 0) return null
         val compactNumber = Regex("""\b[0-9]+(?:[.,][0-9]+)?\s*[MB]\b""", RegexOption.IGNORE_CASE)
-        val eliminationBox = boxes.firstOrNull {
-            Regex("""[ée]liminations?""", RegexOption.IGNORE_CASE).containsMatchIn(it.text)
+        // Require profile-specific anchors. A lone "Eliminations" label can occur
+        // in other screens and must never turn a nearby quantity into player power.
+        val hasPlayerId = boxes.any {
+            Regex("""\bID\s*[:#]?\s*[0-9]{5,}""", RegexOption.IGNORE_CASE).containsMatchIn(it.text)
         }
-        val metadataBox = boxes.firstOrNull {
+        val hasProfileMetadata = boxes.any {
             Regex("""\b(?:alliance|serveur|server)\b""", RegexOption.IGNORE_CASE).containsMatchIn(it.text)
         }
-        val anchorY = eliminationBox?.let { (it.top + it.bottom) / 2f }
-            ?: metadataBox?.let { (it.top + it.bottom) / 2f }
-            ?: return null
-        val minY = if (eliminationBox != null) anchorY - imageHeight * 0.10f
-            else anchorY - imageHeight * 0.18f
+        if (!hasPlayerId || !hasProfileMetadata) return null
+
+        val eliminationBox = boxes.firstOrNull {
+            Regex("""[ée]liminations?""", RegexOption.IGNORE_CASE).containsMatchIn(it.text)
+        } ?: return null
+        val anchorY = (eliminationBox.top + eliminationBox.bottom) / 2f
+        val minY = anchorY - imageHeight * 0.10f
         return boxes.asSequence()
             .filter { box ->
                 val centerY = (box.top + box.bottom) / 2f
@@ -622,7 +626,9 @@ object LandsOfJailOcrParser {
         // quantité de ressource (notamment Food). N'inférer la puissance depuis
         // cette position que si aucune ressource nommée ni rangée de ressources
         // supérieure n'a été détectée. La sécurité prime sur une valeur supposée.
-        if (power == null && resources.isEmpty() &&
+        val hasPlayerProfileText = Regex("""\bID\s*[:#]?\s*[0-9]{5,}""", RegexOption.IGNORE_CASE).containsMatchIn(rawText) &&
+            Regex("""\b(?:alliance|serveur|server)\b""", RegexOption.IGNORE_CASE).containsMatchIn(rawText)
+        if (power == null && resources.isEmpty() && hasPlayerProfileText &&
             !hasPotentialTopResourceNumberRow(textBoxes, imageWidth, imageHeight)
         ) {
             val eliminationLineIndex = lines.indexOfFirst {
