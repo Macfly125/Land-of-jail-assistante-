@@ -271,7 +271,7 @@ object LandsOfJailOcrParser {
         var power: PowerMetric? = null
         var wardenLevel: String? = null
 
-        val powerRegex = Regex("""(?:^|[^\p{L}\p{N}])(?:puissance|power|macht|güç|мощь|comb\.?\s*power|cp|战力)(?=\s|[:：-]|[0-9])\s*[:：-]?\s*([0-9][0-9\s.,kmbKMB]*)""", RegexOption.IGNORE_CASE)
+        val powerRegex = Regex("""(?:^|[^\p{L}\p{N}])(?:puissance|power|macht|kampfkraft|potenza|güç|мощь|comb\.?\s*power|cp|战力)(?=\s|[:：-]|[0-9])\s*[:：-]?\s*([0-9][0-9\s.,kmbKMB]*)""", RegexOption.IGNORE_CASE)
         val levelRegex = Regex("""(?:niv\.?|lv\.?|level)\s*([0-9]+)""", RegexOption.IGNORE_CASE)
         // Le niveau du Bureau du directeur peut être affiché avant ou après son nom
         // selon la langue et la disposition de l'écran. Seul un couple libellé + niveau
