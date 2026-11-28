@@ -54,7 +54,6 @@ class ResourceNestedListsTest {
     }
 
     @Test
-    @Test
     fun forticladLevelSixSelectionIsPreservedAndTargetAdjusted() {
         composeRule.setContent {
             MaterialTheme {
@@ -79,6 +78,7 @@ class ResourceNestedListsTest {
         composeRule.onNodeWithTag("forticlad-target-level-7").assertIsSelected()
     }
 
+    @Test
     fun svsPlannerMeasuresAndScrollsInsideParentLazyColumn() {
         composeRule.setContent {
             MaterialTheme {
