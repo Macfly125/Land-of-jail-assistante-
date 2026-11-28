@@ -151,6 +151,27 @@ class LandsOfJailOcrParserTest {
     }
 
     @Test
+    fun recognizesLocalizedProfilePowerBadgeWithRussianProfileLabels() {
+        val result = LandsOfJailOcrParser.parseLocalOcrText(
+            rawText = "ID: 1046814571\n504.5M\nУбийства · 2M\nАльянс: YRo\nСервер: 311",
+            textBoxes = listOf(
+                OcrTextBox("ID: 1046814571", 430, 970, 690, 1010),
+                OcrTextBox("504.5M", 490, 1030, 675, 1080),
+                OcrTextBox("Убийства", 430, 1084, 640, 1120),
+                OcrTextBox("2M", 690, 1084, 760, 1120),
+                OcrTextBox("Альянс: YRo", 430, 1140, 760, 1180),
+                OcrTextBox("Сервер: 311", 430, 1190, 650, 1230)
+            ),
+            imageWidth = 1152,
+            imageHeight = 1536
+        )
+
+        assertEquals("504.5M", result.power?.puissanceTotaleTexte)
+        assertEquals(504_500_000L, result.power?.puissanceTotaleNumerique)
+        assertFalse(result.power?.incertain ?: true)
+    }
+
+    @Test
     fun recognizesHomeScreenPowerBadgeByItsPositionWithoutReadingFoodAsPower() {
         val result = LandsOfJailOcrParser.parseLocalOcrText(
             rawText = "VIP8",
