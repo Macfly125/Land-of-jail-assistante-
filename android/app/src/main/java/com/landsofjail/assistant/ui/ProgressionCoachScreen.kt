@@ -624,7 +624,7 @@ private fun ForticladPlannerCard(language: AppLanguage, profileId: String, inven
                     "Nessun costo pubblicato per questo intervallo; non viene inventata alcuna stima."),
                     style = MaterialTheme.typography.bodySmall)
             } else {
-                Text("${label("Noyaux Forticlad", "Forticlad Cores", "Forticlad-Kerne", "Forticlad çekirdekleri", "Ядра Forticlad", "Forticlad 核心", "Nuclei Forticlad")}: ${NumberFormat.getIntegerInstance().format(estimate.forticladCores)}")
+                Text("${label("Noyaux Forticlad", "Forticlad Cores", "Forticlad-Kerne", "Forticlad çekirdekleri", "Ядра Forticlad", "Forticlad 核心", "Nuclei Forticlad")}: ${NumberFormat.getIntegerInstance().format(estimate.forticladCores)}", modifier = Modifier.testTag("forticlad-estimated-forticlad-cores"))
                 Text("${label("Noyaux avancés", "Advanced Cores", "Erweiterte Kerne", "Gelişmiş çekirdekler", "Улучшенные ядра", "高级核心", "Nuclei avanzati")}: ${NumberFormat.getIntegerInstance().format(estimate.advancedCores)}")
                 Text(label("Étapes incluses", "Included stages", "Enthaltene Stufen", "Dahil edilen aşamalar", "Включённые этапы", "包含阶段", "Fasi incluse") + ": ${estimate.includedStages}")
                 Text(label("Il te manque encore", "Still needed", "Noch benötigt", "Hâlâ gereken", "Ещё требуется", "仍需准备", "Ancora necessari"))
