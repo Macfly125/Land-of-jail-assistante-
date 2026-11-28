@@ -103,7 +103,9 @@ class ResourceNestedListsTest {
         composeRule.onNodeWithTag("forticlad-current-level-row").performScrollToIndex(0)
         composeRule.onNodeWithTag("forticlad-current-level-0").assertIsSelected()
         composeRule.onNodeWithTag("forticlad-target-level-1").assertIsSelected()
-        composeRule.onNodeWithText(NumberFormat.getIntegerInstance().format(1_250L)).assertIsDisplayed()
+        composeRule.onNodeWithText(NumberFormat.getIntegerInstance().format(1_250L))
+            .performScrollTo()
+            .assertIsDisplayed()
     }
 
     @Test
