@@ -437,7 +437,7 @@ object LandsOfJailOcrParser {
                     // Ne jamais emprunter un niveau de bâtiment, même si aucune autre fiche robot ne suit.
                     val contextEnd = listOfNotNull(nextRobotIndex, nextBuildingPanelIndex).minOrNull() ?: contextLimit
                     val context = lines.subList(index, maxOf(index + 1, contextEnd)).joinToString(" ")
-                    val level = Regex("""(?:lv\.?|level|niv\.?|niveau|seviye|уровень|等级)\s*[:：]?\s*([0-9]{1,3})""", RegexOption.IGNORE_CASE)
+                    val level = Regex("""(?:lv\.?|level|niv\.?|niveau|livello|stufe|seviye|уровень|等级)\s*[:：]?\s*([0-9]{1,3})""", RegexOption.IGNORE_CASE)
                         .find(context)?.groupValues?.get(1)
                     val powerText = Regex("""(?:power|puissance|atk|attack|güç|мощь|сила|战力)\s*[:：]?\s*([0-9]+(?:[.,][0-9]+)?\s*%?)""", RegexOption.IGNORE_CASE)
                         .find(context)?.groupValues?.get(1)?.trim().orEmpty()
