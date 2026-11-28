@@ -5,8 +5,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToIndex
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.landsofjail.assistant.model.AppLanguage
 import com.landsofjail.assistant.ui.ProgressionCoachScreen
@@ -41,8 +43,9 @@ class ResourceNestedListsTest {
         composeRule.waitUntil(timeoutMillis = 10_000) {
             composeRule.onAllNodesWithText("Coach de progression").fetchSemanticsNodes().isNotEmpty()
         }
-        // The Forticlad planner now occupies the first viewport, so scroll the nested list.
-        composeRule.onNodeWithText("Nouvel objectif").performScrollTo().assertIsDisplayed()
+        // Scroll the nested LazyColumn to item 3; lazy content is composed on demand.
+        composeRule.onNodeWithTag("progression-coach-list").performScrollToIndex(2)
+        composeRule.onNodeWithText("Nouvel objectif").assertIsDisplayed()
         composeRule.onNodeWithText("Enregistrer l’objectif")
             .performScrollTo()
             .assertIsDisplayed()
