@@ -1096,6 +1096,21 @@ Stahl
     }
 
     @Test
+    fun readsRobotPowerAndSkillsInItalianAndGerman() {
+        val italian = LandsOfJailOcrParser.parseLocalOcrText(
+            "Ranger\\nPotenza: 120\\nAbilità: Colpo rapido"
+        ).robots.single()
+        assertEquals("120", italian.puissance)
+        assertTrue(italian.competences.contains("Colpo rapido"))
+
+        val german = LandsOfJailOcrParser.parseLocalOcrText(
+            "Ranger\\nKampfkraft: 135\\nFähigkeiten: Präzisionsschuss"
+        ).robots.single()
+        assertEquals("135", german.puissance)
+        assertTrue(german.competences.contains("Präzisionsschuss"))
+    }
+
+    @Test
     fun doesNotBorrowTheNextRobotsLevelWhenSeveralRobotCardsAreVisible() {
         val result = LandsOfJailOcrParser.parseLocalOcrText(
             "Ranger\nPhantom Cat\nLevel 90"
